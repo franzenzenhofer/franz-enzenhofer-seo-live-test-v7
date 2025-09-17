@@ -4,8 +4,15 @@ export const getActiveTabId = async () => {
 }
 
 export const sendToTab = async <T>(tabId: number, type: string): Promise<T> => {
-  const res = await chrome.tabs.sendMessage(tabId, { type })
-  return res as T
+  try {
+    const res = await chrome.tabs.sendMessage(tabId, { type })
+    return res as T
+  } catch {
+    // If the content script isn't injected (e.g., tab was open before install), inject and retry once.
+    await chrome.scripting.executeScript({ target: { tabId }, files: ['src/content/index.ts'] })
+    const res = await chrome.tabs.sendMessage(tabId, { type })
+    return res as T
+  }
 }
 
 export const getPageInfoFromActive = async <T>() => {
@@ -13,4 +20,3 @@ export const getPageInfoFromActive = async <T>() => {
   if (!tabId) throw new Error('No active tab')
   return sendToTab<T>(tabId, 'getPageInfo')
 }
-

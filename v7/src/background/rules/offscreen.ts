@@ -9,7 +9,7 @@ export const ensureOffscreen = async (): Promise<boolean> => {
     if (has) return true
     await chrome.offscreen?.createDocument({
       url,
-      reasons: [chrome.offscreen.Reason.IFRAME_SCRIPTING],
+      reasons: [chrome.offscreen.Reason.DOM_PARSER],
       justification: 'Run rules asynchronously in isolated doc',
     })
     return true
