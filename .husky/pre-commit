@@ -1,5 +1,6 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 echo "Running typecheck + lint (v7) before commit..."
-npm run -w v7 typecheck && npm run -w v7 lint
+npm run -w v7 typecheck && npm run -w v7 lint || exit 1
+
+echo "Bumping v7 version (pre-commit)"
+node v7/scripts/bump-version.mjs || exit 1
+git add v7/package.json

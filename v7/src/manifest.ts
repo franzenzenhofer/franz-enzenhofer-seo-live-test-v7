@@ -1,12 +1,14 @@
 import { defineManifest } from '@crxjs/vite-plugin'
 
+import pkg from '../package.json'
+
 import { detectLegacyClientId } from './manifest-env'
 import { COMMANDS, HOST_PERMISSIONS, PANEL_PATH, PERMISSIONS } from './manifest.parts'
 
 const clientId = detectLegacyClientId()
 const isDev = process.env['EXT_ENV'] === 'dev'
 const name = isDev ? 'F19N Obtrusive Live Test v7 (Dev)' : 'F19N Obtrusive Live Test v7'
-const version = '0.1.0'
+const version = pkg.version
 const version_name = isDev ? `${version}-dev` : version
 
 export default defineManifest({
