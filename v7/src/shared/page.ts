@@ -1,3 +1,5 @@
+import { enrichFromEvents } from './page.enrich'
+
 import type { Page } from '@/core/types'
 import type { EventRec } from '@/background/pipeline/types'
 
@@ -34,11 +36,7 @@ export const pageFromEvents = async (
   getHref: () => string,
   probe: (u: string) => Promise<Head> = head,
 ): Promise<Page> => {
-  const lastDom = [...ev].reverse().find((e) => e.t === 'dom:document_idle' || e.t === 'dom:document_end')
-  const html = ((lastDom?.d as { html?: string } | undefined)?.html || '').toString()
-  const firstUrl = ([...ev].reverse().find((e) => !!e.u)?.u as string | undefined) || ''
-  const url = firstUrl || (getHref() || 'about:blank')
-  const res = ev.filter((e)=> e.t === 'req:headers' && !!e.u).map((e)=> e.u!)
-  const p = await pageFromHtml(html, url, makeDoc, probe)
-  return { ...p, resources: res }
+  const p0 = enrichFromEvents(ev, makeDoc, getHref)
+  const base = await pageFromHtml(p0.html, p0.url, makeDoc, probe)
+  return { ...base, ...p0.extra }
 }
