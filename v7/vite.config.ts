@@ -12,4 +12,11 @@ const root = dirname(fileURLToPath(import.meta.url))
 export default defineConfig({
   plugins: [react(), crx({ manifest })],
   resolve: { alias: { '@': r(root, 'src') } },
+  build: {
+    rollupOptions: {
+      input: {
+        offscreen: r(root, 'src/offscreen.html'),
+      },
+    },
+  },
 })
