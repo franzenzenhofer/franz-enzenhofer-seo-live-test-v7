@@ -3,13 +3,22 @@ export const getActiveTabId = async () => {
   return tab?.id ?? null
 }
 
+const contentScriptFiles = (): string[] => {
+  const m = chrome.runtime.getManifest()
+  const files = (m.content_scripts || []).flatMap((cs) => cs.js || [])
+  return Array.from(new Set(files))
+}
+
 export const sendToTab = async <T>(tabId: number, type: string): Promise<T> => {
   try {
     const res = await chrome.tabs.sendMessage(tabId, { type })
     return res as T
   } catch {
-    // If the content script isn't injected (e.g., tab was open before install), inject and retry once.
-    await chrome.scripting.executeScript({ target: { tabId }, files: ['src/content/index.ts'] })
+    // If the content script isn't injected (e.g., tab was open before install), inject and retry once
+    // using whatever files are declared in the manifest (built asset paths in prod).
+    const files = contentScriptFiles()
+    if (!files.length) throw new Error('No content scripts declared')
+    await chrome.scripting.executeScript({ target: { tabId }, files })
     const res = await chrome.tabs.sendMessage(tabId, { type })
     return res as T
   }
