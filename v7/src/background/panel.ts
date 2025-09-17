@@ -1,3 +1,5 @@
+import { log } from '@/shared/logs'
+
 // Open the side panel defensively. Never throw.
 export const enableAndOpenSidePanel = (tabId: number, path = 'src/sidepanel.html') => {
   // Enable and set path, but swallow any errors.
@@ -21,7 +23,10 @@ export const enableAndOpenSidePanel = (tabId: number, path = 'src/sidepanel.html
   try {
     const m = chrome.runtime.getManifest()
     const files = (m.content_scripts || []).flatMap((cs) => cs.js || [])
-    if (files.length) chrome.scripting.executeScript({ target: { tabId }, files }).catch(() => {})
+    if (files.length) {
+      log(tabId, `inject:start ${JSON.stringify(files)}`).catch(() => {})
+      chrome.scripting.executeScript({ target: { tabId }, files }).then(() => log(tabId, 'inject:done')).catch(() => log(tabId, 'inject:fail'))
+    }
   } catch {
     // ignore
   }

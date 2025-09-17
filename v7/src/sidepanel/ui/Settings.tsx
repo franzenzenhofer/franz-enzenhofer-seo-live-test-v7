@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 
-import { GroupToggles } from './GroupToggles'
+import { RuleFlags } from './RuleFlags'
+import { AutoClear } from './AutoClear'
 
-import { registry } from '@/rules/registry'
 import { TOKEN_KEY, getStoredToken, interactiveLogin, revoke } from '@/shared/auth'
 
 type Flags = Record<string, boolean>
@@ -16,10 +16,7 @@ export const Settings = () => {
       setFlags(f || {}); setVars(globalRuleVariables || {})
     }); getStoredToken().then((t)=> setHasToken(!!t)).catch(() => {})
   }, [])
-  const toggle = (id: string) => {
-    const nf = { ...flags, [id]: !(flags[id] ?? true) }
-    setFlags(nf); chrome.storage.local.set({ 'rule-flags': nf })
-  }
+  const setFlagsAndStore = (nf: Flags) => { setFlags(nf); chrome.storage.local.set({ 'rule-flags': nf }) }
   const setVar = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const nv = { ...vars, [k]: e.target.value }; setVars(nv); chrome.storage.local.set({ globalRuleVariables: nv })
   }
@@ -29,13 +26,8 @@ export const Settings = () => {
   const signOut = async () => { return revoke().then(() => setHasToken(false)) }
   return (
     <div className="space-y-3">
-      <div>
-        <h2 className="font-semibold">Rules</h2>
-        {registry.map(r => (
-          <label key={r.id} className="block text-sm"><input type="checkbox" checked={flags[r.id] ?? r.enabled} onChange={()=> toggle(r.id)} /> {r.name}</label>
-        ))}
-      </div>
-      <GroupToggles rules={registry} flags={flags} onChange={setFlags} />
+      <AutoClear />
+      <RuleFlags flags={flags} setFlags={setFlagsAndStore} />
       <div>
         <h2 className="font-semibold">Google Login</h2>
         <div className="flex items-center gap-2 text-sm">
