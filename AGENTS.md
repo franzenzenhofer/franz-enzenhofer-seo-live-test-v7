@@ -1,4 +1,4 @@
-Agents Guide (Authoritative)
+Agents Guide (Authoritative) — Closed Source
 
 Scope
 
@@ -96,3 +96,10 @@ Quick Start (v7)
 - Install deps: `cd v7 && npm i`
 - Dev cycle: `npm run typecheck && npm run lint && npm test && npm run build`
 - Load in Chrome: `chrome://extensions` → Developer mode → Load unpacked → `v7/dist`
+Closed Source Policy
+
+- This repository is PRIVATE and CLOSED SOURCE.
+- Do not publish any part of the code to public repositories or registries.
+- Do not paste code or internal details into public issues or forums.
+- Use redaction/sanitization when sharing logs or errors outside trusted channels.
+- Respect LICENSE.txt (Proprietary, All Rights Reserved).
