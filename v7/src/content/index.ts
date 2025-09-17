@@ -19,3 +19,17 @@ chrome.runtime.onMessage.addListener((msg, _s, reply) => {
   reply(data satisfies PageInfoT)
   return true
 })
+
+// Expose sidepanel URL only in Dev builds for E2E; avoid CSP violations in production pages.
+try {
+  const m = chrome.runtime.getManifest()
+  const vn = (m as unknown as { version_name?: string }).version_name || ''
+  if (m?.name?.includes('(Dev)') || vn.includes('dev')) {
+    const u = chrome.runtime.getURL('src/sidepanel.html')
+    const s = document.createElement('script')
+    s.textContent = `window.__LT_SIDEPANEL_URL__=${JSON.stringify(u)}`
+    const parent = document.documentElement || document.head || document.body
+    if (parent) parent.appendChild(s)
+    s.remove()
+  }
+} catch { /* ignore */ }

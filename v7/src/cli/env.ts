@@ -6,3 +6,6 @@ export const fromEnvVariables = () => {
   return out
 }
 
+export const googleTokenFromEnv = () => {
+  return process.env['GOOGLE_API_ACCESS_TOKEN'] || process.env['GSC_TOKEN'] || ''
+}

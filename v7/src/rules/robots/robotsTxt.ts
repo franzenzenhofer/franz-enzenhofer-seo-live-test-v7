@@ -1,6 +1,12 @@
 import type { Rule } from '@/core/types'
 
-const urlOf = (u: string) => { try { const o = new URL(u); return `${o.origin}/robots.txt` } catch { return '' } }
+const urlOf = (u: string) => {
+  try {
+    const o = new URL(u)
+    if (o.protocol !== 'http:' && o.protocol !== 'https:') return ''
+    return `${o.origin}/robots.txt`
+  } catch { return '' }
+}
 
 export const robotsTxtRule: Rule = {
   id: 'robots-exists',
@@ -8,7 +14,7 @@ export const robotsTxtRule: Rule = {
   enabled: true,
   run: async (page) => {
     const rUrl = urlOf(page.url)
-    if (!rUrl) return { label: 'ROBOTS', message: 'Invalid URL', type: 'warn' }
+    if (!rUrl) return { label: 'ROBOTS', message: 'Invalid or unsupported URL', type: 'info' }
     try {
       const r = await fetch(rUrl, { method: 'GET' })
       if (!r.ok) return { label: 'ROBOTS', message: `robots.txt not reachable (${r.status})`, type: 'warn' }
@@ -20,4 +26,3 @@ export const robotsTxtRule: Rule = {
     }
   },
 }
-

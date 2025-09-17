@@ -17,4 +17,12 @@ export const enableAndOpenSidePanel = (tabId: number, path = 'src/sidepanel.html
         // ignore
       }
     })
+  // Proactively inject declared content scripts for best UX.
+  try {
+    const m = chrome.runtime.getManifest()
+    const files = (m.content_scripts || []).flatMap((cs) => cs.js || [])
+    if (files.length) chrome.scripting.executeScript({ target: { tabId }, files }).catch(() => {})
+  } catch {
+    // ignore
+  }
 }

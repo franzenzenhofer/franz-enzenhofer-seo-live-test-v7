@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import sade from 'sade'
 
 import { execUrl, execFile } from './exec'

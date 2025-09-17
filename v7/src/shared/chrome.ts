@@ -10,6 +10,7 @@ const contentScriptFiles = (): string[] => {
 }
 
 export const sendToTab = async <T>(tabId: number, type: string): Promise<T> => {
+  await chrome.storage.session.set({ lastActiveTab: tabId }).catch(() => {})
   try {
     const res = await chrome.tabs.sendMessage(tabId, { type })
     return res as T
@@ -18,10 +19,17 @@ export const sendToTab = async <T>(tabId: number, type: string): Promise<T> => {
     // using whatever files are declared in the manifest (built asset paths in prod).
     const files = contentScriptFiles()
     if (!files.length) throw new Error('No content scripts declared')
+    await chrome.storage.session.set({ [`inject:${tabId}`]: files }).catch(() => {})
     await chrome.scripting.executeScript({ target: { tabId }, files })
     const res = await chrome.tabs.sendMessage(tabId, { type })
     return res as T
   }
+}
+
+export const injectForTab = async (tabId: number) => {
+  const files = contentScriptFiles()
+  if (!files.length) return
+  await chrome.scripting.executeScript({ target: { tabId }, files })
 }
 
 export const getPageInfoFromActive = async <T>() => {

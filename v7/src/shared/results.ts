@@ -16,3 +16,6 @@ export const watchResults = (tabId: number, cb: (r: Result[]) => void) => {
   return () => chrome.storage.onChanged.removeListener(h)
 }
 
+export const clearResults = async (tabId: number) => {
+  await chrome.storage.local.remove(key(tabId))
+}
