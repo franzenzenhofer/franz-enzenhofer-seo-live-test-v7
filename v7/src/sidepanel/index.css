@@ -4,6 +4,27 @@
 
 :root { color-scheme: light dark; }
 
+/* DevTools‑like tokens */
+:root{
+  --dt-bg:#fff; --dt-fg:#1f2328; --dt-border:#e4e7ec; --dt-subtle:#f6f8fa;
+  --dt-chip-bg:#eef2f6; --dt-chip-fg:#111827; --dt-chip-on:#0b57d0; --dt-chip-on-fg:#fff;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --dt-bg:#1f1f1f; --dt-fg:#e5e7eb; --dt-border:#2a2a2a; --dt-subtle:#151515; --dt-chip-bg:#2a2f36; --dt-chip-fg:#e5e7eb; --dt-chip-on:#3b82f6; --dt-chip-on-fg:#fff; }
+}
+
+html,body{ background:var(--dt-bg); color:var(--dt-fg); font:12px/1.4 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif; }
+
+.dt-toolbar{ border-bottom:1px solid var(--dt-border); padding-bottom:.25rem; }
+
+/* Key/Value rows */
 .k { @apply text-xs text-slate-500; }
 .v { @apply text-sm font-medium break-all; }
 
+/* Filter chips like DevTools */
+.dt-chip{ display:inline-flex; align-items:center; gap:.25rem; padding:.15rem .5rem; border-radius:6px; background:var(--dt-chip-bg); color:var(--dt-chip-fg); cursor:pointer; user-select:none; }
+.dt-chip input{ display:none; }
+.dt-chip:has(input:checked){ background:var(--dt-chip-on); color:var(--dt-chip-on-fg); }
+
+/* Logs block */
+.dt-logs{ background:var(--dt-subtle); border:1px solid var(--dt-border); border-radius:6px; }

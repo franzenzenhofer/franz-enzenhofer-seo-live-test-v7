@@ -21,7 +21,7 @@ export const App = () => {
   const d = q.data!
   return (
     <div className="p-3 space-y-3 w-[360px]">
-      <div className="flex items-center justify-between">
+      <div className="dt-toolbar flex items-center justify-between">
         <h1 className="text-lg font-semibold">Live Test</h1>
         <Toolbar settings={settings} toggleSettings={()=> setSettings(s=>!s)} showLogs={showLogs} toggleLogs={()=> setShowLogs(s=>!s)} />
       </div>
