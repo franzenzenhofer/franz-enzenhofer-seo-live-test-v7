@@ -1,0 +1,22 @@
+{
+  "name": "franz-enzenhofer-seo-live-test-monorepo",
+  "private": true,
+  "workspaces": [
+    "v7"
+  ],
+  "scripts": {
+    "dev": "npm run -w v7 dev",
+    "build": "npm run -w v7 build",
+    "test": "npm run -w v7 test",
+    "lint": "npm run -w v7 lint",
+    "typecheck": "npm run -w v7 typecheck",
+    "format": "npm run -w v7 format",
+    "ci": "npm run -w v7 ci",
+    "pack": "npm run -w v7 pack",
+    "cli": "npm run -w v7 cli",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.6"
+  }
+}

@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "Running typecheck + lint (v7) before commit..."
+npm run -w v7 typecheck && npm run -w v7 lint
