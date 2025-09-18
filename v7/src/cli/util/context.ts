@@ -1,6 +1,6 @@
-import simpleRobotParser from 'simple-functional-robots-txt-parser'
-
 import type { Ctx } from '../types'
+
+import simpleRobotParser from '@/vendor/robots'
 
 export const buildRuleContext = (ctx: Ctx, page: unknown, title: string) => ({
   createResult: (...args: unknown[]) => {

@@ -1,5 +1,4 @@
-import parse from 'simple-functional-robots-txt-parser'
-
+import parse from '@/vendor/robots'
 import type { Rule } from '@/core/types'
 
 const sameHost = (a: string, b: string) => { try { return new URL(a).host === new URL(b).host } catch { return false } }

@@ -18,8 +18,10 @@ export const pushEvent = async (tabId: number, ev: import('./types').EventRec) =
     if (auto !== false) await chrome.storage.local.remove(`results:${tabId}`)
     const { 'ui:preserveLog': keep } = await chrome.storage.local.get('ui:preserveLog')
     if (keep !== true) await chrome.storage.session.remove(`logs:${tabId}`)
+    // Do not schedule finalize on nav:before; wait for DOM
+    return
   }
-  await scheduleFinalize(tabId)
+  if (ev.t === 'dom:document_idle') await scheduleFinalize(tabId, 200)
 }
 
 export const markDomPhase = async (tabId: number) => {

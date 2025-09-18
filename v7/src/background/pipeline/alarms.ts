@@ -1,7 +1,9 @@
 const alarmName = (tabId: number) => `finalize:${tabId}`
 
 export const scheduleFinalize = async (tabId: number, inMs = 3000) => {
-  await chrome.alarms.create(alarmName(tabId), { when: Date.now() + inMs })
+  const name = alarmName(tabId)
+  try { await chrome.alarms.clear(name) } catch {}
+  await chrome.alarms.create(name, { when: Date.now() + inMs })
 }
 
 export const onAlarm = (cb: (tabId: number) => void) => {
@@ -9,4 +11,3 @@ export const onAlarm = (cb: (tabId: number) => void) => {
     if (a.name.startsWith('finalize:')) cb(Number(a.name.split(':')[1]))
   })
 }
-

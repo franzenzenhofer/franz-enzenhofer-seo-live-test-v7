@@ -1,5 +1,4 @@
-import parse from 'simple-functional-robots-txt-parser'
-
+import parse from '@/vendor/robots'
 import type { Rule } from '@/core/types'
 import { fetchTextOnce } from '@/shared/fetchOnce'
 
