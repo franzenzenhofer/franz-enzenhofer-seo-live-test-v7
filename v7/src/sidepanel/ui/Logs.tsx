@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 
+import { buildBugReport } from './bugReport'
+
 import { getActiveTabId } from '@/shared/chrome'
 import { clearLogs, getLogs } from '@/shared/logs'
 
@@ -30,11 +32,17 @@ export const Logs = () => {
     await clearLogs(tabId)
   }
 
+  const copyReport = async () => {
+    const txt = await buildBugReport().catch(()=> '')
+    if (txt) await navigator.clipboard.writeText(txt)
+  }
+
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
         <button className="text-sm underline" onClick={copy}>Copy logs</button>
         <button className="text-sm underline" onClick={clear}>Clear logs</button>
+        <button className="text-sm underline" onClick={copyReport}>Copy bug report</button>
       </div>
       <pre className="text-[10px] max-h-60 overflow-auto bg-slate-50 p-2 border border-slate-200 rounded">{logs.join('\n') || 'No logs yet.'}</pre>
     </div>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { ExportButtons } from './ExportButtons'
+import { NoResults } from './NoResults'
 
 import { getActiveTabId } from '@/shared/chrome'
 import { readResults, watchResults, type Result } from '@/shared/results'
@@ -41,7 +42,7 @@ export const Results = ({ types, onOpen, q }: { types?: string[]; onOpen?: (inde
           <div className="font-medium">{r.message}</div>
         </div>
       ))}
-      {!vis.length && <p className="text-sm text-slate-500">No results yet…</p>}
+      {!vis.length && <NoResults items={items} types={types} q={q} />}
     </div>
   )
 }
