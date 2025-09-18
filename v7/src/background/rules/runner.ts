@@ -13,7 +13,18 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
     rulesUrl: chrome.runtime.getURL('src/sidepanel.html'),
     codeviewUrl: chrome.runtime.getURL('src/sidepanel.html#codeview'),
   }
+  // Guard: do not run on restricted schemes (chrome://, chrome-extension://, etc.)
+  const lastUrl = ([...run.ev].reverse().find((e)=> !!e.u)?.u as string | undefined) || ''
+  const scheme = lastUrl.split(':',1)[0]
+  const allowed = scheme === 'http' || scheme === 'https' || scheme === 'file'
   let res: import('./types').RuleResult[]
+  if (!allowed) {
+    res = [{ name: 'system:runner', label: 'Runner', type: 'error', message: `Restricted page scheme (${scheme}://). Open an http(s) page to run rules.` }]
+    const k2 = k(tabId); const { [k2]: existing } = await chrome.storage.local.get(k2)
+    const merged = Array.isArray(existing) ? [...existing, ...res] : res
+    await chrome.storage.local.set({ [k2]: merged })
+    return
+  }
   try {
     const lastDom = [...run.ev].reverse().find((e) => e.t.startsWith('dom:')) as { d?: { html?: string } } | undefined
     const htmlLen = typeof lastDom?.d?.html === 'string' ? lastDom.d!.html!.length : 0
