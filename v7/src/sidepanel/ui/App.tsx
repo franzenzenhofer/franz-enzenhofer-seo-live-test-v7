@@ -5,6 +5,7 @@ import { Settings } from './Settings'
 import { Toolbar } from './Toolbar'
 import { InfoRow } from './InfoRow'
 import { Results } from './Results'
+import { ReportContainer } from './ReportContainer'
 import { TypeFilters } from './TypeFilters'
 import { usePageInfo } from './usePageInfo'
 
@@ -13,6 +14,7 @@ import { getActiveTabId, injectForTab } from '@/shared/chrome'
 export const App = () => {
   const [settings, setSettings] = useState(false)
   const [showLogs, setShowLogs] = useState(false)
+  const [report, setReport] = useState<{ open: boolean; index?: number }>({ open: false })
   const [show, setShow] = useState<Record<string, boolean>>({ ok: true, warn: true, error: true, info: true })
   const q = usePageInfo()
   useEffect(() => { getActiveTabId().then((id)=> { if (id) injectForTab(id) }).catch(()=>{}) }, [])
@@ -27,6 +29,8 @@ export const App = () => {
       </div>
       {settings ? (
         <Settings />
+      ) : report.open ? (
+        <ReportContainer url={d.url} index={report.index} onClose={()=> setReport({ open: false })} />
       ) : (
         <>
           {showLogs && <Logs />}
@@ -37,7 +41,7 @@ export const App = () => {
             <InfoRow k="Canonical" v={d.canonical || '—'} />
           </div>
           <TypeFilters show={show} setShow={setShow} />
-          <Results types={Object.entries(show).filter(([,v])=>v).map(([k])=>k)} />
+          <Results types={Object.entries(show).filter(([,v])=>v).map(([k])=>k)} onOpen={(i)=> setReport({ open: true, index: i })} />
         </>
       )}
     </div>

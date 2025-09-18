@@ -4,7 +4,7 @@ import { getActiveTabId } from '@/shared/chrome'
 import { readResults, watchResults, type Result } from '@/shared/results'
 import { toHtml } from '@/cli/report'
 
-export const Results = ({ types }: { types?: string[] }) => {
+export const Results = ({ types, onOpen }: { types?: string[]; onOpen?: (index: number)=>void }) => {
   const [items, setItems] = useState<Result[]>([])
   useEffect(() => {
     let unsub: (() => void) | null = null
@@ -38,7 +38,7 @@ export const Results = ({ types }: { types?: string[] }) => {
         <span className="ml-auto flex gap-2"><button className="border px-1" onClick={exportJson}>Export JSON</button><button className="border px-1" onClick={exportHtml}>Export HTML</button></span>
       </div>
       {vis.map((r, i) => (
-        <div key={i} className="border rounded p-2">
+        <div key={i} className="border rounded p-2 cursor-pointer" onClick={()=> onOpen?.(items.indexOf(r))}>
           <div className="text-xs text-slate-500">{r.label} · {r.type}</div>
           <div className="font-medium">{r.message}</div>
         </div>
