@@ -57,7 +57,7 @@ Security & Privacy
 
 Testing Guidance
 
-- Unit tests live alongside code (`*.test.ts`).
+- Place tests under `v7/tests/**` (unit and e2e).
 - Mock Chrome APIs minimally in tests; avoid network I/O.
 - Test the pipeline in isolation: collector store, finalizer, runner mapping, and UI subscriptions.
 
@@ -103,3 +103,56 @@ Closed Source Policy
 - Do not paste code or internal details into public issues or forums.
 - Use redaction/sanitization when sharing logs or errors outside trusted channels.
 - Respect LICENSE.txt (Proprietary, All Rights Reserved).
+
+Learnings & Practices
+
+- DRY Core, One Source of Truth
+  - Share contracts and execution between CLI and extension.
+  - Use `src/core/types.ts` and `src/core/run.ts` as the canonical interfaces and runner.
+  - Keep the rules registry at `src/rules/registry.ts` as the only rule list.
+- Typed Rules (≤50 lines)
+  - Each rule is a tiny typed module: `Rule.run(page, ctx) => Result | Result[]`.
+  - Keep one test per rule or per utility; avoid monolithic test files.
+  - Prefer pure logic; rely on `Page` (html/url/doc/status/headers) instead of ad‑hoc scraping.
+- CLI‑First, Extension around Core
+  - CLI and offscreen both call the same `runAll` with the same rules.
+  - CLI supports JSON and HTML reports for fast local/CI validation.
+  - Extension side panel renders the same results and persists user settings.
+- Page Construction
+  - Both CLI and offscreen build `Page` objects with DOM (Document), `status` and `headers` (from HEAD) before calling rules.
+  - If more page data is needed, add it to `Page` (never pass ad‑hoc blobs).
+- Storage & Settings
+  - Rule toggles are saved in `chrome.storage.local` under `rule-flags` and overlay rule.enabled at runtime.
+  - API keys (e.g., PSI, MFT) are saved under `globalRuleVariables` and passed via `ctx.globals.variables`.
+  - Keep names stable and documented.
+- No Legacy, No Dynamic Code Execution
+  - Never import legacy MV2 code into v7.
+  - Do not use interpreters, string‑based `eval`, or `new Function`.
+  - Typed TS modules only; if a dynamic behavior is needed, design a typed adapter.
+- Strict Quality Gates (run after each bigger change)
+  - Typecheck: `npm run -w v7 typecheck`.
+  - Lint: `npm run -w v7 lint`.
+  - Tests: `npm run -w v7 test`.
+  - Build: `npm run -w v7 build`.
+  - For local loop: `npm run -w v7 check:watch`.
+- File Size & Structure
+  - Enforce ≤50 lines per file in `src/**` via ESLint.
+  - Split aggressively; place shared helpers in `src/core/**` or the most logical directory.
+- Import Order & Style
+  - Keep import groups clean: external → shared → local; respect ESLint import/order.
+  - Avoid local overrides except when absolutely necessary (e.g., CLI runner file), and keep them scoped.
+- Offscreen & Results
+  - MV3 offscreen page is the only place for DOM execution in background.
+  - Offscreen performs the HEAD request (status/headers) once per run.
+  - Side panel subscribes to storage changes and renders results without business logic.
+- Security & Privacy
+  - Principle of least privilege in manifest permissions.
+  - Never log secrets; redact anything user‑provided or sensitive.
+  - Do not publish code or artifacts; keep GitHub repository private.
+- Git Hygiene
+  - Keep commits small and focused; meaningful messages.
+  - Pre‑commit hooks run typecheck + lint. Do not skip.
+  - Avoid nested repos; if legacy folder exists, treat it as a submodule or ignore in the parent index.
+- CI Practices
+  - CI runs typecheck/lint/tests/build only; no public releases or artifact publishing.
+  - Add HTML report generation (CLI) as a CI artifact only if kept private.

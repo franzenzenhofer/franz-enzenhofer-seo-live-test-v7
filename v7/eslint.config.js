@@ -52,6 +52,10 @@ export default [
     },
   },
   {
+    files: ['src/rules/registry.ts'],
+    rules: { 'max-lines': 'off' },
+  },
+  {
     files: ['src/cli/runner.ts'],
     rules: { 'import/order': 'off' },
   },

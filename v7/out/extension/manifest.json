@@ -1,0 +1,68 @@
+{
+  "manifest_version": 3,
+  "name": "F19N Obtrusive Live Test v7",
+  "version": "0.1.0",
+  "version_name": "0.1.0",
+  "description": "Modern MV3 side-panel extension for live tests.",
+  "action": {
+    "default_title": "Open Live Test"
+  },
+  "permissions": [
+    "sidePanel",
+    "storage",
+    "tabs",
+    "scripting",
+    "activeTab",
+    "webRequest",
+    "webNavigation",
+    "identity"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "service-worker-loader.js",
+    "type": "module"
+  },
+  "optional_host_permissions": [
+    "<all_urls>"
+  ],
+  "optional_permissions": [
+    "webRequest",
+    "webNavigation",
+    "identity"
+  ],
+  "side_panel": {
+    "default_path": "src/sidepanel.html"
+  },
+  "content_scripts": [
+    {
+      "js": [
+        "assets/index.ts-B1ybbLSm.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "resources": [
+        "src/offscreen.html",
+        "assets/index.ts-B1ybbLSm.js"
+      ],
+      "use_dynamic_url": false
+    }
+  ],
+  "oauth2": {
+    "client_id": "335346275770-p8vif5hh6sj238tq5bh1rmble8r1e9pt.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/webmasters.readonly",
+      "https://www.googleapis.com/auth/analytics.readonly"
+    ]
+  }
+}
