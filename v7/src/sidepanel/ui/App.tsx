@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Logs } from './Logs'
 import { Settings } from './Settings'
 import { Toolbar } from './Toolbar'
-import { InfoRow } from './InfoRow'
+import { UrlBar } from './UrlBar'
 import { Results } from './Results'
 import { ReportContainer } from './ReportContainer'
 import { TypeFilters } from './TypeFilters'
@@ -34,12 +34,7 @@ export const App = () => {
       ) : (
         <>
           {showLogs && <Logs />}
-          <div className="space-y-2">
-            <InfoRow k="URL" v={d.url} />
-            <InfoRow k="Title" v={d.title} />
-            <InfoRow k="Description" v={d.description || '—'} />
-            <InfoRow k="Canonical" v={d.canonical || '—'} />
-          </div>
+          <UrlBar url={d.url} />
           <TypeFilters show={show} setShow={setShow} />
           <Results types={Object.entries(show).filter(([,v])=>v).map(([k])=>k)} onOpen={(i)=> setReport({ open: true, index: i })} />
         </>
