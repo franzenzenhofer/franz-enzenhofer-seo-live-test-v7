@@ -1,21 +1,24 @@
 {
   "manifest_version": 3,
   "name": "F19N Obtrusive Live Test v7",
-  "version": "0.1.0",
-  "version_name": "0.1.0",
+  "version": "0.1.36",
+  "version_name": "0.1.36",
   "description": "Modern MV3 side-panel extension for live tests.",
   "action": {
     "default_title": "Open Live Test"
   },
   "permissions": [
     "sidePanel",
+    "offscreen",
     "storage",
     "tabs",
     "scripting",
     "activeTab",
     "webRequest",
     "webNavigation",
-    "identity"
+    "identity",
+    "alarms",
+    "contextMenus"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -24,21 +27,23 @@
     "service_worker": "service-worker-loader.js",
     "type": "module"
   },
-  "optional_host_permissions": [
-    "<all_urls>"
-  ],
-  "optional_permissions": [
-    "webRequest",
-    "webNavigation",
-    "identity"
-  ],
+  "optional_host_permissions": [],
+  "optional_permissions": [],
   "side_panel": {
     "default_path": "src/sidepanel.html"
+  },
+  "commands": {
+    "open-sidepanel": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L"
+      },
+      "description": "Open Live Test side panel"
+    }
   },
   "content_scripts": [
     {
       "js": [
-        "assets/index.ts-B1ybbLSm.js"
+        "assets/index.ts-BRVrXWm6.js"
       ],
       "matches": [
         "<all_urls>"
@@ -53,7 +58,7 @@
       ],
       "resources": [
         "src/offscreen.html",
-        "assets/index.ts-B1ybbLSm.js"
+        "assets/index.ts-BRVrXWm6.js"
       ],
       "use_dynamic_url": false
     }

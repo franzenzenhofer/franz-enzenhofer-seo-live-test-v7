@@ -1,39 +1,53 @@
 {
   "../../../../../@crx/manifest": {
-    "file": "assets/crx-manifest.js-CKfoWRjy.js",
+    "file": "assets/crx-manifest.js-P6ohDB67.js",
     "name": "crx-manifest.js",
     "src": "../../../../../@crx/manifest",
     "isEntry": true
   },
-  "_auth-GnX2ubGu.js": {
-    "file": "assets/auth-GnX2ubGu.js",
+  "_auth-BDvWn2GT.js": {
+    "file": "assets/auth-BDvWn2GT.js",
     "name": "auth"
   },
+  "_registry-yHiKUKor.js": {
+    "file": "assets/registry-yHiKUKor.js",
+    "name": "registry"
+  },
   "src/background/index.ts": {
-    "file": "assets/index.ts-Eo8x9vce.js",
+    "file": "assets/index.ts-CAKAhg99.js",
     "name": "index.ts",
     "src": "src/background/index.ts",
     "isEntry": true,
     "imports": [
-      "_auth-GnX2ubGu.js"
+      "_auth-BDvWn2GT.js"
     ]
   },
   "src/content/index.ts": {
-    "file": "assets/index.ts-B1ybbLSm.js",
+    "file": "assets/index.ts-BRVrXWm6.js",
     "name": "index.ts",
     "src": "src/content/index.ts",
     "isEntry": true
   },
+  "src/offscreen.html": {
+    "file": "assets/offscreen-17RoQMet.js",
+    "name": "offscreen",
+    "src": "src/offscreen.html",
+    "isEntry": true,
+    "imports": [
+      "_registry-yHiKUKor.js"
+    ]
+  },
   "src/sidepanel.html": {
-    "file": "assets/sidepanel.html-CJIAxuJE.js",
+    "file": "assets/sidepanel.html--iTLjYsH.js",
     "name": "sidepanel.html",
     "src": "src/sidepanel.html",
     "isEntry": true,
     "imports": [
-      "_auth-GnX2ubGu.js"
+      "_registry-yHiKUKor.js",
+      "_auth-BDvWn2GT.js"
     ],
     "css": [
-      "assets/sidepanel-Qe957UAX.css"
+      "assets/sidepanel-DheWAXiE.css"
     ]
   }
 }
