@@ -8,7 +8,16 @@ export const handleMessage = (msg: unknown, sender: Sender, send?: (resp?: unkno
   const st = msg as { event?: string; data?: unknown; type?: string; tabId?: number } | null
   const tabId = st?.tabId || sender.tab?.id || null
   if (st?.type === 'panel:runNow' && tabId) {
-    setDomDone(tabId).then(() => scheduleFinalize(tabId, 0)).then(() => send?.('ok')).catch(() => send?.('err'))
+    ;(async ()=>{
+      try {
+        if (chrome?.storage?.local?.get) {
+          const v = await chrome.storage.local.get('ui:autoClear')
+          if (v['ui:autoClear'] !== false) await chrome.storage.local.remove(`results:${tabId}`)
+        }
+      } catch { /* ignore */ }
+    })()
+    setDomDone(tabId).then(()=> scheduleFinalize(tabId, 0)).catch(()=>{})
+    send?.('ok')
     return true
   }
   if (st?.event && tabId) {

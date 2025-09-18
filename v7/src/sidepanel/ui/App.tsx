@@ -1,16 +1,9 @@
 import { useEffect, useState } from 'react'
 
-import { Logs } from './Logs'
-import { Settings } from './Settings'
-import { UrlBar } from './UrlBar'
-import { Results } from './Results'
-import { ReportContainer } from './ReportContainer'
 import { RestrictedBanner } from './RestrictedBanner'
-import { Search } from './Search'
 import { Shortcuts } from './Shortcuts'
-import { TypeFilters } from './TypeFilters'
 import { usePageInfo } from './usePageInfo'
-import { Header } from './Header'
+import { AppBody } from './AppBody'
 import type { Tab } from './TabStrip'
 
 import { clearLogs } from '@/shared/logs'
@@ -25,27 +18,16 @@ export const App = () => {
   const [show, setShow] = useState<Record<string, boolean>>({ ok: true, warn: true, error: true, info: true })
   const [query, setQuery] = useState('')
   const q = usePageInfo()
-  useEffect(() => { getActiveTabId().then((id)=> { if (id) injectForTab(id) }).catch(()=>{}) }, [])
+  useEffect(() => {
+    getActiveTabId()
+      .then(async (id) => { if (id) { try { await injectForTab(id) } catch { /* ignore */ } } })
+      .catch(() => {})
+  }, [])
   if (q.isLoading) return <p className="p-3">Loading…</p>
-  if (q.isError) return <div className="p-3 space-y-2"><RestrictedBanner message={String(q.error)} /></div>
+  if (q.isError || !q.data) return <div className="p-3 space-y-2"><RestrictedBanner message={String(q.error||'No page info')} /></div>
   const d = q.data!
-  return (
-    <div className="p-3 space-y-3 w-[360px]">
-      <Header tab={tab} reportOpen={report.open} showLogs={showLogs} setTab={setTab} setShowLogs={setShowLogs} setReportOpen={(v)=> setReport((r)=> ({ ...r, open: v }))} />
-      <Shortcuts runNow={()=> chrome.runtime.sendMessage({ type:'panel:runNow' })} clean={async()=> { const id = await getActiveTabId(); if(id){ await clearResults(id); await clearLogs(id) } }} setTab={(t)=> setTab(t)} />
-      {tab==='settings' ? (
-        <Settings />
-      ) : report.open ? (
-        <ReportContainer url={d.url} index={report.index} onClose={()=> setReport({ open: false })} />
-      ) : (
-        <>
-          {showLogs && <Logs />}
-          <UrlBar url={d.url} />
-          <Search onChange={setQuery} />
-          <TypeFilters show={show} setShow={setShow} />
-          <Results types={Object.entries(show).filter(([,v])=>v).map(([k])=>k)} q={query} onOpen={(i)=> setReport({ open: true, index: i })} />
-        </>
-      )}
-    </div>
-  )
+  return <>
+    <Shortcuts runNow={()=> chrome.runtime.sendMessage({ type:'panel:runNow' })} clean={async()=> { const id = await getActiveTabId(); if(id){ await clearResults(id); await clearLogs(id) } }} setTab={(t)=> setTab(t)} />
+    <AppBody tab={tab} setTab={setTab} report={report} setReport={setReport} showLogs={showLogs} setShowLogs={setShowLogs} d={{ url: d.url }} show={show} setShow={setShow} query={query} setQuery={setQuery} />
+  </>
 }
