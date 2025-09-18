@@ -10,13 +10,19 @@ export const enrichFromEvents = (
   const dclDom = [...ev].reverse().find((e) => e.t === 'dom:DOMContentLoaded')
   const html = ((lastDom?.d as { html?: string } | undefined)?.html || '').toString()
 
-  const firstUrl = (ev.find((e) => !!e.u)?.u as string | undefined) || ''
-  const lastUrl = ([...ev].reverse().find((e) => !!e.u)?.u as string | undefined) || ''
+  const nav = ev.filter((e) => !!e.u && e.t.startsWith('nav:'))
+  const firstUrl = (nav[0]?.u as string | undefined) || ''
+  const lastUrl = ((nav.length ? nav[nav.length - 1] : undefined)?.u as string | undefined) || ''
   const url = firstUrl || getHref() || 'about:blank'
 
   const reqHeaders = ev.filter((e) => e.t === 'req:headers')
-  const statusFromDone = ([...ev].reverse().find((e) => e.t === 'req:done')?.s as number | undefined) || undefined
-  const rawHeaders = (reqHeaders[reqHeaders.length - 1]?.h as Record<string, string | undefined> | undefined) || undefined
+  const strip = (u?: string) => (u || '').replace(/[?#].*$/, '')
+  const pageHeaderEv =
+    [...reqHeaders].reverse().find((e) => strip(e.u) === strip(lastUrl) || strip(e.u) === strip(firstUrl)) ||
+    reqHeaders.find((e) => !!e.h) ||
+    reqHeaders[reqHeaders.length - 1]
+  const statusFromDone = ([...ev].reverse().find((e) => (e.t === 'req:done') && (e.u === lastUrl || e.u === firstUrl))?.s as number | undefined) || ([...ev].reverse().find((e)=> e.t==='req:done')?.s as number | undefined) || undefined
+  const rawHeaders = (pageHeaderEv?.h as Record<string, string | undefined> | undefined) || undefined
   const headers: Record<string, string> | undefined = rawHeaders
     ? Object.fromEntries(Object.entries(rawHeaders).map(([k, v]) => [k.toLowerCase(), String(v ?? '')]))
     : undefined
