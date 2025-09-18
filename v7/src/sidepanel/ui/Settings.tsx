@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { RuleFlags } from './RuleFlags'
 import { AutoClear } from './AutoClear'
 import { AutoRun } from './AutoRun'
+import { PreserveLog } from './PreserveLog'
 
 import { TOKEN_KEY, getStoredToken, interactiveLogin, revoke } from '@/shared/auth'
 
@@ -30,6 +31,7 @@ export const Settings = () => {
       <div className="space-y-2">
         <AutoRun />
         <AutoClear />
+        <PreserveLog />
       </div>
       <RuleFlags flags={flags} setFlags={setFlagsAndStore} />
       <div>

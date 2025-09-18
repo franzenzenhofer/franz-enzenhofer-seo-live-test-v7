@@ -16,6 +16,8 @@ export const pushEvent = async (tabId: number, ev: import('./types').EventRec) =
     const { 'ui:autoClear': auto } = await chrome.storage.local.get('ui:autoClear')
     log(tabId, `nav:before url=${ev.u || ''} autoClear=${auto !== false}`).catch(() => {})
     if (auto !== false) await chrome.storage.local.remove(`results:${tabId}`)
+    const { 'ui:preserveLog': keep } = await chrome.storage.local.get('ui:preserveLog')
+    if (keep !== true) await chrome.storage.session.remove(`logs:${tabId}`)
   }
   await scheduleFinalize(tabId)
 }

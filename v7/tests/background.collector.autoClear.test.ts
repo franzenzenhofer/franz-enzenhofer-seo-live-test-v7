@@ -2,7 +2,12 @@ import { describe, it, expect, vi } from 'vitest'
 
 // Provide chrome shim and mock store/alarm modules before import
 // @ts-expect-error test shim
-globalThis.chrome = { storage: { local: { get: vi.fn(async ()=> ({ })), remove: vi.fn(async (_k)=>{} ) } } }
+globalThis.chrome = {
+  storage: {
+    local: { get: vi.fn(async ()=> ({ })), remove: vi.fn(async (_k)=>{} ) },
+    session: { remove: vi.fn(async (_k)=>{} ) },
+  }
+}
 
 vi.mock('@/background/pipeline/store', () => ({ addEvent: vi.fn().mockResolvedValue(undefined), popRun: vi.fn(), setDomDone: vi.fn() }))
 vi.mock('@/background/pipeline/alarms', () => ({ scheduleFinalize: vi.fn().mockResolvedValue(undefined), onAlarm: (_cb: (tabId: number)=>void)=>{} }))
@@ -23,4 +28,3 @@ describe('collector: autoClear on nav:before', () => {
     expect(rm).not.toHaveBeenCalled()
   })
 })
-
