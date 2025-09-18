@@ -6,6 +6,7 @@ import { Toolbar } from './Toolbar'
 import { UrlBar } from './UrlBar'
 import { Results } from './Results'
 import { ReportContainer } from './ReportContainer'
+import { RestrictedBanner } from './RestrictedBanner'
 import { TypeFilters } from './TypeFilters'
 import { usePageInfo } from './usePageInfo'
 
@@ -19,7 +20,7 @@ export const App = () => {
   const q = usePageInfo()
   useEffect(() => { getActiveTabId().then((id)=> { if (id) injectForTab(id) }).catch(()=>{}) }, [])
   if (q.isLoading) return <p className="p-3">Loading…</p>
-  if (q.isError) return <p className="p-3">{String(q.error)}</p>
+  if (q.isError) return <div className="p-3 space-y-2"><RestrictedBanner message={String(q.error)} /></div>
   const d = q.data!
   return (
     <div className="p-3 space-y-3 w-[360px]">

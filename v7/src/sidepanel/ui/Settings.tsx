@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 
 import { RuleFlags } from './RuleFlags'
 import { AutoClear } from './AutoClear'
+import { AutoRun } from './AutoRun'
 
 import { TOKEN_KEY, getStoredToken, interactiveLogin, revoke } from '@/shared/auth'
 
@@ -26,7 +27,10 @@ export const Settings = () => {
   const signOut = async () => { return revoke().then(() => setHasToken(false)) }
   return (
     <div className="space-y-3">
-      <AutoClear />
+      <div className="space-y-2">
+        <AutoRun />
+        <AutoClear />
+      </div>
       <RuleFlags flags={flags} setFlags={setFlagsAndStore} />
       <div>
         <h2 className="font-semibold">Google Login</h2>

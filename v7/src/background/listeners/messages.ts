@@ -13,7 +13,11 @@ export const handleMessage = (msg: unknown, sender: Sender, send?: (resp?: unkno
   }
   if (st?.event && tabId) {
     pushEvent(tabId, { t: `dom:${st.event}`, d: st.data })
-    if (st.event === 'document_idle') markDomPhase(tabId)
+    if (st.event === 'document_idle') {
+      chrome.storage.local.get('ui:autoRun').then((v)=> {
+        if (v['ui:autoRun'] !== false) markDomPhase(tabId)
+      }).catch(()=> markDomPhase(tabId))
+    }
   }
   if (msg === 'tabIdPls' && tabId) send?.({ tabId, url: sender.tab?.url })
   return true
