@@ -1,35 +1,7 @@
-@import './devtools-theme.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: light dark; }
-
-html, body {
-  background: var(--dt-bg-primary);
-  color: var(--dt-text-primary);
-  font-family: var(--dt-font-family);
-  font-size: var(--dt-font-size-normal);
-  line-height: 1.4;
-}
-
-/* Key/Value rows */
-.k {
-  font-size: var(--dt-font-size-small);
-  color: var(--dt-text-secondary);
-}
-
-.v {
-  font-size: var(--dt-font-size-normal);
-  color: var(--dt-text-primary);
-  font-weight: 500;
-  word-break: break-all;
-}
-
-/* Logs block */
-.dt-logs {
-  background: var(--dt-bg-secondary);
-  border: 1px solid var(--dt-border);
-  border-radius: 3px;
-  font-family: var(--dt-font-mono);
+:root {
+  color-scheme: light dark;
 }
