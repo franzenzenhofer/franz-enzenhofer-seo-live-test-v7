@@ -7,6 +7,9 @@ Scope
 
 Golden Rules
 
+- THINK FIRST: understand existing code, plan solution, check patterns BEFORE coding
+- UI FRAMEWORK: use TAILWIND CSS only - no custom CSS, no inline styles
+- ATOMIC COMMITS: commit after EVERY file change with typecheck + lint passing
 - DRY: do not repeat logic; extract utilities and share types.
 - CLEAN CODE: readable, small, single‑purpose modules; name things precisely.
 - WORKING AND TESTED: never leave the repo in a broken state; every change typechecked, linted, tested, and built.
@@ -76,6 +79,33 @@ Root Hygiene
 
 - Keep the repository root minimal: AGENTS.md, README.md, and top‑level directories only.
 - Put all new code inside appropriate subdirectories (e.g., `v7/`).
+
+Mandatory Workflow for ALL Changes
+
+1. UNDERSTAND the challenge
+   - Read existing code in the area
+   - Check what UI framework is used (TAILWIND here!)
+   - Review similar components/patterns
+   - Search for existing utilities
+
+2. THINK before coding
+   - Plan the complete solution
+   - Consider edge cases
+   - Design component hierarchy
+   - Check for code reuse opportunities
+
+3. CODE with discipline
+   - Make ONE file change at a time
+   - Run `npm run typecheck` after each change
+   - Run `npm run lint` after each change
+   - Commit atomically with descriptive message
+   - ONLY proceed if tests pass
+
+4. NEVER
+   - Create custom CSS files (use Tailwind!)
+   - Make multiple file changes without commits
+   - Skip typecheck or lint
+   - Leave unused code
 
 Commit & PR Checklist
 
