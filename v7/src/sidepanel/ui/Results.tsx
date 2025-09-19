@@ -6,8 +6,7 @@ import { NoResults } from './NoResults'
 import { getActiveTabId } from '@/shared/chrome'
 import { readResults, watchResults, type Result } from '@/shared/results'
 
-
-export const Results = ({ types, onOpen, q }: { types?: string[]; onOpen?: (index: number)=>void; q?: string }) => {
+export const Results = ({ types, q }: { types?: string[]; q?: string }) => {
   const [items, setItems] = useState<Result[]>([])
   useEffect(() => {
     let unsub: (() => void) | null = null
@@ -20,24 +19,26 @@ export const Results = ({ types, onOpen, q }: { types?: string[]; onOpen?: (inde
   }, [])
   const vis = useMemo(()=> items.filter(i=> {
     if (types && !types.includes(i.type)) return false
-    if (q && q.length) { const s = (i.label+' '+i.message).toLowerCase(); if (!s.includes(q.toLowerCase())) return false }
+    if (q && !`${i.label} ${i.message}`.toLowerCase().includes(q.toLowerCase())) return false
     return true
   }), [items, types, q])
-  const summary = useMemo(() => {
-    const s: Record<string, number> = {}
-    vis.forEach((r) => { s[r.type] = (s[r.type] || 0) + 1 })
-    return { ok: s['ok'] || 0, warn: s['warn'] || 0, error: s['error'] || 0, info: s['info'] || 0 }
-  }, [vis])
+  const summary = useMemo(() => vis.reduce((s, r) => {
+    s[r.type] = (s[r.type] || 0) + 1; return s
+  }, {} as Record<string, number>), [vis])
   const rows = useMemo(()=> vis.map((r)=> ({ label:r.label, message:r.message, type:r.type })), [vis])
   return (
     <div className="space-y-2">
       <div className="text-xs text-slate-600 flex items-center gap-2">
-        <span>Summary:</span>
-        <span>ok {summary['ok']}</span><span>warn {summary['warn']}</span><span>error {summary['error']}</span><span>info {summary['info']}</span>
+        <span>ok {summary['ok']||0}</span><span>warn {summary['warn']||0}</span>
+        <span>error {summary['error']||0}</span><span>info {summary['info']||0}</span>
         <ExportButtons rows={rows} />
       </div>
       {vis.map((r, i) => (
-        <div key={i} className="border rounded p-2 cursor-pointer" onClick={()=> onOpen?.(items.indexOf(r))}>
+        <div key={i} className="border rounded p-2 cursor-pointer hover:bg-gray-50"
+          onClick={async () => {
+            const tabId = await getActiveTabId()
+            if (tabId) chrome.tabs.create({ url: chrome.runtime.getURL(`report.html?tabId=${tabId}&index=${items.indexOf(r)}`) })
+          }}>
           <div className="text-xs text-slate-500">{r.label} · {r.type}</div>
           <div className="font-medium">{r.message}</div>
         </div>

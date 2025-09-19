@@ -29,7 +29,7 @@ export default defineManifest({
     { matches: ['<all_urls>'], js: ['src/content/index.ts'], run_at: 'document_idle' },
   ],
   web_accessible_resources: [
-    { resources: ['src/offscreen.html'], matches: ['<all_urls>'] },
+    { resources: ['src/offscreen.html', 'src/report.html', 'src/settings.html'], matches: ['<all_urls>'] },
   ],
   ...(clientId
     ? {

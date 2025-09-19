@@ -1,0 +1,105 @@
+@import '../sidepanel/devtools-theme.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light dark; }
+
+html, body {
+  background: var(--dt-bg-primary);
+  color: var(--dt-text-primary);
+  font-family: var(--dt-font-family);
+  font-size: var(--dt-font-size-normal);
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+}
+
+/* Settings specific styles */
+.settings-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--dt-spacing-xl);
+}
+
+.settings-header {
+  padding: var(--dt-spacing-xl);
+  border-bottom: 1px solid var(--dt-border);
+  background: var(--dt-bg-secondary);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.settings-section {
+  padding: var(--dt-spacing-xl);
+  border-bottom: 1px solid var(--dt-border);
+}
+
+.settings-section h2 {
+  font-size: var(--dt-font-size-large);
+  font-weight: 600;
+  margin-bottom: var(--dt-spacing-lg);
+  color: var(--dt-text-primary);
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--dt-spacing-md) 0;
+  gap: var(--dt-spacing-lg);
+}
+
+.setting-label {
+  flex: 1;
+}
+
+.setting-label h3 {
+  font-weight: 500;
+  margin-bottom: var(--dt-spacing-xs);
+}
+
+.setting-label p {
+  font-size: var(--dt-font-size-small);
+  color: var(--dt-text-secondary);
+}
+
+.setting-control {
+  flex-shrink: 0;
+}
+
+/* Toggle switch */
+.toggle-switch {
+  position: relative;
+  width: 40px;
+  height: 20px;
+  background: var(--dt-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.toggle-switch input {
+  display: none;
+}
+
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.toggle-switch:has(input:checked) {
+  background: var(--dt-accent-primary);
+}
+
+.toggle-switch:has(input:checked)::after {
+  transform: translateX(20px);
+}

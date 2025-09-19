@@ -1,0 +1,80 @@
+@import '../sidepanel/devtools-theme.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light dark; }
+
+html, body {
+  background: var(--dt-bg-primary);
+  color: var(--dt-text-primary);
+  font-family: var(--dt-font-family);
+  font-size: var(--dt-font-size-normal);
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+}
+
+/* Report specific styles */
+.report-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--dt-spacing-xl);
+}
+
+.report-header {
+  padding: var(--dt-spacing-xl);
+  border-bottom: 1px solid var(--dt-border);
+  background: var(--dt-bg-secondary);
+}
+
+.report-content {
+  padding: var(--dt-spacing-xl);
+}
+
+.report-section {
+  margin-bottom: var(--dt-spacing-xl);
+  padding: var(--dt-spacing-lg);
+  background: var(--dt-bg-primary);
+  border: 1px solid var(--dt-border);
+  border-radius: 4px;
+}
+
+.report-section h2 {
+  font-size: var(--dt-font-size-large);
+  font-weight: 600;
+  margin-bottom: var(--dt-spacing-md);
+  color: var(--dt-text-primary);
+}
+
+/* Result item styles */
+.result-item {
+  padding: var(--dt-spacing-md);
+  border-left: 3px solid transparent;
+  margin-bottom: var(--dt-spacing-sm);
+  transition: all 0.2s;
+}
+
+.result-item:hover {
+  background: var(--dt-bg-hover);
+}
+
+.result-item.error {
+  border-left-color: var(--dt-error);
+  background: rgba(211, 59, 39, 0.05);
+}
+
+.result-item.warning {
+  border-left-color: var(--dt-warning);
+  background: rgba(249, 171, 0, 0.05);
+}
+
+.result-item.info {
+  border-left-color: var(--dt-info);
+  background: rgba(26, 115, 232, 0.05);
+}
+
+.result-item.success {
+  border-left-color: var(--dt-success);
+  background: rgba(24, 128, 56, 0.05);
+}
