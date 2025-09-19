@@ -27,7 +27,7 @@ export const App = () => {
   if (q.isError || !q.data) return <div className="p-3 space-y-2"><RestrictedBanner message={String(q.error||'No page info')} /></div>
   const d = q.data!
   return <>
-    <Shortcuts runNow={()=> chrome.runtime.sendMessage({ type:'panel:runNow' })} clean={async()=> { const id = await getActiveTabId(); if(id){ await clearResults(id); await clearLogs(id) } }} setTab={(t)=> setTab(t)} />
+    <Shortcuts runNow={()=> chrome.runtime.sendMessage({ type:'panel:runNow' })} clean={async()=> { const id = await getActiveTabId(); if(id){ await clearResults(id); await clearLogs(id) } }} setTab={(t: Tab)=> setTab(t)} />
     <AppBody tab={tab} setTab={setTab} report={report} setReport={setReport} showLogs={showLogs} setShowLogs={setShowLogs} d={{ url: d.url }} show={show} setShow={setShow} query={query} setQuery={setQuery} />
   </>
 }

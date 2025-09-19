@@ -25,7 +25,7 @@ export const AppBody = ({
   query: string; setQuery: (q: string)=>void
 }) => (
   <div className="p-3 space-y-3 w-[360px]">
-    <Header tab={tab} reportOpen={report.open} showLogs={showLogs} setTab={setTab} setShowLogs={setShowLogs} setReportOpen={(v)=> setReport({ ...report, open: v })} />
+    <Header tab={tab} showLogs={showLogs} setTab={setTab} setShowLogs={setShowLogs} />
     {tab==='settings' ? (
       <Settings />
     ) : report.open ? (

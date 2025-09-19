@@ -2,7 +2,7 @@ const alarmName = (tabId: number) => `finalize:${tabId}`
 
 export const scheduleFinalize = async (tabId: number, inMs = 3000) => {
   const name = alarmName(tabId)
-  try { await chrome.alarms.clear(name) } catch {}
+  try { await chrome.alarms.clear(name) } catch { /* ignore */ }
   await chrome.alarms.create(name, { when: Date.now() + inMs })
 }
 
