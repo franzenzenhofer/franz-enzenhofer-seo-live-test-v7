@@ -64,22 +64,31 @@ npm run bump         # Auto-increment version before build
 - State: Zustand for global, useState for local
 - Effects: Clean up subscriptions properly
 
-## Chrome DevTools Design System
+## UI Framework: TAILWIND CSS ONLY
 
-### Color Variables (v7/src/sidepanel/index.css)
-```css
---dt-bg: Background color
---dt-fg: Foreground text
---dt-border: Border color
---dt-subtle: Subtle backgrounds
---dt-chip-*: Filter chip styles
+### This project uses TAILWIND CSS
+- **DO NOT** create custom CSS files
+- **DO NOT** use inline styles
+- **DO NOT** create CSS-in-JS
+- **USE ONLY** Tailwind utility classes
+- Check `tailwind.config.ts` for custom configurations
+- All styling through className with Tailwind classes
+
+### Common Tailwind Patterns in this Project
+```jsx
+// Buttons
+<button className="border px-2 py-1 rounded hover:bg-gray-50">
+
+// Cards
+<div className="border rounded p-4 space-y-2">
+
+// Layout
+<div className="flex items-center justify-between gap-2">
+
+// Text
+<span className="text-sm text-gray-600">
 ```
 
-### UI Components Must Match DevTools
-- Toolbar with consistent height/spacing
-- Tab strips with underline indicators
-- Chip filters for toggling options
-- Monospace font for technical content
 
 ## Chrome Extension Specifics
 
@@ -115,14 +124,48 @@ npm run bump         # Auto-increment version before build
 - Use HTTPS for all external requests
 - No eval() or new Function() in production code
 
+## THINK BEFORE CODE - MANDATORY WORKFLOW
+
+### Before ANY Coding:
+1. **UNDERSTAND the existing codebase**
+   - Check what UI framework is used (Tailwind, Material-UI, custom CSS?)
+   - Review existing patterns and components
+   - Understand the architecture and data flow
+   - Check for existing similar functionality
+
+2. **THINK through the solution**
+   - Plan the complete approach
+   - Consider existing code reuse
+   - Identify potential issues
+   - Design the component hierarchy
+
+3. **CHECK existing code**
+   - Search for similar implementations
+   - Review import patterns
+   - Understand file organization
+   - Check for utility functions
+
+4. **ONLY THEN start coding**
+   - Follow existing patterns
+   - Use the same UI framework (TAILWIND in this project!)
+   - Maintain consistency
+
 ## Atomic CI Commits - CRITICAL PRACTICE
 
 ### Commit After EVERY File Change
-**MANDATORY**: Make atomic commits after each file modification to ensure:
+**MANDATORY**: Make atomic commits after each file modification:
+
+1. Make ONE file change
+2. Run `npm run typecheck` - MUST PASS
+3. Run `npm run lint` - MUST PASS
+4. Commit with descriptive message
+5. REPEAT for next file
+
+**Why this matters:**
 - Complete history tracking
 - Easy rollback if needed
 - Clear change documentation
-- CI/CD pipeline triggers
+- Catches errors immediately
 
 ### Commit Message Format
 ```bash
