@@ -24,7 +24,7 @@ export const AppBody = ({
   show: Record<string, boolean>; setShow: Dispatch<SetStateAction<Record<string, boolean>>>
   query: string; setQuery: (q: string)=>void
 }) => (
-  <div className="p-3 space-y-3 w-[360px]">
+  <div className="dt-panel w-[360px]">
     <Header tab={tab} showLogs={showLogs} setTab={setTab} setShowLogs={setShowLogs} />
     {tab==='settings' ? (
       <Settings />
