@@ -1,6 +1,6 @@
 # Rule Enhancement TODO List
 
-## ✅ COMPLETED (10/101)
+## ✅ COMPLETED (12/101)
 
 - [x] src/rules/head/title.ts
 - [x] src/rules/head/metaDescription.ts
@@ -16,11 +16,11 @@
 - [x] src/rules/og/image.ts (verified complete)
 - [x] src/rules/og/url.ts (verified complete)
 
-## 🔄 TODO (87/101)
+## 🔄 TODO (85/101)
 
-### a11y (2)
+### a11y (2) ✅
 - [x] src/rules/a11y/linkedImagesAlt.ts
-- [ ] src/rules/a11y/linkedImagesAltNoText.ts
+- [x] src/rules/a11y/linkedImagesAltNoText.ts
 
 ### body (5)
 - [ ] src/rules/body/imagesLayout.ts
