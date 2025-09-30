@@ -9,7 +9,13 @@ export const unavailableAfterRule: Rule = {
   async run(page) {
     const xr = robots(page.headers)
     const has = /unavailable_after\s*:\s*\S+/.test(xr)
-    return has ? { label: 'HTTP', message: `unavailable_after set (${xr})`, type: 'warn' } : { label: 'HTTP', message: 'No unavailable_after', type: 'ok' }
+    return {
+      label: 'HTTP',
+      message: has ? `unavailable_after set (${xr})` : 'No unavailable_after',
+      type: has ? 'warn' : 'ok',
+      name: 'unavailableAfter',
+      details: { httpHeaders: page.headers || {} },
+    }
   },
 }
 
