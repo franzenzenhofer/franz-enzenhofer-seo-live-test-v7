@@ -1,4 +1,5 @@
 import type { Rule } from '@/core/types'
+import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
 export const parameterizedLinksRule: Rule = {
   id: 'body:parameterized-links',
@@ -6,9 +7,22 @@ export const parameterizedLinksRule: Rule = {
   enabled: true,
   async run(page) {
     const a = Array.from(page.doc.querySelectorAll('a[href]')) as HTMLAnchorElement[]
-    let n = 0
-    for (const x of a) if ((x.getAttribute('href') || '').includes('?')) n++
-    return { label: 'BODY', message: `Links with parameters: ${n}`, type: 'info' }
+    const paramLinks: HTMLAnchorElement[] = []
+    for (const x of a) {
+      if ((x.getAttribute('href') || '').includes('?')) paramLinks.push(x)
+    }
+
+    const sourceHtml = extractHtmlFromList(paramLinks)
+    return {
+      label: 'BODY',
+      message: `Links with parameters: ${paramLinks.length}`,
+      type: 'info',
+      name: 'parameterizedLinks',
+      details: {
+        sourceHtml,
+        snippet: extractSnippet(sourceHtml),
+      },
+    }
   },
 }
 
