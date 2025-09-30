@@ -1,9 +1,13 @@
 import type { Rule } from '@/core/types'
+import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
-const hasNoindex = (doc: Document, headers?: Record<string,string>) => {
-  const robots = (doc.querySelector('meta[name="robots"]')?.getAttribute('content') || '').toLowerCase()
+const checkNoindex = (doc: Document, headers?: Record<string, string>) => {
+  const metaEl = doc.querySelector('meta[name="robots"]')
+  const robots = (metaEl?.getAttribute('content') || '').toLowerCase()
   const xr = (headers?.['x-robots-tag'] || '').toLowerCase()
-  return /\bnoindex\b/.test(robots) || /\bnoindex\b/.test(xr)
+  const hasNoindex = /\bnoindex\b/.test(robots) || /\bnoindex\b/.test(xr)
+
+  return { hasNoindex, element: metaEl, xRobots: xr }
 }
 
 export const discoverIndexableRule: Rule = {
@@ -11,9 +15,28 @@ export const discoverIndexableRule: Rule = {
   name: 'Discover: Indexable',
   enabled: true,
   async run(page) {
-    return hasNoindex(page.doc, page.headers)
-      ? { label: 'DISCOVER', message: 'Noindex detected', type: 'warn' }
-      : { label: 'DISCOVER', message: 'Indexable', type: 'ok' }
+    const result = checkNoindex(page.doc, page.headers)
+    const sourceHtml = extractHtml(result.element)
+
+    return result.hasNoindex
+      ? {
+          label: 'DISCOVER',
+          message: 'Noindex detected',
+          type: 'warn',
+          name: 'indexable',
+          details: {
+            sourceHtml,
+            snippet: extractSnippet(sourceHtml),
+            domPath: getDomPath(result.element),
+            xRobotsTag: result.xRobots,
+          },
+        }
+      : {
+          label: 'DISCOVER',
+          message: 'Indexable',
+          type: 'ok',
+          name: 'indexable',
+        }
   },
 }
 
