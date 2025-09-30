@@ -1,4 +1,5 @@
 import type { Rule } from '@/core/types'
+import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
 export const metaCharsetRule: Rule = {
   id: 'head:meta-charset',
@@ -6,7 +7,21 @@ export const metaCharsetRule: Rule = {
   enabled: true,
   async run(page) {
     const m = page.doc.querySelector('meta[charset]')
-    return m ? { label: 'HEAD', message: `charset=${m.getAttribute('charset') || ''}`, type: 'info' } : { label: 'HEAD', message: 'Missing meta[charset]', type: 'warn' }
+    if (m) {
+      const sourceHtml = extractHtml(m)
+      return {
+        name: 'Meta charset',
+        label: 'HEAD',
+        message: `charset=${m.getAttribute('charset') || ''}`,
+        type: 'info',
+        details: {
+          sourceHtml,
+          snippet: extractSnippet(sourceHtml),
+          domPath: getDomPath(m),
+        },
+      }
+    }
+    return { name: 'Meta charset', label: 'HEAD', message: 'Missing meta[charset]', type: 'warn' }
   },
 }
 
