@@ -1,22 +1,42 @@
 import type { Rule } from '@/core/types'
+import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
 export const canonicalChainRule: Rule = {
   id: 'head:canonical-chain',
   name: 'Canonical redirect chain',
   enabled: true,
   async run(page) {
-    const href = page.doc.querySelector('link[rel="canonical"]')?.getAttribute('href') || ''
-    if (!href) return { label: 'HEAD', message: 'No canonical link', type: 'info' }
+    const linkEl = page.doc.querySelector('link[rel="canonical"]')
+    const href = linkEl?.getAttribute('href') || ''
+    if (!href)
+      return { name: 'Canonical redirect chain', label: 'HEAD', message: 'No canonical link', type: 'info' }
+    const sourceHtml = linkEl ? extractHtml(linkEl) : ''
     const abs = new URL(href, page.url).toString()
-    let url = abs; let hops = 0
-    for (let i=0;i<5;i++) {
+    let url = abs
+    let hops = 0
+    for (let i = 0; i < 5; i++) {
       const r = await fetch(url, { method: 'HEAD', redirect: 'manual' })
       if (r.status >= 300 && r.status < 400) {
-        const loc = r.headers.get('location'); if (!loc) break
-        url = new URL(loc, url).toString(); hops++
+        const loc = r.headers.get('location')
+        if (!loc) break
+        url = new URL(loc, url).toString()
+        hops++
       } else break
     }
-    return hops>0 ? { label: 'HEAD', message: `Canonical chain length ${hops}`, type: hops>3 ? 'error' : 'warn' } : { label: 'HEAD', message: 'Canonical no redirects', type: 'ok' }
+    const hasChain = hops > 0
+    return {
+      name: 'Canonical redirect chain',
+      label: 'HEAD',
+      message: hasChain ? `Canonical chain length ${hops}` : 'Canonical no redirects',
+      type: hasChain ? (hops > 3 ? 'error' : 'warn') : 'ok',
+      details: linkEl
+        ? {
+            sourceHtml,
+            snippet: extractSnippet(sourceHtml),
+            domPath: getDomPath(linkEl),
+          }
+        : undefined,
+    }
   },
 }
 
