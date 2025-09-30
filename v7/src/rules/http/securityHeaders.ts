@@ -7,9 +7,15 @@ export const securityHeadersRule: Rule = {
   name: 'Security headers presence',
   enabled: true,
   async run(page) {
-    const h = (page.headers || {})
-    const missing = need.filter(k => !h[k])
-    return missing.length ? { label: 'HTTP', message: `Missing security headers: ${missing.join(', ')}`, type: 'info' } : { label: 'HTTP', message: 'Security headers present', type: 'info' }
+    const h = page.headers || {}
+    const missing = need.filter((k) => !h[k])
+    return {
+      label: 'HTTP',
+      message: missing.length ? `Missing security headers: ${missing.join(', ')}` : 'Security headers present',
+      type: 'info',
+      name: 'securityHeaders',
+      details: { httpHeaders: h },
+    }
   },
 }
 
