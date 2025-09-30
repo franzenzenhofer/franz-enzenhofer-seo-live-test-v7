@@ -19,7 +19,7 @@
 ## 🔄 TODO (87/101)
 
 ### a11y (2)
-- [ ] src/rules/a11y/linkedImagesAlt.ts
+- [x] src/rules/a11y/linkedImagesAlt.ts
 - [ ] src/rules/a11y/linkedImagesAltNoText.ts
 
 ### body (5)
