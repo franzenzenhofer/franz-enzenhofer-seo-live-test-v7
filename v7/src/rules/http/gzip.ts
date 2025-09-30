@@ -8,9 +8,22 @@ export const gzipRule: Rule = {
   enabled: true,
   async run(page) {
     const e = enc(page.headers)
-    if (!e) return { label: 'HTTP', message: 'No content-encoding header', type: 'warn' }
     const ok = e.includes('br') || e.includes('gzip')
-    return ok ? { label: 'HTTP', message: `Compressed (${e})`, type: 'ok' } : { label: 'HTTP', message: `Not compressed (${e})`, type: 'warn' }
+    if (!e)
+      return {
+        label: 'HTTP',
+        message: 'No content-encoding header',
+        type: 'warn',
+        name: 'gzip',
+        details: { httpHeaders: page.headers || {} },
+      }
+    return {
+      label: 'HTTP',
+      message: ok ? `Compressed (${e})` : `Not compressed (${e})`,
+      type: ok ? 'ok' : 'warn',
+      name: 'gzip',
+      details: { httpHeaders: page.headers || {} },
+    }
   },
 }
 
