@@ -1,4 +1,5 @@
 import type { Rule } from '@/core/types'
+import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
 export const imagesLazyRule: Rule = {
   id: 'body:images-lazy',
@@ -6,9 +7,31 @@ export const imagesLazyRule: Rule = {
   enabled: true,
   async run(page) {
     const imgs = Array.from(page.doc.querySelectorAll('img')) as HTMLImageElement[]
-    let n = 0
-    for (const i of imgs) if (!i.getAttribute('loading')) n++
-    return n ? { label: 'BODY', message: `${n} images without loading attribute`, type: 'info' } : { label: 'BODY', message: 'Images have loading attribute', type: 'ok' }
+    const noLoading: HTMLImageElement[] = []
+    for (const i of imgs) {
+      if (!i.getAttribute('loading')) noLoading.push(i)
+    }
+
+    if (noLoading.length > 0) {
+      const sourceHtml = extractHtmlFromList(noLoading)
+      return {
+        label: 'BODY',
+        message: `${noLoading.length} images without loading attribute`,
+        type: 'info',
+        name: 'imagesLazy',
+        details: {
+          sourceHtml,
+          snippet: extractSnippet(sourceHtml),
+        },
+      }
+    }
+
+    return {
+      label: 'BODY',
+      message: 'Images have loading attribute',
+      type: 'ok',
+      name: 'imagesLazy',
+    }
   },
 }
 
