@@ -9,10 +9,22 @@ export const robotsBlockedResourcesRule: Rule = {
   enabled: true,
   async run(page) {
     const list = page.resources || []
-    if (!list.length) return { label: 'ROBOTS', message: 'No resource requests captured', type: 'info' }
+    if (!list.length)
+      return {
+        label: 'ROBOTS',
+        message: 'No resource requests captured',
+        type: 'info',
+        name: 'robotsBlockedResources',
+      }
     const base = new URL(page.url)
-    const r = (await fetch(`${base.origin}/robots.txt`).catch(()=> null)) as Response | null
-    if (!r || !r.ok) return { label: 'ROBOTS', message: 'robots.txt not reachable for blocked check', type: 'info' }
+    const r = (await fetch(`${base.origin}/robots.txt`).catch(() => null)) as Response | null
+    if (!r || !r.ok)
+      return {
+        label: 'ROBOTS',
+        message: 'robots.txt not reachable for blocked check',
+        type: 'info',
+        name: 'robotsBlockedResources',
+      }
     const txt = await r.text()
     const ua = 'Googlebot'
     let blocked = 0
@@ -23,6 +35,12 @@ export const robotsBlockedResourcesRule: Rule = {
       const disallowed = Boolean(res['disallowed'])
       if (!allowed || disallowed) blocked++
     }
-    return blocked ? { label: 'ROBOTS', message: `${blocked} resources disallowed by robots.txt`, type: 'warn' } : { label: 'ROBOTS', message: 'No blocked resources', type: 'ok' }
+    return {
+      label: 'ROBOTS',
+      message: blocked ? `${blocked} resources disallowed by robots.txt` : 'No blocked resources',
+      type: blocked ? 'warn' : 'ok',
+      name: 'robotsBlockedResources',
+      details: { robotsTxt: txt },
+    }
   },
 }
