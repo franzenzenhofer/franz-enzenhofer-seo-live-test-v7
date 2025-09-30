@@ -1,4 +1,5 @@
 import type { Rule } from '@/core/types'
+import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
 const parse = (v: string) => v.toLowerCase().split(',').map(s=>s.trim())
 
@@ -8,13 +9,34 @@ export const robotsMetaRule: Rule = {
   enabled: true,
   run: async (page) => {
     const el = page.doc.querySelector('meta[name="robots"]') as HTMLMetaElement|null
-    if (!el || !el.content) return { label: 'HEAD', message: 'No robots meta tag.', type: 'info', what: 'static', priority: 610 }
+    if (!el || !el.content) {
+      return {
+        label: 'HEAD',
+        message: 'No robots meta tag.',
+        type: 'info',
+        what: 'static',
+        priority: 610,
+        name: 'robotsMeta',
+      }
+    }
     const tokens = parse(el.content)
     const ni = tokens.includes('noindex'); const nf = tokens.includes('nofollow')
-    let msg = 'robots: ' + el.content
-    let t: 'info'|'warn' = 'info'
-    if (ni || nf) { t = 'warn' }
-    return { label: 'HEAD', message: msg, type: t, what: 'static', priority: 610 }
+    const msg = 'robots: ' + el.content
+    const t: 'info'|'warn' = (ni || nf) ? 'warn' : 'info'
+    const sourceHtml = extractHtml(el)
+    return {
+      label: 'HEAD',
+      message: msg,
+      type: t,
+      what: 'static',
+      priority: 610,
+      name: 'robotsMeta',
+      details: {
+        sourceHtml,
+        snippet: extractSnippet(sourceHtml),
+        domPath: getDomPath(el),
+      },
+    }
   },
 }
 
