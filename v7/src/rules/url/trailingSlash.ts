@@ -8,14 +8,25 @@ export const trailingSlashRule: Rule = {
   enabled: true,
   async run(page) {
     let p = '/'
-    try { p = new URL(page.url).pathname } catch {/* ignore */}
+    try {
+      p = new URL(page.url).pathname
+    } catch {
+      /* ignore */
+    }
     const canon = page.doc.querySelector('link[rel="canonical"]')?.getAttribute('href') || ''
-    if (!canon) return { label: 'URL', message: 'No canonical to compare', type: 'info' }
+    if (!canon) return { label: 'URL', message: 'No canonical to compare', type: 'info', name: 'trailingSlash' }
     try {
       const cp = new URL(canon, page.url).pathname
       const ok = pathHasSlash(p) === pathHasSlash(cp)
-      return ok ? { label: 'URL', message: 'Trailing slash consistent', type: 'ok' } : { label: 'URL', message: 'Trailing slash inconsistency with canonical', type: 'warn' }
-    } catch { return { label: 'URL', message: 'Invalid canonical URL', type: 'warn' } }
+      return {
+        label: 'URL',
+        message: ok ? 'Trailing slash consistent' : 'Trailing slash inconsistency with canonical',
+        type: ok ? 'ok' : 'warn',
+        name: 'trailingSlash',
+      }
+    } catch {
+      return { label: 'URL', message: 'Invalid canonical URL', type: 'warn', name: 'trailingSlash' }
+    }
   },
 }
 
