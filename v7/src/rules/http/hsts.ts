@@ -6,8 +6,21 @@ export const hstsRule: Rule = {
   enabled: true,
   async run(page) {
     const v = page.headers?.['strict-transport-security']
-    if (!v) return { label: 'HTTP', message: 'Missing HSTS header', type: 'warn' }
-    return { label: 'HTTP', message: `HSTS: ${v}`, type: 'info' }
+    if (!v)
+      return {
+        label: 'HTTP',
+        message: 'Missing HSTS header',
+        type: 'warn',
+        name: 'hsts',
+        details: { httpHeaders: page.headers || {} },
+      }
+    return {
+      label: 'HTTP',
+      message: `HSTS: ${v}`,
+      type: 'info',
+      name: 'hsts',
+      details: { httpHeaders: page.headers || {} },
+    }
   },
 }
 
