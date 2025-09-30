@@ -11,8 +11,12 @@
 - [x] src/rules/og/description.ts
 - [x] src/rules/og/image.ts
 - [x] src/rules/og/url.ts
+- [x] src/rules/og/title.ts (verified complete)
+- [x] src/rules/og/description.ts (verified complete)
+- [x] src/rules/og/image.ts (verified complete)
+- [x] src/rules/og/url.ts (verified complete)
 
-## 🔄 TODO (91/101)
+## 🔄 TODO (87/101)
 
 ### a11y (2)
 - [ ] src/rules/a11y/linkedImagesAlt.ts
