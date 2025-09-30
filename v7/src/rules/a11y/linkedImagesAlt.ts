@@ -1,4 +1,5 @@
 import type { Rule } from '@/core/types'
+import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
 export const linkedImagesAltRule: Rule = {
   id: 'a11y:linked-images-alt',
@@ -6,8 +7,36 @@ export const linkedImagesAltRule: Rule = {
   enabled: true,
   async run(page) {
     const imgs = page.doc.querySelectorAll('a img')
-    let n = 0
-    imgs.forEach(img => { const alt = (img.getAttribute('alt') || '').trim(); if (!alt) n++ })
-    return n ? { label: 'A11Y', message: `${n} linked images missing alt`, type: 'warn' } : { label: 'A11Y', message: 'Linked images have alt', type: 'ok' }
+    const missingAlt: Element[] = []
+    imgs.forEach(img => {
+      const alt = (img.getAttribute('alt') || '').trim()
+      if (!alt) missingAlt.push(img)
+    })
+
+    if (missingAlt.length > 0) {
+      const sourceHtml = extractHtmlFromList(missingAlt)
+      return {
+        label: 'A11Y',
+        message: `${missingAlt.length} linked images missing alt`,
+        type: 'warn',
+        name: 'linkedImagesAlt',
+        details: {
+          sourceHtml,
+          snippet: extractSnippet(sourceHtml),
+        },
+      }
+    }
+
+    const sourceHtml = extractHtmlFromList(imgs)
+    return {
+      label: 'A11Y',
+      message: 'Linked images have alt',
+      type: 'ok',
+      name: 'linkedImagesAlt',
+      details: {
+        sourceHtml,
+        snippet: extractSnippet(sourceHtml),
+      },
+    }
   },
 }
