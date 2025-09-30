@@ -7,16 +7,16 @@ export const gscDirectoryWorldwideRule: Rule = {
   async run(page, ctx) {
     const token = (ctx.globals as { googleApiAccessToken?: string|null }).googleApiAccessToken || null
     const vars = (ctx.globals as { variables?: Record<string, unknown> }).variables || {}
-    if (!token) return { label: 'GSC', message: 'No Google token', type: 'info' }
+    if (!token) return { label: 'GSC', message: 'No Google token', type: 'info', name: '$(basename ${f%.ts})' }
     const site = String((vars as Record<string, unknown>)['gsc_site_url'] || '')
-    if (!site) return { label: 'GSC', message: 'Set variables.gsc_site_url', type: 'info' }
+    if (!site) return { label: 'GSC', message: 'Set variables.gsc_site_url', type: 'info', name: '$(basename ${f%.ts})' }
     const dir = page.url.replace(/\/?[^/]*$/, '/')
     const body = { startDate: '2020-01-01', endDate: '2099-12-31', dimensions: ['page'], dimensionFilterGroups: [{ groupType: 'and', filters: [{ dimension: 'page', operator: 'contains', expression: dir }] }], rowLimit: 10 }
     const r = await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(site)}/searchAnalytics/query`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify(body) })
-    if (!r.ok) return { label: 'GSC', message: `GSC query error ${r.status}`, type: 'warn' }
+    if (!r.ok) return { label: 'GSC', message: `GSC query error ${r.status}`, type: 'warn', name: '$(basename ${f%.ts})' }
     const j = await r.json() as { rows?: Array<{ clicks?: number, impressions?: number }> }
     const imp = (j.rows || []).reduce((a, x)=> a + (x.impressions || 0), 0)
-    return { label: 'GSC', message: `Directory impressions ${imp}`, type: 'info' }
+    return { label: 'GSC', message: `Directory impressions ${imp}`, type: 'info', name: '$(basename ${f%.ts})' }
   },
 }
 

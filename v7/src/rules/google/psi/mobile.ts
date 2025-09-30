@@ -8,9 +8,9 @@ export const psiMobileRule: Rule = {
   async run(page, ctx) {
     const vars = (ctx.globals as { variables?: Record<string, unknown> }).variables || {}
     const key = String((vars as Record<string, unknown>)['google_page_speed_insights_key'] || '').trim()
-    if (!key) return { label: 'PSI', message: 'No PSI key set', type: 'info' }
+    if (!key) return { label: 'PSI', message: 'No PSI key set', type: 'info', name: '$(basename ${f%.ts})' }
     const j = await runPSI(page.url, 'mobile', key)
     const score = Math.round(((j.lighthouseResult?.categories?.performance?.score || 0) as number) * 100)
-    return { label: 'PSI', message: `Mobile performance: ${score}`, type: 'info' }
+    return { label: 'PSI', message: `Mobile performance: ${score}`, type: 'info', name: '$(basename ${f%.ts})' }
   },
 }
