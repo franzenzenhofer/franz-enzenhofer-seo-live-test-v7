@@ -6,7 +6,13 @@ export const linkHeaderRule: Rule = {
   enabled: true,
   async run(page) {
     const v = page.headers?.['link']
-    return v ? { label: 'HTTP', message: `Link: ${v}`, type: 'info' } : { label: 'HTTP', message: 'No Link header', type: 'info' }
+    return {
+      label: 'HTTP',
+      message: v ? `Link: ${v}` : 'No Link header',
+      type: 'info',
+      name: 'linkHeader',
+      details: { httpHeaders: page.headers || {} },
+    }
   },
 }
 
