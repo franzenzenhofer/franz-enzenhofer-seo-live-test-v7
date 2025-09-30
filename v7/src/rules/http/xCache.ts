@@ -8,9 +8,22 @@ export const xCacheRule: Rule = {
   enabled: true,
   async run(page) {
     const x = v(page.headers, 'x-cache')
-    if (!x) return { label: 'HTTP', message: 'No X-Cache header', type: 'info' }
+    if (!x)
+      return {
+        label: 'HTTP',
+        message: 'No X-Cache header',
+        type: 'info',
+        name: 'xCache',
+        details: { httpHeaders: page.headers || {} },
+      }
     const t = x.includes('hit') ? 'HIT' : x.includes('miss') ? 'MISS' : x
-    return { label: 'HTTP', message: `X-Cache: ${t}`, type: 'info' }
+    return {
+      label: 'HTTP',
+      message: `X-Cache: ${t}`,
+      type: 'info',
+      name: 'xCache',
+      details: { httpHeaders: page.headers || {} },
+    }
   },
 }
 
