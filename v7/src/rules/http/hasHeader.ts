@@ -9,9 +9,22 @@ export const hasHeaderRule: Rule = {
   async run(page, ctx) {
     const vars = (ctx.globals as { variables?: Record<string, unknown> }).variables || {}
     const raw = String((vars as Record<string, unknown>)['http_has_header'] || '').trim()
-    if (!raw) return { label: 'HTTP', message: 'No header configured (set variables.http_has_header)', type: 'info' }
-    const keys = raw.split(',').map(s=> s.trim().toLowerCase()).filter(Boolean)
-    const miss = keys.filter(k => !pick(page.headers, k))
-    return miss.length ? { label: 'HTTP', message: `Missing headers: ${miss.join(', ')}`, type: 'warn' } : { label: 'HTTP', message: `All headers present: ${keys.join(', ')}`, type: 'ok' }
+    if (!raw)
+      return {
+        label: 'HTTP',
+        message: 'No header configured (set variables.http_has_header)',
+        type: 'info',
+        name: 'hasHeader',
+        details: { httpHeaders: page.headers || {} },
+      }
+    const keys = raw.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
+    const miss = keys.filter((k) => !pick(page.headers, k))
+    return {
+      label: 'HTTP',
+      message: miss.length ? `Missing headers: ${miss.join(', ')}` : `All headers present: ${keys.join(', ')}`,
+      type: miss.length ? 'warn' : 'ok',
+      name: 'hasHeader',
+      details: { httpHeaders: page.headers || {} },
+    }
   },
 }
