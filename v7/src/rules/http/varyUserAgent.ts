@@ -6,9 +6,15 @@ export const varyUserAgentRule: Rule = {
   enabled: true,
   async run(page) {
     const vary = (page.headers?.['vary'] || '').toLowerCase()
-    return vary.includes('user-agent')
-      ? { label: 'HTTP', message: 'Vary includes User-Agent', type: 'info' }
-      : { label: 'HTTP', message: 'Vary does not include User-Agent', type: 'info' }
+    return {
+      label: 'HTTP',
+      message: vary.includes('user-agent')
+        ? 'Vary includes User-Agent'
+        : 'Vary does not include User-Agent',
+      type: 'info',
+      name: 'varyUserAgent',
+      details: { httpHeaders: page.headers || {} },
+    }
   },
 }
 
