@@ -10,7 +10,13 @@ export const altSvcOtherProtocolsRule: Rule = {
     const hasAlt = !!alt
     const stripped = alt.replace(known, '')
     const other = /quic|spdy|http\/1\.1/.test(stripped)
-    return hasAlt && other ? { label: 'HTTP', message: `Alt-Svc other protocols: ${alt}`, type: 'info' } : { label: 'HTTP', message: 'No other Alt-Svc protocols', type: 'info' }
+    return {
+      label: 'HTTP',
+      message: hasAlt && other ? `Alt-Svc other protocols: ${alt}` : 'No other Alt-Svc protocols',
+      type: 'info',
+      name: 'altSvcOtherProtocols',
+      details: { httpHeaders: page.headers || {} },
+    }
   },
 }
 
