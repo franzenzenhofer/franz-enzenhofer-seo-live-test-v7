@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { ExportButtons } from './ExportButtons'
 import { NoResults } from './NoResults'
+import { ResultItem } from './ResultItem'
 
 import { getActiveTabId } from '@/shared/chrome'
 import { readResults, watchResults, type Result } from '@/shared/results'
+import { getResultColor } from '@/shared/colors'
 
 export const Results = ({ types, q }: { types?: string[]; q?: string }) => {
   const [items, setItems] = useState<Result[]>([])
@@ -28,20 +30,21 @@ export const Results = ({ types, q }: { types?: string[]; q?: string }) => {
   const rows = useMemo(()=> vis.map((r)=> ({ label:r.label, message:r.message, type:r.type })), [vis])
   return (
     <div className="space-y-2">
-      <div className="text-xs text-slate-600 flex items-center gap-2">
-        <span>ok {summary['ok']||0}</span><span>warn {summary['warn']||0}</span>
-        <span>error {summary['error']||0}</span><span>info {summary['info']||0}</span>
+      <div className="flex items-center gap-2 text-xs">
+        {['error', 'warn', 'info', 'ok'].map(type => {
+          const count = summary[type] || 0
+          if (count === 0) return null
+          const color = getResultColor(type)
+          return (
+            <span key={type} className={`px-2 py-1 rounded ${color.badge}`}>
+              {type}: {count}
+            </span>
+          )
+        })}
         <ExportButtons rows={rows} />
       </div>
       {vis.map((r, i) => (
-        <div key={i} className="border rounded p-2 cursor-pointer hover:bg-gray-50"
-          onClick={async () => {
-            const tabId = await getActiveTabId()
-            if (tabId) chrome.tabs.create({ url: chrome.runtime.getURL(`report.html?tabId=${tabId}&index=${items.indexOf(r)}`) })
-          }}>
-          <div className="text-xs text-slate-500">{r.label} · {r.type}</div>
-          <div className="font-medium">{r.message}</div>
-        </div>
+        <ResultItem key={i} result={r} index={items.indexOf(r)} />
       ))}
       {!vis.length && <NoResults items={items} types={types} q={q} />}
     </div>

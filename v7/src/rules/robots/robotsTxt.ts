@@ -3,9 +3,15 @@ import type { Rule } from '@/core/types'
 const urlOf = (u: string) => {
   try {
     const o = new URL(u)
-    if (o.protocol !== 'http:' && o.protocol !== 'https:') return ''
+    if (o.protocol !== 'http:' && o.protocol !== 'https:') {
+      console.error(`[robotsTxt] Invalid protocol blocked: ${o.protocol} from ${u}`)
+      return ''
+    }
     return `${o.origin}/robots.txt`
-  } catch { return '' }
+  } catch (e) {
+    console.error(`[robotsTxt] Invalid URL: ${u}`, e)
+    return ''
+  }
 }
 
 export const robotsTxtRule: Rule = {

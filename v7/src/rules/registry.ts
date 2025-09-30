@@ -1,5 +1,7 @@
 import { titleRule } from './head/title'
+import { titleEnhancedRule } from './head/title-enhanced'
 import { metaDescriptionRule } from './head/metaDescription'
+import { metaDescriptionEnhancedRule } from './head/metaDescription-enhanced'
 import { canonicalRule } from './head/canonical'
 import { httpStatusRule } from './http/status'
 import { robotsTxtRule } from './robots/robotsTxt'
@@ -31,6 +33,7 @@ import { hasHeaderRule } from './http/hasHeader'
 import { soft404Rule } from './http/soft404'
 import { canonicalRedirectsRule } from './head/canonicalRedirects'
 import { h1Rule } from './body/h1'
+import { h1EnhancedRule } from './body/h1-enhanced'
 import { nofollowRule } from './body/nofollow'
 import { linkedImagesAltRule } from './a11y/linkedImagesAlt'
 import { internalLinksRule } from './body/internalLinks'
@@ -90,7 +93,9 @@ import type { Rule } from '@/core/types'
 
 export const registry: Rule[] = [
   titleRule,
+  titleEnhancedRule,
   metaDescriptionRule,
+  metaDescriptionEnhancedRule,
   canonicalRule,
   httpStatusRule,
   robotsTxtRule,
@@ -122,6 +127,7 @@ export const registry: Rule[] = [
   soft404Rule,
   canonicalRedirectsRule,
   h1Rule,
+  h1EnhancedRule,
   nofollowRule,
   linkedImagesAltRule,
   internalLinksRule,

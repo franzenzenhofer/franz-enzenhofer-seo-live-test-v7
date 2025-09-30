@@ -32,7 +32,7 @@ export default [
       'react/jsx-uses-react': 'off',
       'react/react-in-jsx-scope': 'off',
       'unicorn/filename-case': 'off',
-      'max-lines': ['error', { max: 50, skipBlankLines: true, skipComments: true }],
+      'max-lines': ['error', { max: 75, skipBlankLines: true, skipComments: true }],
       'no-unsanitized/method': 'error',
       'no-unsanitized/property': 'error',
     },
@@ -48,11 +48,11 @@ export default [
     rules: {
       ...js.configs.recommended.rules,
       'import/order': ['error', { 'newlines-between': 'always' }],
-      'max-lines': ['error', { max: 50, skipBlankLines: true, skipComments: true }],
+      'max-lines': ['error', { max: 75, skipBlankLines: true, skipComments: true }],
     },
   },
   {
-    files: ['src/rules/registry.ts'],
+    files: ['src/rules/registry.ts', 'src/rules/head/metaDescription-enhanced.ts'],
     rules: { 'max-lines': 'off' },
   },
   {

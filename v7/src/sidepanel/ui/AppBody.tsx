@@ -1,12 +1,13 @@
 import type { Dispatch, SetStateAction } from 'react'
 
-import { Logs } from './Logs'
 import { UrlBar } from './UrlBar'
 import { Results } from './Results'
 import { Search } from './Search'
 import { TypeFilters } from './TypeFilters'
 import { Header } from './Header'
 import type { Tab } from './TabStrip'
+
+import { getActiveTabId } from '@/shared/chrome'
 
 export const AppBody = ({
   tab, setTab,
@@ -22,8 +23,17 @@ export const AppBody = ({
 }) => {
   // Open settings in new tab when selected
   if (tab === 'settings') {
-    const url = chrome.runtime.getURL('settings.html')
+    const url = chrome.runtime.getURL('src/settings.html')
     chrome.tabs.create({ url })
+    setTab('results') // Reset to results
+  }
+
+  // Open logs in new tab when selected
+  if (tab === 'logs') {
+    getActiveTabId().then((tabId) => {
+      const url = chrome.runtime.getURL(`src/logs.html${tabId ? `?tabId=${tabId}` : ''}`)
+      chrome.tabs.create({ url })
+    }).catch(() => {})
     setTab('results') // Reset to results
   }
 
@@ -31,7 +41,6 @@ export const AppBody = ({
     <div className="dt-panel w-[360px]">
       <Header tab={tab} showLogs={showLogs} setTab={setTab} setShowLogs={setShowLogs} />
       <div className="p-3 space-y-3">
-        {showLogs && <Logs />}
         <UrlBar url={d.url} />
         <Search onChange={setQuery} />
         <TypeFilters show={show} setShow={setShow} />

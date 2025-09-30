@@ -7,7 +7,15 @@ export const robotsSitemapReferenceRule: Rule = {
   enabled: true,
   async run(page) {
     let origin = ''
-    try { origin = new URL(page.url).origin } catch { return { label: 'ROBOTS', message: 'Invalid URL', type: 'info' } }
+    try {
+      const url = new URL(page.url)
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+        return { label: 'ROBOTS', message: `Skipped: ${url.protocol} URL`, type: 'info' }
+      }
+      origin = url.origin
+    } catch {
+      return { label: 'ROBOTS', message: 'Invalid URL', type: 'info' }
+    }
     const txt = await fetchTextOnce(`${origin}/robots.txt`)
     if (!txt) return { label: 'ROBOTS', message: 'robots.txt not reachable', type: 'info' }
     const has = /\n\s*sitemap\s*:\s*\S+/i.test(`\n${txt}`)

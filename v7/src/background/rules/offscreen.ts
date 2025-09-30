@@ -36,6 +36,11 @@ export const runInOffscreen = async <T>(payload: unknown): Promise<T> => {
       }
     }
     chrome.runtime.onMessage.addListener(onMsg)
-    chrome.runtime.sendMessage({ channel: 'offscreen', id, data: payload }).catch(() => {})
+    chrome.runtime.sendMessage({ channel: 'offscreen', id, data: payload }).catch((err) => {
+      clearTimeout(timeout)
+      chrome.runtime.onMessage.removeListener(onMsg)
+      console.error('[offscreen] Message send failed:', err)
+      reject(new Error('offscreen-message-failed'))
+    })
   })
 }

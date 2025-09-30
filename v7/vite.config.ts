@@ -16,6 +16,9 @@ export default defineConfig({
     rollupOptions: {
       input: {
         offscreen: r(root, 'src/offscreen.html'),
+        report: r(root, 'src/report.html'),
+        settings: r(root, 'src/settings.html'),
+        logs: r(root, 'src/logs.html'),
       },
     },
   },

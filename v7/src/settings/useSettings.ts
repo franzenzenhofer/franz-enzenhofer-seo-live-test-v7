@@ -17,15 +17,15 @@ export const useSettings = () => {
       'rule-flags',
       'globalRuleVariables',
       TOKEN_KEY,
-      'autoClear',
-      'autoRun',
-      'preserveLog'
+      'ui:autoClear',
+      'ui:autoRun',
+      'ui:preserveLog'
     ], (items) => {
       setFlags(items['rule-flags'] || {})
       setVars(items['globalRuleVariables'] || {})
-      setAutoClear(items['autoClear'] || false)
-      setAutoRun(items['autoRun'] || false)
-      setPreserveLog(items['preserveLog'] || false)
+      setAutoClear(items['ui:autoClear'] !== false)
+      setAutoRun(items['ui:autoRun'] !== false)
+      setPreserveLog(items['ui:preserveLog'] === true)
     })
 
     getStoredToken().then((t) => setHasToken(!!t)).catch(() => {})

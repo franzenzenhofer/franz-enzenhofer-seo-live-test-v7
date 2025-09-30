@@ -6,8 +6,20 @@ import { log } from '@/shared/logs'
 const k = (tabId: number) => `results:${tabId}`
 
 export const runRulesOn = async (tabId: number, run: import('../pipeline/types').Run) => {
+  // Generate unique run ID with timestamp
+  const runId = `run-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+  const runTimestamp = new Date()
+
   const { globalRuleVariables, googleApiAccessToken } = await chrome.storage.local.get(['globalRuleVariables','googleApiAccessToken'])
-  const globals = { variables: globalRuleVariables || {}, googleApiAccessToken: googleApiAccessToken || null, events: run.ev, rulesUrl: chrome.runtime.getURL('src/sidepanel.html'), codeviewUrl: chrome.runtime.getURL('src/sidepanel.html#codeview') }
+  const globals = {
+    variables: globalRuleVariables || {},
+    googleApiAccessToken: googleApiAccessToken || null,
+    events: run.ev,
+    rulesUrl: chrome.runtime.getURL('src/sidepanel.html'),
+    codeviewUrl: chrome.runtime.getURL('src/sidepanel.html#codeview'),
+    runId,
+    runTimestamp: runTimestamp.toISOString()
+  }
   // Guard restricted schemes based on nav URL; if missing but DOM exists, allow.
   const pageUrl = derivePageUrl(run.ev as unknown as Array<{t:string;u?:string}>)
   const hasDom = hasDomSnapshot(run.ev as unknown as Array<{t:string; d?:{html?:string}}>)

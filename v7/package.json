@@ -1,12 +1,12 @@
 {
   "name": "f19n-obtrusive-livetest-v7",
-  "version": "0.1.65",
+  "version": "0.1.90",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "prebuild": "node scripts/bump-version.mjs",
-    "build": "vite build",
+    "build": "NODE_OPTIONS=\"--require ./scripts/fix-undici.cjs\" vite build",
     "build:dev": "cross-env EXT_ENV=dev vite build",
     "dist": "npm run build && tsx scripts/dist.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -17,7 +17,8 @@
     "test:changed": "vitest --changed --watch --reporter=dot --passWithNoTests",
     "test:e2e": "npx playwright test",
     "cli": "tsx src/cli/main.ts",
-    "ci": "npm run typecheck && npm run lint && npm test && npm run build",
+    "ci": "npm run typecheck && npm run lint && npm test && npm run build && npm run test:build",
+    "test:build": "vitest run tests/build.html-files.test.ts",
     "check": "npm run typecheck && npm run lint",
     "check:watch": "chokidar \"src/**/*.{ts,tsx,js,jsx}\" -c \"npm run check\"",
     "pack": "rm -f dist.zip && cd dist && zip -r ../dist.zip . >/dev/null",
@@ -28,9 +29,7 @@
     "dotenv": "^16.4.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "webextension-polyfill": "^0.10.0",
-    "zod": "^3.23.8",
-    "zustand": "^4.5.4"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.0.0",
@@ -44,10 +43,8 @@
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.20",
     "chokidar-cli": "^3.0.0",
-    "concurrently": "^9.0.1",
     "cross-env": "^7.0.3",
     "eslint": "^9.12.0",
-    "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-jsx-a11y": "^6.9.0",
     "eslint-plugin-no-unsanitized": "^4.0.2",

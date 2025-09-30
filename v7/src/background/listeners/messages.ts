@@ -10,13 +10,26 @@ export const handleMessage = (msg: unknown, sender: Sender, send?: (resp?: unkno
   if (st?.type === 'panel:runNow' && tabId) {
     ;(async ()=>{
       try {
-        if (chrome?.storage?.local?.get) {
-          const v = await chrome.storage.local.get('ui:autoClear')
-          if (v['ui:autoClear'] !== false) await chrome.storage.local.remove(`results:${tabId}`)
+        // Clear results if autoClear enabled
+        const v = await chrome.storage.local.get('ui:autoClear')
+        if (v['ui:autoClear'] !== false) await chrome.storage.local.remove(`results:${tabId}`)
+
+        // Get current tab to capture URL
+        const tab = await chrome.tabs.get(tabId)
+        if (tab.url) {
+          // Push nav event with current URL
+          await pushEvent(tabId, { t: 'nav:current', u: tab.url })
+          // Push DOM snapshot request
+          await pushEvent(tabId, { t: 'dom:document_idle', d: { html: '<!DOCTYPE html>' } })
         }
-      } catch { /* ignore */ }
+
+        // Trigger rules execution
+        await setDomDone(tabId)
+        await scheduleFinalize(tabId, 100)
+      } catch (e) {
+        console.error('panel:runNow error:', e)
+      }
     })()
-    setDomDone(tabId).then(()=> scheduleFinalize(tabId, 0)).catch(()=>{})
     send?.('ok')
     return true
   }
