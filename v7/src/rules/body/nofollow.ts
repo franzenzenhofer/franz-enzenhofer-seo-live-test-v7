@@ -1,4 +1,5 @@
 import type { Rule } from '@/core/types'
+import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
 export const nofollowRule: Rule = {
   id: 'body:nofollow',
@@ -6,7 +7,26 @@ export const nofollowRule: Rule = {
   enabled: true,
   async run(page) {
     const a = Array.from(page.doc.querySelectorAll('a[rel~="nofollow"]'))
-    const n = a.length
-    return n ? { label: 'BODY', message: `${n} nofollow links`, type: 'info' } : { label: 'BODY', message: 'No rel=nofollow links', type: 'ok' }
+
+    if (a.length > 0) {
+      const sourceHtml = extractHtmlFromList(a)
+      return {
+        label: 'BODY',
+        message: `${a.length} nofollow links`,
+        type: 'info',
+        name: 'nofollow',
+        details: {
+          sourceHtml,
+          snippet: extractSnippet(sourceHtml),
+        },
+      }
+    }
+
+    return {
+      label: 'BODY',
+      message: 'No rel=nofollow links',
+      type: 'ok',
+      name: 'nofollow',
+    }
   },
 }
