@@ -6,8 +6,23 @@ export const httpsSchemeRule: Rule = {
   enabled: true,
   async run(page) {
     try {
-      if (new URL(page.url).protocol === 'https:') return { label: 'HTTP', message: 'HTTPS in use', type: 'ok' }
-    } catch { /* ignore */ }
-    return { label: 'HTTP', message: 'Not using HTTPS', type: 'warn' }
+      if (new URL(page.url).protocol === 'https:')
+        return {
+          label: 'HTTP',
+          message: 'HTTPS in use',
+          type: 'ok',
+          name: 'httpsScheme',
+          details: { httpHeaders: page.headers || {} },
+        }
+    } catch {
+      /* ignore */
+    }
+    return {
+      label: 'HTTP',
+      message: 'Not using HTTPS',
+      type: 'warn',
+      name: 'httpsScheme',
+      details: { httpHeaders: page.headers || {} },
+    }
   },
 }
