@@ -6,9 +6,13 @@ export const http3AdvertisedRule: Rule = {
   enabled: true,
   async run(page) {
     const alt = (page.headers?.['alt-svc'] || '').toLowerCase()
-    return /\bh3\b|h3-/.test(alt)
-      ? { label: 'HTTP', message: 'Alt-Svc advertises HTTP/3', type: 'info' }
-      : { label: 'HTTP', message: 'HTTP/3 not advertised', type: 'info' }
+    return {
+      label: 'HTTP',
+      message: /\bh3\b|h3-/.test(alt) ? 'Alt-Svc advertises HTTP/3' : 'HTTP/3 not advertised',
+      type: 'info',
+      name: 'http3Advertised',
+      details: { httpHeaders: page.headers || {} },
+    }
   },
 }
 
