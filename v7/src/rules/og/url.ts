@@ -1,4 +1,5 @@
 import type { Rule } from '@/core/types'
+import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
 export const ogUrlRule: Rule = {
   id: 'og:url',
@@ -6,9 +7,12 @@ export const ogUrlRule: Rule = {
   enabled: true,
   async run(page) {
     const m = page.doc.querySelector('meta[property="og:url"], meta[name="og:url"]')
-    if (!m) return { label: 'OG', message: 'Missing og:url', type: 'warn' }
+    if (!m) return { label: 'OG', message: 'Missing og:url', type: 'warn', name: 'ogUrl' }
     const c = m.getAttribute('content')?.trim() || ''
-    return c ? { label: 'OG', message: `og:url: ${c}`, type: 'info' } : { label: 'OG', message: 'Empty og:url', type: 'warn' }
+    const sourceHtml = extractHtml(m)
+    return c
+      ? { label: 'OG', message: `og:url: ${c}`, type: 'info', name: 'ogUrl', details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(m) } }
+      : { label: 'OG', message: 'Empty og:url', type: 'warn', name: 'ogUrl', details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(m) } }
   },
 }
 
