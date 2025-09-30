@@ -23,8 +23,9 @@ export const getDomPath = (element: Element | null): string => {
 
   const path: string[] = []
   let current: Element | null = element
+  const ELEMENT_NODE = 1
 
-  while (current && current.nodeType === Node.ELEMENT_NODE) {
+  while (current && current.nodeType === ELEMENT_NODE) {
     let selector = current.nodeName.toLowerCase()
 
     if (current.id) {
@@ -34,7 +35,7 @@ export const getDomPath = (element: Element | null): string => {
     }
 
     if (current.className) {
-      const classes = current.className.trim().split(/\s+/).filter(c => c)
+      const classes = current.className.trim().split(/\s+/).filter((c) => c)
       if (classes.length > 0) {
         selector += `.${classes.join('.')}`
       }
@@ -42,9 +43,7 @@ export const getDomPath = (element: Element | null): string => {
 
     const parent: Element | null = current.parentElement
     if (parent) {
-      const siblings = Array.from(parent.children).filter(
-        (sibling: Element) => sibling.nodeName === current!.nodeName
-      )
+      const siblings = Array.from(parent.children).filter((sibling: Element) => sibling.nodeName === current!.nodeName)
       if (siblings.length > 1) {
         const index = siblings.indexOf(current) + 1
         selector += `:nth-of-type(${index})`
