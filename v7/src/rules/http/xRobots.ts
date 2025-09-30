@@ -6,7 +6,13 @@ export const xRobotsRule: Rule = {
   enabled: true,
   async run(page) {
     const v = page.headers?.['x-robots-tag']
-    return v ? { label: 'HTTP', message: `X-Robots-Tag: ${v}`, type: 'info' } : { label: 'HTTP', message: 'No X-Robots-Tag', type: 'info' }
+    return {
+      label: 'HTTP',
+      message: v ? `X-Robots-Tag: ${v}` : 'No X-Robots-Tag',
+      type: 'info',
+      name: 'xRobots',
+      details: { httpHeaders: page.headers || {} },
+    }
   },
 }
 
