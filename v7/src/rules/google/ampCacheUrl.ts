@@ -1,8 +1,21 @@
 import type { Rule } from '@/core/types'
+import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
-const ampHref = (d: Document) => d.querySelector('link[rel="amphtml"]')?.getAttribute('href') || ''
+const findAmp = (d: Document) => {
+  const el = d.querySelector('link[rel="amphtml"]')
+  return { element: el, href: el?.getAttribute('href') || '' }
+}
+
 const ampCache = (href: string) => {
-  try { const u = new URL(href); const host = u.host + u.pathname; return u.protocol === 'https:' ? `https://cdn.ampproject.org/c/s/${host}` : `https://cdn.ampproject.org/c/${host}` } catch { return '' }
+  try {
+    const u = new URL(href)
+    const host = u.host + u.pathname
+    return u.protocol === 'https:'
+      ? `https://cdn.ampproject.org/c/s/${host}`
+      : `https://cdn.ampproject.org/c/${host}`
+  } catch {
+    return ''
+  }
 }
 
 export const ampCacheUrlRule: Rule = {
@@ -10,10 +23,27 @@ export const ampCacheUrlRule: Rule = {
   name: 'AMP Cache URL',
   enabled: true,
   async run(page) {
-    const href = ampHref(page.doc)
-    if (!href) return { label: 'HEAD', message: 'No amphtml link', type: 'info' }
-    const url = ampCache(href)
-    return url ? { label: 'HEAD', message: `AMP Cache: ${url}`, type: 'info' } : { label: 'HEAD', message: 'AMP Cache not derivable', type: 'info' }
+    const amp = findAmp(page.doc)
+    if (!amp.href) return { label: 'HEAD', message: 'No amphtml link', type: 'info', name: 'ampCacheUrl' }
+
+    const url = ampCache(amp.href)
+    const sourceHtml = extractHtml(amp.element)
+
+    return url
+      ? {
+          label: 'HEAD',
+          message: `AMP Cache: ${url}`,
+          type: 'info',
+          name: 'ampCacheUrl',
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(amp.element) },
+        }
+      : {
+          label: 'HEAD',
+          message: 'AMP Cache not derivable',
+          type: 'info',
+          name: 'ampCacheUrl',
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(amp.element) },
+        }
   },
 }
 
