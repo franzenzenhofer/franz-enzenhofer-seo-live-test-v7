@@ -1,12 +1,26 @@
 import type { Rule } from '@/core/types'
+import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
 export const linkPreloadRule: Rule = {
   id: 'speed:link-preload',
   name: 'rel=preload links',
   enabled: true,
   async run(page) {
-    const n = page.doc.querySelectorAll('link[rel="preload"]').length
-    return n ? { label: 'SPEED', message: `preload links: ${n}`, type: 'info' } : { label: 'SPEED', message: 'No preload links', type: 'info' }
+    const links = page.doc.querySelectorAll('link[rel="preload"]')
+    const n = links.length
+    const sourceHtml = n ? extractHtmlFromList(links) : ''
+    return {
+      label: 'SPEED',
+      message: n ? `preload links: ${n}` : 'No preload links',
+      type: 'info',
+      name: 'linkPreload',
+      details: n
+        ? {
+            sourceHtml,
+            snippet: extractSnippet(sourceHtml),
+          }
+        : undefined,
+    }
   },
 }
 
