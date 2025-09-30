@@ -1,4 +1,16 @@
-export type Result = { name: string; label: string; message: string; type: string; priority?: number }
+export type Result = {
+  name: string
+  label: string
+  message: string
+  type: string
+  priority?: number
+  details?: {
+    sourceHtml?: string
+    snippet?: string
+    domPath?: string
+    [key: string]: unknown
+  }
+}
 
 const key = (tabId: number) => `results:${tabId}`
 
