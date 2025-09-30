@@ -1,6 +1,6 @@
 # Rule Enhancement TODO List
 
-## ✅ COMPLETED (12/101)
+## ✅ COMPLETED (19/101)
 
 - [x] src/rules/head/title.ts
 - [x] src/rules/head/metaDescription.ts
@@ -16,19 +16,20 @@
 - [x] src/rules/og/image.ts (verified complete)
 - [x] src/rules/og/url.ts (verified complete)
 
-## 🔄 TODO (85/101)
+## 🔄 TODO (82/101)
 
 ### a11y (2) ✅
 - [x] src/rules/a11y/linkedImagesAlt.ts
 - [x] src/rules/a11y/linkedImagesAltNoText.ts
 
-### body (5)
-- [ ] src/rules/body/imagesLayout.ts
-- [ ] src/rules/body/imagesLazy.ts
-- [ ] src/rules/body/internalLinks.ts
-- [ ] src/rules/body/nofollow.ts
-- [ ] src/rules/body/parameterizedLinks.ts
-- [ ] src/rules/body/unsecureInput.ts
+### body (7) ✅
+- [x] src/rules/body/h1.ts
+- [x] src/rules/body/imagesLayout.ts
+- [x] src/rules/body/imagesLazy.ts
+- [x] src/rules/body/internalLinks.ts
+- [x] src/rules/body/nofollow.ts
+- [x] src/rules/body/parameterizedLinks.ts
+- [x] src/rules/body/unsecureInput.ts
 
 ### debug (1)
 - [ ] src/rules/debug/pageSummary.ts
