@@ -10,16 +10,33 @@ export const robotsSitemapReferenceRule: Rule = {
     try {
       const url = new URL(page.url)
       if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-        return { label: 'ROBOTS', message: `Skipped: ${url.protocol} URL`, type: 'info' }
+        return {
+          label: 'ROBOTS',
+          message: `Skipped: ${url.protocol} URL`,
+          type: 'info',
+          name: 'robotsSitemapReference',
+        }
       }
       origin = url.origin
     } catch {
-      return { label: 'ROBOTS', message: 'Invalid URL', type: 'info' }
+      return { label: 'ROBOTS', message: 'Invalid URL', type: 'info', name: 'robotsSitemapReference' }
     }
     const txt = await fetchTextOnce(`${origin}/robots.txt`)
-    if (!txt) return { label: 'ROBOTS', message: 'robots.txt not reachable', type: 'info' }
+    if (!txt)
+      return {
+        label: 'ROBOTS',
+        message: 'robots.txt not reachable',
+        type: 'info',
+        name: 'robotsSitemapReference',
+      }
     const has = /\n\s*sitemap\s*:\s*\S+/i.test(`\n${txt}`)
-    return has ? { label: 'ROBOTS', message: 'Sitemap reference present', type: 'ok' } : { label: 'ROBOTS', message: 'No Sitemap reference', type: 'warn' }
+    return {
+      label: 'ROBOTS',
+      message: has ? 'Sitemap reference present' : 'No Sitemap reference',
+      type: has ? 'ok' : 'warn',
+      name: 'robotsSitemapReference',
+      details: { robotsTxt: txt },
+    }
   },
 }
 
