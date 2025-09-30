@@ -40,10 +40,28 @@ npm run dist         # Build + create dist.zip for Chrome Web Store
 npm run bump         # Auto-increment version before build
 ```
 
+## Enhanced Reporting System
+
+**See [/ENHANCED-REPORTING.md](../ENHANCED-REPORTING.md) for complete design documentation.**
+
+### Key Principles
+- **Two-Layer UX**: Quick view (inline snippets) + Deep detail view (full inspection)
+- **DRY Code**: Integrate enhancements into EXISTING rules, no duplicate `-enhanced` versions
+- **Rich Data**: Every result includes HTML snippets, DOM paths, HTTP headers where applicable
+- **Tab Reuse**: Detail view opens in single reusable tab (no tab explosion)
+- **Debugging-First**: Perfect for testers/debuggers who need to see raw data
+
+### Required in Every Rule
+1. **sourceHtml**: Complete outerHTML of inspected elements
+2. **snippet**: First 100 chars for quick preview
+3. **domPath**: CSS selector path to element
+4. **httpHeaders**: For HTTP-related rules (status, headers, etc.)
+
 ## Code Standards
 
 ### File Size Limit
-- **STRICT**: All files in `src/` must be ≤50 lines (enforced by ESLint)
+- **STRICT**: All code files in `src/` must be ≤75 lines (enforced by ESLint)
+- Non-code files (configs, docs, data) can be larger
 - Split large modules aggressively
 - One responsibility per file
 
