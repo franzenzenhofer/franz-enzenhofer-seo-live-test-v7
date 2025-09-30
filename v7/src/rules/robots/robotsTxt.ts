@@ -20,15 +20,28 @@ export const robotsTxtRule: Rule = {
   enabled: true,
   run: async (page) => {
     const rUrl = urlOf(page.url)
-    if (!rUrl) return { label: 'ROBOTS', message: 'Invalid or unsupported URL', type: 'info' }
+    if (!rUrl)
+      return { label: 'ROBOTS', message: 'Invalid or unsupported URL', type: 'info', name: 'robotsTxt' }
     try {
       const r = await fetch(rUrl, { method: 'GET' })
-      if (!r.ok) return { label: 'ROBOTS', message: `robots.txt not reachable (${r.status})`, type: 'warn' }
+      if (!r.ok)
+        return {
+          label: 'ROBOTS',
+          message: `robots.txt not reachable (${r.status})`,
+          type: 'warn',
+          name: 'robotsTxt',
+        }
       const body = await r.text()
       const hasSitemap = /\n\s*sitemap\s*:/i.test(`\n${body}`)
-      return { label: 'ROBOTS', message: hasSitemap ? 'robots.txt with Sitemap' : 'robots.txt present', type: 'info' }
+      return {
+        label: 'ROBOTS',
+        message: hasSitemap ? 'robots.txt with Sitemap' : 'robots.txt present',
+        type: 'info',
+        name: 'robotsTxt',
+        details: { robotsTxt: body },
+      }
     } catch (e) {
-      return { label: 'ROBOTS', message: String(e), type: 'warn' }
+      return { label: 'ROBOTS', message: String(e), type: 'warn', name: 'robotsTxt' }
     }
   },
 }
