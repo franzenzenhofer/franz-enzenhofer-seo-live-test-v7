@@ -6,7 +6,13 @@ export const cacheDeliveryRule: Rule = {
   enabled: true,
   async run(page) {
     const age = Number(page.headers?.['age'] || '0')
-    return age > 0 ? { label: 'HTTP', message: `Age: ${age} (from cache)`, type: 'info' } : { label: 'HTTP', message: 'No cache Age header', type: 'info' }
+    return {
+      label: 'HTTP',
+      message: age > 0 ? `Age: ${age} (from cache)` : 'No cache Age header',
+      type: 'info',
+      name: 'cacheDelivery',
+      details: { httpHeaders: page.headers || {} },
+    }
   },
 }
 
