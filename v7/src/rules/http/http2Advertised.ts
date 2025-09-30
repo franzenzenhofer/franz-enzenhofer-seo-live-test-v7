@@ -6,9 +6,13 @@ export const http2AdvertisedRule: Rule = {
   enabled: true,
   async run(page) {
     const alt = (page.headers?.['alt-svc'] || '').toLowerCase()
-    return /\bh2\b|h2=/.test(alt)
-      ? { label: 'HTTP', message: 'Alt-Svc advertises HTTP/2', type: 'info' }
-      : { label: 'HTTP', message: 'HTTP/2 not advertised', type: 'info' }
+    return {
+      label: 'HTTP',
+      message: /\bh2\b|h2=/.test(alt) ? 'Alt-Svc advertises HTTP/2' : 'HTTP/2 not advertised',
+      type: 'info',
+      name: 'http2Advertised',
+      details: { httpHeaders: page.headers || {} },
+    }
   },
 }
 
