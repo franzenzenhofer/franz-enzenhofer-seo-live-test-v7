@@ -14,6 +14,14 @@ export const httpStatusRule: Rule = {
   enabled: true,
   run: async (page) => {
     const c = classify(page.status)
-    return { label: 'HTTP', message: c.m, type: c.t as 'ok'|'warn'|'error'|'info', what: 'headers' }
+    return {
+      label: 'HTTP',
+      message: c.m,
+      type: c.t as 'ok' | 'warn' | 'error' | 'info',
+      name: 'httpStatus',
+      details: {
+        httpHeaders: page.headers || {},
+      },
+    }
   },
 }
