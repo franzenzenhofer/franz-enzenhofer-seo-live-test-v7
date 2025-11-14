@@ -1,3 +1,5 @@
+import { formatRuleName } from './formatRuleName'
+
 import type { Result } from '@/shared/results'
 import { getResultColor } from '@/shared/colors'
 
@@ -17,21 +19,29 @@ export const ReportSection = ({
         {type.toUpperCase()} ({items.length})
       </h2>
       <div className="space-y-2">
-        {items.map((item) => (
-          <div
-            key={item.index}
-            id={`result-${item.index}`}
-            className={`p-3 border rounded-md ${color.full}`}
-          >
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <strong className="text-sm font-medium">{item.label}</strong>
-                <p className="mt-1 text-sm">{item.message}</p>
+        {items.map((item) => {
+          const ruleName = formatRuleName(item)
+          return (
+            <div
+              key={item.index}
+              id={`result-${item.index}`}
+              className={`p-3 border rounded-md ${color.full}`}
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 flex-wrap text-sm font-medium">
+                    <strong>{item.label}</strong>
+                    {ruleName && (
+                      <span className="text-xs text-gray-700">{ruleName}</span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-sm">{item.message}</p>
+                </div>
+                <span className="text-xs opacity-60">#{item.index + 1}</span>
               </div>
-              <span className="text-xs opacity-60">#{item.index + 1}</span>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

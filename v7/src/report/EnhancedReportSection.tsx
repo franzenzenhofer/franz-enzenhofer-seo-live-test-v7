@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 import { ResultCard } from './ResultCard'
 import type { EnhancedResult } from './types'
 
@@ -13,11 +11,6 @@ export const EnhancedReportSection = ({
   items: (EnhancedResult & { index: number })[]
 }) => {
   const color = getResultColor(type)
-  const [expanded, setExpanded] = useState<Record<number, boolean>>({})
-
-  const toggleExpand = (index: number) => {
-    setExpanded(prev => ({ ...prev, [index]: !prev[index] }))
-  }
 
   return (
     <div className="bg-gray-50 rounded-lg p-4">
@@ -31,8 +24,6 @@ export const EnhancedReportSection = ({
             key={item.index}
             item={item}
             color={color}
-            expanded={expanded[item.index] || false}
-            onToggle={() => toggleExpand(item.index)}
           />
         ))}
       </div>
