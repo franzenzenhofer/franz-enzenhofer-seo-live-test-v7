@@ -13,10 +13,10 @@ export const ogTitleRule: Rule = {
     const sourceHtml = extractHtml(el)
     return {
       label: 'HEAD',
-      message: `OG title: ${el.content}`,
+      message: `og:title present (${el.content.length} chars)`,
       type: 'info',
       name: 'ogTitle',
-      details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el) },
+      details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), ogTitle: el.content },
     }
   },
 }
