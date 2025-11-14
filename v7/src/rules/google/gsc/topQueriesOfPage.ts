@@ -15,7 +15,7 @@ export const gscTopQueriesOfPageRule: Rule = {
     if (!r.ok) return { label: 'GSC', message: `GSC query error ${r.status}`, type: 'warn', name: "googleRule" }
     const j = await r.json() as { rows?: Array<{ keys?: string[], clicks?: number, impressions?: number }> }
     const rows = (j.rows || []).map(r => `${(r.keys||[])[0]||''} (${r.impressions||0})`).join(', ')
-    return { label: 'GSC', message: `Top queries: ${rows || 'none'}`, type: 'info', name: "googleRule" }
+    return { label: 'GSC', message: `Top queries: ${rows || 'none'}`, type: 'info', name: "googleRule", details: { url: page.url, site, topQueries: j.rows, apiResponse: j } }
   },
 }
 

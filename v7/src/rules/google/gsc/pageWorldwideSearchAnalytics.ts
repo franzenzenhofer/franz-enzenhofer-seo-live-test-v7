@@ -17,7 +17,7 @@ export const gscPageWorldwideRule: Rule = {
     const row = (j.rows || []).find(r => (r.keys||[])[0] === page.url)
     const imp = row?.impressions || 0
     const cl = row?.clicks || 0
-    return { label: 'GSC', message: `Impressions ${imp}, Clicks ${cl}`, type: 'info', name: "googleRule" }
+    return { label: 'GSC', message: `Impressions ${imp}, Clicks ${cl}`, type: 'info', name: "googleRule", details: { url: page.url, site, impressions: imp, clicks: cl, apiResponse: j } }
   },
 }
 

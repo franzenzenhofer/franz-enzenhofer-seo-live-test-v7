@@ -12,7 +12,7 @@ export const gscPropertyAvailableRule: Rule = {
     if (!r.ok) return { label: 'GSC', message: `GSC error ${r.status}`, type: 'warn', name: "googleRule" }
     const j = await r.json() as { siteEntry?: Array<{ siteUrl?: string }> }
     const ok = (j.siteEntry || []).some(s => (s.siteUrl || '').includes(origin))
-    return ok ? { label: 'GSC', message: 'Property available', type: 'ok', name: "googleRule" } : { label: 'GSC', message: 'Property not available', type: 'warn', name: "googleRule" }
+    return ok ? { label: 'GSC', message: 'Property available', type: 'ok', name: "googleRule", details: { url: page.url, origin, properties: j.siteEntry } } : { label: 'GSC', message: 'Property not available', type: 'warn', name: "googleRule", details: { url: page.url, origin, properties: j.siteEntry } }
   },
 }
 
