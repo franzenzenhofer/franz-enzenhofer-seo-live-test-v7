@@ -1,15 +1,28 @@
 import { describe, it, expect, vi } from 'vitest'
 
-import { vi, describe, it, expect } from 'vitest'
-
 // Minimal chrome shim must be installed and modules mocked before importing the listener
 // @ts-expect-error test shim
-globalThis.chrome = { alarms: { onAlarm: { addListener: () => {} }, create: async () => {} } }
+globalThis.chrome = {
+  alarms: { onAlarm: { addListener: () => {} }, create: async () => {} },
+  storage: {
+    local: {
+      get: async () => ({}),
+      remove: async () => {},
+    },
+  },
+  tabs: {
+    get: async () => ({ url: 'https://example.test' }),
+  },
+}
 
 vi.mock('@/background/pipeline/store', () => ({ setDomDone: vi.fn().mockResolvedValue(undefined) }))
 vi.mock('@/background/pipeline/alarms', () => ({
   scheduleFinalize: vi.fn().mockResolvedValue(undefined),
   onAlarm: (_cb: (tabId: number) => void) => {},
+}))
+vi.mock('@/background/pipeline/collector', () => ({
+  pushEvent: vi.fn().mockResolvedValue(undefined),
+  markDomPhase: vi.fn().mockResolvedValue(undefined),
 }))
 
 import { handleMessage } from '@/background/listeners/messages'
@@ -24,8 +37,8 @@ describe('messages: panel:runNow', () => {
     await new Promise<void>((res) => {
       handleMessage({ type: 'panel:runNow', tabId: 9 }, { tab: { id: 9 } } as any, (r) => { replied = String(r); res() })
     })
-    expect(sd).toHaveBeenCalledWith(9)
-    expect(sf).toHaveBeenCalledWith(9, 0)
+    await vi.waitFor(() => expect(sd).toHaveBeenCalledWith(9))
+    await vi.waitFor(() => expect(sf).toHaveBeenCalledWith(9, 100))
     expect(replied).toBe('ok')
     ;(sd as any).mockClear(); (sf as any).mockClear()
   })
