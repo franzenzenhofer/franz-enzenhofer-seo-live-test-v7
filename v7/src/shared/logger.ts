@@ -22,14 +22,14 @@ export class Logger {
     return null
   }
   static async log(category: LogCategory, action: string, data?: LogData): Promise<void> {
-    const message = formatLogMessage(category, action, data)
+    const message = formatLogMessage(this.contextName, category, action, data)
     if (typeof chrome !== 'undefined' && chrome.runtime) {
       const tabId = await this.getTabId()
       await chrome.runtime.sendMessage({ channel: 'log', tabId, message })
     }
   }
   static logSync(category: LogCategory, action: string, data?: LogData): void {
-    const message = formatLogMessage(category, action, data)
+    const message = formatLogMessage(this.contextName, category, action, data)
     if (typeof chrome !== 'undefined' && chrome.runtime) {
       chrome.runtime.sendMessage({ channel: 'log', tabId: this.currentTabId, message })
     }
@@ -39,7 +39,7 @@ export class Logger {
       console.error(`[Logger.logDirect] FAILED: tabId is null for [${category}] ${action}`, data)
       throw new Error(`Logger.logDirect called with null tabId - this should never happen! Context: ${this.contextName}`)
     }
-    const message = formatLogMessage(category, action, data)
+    const message = formatLogMessage(this.contextName, category, action, data)
     await writeLog(tabId, message)
   }
   static logDirectSend(tabId: number | null, category: LogCategory, action: string, data?: LogData): void {
@@ -47,7 +47,7 @@ export class Logger {
       console.error(`[Logger.logDirectSend] FAILED: tabId is null for [${category}] ${action}`, data)
       throw new Error(`Logger.logDirectSend called with null tabId - this should never happen! Context: ${this.contextName}`)
     }
-    const message = formatLogMessage(category, action, data)
+    const message = formatLogMessage(this.contextName, category, action, data)
     if (typeof chrome !== 'undefined' && chrome.runtime) {
       chrome.runtime.sendMessage({ channel: 'log', tabId, message })
     } else {

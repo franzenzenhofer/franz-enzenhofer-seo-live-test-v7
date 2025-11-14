@@ -3,10 +3,14 @@ import { runRulesOn } from '../rules/runner'
 import { addEvent, popRun, setDomDone } from './store'
 import { scheduleFinalize, onAlarm } from './alarms'
 
-import { log } from '@/shared/logs'
+import { log, logSystem, isValidTabId } from '@/shared/logs'
 import { Logger } from '@/shared/logger'
 
 export const pushEvent = async (tabId: number, ev: import('./types').EventRec) => {
+  if (!isValidTabId(tabId)) {
+    await logSystem(`collector:drop tabId=${tabId ?? 'null'} type="${ev.t}"`)
+    return
+  }
   await Logger.logDirect(tabId, 'event', 'receive', { type: ev.t, url: ev.u || 'no-url', hasData: !!ev.d, status: ev.s })
   await addEvent(tabId, ev)
   await Logger.logDirect(tabId, 'event', 'add', { type: ev.t, tabId })
@@ -14,21 +18,16 @@ export const pushEvent = async (tabId: number, ev: import('./types').EventRec) =
     const data = ev.d as { html?: string } | undefined
     const html = typeof data?.html === 'string' ? data.html : ''
     const len = html.length
-    log(tabId, `${ev.t} html=${len}`).catch(() => {})
+    log(tabId, `${ev.t} html=${len}`).catch((err) => console.error('[collector] log failed', err))
     await Logger.logDirect(tabId, 'dom', 'event', { type: ev.t, htmlSize: len, html: html.slice(0, 500), htmlFull: html, url: ev.u || 'no-url' })
   }
   if (ev.t === 'nav:before') {
     const { 'ui:autoClear': auto } = await chrome.storage.local.get('ui:autoClear')
-    log(tabId, `nav:before url=${ev.u || ''} autoClear=${auto !== false}`).catch(() => {})
+    log(tabId, `nav:before url=${ev.u || ''} autoClear=${auto !== false}`).catch((err) => console.error('[collector] log failed', err))
     await Logger.logDirect(tabId, 'nav', 'before', { url: ev.u || 'no-url', autoClear: auto !== false })
     if (auto !== false) {
       await chrome.storage.local.remove(`results:${tabId}`)
       await Logger.logDirect(tabId, 'event', 'clear results', { reason: 'autoClear' })
-    }
-    const { 'ui:preserveLog': keep } = await chrome.storage.local.get('ui:preserveLog')
-    if (keep !== true) {
-      await chrome.storage.session.remove(`logs:${tabId}`)
-      await Logger.logDirect(tabId, 'event', 'clear logs', { reason: 'nav:before preserveLog=false' })
     }
     return
   }

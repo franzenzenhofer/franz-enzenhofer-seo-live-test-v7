@@ -3,13 +3,15 @@ export const LogsControls = ({
   onExport,
   onClear,
   autoScroll,
-  onToggleAutoScroll
+  onToggleAutoScroll,
+  disableClear = false,
 }: {
   onCopy: () => void
   onExport: () => void
   onClear: () => void
   autoScroll: boolean
   onToggleAutoScroll: () => void
+  disableClear?: boolean
 }) => (
   <div className="flex flex-wrap gap-2">
     <button
@@ -26,7 +28,12 @@ export const LogsControls = ({
     </button>
     <button
       onClick={onClear}
-      className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded text-sm transition-colors"
+      disabled={disableClear}
+      className={`px-3 py-1 rounded text-sm transition-colors ${
+        disableClear
+          ? 'bg-red-100/50 text-red-400 cursor-not-allowed'
+          : 'bg-red-100 hover:bg-red-200 text-red-700'
+      }`}
     >
       Clear Logs
     </button>

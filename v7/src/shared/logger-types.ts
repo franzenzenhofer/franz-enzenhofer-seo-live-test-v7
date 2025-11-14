@@ -34,13 +34,22 @@ export function formatValue(val: unknown): string {
   if (val === null) return 'null'
   if (val === undefined) return 'undefined'
   if (typeof val === 'string') {
-    return val.length > 100 ? `"${val.slice(0, 100)}..."` : `"${val}"`
+    // Truncate HTML content to 500 characters
+    if (val.includes('<') && val.includes('>')) {
+      const truncated = val.length > 500 ? val.substring(0, 500) + '...[truncated]' : val
+      return JSON.stringify(truncated)
+    }
+    return JSON.stringify(val)
   }
   if (typeof val === 'number') return val.toString()
   if (typeof val === 'boolean') return val.toString()
-  if (Array.isArray(val)) return `[${val.length}]`
-  if (typeof val === 'object') {
-    return `{${Object.keys(val as object).length}}`
+  if (Array.isArray(val) || typeof val === 'object') {
+    try {
+      return JSON.stringify(val)
+    } catch {
+      if (Array.isArray(val)) return `[${val.length}]`
+      return `{${Object.keys(val as object).length}}`
+    }
   }
   return String(val)
 }
@@ -51,8 +60,8 @@ export function formatData(data: LogData): string {
     .join(' ')
 }
 
-export function formatLogMessage(category: LogCategory, action: string, data?: LogData): string {
+export function formatLogMessage(context: string, category: LogCategory, action: string, data?: LogData): string {
   const timestamp = new Date().toISOString()
   const dataStr = data ? ' ' + formatData(data) : ''
-  return `[${timestamp}] ${category}:${action}${dataStr}`
+  return `[${timestamp}] ${context}:${category}:${action}${dataStr}`
 }

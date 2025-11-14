@@ -24,8 +24,13 @@ export const enableAndOpenSidePanel = (tabId: number, path = 'src/sidepanel.html
     const m = chrome.runtime.getManifest()
     const files = (m.content_scripts || []).flatMap((cs) => cs.js || [])
     if (files.length) {
-      log(tabId, `inject:start ${JSON.stringify(files)}`).catch(() => {})
-      chrome.scripting.executeScript({ target: { tabId }, files }).then(() => log(tabId, 'inject:done')).catch(() => log(tabId, 'inject:fail'))
+      log(tabId, `inject:start ${JSON.stringify(files)}`).catch((err) => console.error('[panel] log failed', err))
+      chrome.scripting.executeScript({ target: { tabId }, files })
+        .then(() => log(tabId, 'inject:done').catch((err) => console.error('[panel] log failed', err)))
+        .catch((error) => {
+          log(tabId, 'inject:fail').catch((err) => console.error('[panel] log failed', err))
+          console.error('[panel] inject failed', error)
+        })
     }
   } catch {
     // ignore

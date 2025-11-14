@@ -5,14 +5,10 @@ import { describe, it, expect, vi } from 'vitest'
 globalThis.chrome = {
   alarms: { onAlarm: { addListener: () => {} }, create: async () => {} },
   storage: {
-    local: {
-      get: async () => ({}),
-      remove: async () => {},
-    },
+    local: { get: async () => ({}), remove: async () => {} },
+    session: { get: async () => ({}), set: async () => {}, remove: async () => {} },
   },
-  tabs: {
-    get: async () => ({ url: 'https://example.test' }),
-  },
+  tabs: { get: async () => ({ url: 'https://example.test' }) },
 }
 
 vi.mock('@/background/pipeline/store', () => ({ setDomDone: vi.fn().mockResolvedValue(undefined) }))

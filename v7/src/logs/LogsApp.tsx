@@ -9,14 +9,16 @@ export const LogsApp = () => {
     // Get tabId from URL params
     const params = new URLSearchParams(window.location.search)
     const id = params.get('tabId')
-    if (id) setTabId(parseInt(id))
-
-    // Or get from storage
-    if (!id) {
-      chrome.storage.session.get('lastActiveTab').then((data) => {
-        if (data['lastActiveTab']) setTabId(data['lastActiveTab'])
-      }).catch(() => {})
+    if (id !== null) {
+      const parsed = Number(id)
+      setTabId(Number.isNaN(parsed) ? null : parsed)
+      return
     }
+
+    chrome.storage.session.get('lastActiveTab').then((data) => {
+      const stored = data['lastActiveTab']
+      if (typeof stored === 'number') setTabId(stored)
+    }).catch(() => {})
   }, [])
 
   return (

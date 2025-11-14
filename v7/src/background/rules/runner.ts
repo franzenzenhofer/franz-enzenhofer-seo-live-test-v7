@@ -49,6 +49,9 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
     const fn = (run.ev.find((e)=> e.t.startsWith('nav:') && typeof (e as {u?:unknown}).u === 'string') as {u?:string}|undefined)?.u || '(none)'
     await log(tabId, `runner:nav first=${fn} last=${pageUrl||'(none)'}`)
     res = await runInOffscreen<import('./types').RuleResult[]>(tabId, { kind: 'runTyped', run, globals, pageUrl })
+    for (let i = 0; i < res.length; i++) {
+      await log(tabId, `runner:result ${i + 1}/${res.length} payload=${JSON.stringify(res[i])}`)
+    }
     await log(tabId, `runner:offscreen results=${res.length}`)
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e)

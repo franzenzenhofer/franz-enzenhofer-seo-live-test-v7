@@ -8,6 +8,9 @@ import { initDevAutoReload } from './devReload'
 
 import { refreshIfPresent } from '@/shared/auth'
 import { rememberHttpTab } from '@/shared/tabMemory'
+import { Logger } from '@/shared/logger'
+
+Logger.setContext('background')
 
 const panelPath = 'src/sidepanel.html'
 

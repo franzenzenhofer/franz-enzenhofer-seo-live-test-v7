@@ -24,7 +24,7 @@ export const Logs = () => {
   useEffect(() => { getActiveTabId().then(setTabId).catch(() => {}) }, [])
 
   useEffect(() => {
-    if (!tabId) return
+    if (tabId === null) return
     const load = () => getLogs(tabId).then(setLogs)
     load()
     const onChange = (c: Record<string, chrome.storage.StorageChange>, area: string) => {
@@ -52,7 +52,7 @@ export const Logs = () => {
           onCopyAll={() => copy(logs.join('\n'))}
           onCopyFiltered={() => copy(filteredLogs.join('\n'))}
           onCopySelected={() => copy(Array.from(selectedLogs).map(i => filteredLogs[i]).join('\n'))}
-          onClear={async () => { if (tabId) { await clearLogs(tabId); setSelectedLogs(new Set()) } }}
+          onClear={async () => { if (tabId !== null) { await clearLogs(tabId); setSelectedLogs(new Set()) } }}
           onCopyReport={async () => { const txt = await buildBugReport().catch(()=> ''); if (txt) await copy(txt) }}
           selectedCount={selectedLogs.size}
         />

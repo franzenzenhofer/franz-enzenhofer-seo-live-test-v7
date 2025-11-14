@@ -1,4 +1,4 @@
-export const LogsHeader = ({ tabId, logsCount }: { tabId: number; logsCount: number }) => {
+export const LogsHeader = ({ logsCount }: { tabId: number | null; logsCount: number }) => {
   const version = chrome.runtime.getManifest().version
 
   return (
@@ -7,9 +7,9 @@ export const LogsHeader = ({ tabId, logsCount }: { tabId: number; logsCount: num
         Live Test Logs
         <span className="text-sm text-gray-500">v{version}</span>
       </h1>
-      <div className="flex items-center gap-4 mt-2">
-        <span className="text-sm text-gray-600">Tab ID: {tabId}</span>
-        <span className="text-sm text-gray-600">{logsCount} entries</span>
+      <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+        <span>All tabs (last 3000 entries)</span>
+        <span>{logsCount} entries</span>
       </div>
     </div>
   )
