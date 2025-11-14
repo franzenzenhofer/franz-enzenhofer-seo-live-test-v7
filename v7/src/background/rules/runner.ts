@@ -41,6 +41,11 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
     await log(tabId, `runner:skip no-dom ev=${run.ev.length} url=${pageUrl||'(none)'}`)
     return
   }
+  // Clear old results before running new test
+  const key = k(tabId)
+  await chrome.storage.local.remove(key)
+  await log(tabId, `runner:cleared old results for new test`)
+
   try {
     const de = [...run.ev].reverse().find((e) => e.t.startsWith('dom:')) as { d?: { html?: string } } | undefined
     const htmlLen = typeof de?.d?.html === 'string' ? de.d!.html!.length : 0
@@ -57,7 +62,6 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
     const msg = e instanceof Error ? e.message : String(e)
     res = [{ name:'system:runner', label:'Runner', type:'error', message: msg.includes('offscreen-unavailable') ? 'Offscreen documents are unavailable. Please enable the permission or update Chrome.' : msg.includes('offscreen-timeout') ? 'Timed out waiting for offscreen document.' : `Failed to run rules: ${msg}` }]
   }
-  const key = k(tabId)
   const got = await chrome.storage.local.get(key)
   const prev = got[key] as import('./types').RuleResult[] | undefined
   const n = await persistResults(tabId, key, prev, res).catch(async (e)=> { await log(tabId, `runner:save error ${String(e)}`); return -1 })
