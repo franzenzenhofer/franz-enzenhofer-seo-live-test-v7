@@ -1,6 +1,4 @@
 import { pushEvent, markDomPhase } from '../pipeline/collector'
-import { setDomDone } from '../pipeline/store'
-import { scheduleFinalize } from '../pipeline/alarms'
 
 import { handleLogsBridgeMessage } from './logsBridge'
 
@@ -20,35 +18,6 @@ export const handleMessage = (msg: unknown, sender: Sender, send?: (resp?: unkno
     return false
   }
   if (handleLogsBridgeMessage(st?.type, tabId, send)) return true
-  if (st?.type === 'panel:runNow' && tabId) {
-    ;(async ()=>{
-      try {
-        await log(tabId, 'panel:runNow start')
-        // Clear results if autoClear enabled
-        const v = await chrome.storage.local.get('ui:autoClear')
-        if (v['ui:autoClear'] !== false) await chrome.storage.local.remove(`results:${tabId}`)
-
-        // Get current tab to capture URL
-        const tab = await chrome.tabs.get(tabId)
-        if (tab.url) {
-          // Push nav event with current URL
-          await pushEvent(tabId, { t: 'nav:current', u: tab.url })
-          // Push DOM snapshot request
-          await pushEvent(tabId, { t: 'dom:document_idle', d: { html: '<!DOCTYPE html>' } })
-        }
-
-        // Trigger rules execution
-        await setDomDone(tabId)
-        await scheduleFinalize(tabId, 100)
-        await log(tabId, 'panel:runNow scheduled finalize')
-      } catch (e) {
-        console.error('panel:runNow error:', e)
-        if (tabId) await log(tabId, `panel:runNow error ${(e as Error)?.message || String(e)}`).catch(() => {})
-      }
-    })()
-    send?.('ok')
-    return false
-  }
   if (st?.event && tabId) {
     pushEvent(tabId, { t: `dom:${st.event}`, d: st.data })
     if (st.event === 'document_idle') {
