@@ -1,14 +1,14 @@
 import type { Rule } from '@/core/types'
-import { runPSI } from '@/shared/psi'
+import { runPSI, getPSIKey } from '@/shared/psi'
 
 export const psiDesktopRule: Rule = {
   id: 'psi:desktop',
   name: 'PSI v5 Desktop score',
-  enabled: false,
+  enabled: true,
   async run(page, ctx) {
     const vars = (ctx.globals as { variables?: Record<string, unknown> }).variables || {}
-    const key = String((vars as Record<string, unknown>)['google_page_speed_insights_key'] || '').trim()
-    if (!key) return { label: 'PSI', message: 'No PSI key set', type: 'info', name: "googleRule" }
+    const userKey = String((vars as Record<string, unknown>)['google_page_speed_insights_key'] || '')
+    const key = getPSIKey(userKey)
     const j = await runPSI(page.url, 'desktop', key)
     const score = Math.round(((j.lighthouseResult?.categories?.performance?.score || 0) as number) * 100)
     return { label: 'PSI', message: `Desktop performance: ${score}`, type: 'info', name: "googleRule", details: { url: page.url, strategy: 'desktop', score, apiResponse: j } }
