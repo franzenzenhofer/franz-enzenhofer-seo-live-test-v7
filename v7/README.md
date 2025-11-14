@@ -11,7 +11,7 @@ Scripts
 - `npm run dev` – Vite dev server for hot-reload assets
 - `npm run build` – Build the extension to `dist/`
 - `npm run test` – Run unit tests
-- `npm run test:e2e` – Build + run Playwright MV3 tests headlessly (Chromium for Testing)
+- `npm run test:e2e` – Build + run Playwright MV3 tests using headed Chromium (set `PW_EXT_HEADLESS=1` to force headless)
 - `npm run test:e2e:dev` – Run Playwright tests in headed mode (no implicit build)
 - `npm run lint` – ESLint
 - `npm run typecheck` – TS type checks
@@ -74,7 +74,7 @@ Token-dependent integrations
 Profile-aware testing & automation
 ----------------------------------
 
-- Playwright e2e tests (`npm run test:e2e`) automatically build the extension and launch Chromium headlessly with the MV3 bundle loaded. By default they use a temporary profile; set env vars to reuse a real Chrome profile:
+- Playwright e2e tests (`npm run test:e2e`) automatically build the extension and launch Chromium **headed** (Chrome UI visible) with the MV3 bundle loaded. Set `PW_EXT_HEADLESS=1` if you really want the new headless mode. By default they use a temporary profile; set env vars to reuse a real Chrome profile:
   - `LT_CHROME_PROFILE_NAME="Profile 2"` – folder name from `chrome://version` (mac path `~/Library/Application Support/Google/Chrome/Profile 2`)
   - or `LT_CHROME_PROFILE_DIR="~/Library/Application Support/Google/Chrome/Profile 2"` – absolute path override
   - Tests **clone** that profile into a temp dir; set `LT_CHROME_PROFILE_MODE=live` to run directly against the profile (not recommended) or `LT_CHROME_PROFILE_KEEP=1` to keep the cloned copy for debugging.

@@ -1,6 +1,6 @@
 {
   "name": "f19n-obtrusive-livetest-v7",
-  "version": "0.1.193",
+  "version": "0.1.195",
   "private": true,
   "type": "module",
   "scripts": {
@@ -15,7 +15,7 @@
     "test": "vitest run",
     "test:watch": "vitest --watch --reporter=dot",
     "test:changed": "vitest --changed --watch --reporter=dot --passWithNoTests",
-    "test:e2e": "npm run build && cross-env PW_EXT_HEADLESS=1 npx playwright test",
+    "test:e2e": "npm run build && npx playwright test",
     "test:e2e:dev": "cross-env PW_EXT_HEADLESS=0 npx playwright test --project=chromium --headed",
     "cli": "tsx src/cli/main.ts",
     "ci": "npm run typecheck && npm run lint && npm test && npm run build && npm run test:build",
