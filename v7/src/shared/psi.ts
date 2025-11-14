@@ -1,5 +1,8 @@
 type PSIResult = { lighthouseResult?: { audits?: Record<string, { numericValue?: number }>; categories?: { performance?: { score?: number } } } }
 
+// Default PSI API key (user can override in settings)
+export const DEFAULT_PSI_KEY = 'AIzaSyA725ufYWi-tYPleOUdN3Qn6-c19w04DmE' as const
+
 const mem = new Map<string, { ts: number; data: PSIResult }>()
 const keyOf = (u: string, s: string) => `psi:${s}:${u}`
 const now = () => Date.now()
@@ -17,5 +20,14 @@ export const runPSI = async (url: string, strategy: 'mobile'|'desktop', key: str
   const j = (await r.json()) as PSIResult
   await write(k, { ts: now(), data: j })
   return j
+}
+
+export const getPSIKey = (userKey: string | undefined): string => {
+  const trimmed = (userKey || '').trim()
+  return trimmed || DEFAULT_PSI_KEY
+}
+
+export const isUsingDefaultPSIKey = (userKey: string | undefined): boolean => {
+  return !userKey || userKey.trim() === ''
 }
 
