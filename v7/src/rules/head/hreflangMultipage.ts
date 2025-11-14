@@ -28,7 +28,7 @@ export const hreflangMultipageRule: Rule = {
     return {
       name: 'Hreflang multipage sanity',
       label: 'HEAD',
-      message: hasXDefault ? 'hreflang set with x-default' : 'Consider adding x-default',
+      message: hasXDefault ? 'hreflang set with x-default' : 'hreflang without x-default',
       type: hasXDefault ? 'ok' : 'info',
       details: {
         sourceHtml,

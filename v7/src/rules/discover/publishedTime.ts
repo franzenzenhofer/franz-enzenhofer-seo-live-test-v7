@@ -54,7 +54,7 @@ export const discoverPublishedTimeRule: Rule = {
         }
       : {
           label: 'DISCOVER',
-          message: 'Add published time (meta or LD+JSON)',
+          message: 'No published time (meta or LD+JSON)',
           type: 'warn',
           name: 'publishedTime',
         }

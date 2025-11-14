@@ -29,7 +29,7 @@ export const discoverMaxImagePreviewLargeRule: Rule = {
         }
       : {
           label: 'DISCOVER',
-          message: 'Consider max-image-preview:large',
+          message: 'max-image-preview:large not present',
           type: 'warn',
           name: 'maxImagePreviewLarge',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(metaEl) },

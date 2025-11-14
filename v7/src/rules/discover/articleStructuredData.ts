@@ -41,7 +41,7 @@ export const discoverArticleStructuredDataRule: Rule = {
         }
       : {
           label: 'DISCOVER',
-          message: 'Add Article structured data',
+          message: 'No Article structured data',
           type: 'warn',
           name: 'articleStructuredData',
         }

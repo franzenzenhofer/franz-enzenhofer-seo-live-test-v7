@@ -48,7 +48,7 @@ export const discoverAuthorPresentRule: Rule = {
         }
       : {
           label: 'DISCOVER',
-          message: 'Add author (meta or LD+JSON)',
+          message: 'No author (meta or LD+JSON)',
           type: 'warn',
           name: 'authorPresent',
         }

@@ -32,7 +32,7 @@ export const discoverOgImageLargeRule: Rule = {
         }
       : {
           label: 'DISCOVER',
-          message: 'Consider large OG image (>=1200px)',
+          message: 'OG image <1200px or missing',
           type: 'info',
           name: 'ogImageLarge',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml) },
