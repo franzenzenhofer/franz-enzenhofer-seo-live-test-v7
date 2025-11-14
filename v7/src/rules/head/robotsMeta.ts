@@ -14,7 +14,6 @@ export const robotsMetaRule: Rule = {
         label: 'HEAD',
         message: 'No robots meta tag.',
         type: 'info',
-        what: 'static',
         priority: 610,
         name: 'robotsMeta',
       }
@@ -28,7 +27,6 @@ export const robotsMetaRule: Rule = {
       label: 'HEAD',
       message: msg,
       type: t,
-      what: 'static',
       priority: 610,
       name: 'robotsMeta',
       details: {
