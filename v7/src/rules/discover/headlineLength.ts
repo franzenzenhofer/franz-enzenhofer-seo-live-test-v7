@@ -11,7 +11,7 @@ export const discoverHeadlineLengthRule: Rule = {
     const n = h.length
 
     if (!n) {
-      return { label: 'DISCOVER', message: 'No H1 headline', type: 'warn', name: 'headlineLength' }
+      return { label: 'DISCOVER', message: 'No <h1> tag found', type: 'warn', name: 'headlineLength' }
     }
 
     const sourceHtml = extractHtml(el)
@@ -20,17 +20,17 @@ export const discoverHeadlineLengthRule: Rule = {
     return isLongEnough
       ? {
           label: 'DISCOVER',
-          message: `Headline length OK (${n})`,
+          message: `Headline length ${n} chars (>=20)`,
           type: 'ok',
           name: 'headlineLength',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el) },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), headline: h },
         }
       : {
           label: 'DISCOVER',
-          message: 'Headline may be too short',
+          message: `Headline short: ${n} chars (<20)`,
           type: 'info',
           name: 'headlineLength',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el) },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), headline: h },
         }
   },
 }
