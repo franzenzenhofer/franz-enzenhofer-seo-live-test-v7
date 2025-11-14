@@ -1,27 +1,33 @@
-import { ReportHeader } from './ReportHeader'
 import { ReportSection } from './ReportSection'
 import { useReportData } from './useReportData'
+import { ReportExportButtons } from './ExportButtons'
 
+import { LiveTestHeader } from '@/components/LiveTestHeader'
 import type { Result } from '@/shared/results'
 import { resultSortOrder } from '@/shared/colors'
+import { openUrlInCurrentTab } from '@/shared/openUrlInCurrentTab'
 
-export const ReportApp = () => {
-  const { results, url, loading } = useReportData()
-
-  // Group results by type and add index
-  const groupedResults = results.reduce((acc, result, index) => {
-    const type = result.type || 'info'
-    if (!acc[type]) acc[type] = []
-    acc[type].push({ ...result, index })
-    return acc
-  }, {} as Record<string, (Result & { index: number })[]>)
-
-  // Sort groups by priority (errors first, then warnings, info, ok)
-  const sortedGroups = Object.entries(groupedResults).sort(([a], [b]) => {
+const groupAndSortResults = (results: Result[]) => {
+  const grouped = results.reduce(
+    (acc, result, index) => {
+      const type = result.type || 'info'
+      if (!acc[type]) acc[type] = []
+      acc[type].push({ ...result, index })
+      return acc
+    },
+    {} as Record<string, (Result & { index: number })[]>,
+  )
+  return Object.entries(grouped).sort(([a], [b]) => {
     const orderA = resultSortOrder[a as keyof typeof resultSortOrder] ?? 999
     const orderB = resultSortOrder[b as keyof typeof resultSortOrder] ?? 999
     return orderA - orderB
   })
+}
+
+export const ReportApp = () => {
+  const { results, runMeta, loading } = useReportData()
+  const sortedGroups = groupAndSortResults(results)
+  const version = chrome.runtime.getManifest().version
 
   if (loading) {
     return (
@@ -46,9 +52,21 @@ export const ReportApp = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-6xl mx-auto p-4 sm:p-6">
-        <ReportHeader url={url} resultCount={results.length} groupedResults={groupedResults} results={results} />
-        <div className="mt-6 space-y-6">
+      <div className="max-w-6xl mx-auto">
+        <LiveTestHeader
+          url={runMeta?.url || ''}
+          runId={runMeta?.runId}
+          ranAt={runMeta?.ranAt}
+          version={version}
+          onOpenUrl={openUrlInCurrentTab}
+          secondaryActions={
+            <>
+              <span className="text-gray-600">{results.length} results</span>
+              <ReportExportButtons url={runMeta?.url || ''} results={results} />
+            </>
+          }
+        />
+        <div className="p-4 sm:p-6 space-y-6">
           {sortedGroups.map(([type, items]) => (
             <ReportSection key={type} type={type} items={items} />
           ))}

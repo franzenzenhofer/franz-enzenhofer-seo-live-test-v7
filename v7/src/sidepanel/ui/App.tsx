@@ -61,7 +61,6 @@ export const App = () => {
         setShow={setShow}
         query={query}
         setQuery={setQuery}
-        onOpenLogs={()=> { void openLogsTab() }}
         openSettings={openSettings}
         onClean={clean}
         onOpenReport={openReport}

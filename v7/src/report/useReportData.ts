@@ -1,30 +1,32 @@
 import { useEffect, useState } from 'react'
 
 import { readResults, type Result } from '@/shared/results'
+import { readRunMeta, type RunMeta } from '@/shared/runMeta'
 
 export const useReportData = () => {
   const [results, setResults] = useState<Result[]>([])
-  const [url, setUrl] = useState<string>('')
+  const [runMeta, setRunMeta] = useState<RunMeta | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const tabId = params.get('tabId')
     const resultIndex = params.get('index')
-    const pageUrl = params.get('url') || ''
-
-    setUrl(pageUrl)
 
     if (!tabId) {
       setLoading(false)
       return
     }
 
-    const loadResults = async () => {
+    const loadData = async () => {
       try {
         const tabIdNum = parseInt(tabId, 10)
-        const data = await readResults(tabIdNum)
+        const [data, meta] = await Promise.all([
+          readResults(tabIdNum),
+          readRunMeta(tabIdNum).catch(() => null),
+        ])
         setResults(data)
+        setRunMeta(meta)
 
         // If specific index, scroll to it
         if (resultIndex) {
@@ -34,14 +36,14 @@ export const useReportData = () => {
           }, 100)
         }
       } catch (error) {
-        console.error('Failed to load results:', error)
+        console.error('Failed to load report data:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    loadResults()
+    void loadData()
   }, [])
 
-  return { results, url, loading }
+  return { results, runMeta, loading }
 }

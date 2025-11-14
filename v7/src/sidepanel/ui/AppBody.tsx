@@ -1,39 +1,64 @@
 import type { Dispatch, SetStateAction } from 'react'
 
-import { UrlBar } from './UrlBar'
 import { Results } from './Results'
 import { Search } from './Search'
 import { TypeFilters } from './TypeFilters'
-import { Header } from './Header'
+import { RunNow } from './RunNow'
 
+import { LiveTestHeader } from '@/components/LiveTestHeader'
 import type { Result } from '@/shared/results'
+import { openUrlInCurrentTab } from '@/shared/openUrlInCurrentTab'
 
 export const AppBody = ({
-  d, show, setShow,
-  query, setQuery,
-  onOpenLogs,
+  d,
+  show,
+  setShow,
+  query,
+  setQuery,
   openSettings,
   onClean,
   results,
   onOpenReport,
 }: {
   d: { url: string; stale?: boolean; ranAt?: string; runId?: string }
-  show: Record<string, boolean>; setShow: Dispatch<SetStateAction<Record<string, boolean>>>
-  query: string; setQuery: (q: string)=>void
-  onOpenLogs: () => void
+  show: Record<string, boolean>
+  setShow: Dispatch<SetStateAction<Record<string, boolean>>>
+  query: string
+  setQuery: (q: string) => void
   openSettings: () => void
   onClean: () => void
   results: Result[]
   onOpenReport: () => void
 }) => {
+  const version = chrome.runtime.getManifest().version
+
   return (
     <div className="dt-panel w-[360px]">
-      <Header onOpenLogs={onOpenLogs} onClean={onClean} onOpenSettings={openSettings} />
+      <LiveTestHeader
+        url={d.url}
+        runId={d.runId}
+        ranAt={d.ranAt}
+        version={version}
+        primaryAction={<RunNow />}
+        onOpenUrl={openUrlInCurrentTab}
+        secondaryActions={
+          <>
+            <button className="text-gray-600 hover:text-gray-900 underline" onClick={onClean}>
+              Clean
+            </button>
+            <button className="text-gray-600 hover:text-gray-900 underline" onClick={openSettings}>
+              Settings
+            </button>
+            <button className="text-blue-600 hover:text-blue-800 underline font-medium" onClick={onOpenReport}>
+              Open Full Report
+            </button>
+          </>
+        }
+      />
       <div className="p-3 space-y-3">
-        <UrlBar url={d.url} stale={d.stale} ranAt={d.ranAt} runId={d.runId} onOpenReport={onOpenReport} />
         <Search onChange={setQuery} />
         <TypeFilters show={show} setShow={setShow} />
-        <Results items={results} types={Object.entries(show).filter(([,v])=>v).map(([k])=>k)} q={query} />
+        <Results items={results} types={Object.entries(show).filter(([, v]) => v).map(([k]) => k)} q={query} />
       </div>
     </div>
   )
