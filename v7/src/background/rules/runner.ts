@@ -66,7 +66,7 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
   const prev = got[key] as import('./types').RuleResult[] | undefined
   const n = await persistResults(tabId, key, prev, res).catch(async (e)=> { await log(tabId, `runner:save error ${String(e)}`); return -1 })
   if (n >= 0) {
-    await writeRunMeta(tabId, { url: pageUrl || '(unknown)', ranAt: runTimestamp.toISOString(), runId })
+    await writeRunMeta(tabId, { url: pageUrl || '', ranAt: runTimestamp.toISOString(), runId })
     await log(tabId, `runner:done added=${res.length} total=${n}`)
   }
 }
