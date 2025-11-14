@@ -5,7 +5,7 @@ import { describe, it, expect, vi } from 'vitest'
 globalThis.chrome = {
   storage: {
     local: { get: vi.fn(async ()=> ({ })), remove: vi.fn(async (_k)=>{} ) },
-    session: { remove: vi.fn(async (_k)=>{} ) },
+    session: { get: vi.fn(async ()=> ({ })), set: vi.fn(async (_d)=>{} ), remove: vi.fn(async (_k)=>{} ) },
   }
 }
 

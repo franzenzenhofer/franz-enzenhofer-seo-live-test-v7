@@ -23,8 +23,8 @@ describe('parity: DOMParser vs JSDOM', () => {
     const dp = await pageFromEvents(events(url, html), (s)=> new DOMParser().parseFromString(s,'text/html'), ()=>'about:blank')
     const jd = await pageFromEvents(events(url, html), (s)=> new JSDOM(s).window.document, ()=>'about:blank')
 
-    const a = await runAll(rules, dp, { globals: {} })
-    const b = await runAll(rules, jd, { globals: {} })
+    const a = await runAll(0, rules, dp, { globals: {} })
+    const b = await runAll(0, rules, jd, { globals: {} })
 
     const norm = (xs: any[]) => xs.map((r)=>({label:r.label,type:r.type,message:r.message})).sort((x,y)=> (x.label+x.type).localeCompare(y.label+y.type))
     expect(norm(a)).toEqual(norm(b))
