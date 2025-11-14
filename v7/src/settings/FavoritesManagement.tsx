@@ -1,4 +1,5 @@
 import { rulesInventory } from '@/rules/inventory'
+import { DEFAULT_FAVORITES } from '@/background/rules/index'
 
 const PIN_KEY = 'ui:pinnedRules'
 
@@ -12,7 +13,11 @@ export const FavoritesManagement = () => {
   }
 
   const resetFavorites = async () => {
-    await chrome.storage.local.set({ [PIN_KEY]: {} })
+    const defaultPinned: Record<string, boolean> = {}
+    DEFAULT_FAVORITES.forEach((ruleId) => {
+      defaultPinned[ruleId] = true
+    })
+    await chrome.storage.local.set({ [PIN_KEY]: defaultPinned })
   }
 
   return (
