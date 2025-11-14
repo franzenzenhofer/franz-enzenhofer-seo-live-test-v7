@@ -16,7 +16,7 @@ export const gscDirectoryWorldwideRule: Rule = {
     if (!r.ok) return { label: 'GSC', message: `GSC query error ${r.status}`, type: 'warn', name: "googleRule" }
     const j = await r.json() as { rows?: Array<{ clicks?: number, impressions?: number }> }
     const imp = (j.rows || []).reduce((a, x)=> a + (x.impressions || 0), 0)
-    return { label: 'GSC', message: `Directory impressions ${imp}`, type: 'info', name: "googleRule" }
+    return { label: 'GSC', message: `Directory impressions ${imp}`, type: 'info', name: "googleRule", details: { url: page.url, site, directory: dir, impressions: imp, apiResponse: j } }
   },
 }
 

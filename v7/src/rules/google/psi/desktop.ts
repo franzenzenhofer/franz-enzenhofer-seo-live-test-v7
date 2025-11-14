@@ -11,6 +11,6 @@ export const psiDesktopRule: Rule = {
     if (!key) return { label: 'PSI', message: 'No PSI key set', type: 'info', name: "googleRule" }
     const j = await runPSI(page.url, 'desktop', key)
     const score = Math.round(((j.lighthouseResult?.categories?.performance?.score || 0) as number) * 100)
-    return { label: 'PSI', message: `Desktop performance: ${score}`, type: 'info', name: "googleRule" }
+    return { label: 'PSI', message: `Desktop performance: ${score}`, type: 'info', name: "googleRule", details: { url: page.url, strategy: 'desktop', score, apiResponse: j } }
   },
 }

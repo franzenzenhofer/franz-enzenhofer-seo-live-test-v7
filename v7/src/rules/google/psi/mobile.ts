@@ -11,6 +11,6 @@ export const psiMobileRule: Rule = {
     if (!key) return { label: 'PSI', message: 'No PSI key set', type: 'info', name: "googleRule" }
     const j = await runPSI(page.url, 'mobile', key)
     const score = Math.round(((j.lighthouseResult?.categories?.performance?.score || 0) as number) * 100)
-    return { label: 'PSI', message: `Mobile performance: ${score}`, type: 'info', name: "googleRule" }
+    return { label: 'PSI', message: `Mobile performance: ${score}`, type: 'info', name: "googleRule", details: { url: page.url, strategy: 'mobile', score, apiResponse: j } }
   },
 }
