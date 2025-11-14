@@ -1,0 +1,365 @@
+================================================================================
+COMPREHENSIVE REPORT UI STRUCTURE & DATA ANALYSIS
+================================================================================
+
+KEY FINDINGS
+================================================================================
+
+1. CRITICAL DATA GAP: RunMeta is NOT being read/displayed in the Report
+   - RunMeta (runId, ranAt, url) is stored in chrome.storage.local
+   - Side Panel reads and displays it (UrlBar.tsx)
+   - Report Component (ReportApp.tsx) does NOT read or display it
+   - Result: Users see different metadata in side panel vs. report
+
+2. INFORMATION ISLAND PROBLEM
+   - Side Panel shows: Run #{runId} · {timestamp}
+   - Report shows: NOTHING about when/which run was executed
+   - No way to correlate multiple test runs
+   - No execution context in the report
+
+3. MISSING EXECUTION METADATA
+   Not tracked or displayed:
+   - Test duration (how long did rules take to run?)
+   - Total rules executed (count of active rules)
+   - Total rules enabled (scope of test)
+   - Events captured (navigations, requests, DOM snapshots)
+   - Test status (success, partial, error)
+
+
+DATA STRUCTURE
+================================================================================
+
+RESULT OBJECT (Available in Report):
+  type Result = {
+    name: string           // "mobileFriendly"
+    label: string          // "Mobile Friendly" 
+    message: string        // "Main finding"
+    type: string           // "error" | "warn" | "info" | "ok"
+    what?: string          // Formatted version of name
+    ruleId?: string        // Rule ID
+    priority?: number      // Priority ranking
+    details?: {            // Optional extended data
+      sourceHtml?: string
+      snippet?: string
+      domPath?: string
+      [key: string]: unknown
+    }
+  }
+
+RUNMETA OBJECT (NOT read by Report, only by Side Panel):
+  type RunMeta = {
+    url: string            // "https://example.com"
+    ranAt: string          // ISO timestamp "2025-11-14T15:30:45Z"
+    runId: string          // "run-1731605445123-a1b2c3d4"
+  }
+  
+  Storage Key: "results-meta:{tabId}"
+  Written by: runner.ts line 62
+  Read by: useRunMeta() in side panel
+  NOT read by: Report components
+
+EXECUTION CONTEXT (Captured but not persisted):
+  - run.ev.length: Number of events
+  - navs count: Navigation events
+  - reqs count: Request events  
+  - HTML size: In bytes
+  - First/last URLs detected
+  - Enabled rules list
+
+
+CURRENT VISUAL LAYOUT
+================================================================================
+
+ReportHeader:
+┌─────────────────────────────────────────────────────────────────────┐
+│ Live Test Report v0.1.54                                            │
+│ https://example.com/very/long/url/that/wraps    [Badges] [Total] 
+│ [error: 5] [warn: 3] [info: 2] [ok: 1] Total: 11 [Copy JSON][HTML]│
+└─────────────────────────────────────────────────────────────────────┘
+
+PROBLEMS WITH CURRENT LAYOUT:
+  1. URL can be very long and wraps awkwardly
+  2. All metadata crammed on 2 lines
+  3. Version is tiny and barely visible
+  4. NO run ID displayed
+  5. NO timestamp displayed
+  6. Export buttons seem out of place in header
+  7. Badges + Total badges redundant
+
+
+COMPONENT HIERARCHY
+================================================================================
+
+ReportApp.tsx (line 8-59)
+│
+├── Reads from URL params: tabId (✓)
+├── Calls useReportData() → reads results from storage (✓)
+├── DOES NOT call readRunMeta() (✗ THIS IS THE BUG)
+├── Groups results by type (✓)
+├── Sorts by priority (✓)
+│
+└── Renders ReportHeader
+    │
+    ├── Props passed:
+    │   ├── url: string (✓)
+    │   ├── resultCount: number (✓)
+    │   ├── groupedResults: Record<string, Result[]> (✓)
+    │   ├── results: Result[] (✓)
+    │   ├── runId: string (✗ MISSING)
+    │   └── ranAt: string (✗ MISSING)
+    │
+    └── ReportHeader renders:
+        ├── Title + Version
+        ├── URL display (clickable in side panel, plain in report)
+        ├── ResultBadges component
+        │   └── Shows each type with count in color-coded badges
+        ├── Total count badge
+        └── ReportExportButtons
+            ├── Copy JSON button
+            └── Copy HTML button
+
+    └── ReportSection × N (for each result type)
+        ├── Type heading: "ERROR (5)" "WARN (3)" etc
+        └── ResultCard × N for each result
+
+
+INFORMATION FLOW ARCHITECTURE  
+================================================================================
+
+CURRENT DATA FLOW:
+┌──────────────────────┐
+│  background/runner.ts│
+│                      │
+│ const runId = ...    │
+│ const ranAt = ...    │
+│                      │
+│ writeRunMeta(tabId,  │
+│   {url, ranAt, runId}│
+│ )                    │
+│                      │
+│ chrome.storage.local │
+│ "results-meta:{tab}" │
+└──────────────────────┘
+         ↓
+    Storage Layer
+    ↙              ↘
+   ✓                ✗
+   │                │
+┌──────────────┐  ┌──────────────┐
+│  Side Panel  │  │  Report      │
+│  (App.tsx)   │  │  (ReportApp) │
+│              │  │              │
+│ useRunMeta() │  │ useReportData│
+│ ✓ Reads      │  │ ✗ Doesn't    │
+│              │  │ read RunMeta │
+│ Display:     │  │              │
+│ Run #{id}    │  │ NO RUN ID    │
+│ · {time}     │  │ NO TIMESTAMP │
+└──────────────┘  └──────────────┘
+
+
+WHAT'S DUPLICATED (Good Reasons)
+================================================================================
+
+1. URL shown in 2 places:
+   - ReportHeader: For report to be self-contained
+   - UrlBar in side panel: With action buttons (Copy, Open)
+   ✓ NECESSARY - Different contexts
+
+2. Result counts shown in 2 places:
+   - ResultBadges in header: Quick overall summary
+   - ReportSection headers: Context for each section
+   ✓ GOOD - Serves different purposes
+
+3. Type badges shown in 2 ways:
+   - ResultBadges: Colored pills with count
+   - ReportSection heading: Text heading with count
+   ✓ ACCEPTABLE - Different detail levels
+
+
+WHAT'S MISSING (Bad - Should be Fixed)
+================================================================================
+
+1. Run ID not shown anywhere in report
+   - Tracked in storage: runId
+   - Shown in side panel: "Run #run-1731605445123-a1b2c3d4"
+   - NOT shown in report: Missing completely
+   Impact: Can't identify which run a report is from
+
+2. Run timestamp not shown in report
+   - Tracked in storage: ranAt
+   - Shown in side panel: "2025-11-14 3:30:45 PM"
+   - NOT shown in report: Missing completely
+   Impact: Can't see when test was run
+
+3. No test duration
+   - Could calculate: ranAt + time to completion
+   - Never tracked or displayed
+   Impact: No indication of test performance
+
+4. No rules count
+   - Rules executed but count not exposed
+   - Could show: "11 total rules tested"
+   Impact: No context about test scope
+
+
+FORMATTING UTILITIES AVAILABLE
+================================================================================
+
+formatRuleName() @ src/report/formatRuleName.ts
+  Input: Result object
+  Logic:
+    1. If item.what exists → return it (user override)
+    2. If item.name exists → convert "mobileFriendly" to "Mobile Friendly"
+    3. Otherwise → ""
+  Used by: ResultHeader in components
+
+getResultColor() @ src/shared/colors.ts
+  Input: type string ("error"|"warn"|"info"|"ok")
+  Output: {bg, border, text, dot, badge, full} (Tailwind classes)
+  Used by: ResultBadges, ResultCard
+
+resultSortOrder @ src/shared/colors.ts
+  Priority: error(0) < warn(1) < info(2) < ok(3)
+  Used by: ReportApp to sort sections
+
+
+FILES INVOLVED IN REPORT
+================================================================================
+
+Display Layer:
+  src/report/ReportApp.tsx             - Main report container
+  src/report/ReportHeader.tsx          - Header (NEEDS REDESIGN)
+  src/report/ReportSection.tsx         - Result section groupings
+  src/report/ResultBadges.tsx          - Result type badge display
+  src/report/ExportButtons.tsx         - Copy JSON/HTML buttons
+  src/report/DetailsView.tsx           - (Expandable detail view)
+  src/report/formatRuleName.ts         - Helper to format rule names
+
+Data Access Layer:
+  src/report/useReportData.ts          - Hook to read results (✗ missing RunMeta)
+  src/shared/results.ts                - Result type & storage functions
+  src/shared/runMeta.ts                - RunMeta type & storage functions
+  src/shared/colors.ts                 - Color definitions
+
+Result Component:
+  src/components/result/ResultCard.tsx     - Individual result display
+  src/components/result/ResultHeader.tsx   - Result header with metadata
+  src/components/result/ResultDetails.tsx  - Expandable details section
+
+
+DETAILED COMPONENT PROPS
+================================================================================
+
+ReportApp:
+  - Props: None (self-contained, reads from URL params)
+  - State: results[], url, loading
+  - Reads: tabId from URL params, results from storage
+  - SHOULD read: RunMeta from storage ✗
+
+ReportHeader:
+  - Props:
+    ✓ url: string
+    ✓ resultCount: number  
+    ✓ groupedResults: Record<string, Result[]>
+    ✓ results: Result[]
+    ✗ runId?: string        (MISSING)
+    ✗ ranAt?: string        (MISSING)
+  - Renders: Title, URL, Badges, Total, Export buttons
+
+ResultBadges:
+  - Props: counts: Record<string, number>
+  - Input: {error: 5, warn: 3, info: 2, ok: 1}
+  - Output: Colored badge pills ordered by resultSortOrder
+  - Renders: [error: 5] [warn: 3] [info: 2] [ok: 1]
+
+ReportSection:
+  - Props: 
+    ✓ type: string         ("error", "warn", "info", "ok")
+    ✓ items: Result[]      
+  - Renders: Type heading + ResultCard for each item
+
+ResultCard:
+  - Props:
+    ✓ result: Result
+    ✓ index?: number
+    ✓ isPinned?: boolean
+    ✓ onTogglePin?: () => void
+    ✓ collapsible?: boolean
+    ✓ defaultExpanded?: boolean
+  - Renders: Header + Message + optionally Details
+
+
+HOW DATA FLOWS DURING TEST
+================================================================================
+
+1. User runs test from side panel
+   ↓
+2. background/rules/runner.ts executes
+   - Captures: url, timestamp, runId
+   - Calls: writeRunMeta(tabId, {url, ranAt, runId})
+   ↓
+3. RunMeta stored in: chrome.storage.local["results-meta:{tabId}"]
+   Results stored in: chrome.storage.local["results:{tabId}"]
+   ↓
+4. Side Panel (App.tsx) reads both
+   - useRunMeta() → gets RunMeta
+   - useResultsSource() → gets Results
+   - UrlBar displays both ✓
+   ↓
+5. User clicks "Show full report"
+   - Opens: chrome.runtime.getURL('src/report.html?tabId={tabId}')
+   ↓
+6. Report page loads (ReportApp.tsx)
+   - Extracts tabId from URL ✓
+   - useReportData() reads results ✓
+   - DOES NOT read RunMeta ✗
+   - Passes to ReportHeader (missing runId, ranAt) ✗
+   ↓
+7. Report displays but is missing run metadata
+
+
+INFORMATION HIERARCHY RECOMMENDATIONS
+================================================================================
+
+TIER 1 (Essential - Always Prominent):
+  □ Page Title: "Test Report"
+  □ Overall Health: "✗ 5 Errors | ⚠ 3 Warnings | ✓ 2 Passed"
+  □ Run Identity: "#run-1731605445123-a1b2c3d4"
+  □ Timestamp: "Ran on Nov 14, 2025 at 3:30 PM" (human readable)
+
+TIER 2 (Important - Visible Secondary):
+  □ Tested URL: (clickable link)
+  □ Extension Version: "v0.1.54"
+  □ Run Duration: "Took 2.3 seconds"
+  □ Scope: "11 rules tested"
+
+TIER 3 (Context - Collapsible):
+  □ Chrome Version
+  □ Events Captured
+  □ API Integrations Used
+  □ Export Options
+
+
+VISUAL HIERARCHY PROBLEMS IN CURRENT DESIGN
+================================================================================
+
+Current Issues:
+  1. URL wraps because it's too long for space available
+  2. All metadata crammed into 2 lines
+  3. No visual separation between "what" and "results"
+  4. Version text is too small
+  5. Run ID completely missing
+  6. Timestamp completely missing
+  7. Badge counts redundant with section headers
+  8. Export buttons seem disconnected from header
+
+Causes:
+  1. Horizontal flex layout forces everything on one line
+  2. No RunMeta data available (data gap, not just design)
+  3. No clear information hierarchy
+  4. Space constraints on narrow screens
+
+================================================================================
+END OF ANALYSIS
+================================================================================

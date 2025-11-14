@@ -23,17 +23,17 @@ export const LiveTestHeader = ({
 }: LiveTestHeaderProps) => {
   return (
     <div className="border-b bg-white">
-      <div className="p-4 space-y-4">
-        <div className="space-y-1">
-          <h1 className="text-lg font-bold text-gray-900">Franz Enzenhofer SEO Live Test</h1>
+      <div className="p-3 space-y-2">
+        <div className="space-y-0.5">
+          <h1 className="text-base font-bold text-gray-900">Franz Enzenhofer SEO Live Test</h1>
           {version && <div className="text-xs text-gray-500">v{version}</div>}
         </div>
 
         <HeaderUrlSection url={url} runId={runId} ranAt={ranAt} onOpenUrl={onOpenUrl} />
 
-        {primaryAction && <div className="pt-2">{primaryAction}</div>}
+        {primaryAction && <div>{primaryAction}</div>}
 
-        {secondaryActions && <div className="flex items-center gap-4 text-sm pt-2">{secondaryActions}</div>}
+        {secondaryActions && <div className="flex items-center gap-3 text-sm">{secondaryActions}</div>}
       </div>
     </div>
   )

@@ -37,26 +37,27 @@ export const HeaderUrlSection = ({ url, runId, ranAt, onOpenUrl }: HeaderUrlSect
   }
 
   return (
-    <div className="space-y-3">
-      <div className="space-y-2">
+    <div className="space-y-2">
+      <div className="space-y-1">
         <input
           ref={inputRef}
           type="text"
           value={editableUrl}
           onChange={(e) => setEditableUrl(e.target.value)}
           placeholder="No URL yet"
-          className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          dir="rtl"
+          className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
-        <div className="flex gap-2">
+        <div className="flex gap-1">
           <button
-            className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-40"
+            className="px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 disabled:opacity-40"
             onClick={() => void copy()}
             disabled={!editableUrl}
           >
             Copy URL
           </button>
           <button
-            className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-40"
+            className="px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 disabled:opacity-40"
             onClick={() => void open()}
             disabled={!editableUrl}
           >
@@ -66,7 +67,7 @@ export const HeaderUrlSection = ({ url, runId, ranAt, onOpenUrl }: HeaderUrlSect
       </div>
 
       {(runId || ranAt) && (
-        <div className="text-sm text-gray-600 space-y-0.5">
+        <div className="text-xs text-gray-600 space-y-0.5">
           {runId && <div>Run #{runId}</div>}
           {ranAt && <div>{formatEuropeanDateTime(ranAt)}</div>}
         </div>
