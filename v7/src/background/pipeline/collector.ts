@@ -7,31 +7,20 @@ import { log } from '@/shared/logs'
 import { Logger } from '@/shared/logger'
 
 export const pushEvent = async (tabId: number, ev: import('./types').EventRec) => {
-  await Logger.logDirect(tabId, 'event', 'receive', {
-    type: ev.t,
-    url: ev.u || 'no-url',
-    hasData: !!ev.d,
-    status: ev.s,
-  })
+  await Logger.logDirect(tabId, 'event', 'receive', { type: ev.t, url: ev.u || 'no-url', hasData: !!ev.d, status: ev.s })
   await addEvent(tabId, ev)
   await Logger.logDirect(tabId, 'event', 'add', { type: ev.t, tabId })
   if (ev.t.startsWith('dom:')) {
     const data = ev.d as { html?: string } | undefined
-    const len = typeof data?.html === 'string' ? data.html.length : 0
+    const html = typeof data?.html === 'string' ? data.html : ''
+    const len = html.length
     log(tabId, `${ev.t} html=${len}`).catch(() => {})
-    await Logger.logDirect(tabId, 'dom', 'event', {
-      type: ev.t,
-      htmlSize: len,
-      url: ev.u || 'no-url',
-    })
+    await Logger.logDirect(tabId, 'dom', 'event', { type: ev.t, htmlSize: len, html: html.slice(0, 500), htmlFull: html, url: ev.u || 'no-url' })
   }
   if (ev.t === 'nav:before') {
     const { 'ui:autoClear': auto } = await chrome.storage.local.get('ui:autoClear')
     log(tabId, `nav:before url=${ev.u || ''} autoClear=${auto !== false}`).catch(() => {})
-    await Logger.logDirect(tabId, 'nav', 'before', {
-      url: ev.u || 'no-url',
-      autoClear: auto !== false,
-    })
+    await Logger.logDirect(tabId, 'nav', 'before', { url: ev.u || 'no-url', autoClear: auto !== false })
     if (auto !== false) {
       await chrome.storage.local.remove(`results:${tabId}`)
       await Logger.logDirect(tabId, 'event', 'clear results', { reason: 'autoClear' })
@@ -44,10 +33,7 @@ export const pushEvent = async (tabId: number, ev: import('./types').EventRec) =
     return
   }
   if (ev.t === 'dom:document_idle') {
-    await Logger.logDirect(tabId, 'event', 'schedule finalize', {
-      reason: 'dom:document_idle',
-      delay: '200ms',
-    })
+    await Logger.logDirect(tabId, 'event', 'schedule finalize', { reason: 'dom:document_idle', delay: '200ms' })
     await scheduleFinalize(tabId, 200)
   }
 }
@@ -55,10 +41,7 @@ export const pushEvent = async (tabId: number, ev: import('./types').EventRec) =
 export const markDomPhase = async (tabId: number) => {
   await Logger.logDirect(tabId, 'event', 'mark dom done', { tabId })
   await setDomDone(tabId)
-  await Logger.logDirect(tabId, 'event', 'schedule finalize', {
-    reason: 'markDomPhase',
-    delay: '200ms',
-  })
+  await Logger.logDirect(tabId, 'event', 'schedule finalize', { reason: 'markDomPhase', delay: '200ms' })
   await scheduleFinalize(tabId, 200)
 }
 
@@ -69,10 +52,6 @@ onAlarm(async (tabId) => {
     await Logger.logDirect(tabId, 'alarm', 'no run', { reason: 'popRun returned null' })
     return
   }
-  await Logger.logDirect(tabId, 'alarm', 'execute', {
-    runId: run.id,
-    events: run.ev.length,
-    domDone: run.domDone,
-  })
+  await Logger.logDirect(tabId, 'alarm', 'execute', { runId: run.id, events: run.ev.length, domDone: run.domDone })
   await runRulesOn(tabId, run)
 })

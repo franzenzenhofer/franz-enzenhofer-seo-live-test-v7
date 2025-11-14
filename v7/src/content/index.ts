@@ -19,6 +19,8 @@ const captureAndSend = (event: string): void => {
   Logger.logSync('dom', 'capture done', {
     event,
     htmlSize,
+    html: html.slice(0, 500),
+    htmlFull: html,
     url: location.href,
     readyState: document.readyState,
   })

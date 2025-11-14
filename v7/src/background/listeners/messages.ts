@@ -2,11 +2,17 @@ import { pushEvent, markDomPhase } from '../pipeline/collector'
 import { setDomDone } from '../pipeline/store'
 import { scheduleFinalize } from '../pipeline/alarms'
 
+import { log } from '@/shared/logs'
+
 type Sender = chrome.runtime.MessageSender
 
 export const handleMessage = (msg: unknown, sender: Sender, send?: (resp?: unknown) => void) => {
-  const st = msg as { event?: string; data?: unknown; type?: string; tabId?: number } | null
+  const st = msg as { event?: string; data?: unknown; type?: string; tabId?: number; channel?: string; message?: string } | null
   const tabId = st?.tabId || sender.tab?.id || null
+  if (st?.channel === 'log' && tabId && st.message) {
+    log(tabId, st.message)
+    return true
+  }
   if (st?.type === 'panel:runNow' && tabId) {
     ;(async ()=>{
       try {
