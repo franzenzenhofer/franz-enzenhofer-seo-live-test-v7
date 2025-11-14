@@ -8,7 +8,7 @@ export const discoverCanonicalOkRule: Rule = {
   async run(page) {
     const el = page.doc.querySelector('link[rel="canonical"]')
     if (!el) {
-      return { label: 'DISCOVER', message: 'No canonical link', type: 'warn', name: 'canonicalOk' }
+      return { label: 'DISCOVER', message: 'Missing canonical link in <head>', type: 'warn', name: 'canonicalOk' }
     }
 
     const href = el.getAttribute('href') || ''
@@ -21,17 +21,17 @@ export const discoverCanonicalOkRule: Rule = {
       return isAbsolute
         ? {
             label: 'DISCOVER',
-            message: 'Canonical OK',
+            message: 'Canonical link present (absolute URL)',
             type: 'ok',
             name: 'canonicalOk',
-            details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el) },
+            details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), canonicalUrl: abs },
           }
         : {
             label: 'DISCOVER',
-            message: 'Canonical is not absolute',
+            message: 'Canonical URL not absolute (relative)',
             type: 'warn',
             name: 'canonicalOk',
-            details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el) },
+            details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), canonicalUrl: href },
           }
     } catch {
       return {
