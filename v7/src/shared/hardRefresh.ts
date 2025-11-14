@@ -56,10 +56,19 @@ export const clearCacheStorage = async (tabId: number): Promise<void> => {
 
 /**
  * Perform a hard refresh: clear Service Workers, Cache Storage, then reload
+ * @param tabId - The tab ID to refresh
+ * @param url - Optional URL to navigate to before refreshing
  */
-export const hardRefreshTab = async (tabId: number): Promise<void> => {
+export const hardRefreshTab = async (tabId: number, url?: string): Promise<void> => {
   const start = performance.now()
-  await Logger.logDirect(tabId, 'cache', 'hard-refresh', { status: 'start' })
+  await Logger.logDirect(tabId, 'cache', 'hard-refresh', { status: 'start', url: url || 'current' })
+
+  // If URL is provided, navigate to it first
+  if (url) {
+    await chrome.tabs.update(tabId, { url })
+    // Wait for navigation to start
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
 
   try {
     await clearServiceWorkers(tabId)

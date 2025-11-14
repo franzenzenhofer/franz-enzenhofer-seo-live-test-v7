@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react'
+import { useState, useEffect } from 'react'
 
 import { Results } from './Results'
 import { Search } from './Search'
@@ -33,15 +34,23 @@ export const AppBody = ({
   onOpenReport: () => void
 }) => {
   const version = chrome.runtime.getManifest().version
+  const [editableUrl, setEditableUrl] = useState(d.url || '')
+
+  // Sync editableUrl with displayUrl when it changes
+  useEffect(() => {
+    setEditableUrl(d.url || '')
+  }, [d.url])
 
   return (
     <div className="dt-panel w-[360px]">
       <LiveTestHeader
         url={d.url}
+        editableUrl={editableUrl}
+        onUrlChange={setEditableUrl}
         runId={d.runId}
         ranAt={d.ranAt}
         version={version}
-        primaryAction={<RunNow />}
+        primaryAction={<RunNow url={editableUrl} />}
         onOpenUrl={openUrlInCurrentTab}
         onOpenReport={onOpenReport}
         secondaryActions={

@@ -2,13 +2,13 @@ import React, { useState } from 'react'
 
 import { executeRunNow } from '../utils/runNow'
 
-export const RunNow = () => {
+export const RunNow = ({ url }: { url?: string }) => {
   const [running, setRunning] = useState(false)
 
   const run = async () => {
     setRunning(true)
     try {
-      await executeRunNow()
+      await executeRunNow(url)
     } catch (err) {
       console.warn('[panel] Run Now failed', err)
     } finally {

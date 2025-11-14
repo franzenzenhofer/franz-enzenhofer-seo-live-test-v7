@@ -1,29 +1,28 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { RunMetaDisplay } from './RunMetaDisplay'
 
 export type HeaderUrlSectionProps = {
-  url: string
+  editableUrl: string
+  onUrlChange: (url: string) => void
   runId?: string
   ranAt?: string
   onOpenUrl?: (url: string) => void
   onOpenReport?: () => void
 }
 
-export const HeaderUrlSection = ({ url, runId, ranAt, onOpenUrl, onOpenReport }: HeaderUrlSectionProps) => {
-  const [editableUrl, setEditableUrl] = useState(url || '')
+export const HeaderUrlSection = ({ editableUrl, onUrlChange, runId, ranAt, onOpenUrl, onOpenReport }: HeaderUrlSectionProps) => {
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    setEditableUrl(url || '')
-    if (inputRef.current && url) {
+    if (inputRef.current && editableUrl) {
       setTimeout(() => {
         if (inputRef.current) {
           inputRef.current.scrollLeft = inputRef.current.scrollWidth
         }
       }, 0)
     }
-  }, [url])
+  }, [editableUrl])
 
   const copy = async () => {
     if (!editableUrl) return
@@ -48,9 +47,9 @@ export const HeaderUrlSection = ({ url, runId, ranAt, onOpenUrl, onOpenReport }:
           ref={inputRef}
           type="text"
           value={editableUrl}
-          onChange={(e) => setEditableUrl(e.target.value)}
+          onChange={(e) => onUrlChange(e.target.value)}
           placeholder="No URL yet"
-          className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full px-2 py-1.5 text-xs bg-white border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
         <div className="flex gap-1">
           <button

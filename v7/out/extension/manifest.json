@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "F19N Obtrusive Live Test v7",
-  "version": "0.1.36",
-  "version_name": "0.1.36",
+  "version": "0.1.277",
+  "version_name": "0.1.277",
   "description": "Modern MV3 side-panel extension for live tests.",
   "action": {
     "default_title": "Open Live Test"
@@ -43,7 +43,7 @@
   "content_scripts": [
     {
       "js": [
-        "assets/index.ts-BRVrXWm6.js"
+        "assets/index.ts-loader-GvIyWonE.js"
       ],
       "matches": [
         "<all_urls>"
@@ -58,7 +58,13 @@
       ],
       "resources": [
         "src/offscreen.html",
-        "assets/index.ts-BRVrXWm6.js"
+        "src/report.html",
+        "src/settings.html",
+        "src/sidepanel.html",
+        "dev-reload.json",
+        "assets/logger-CF98vYH4.js",
+        "assets/logs-DOAcrpKK.js",
+        "assets/index.ts-CwuRCXyQ.js"
       ],
       "use_dynamic_url": false
     }

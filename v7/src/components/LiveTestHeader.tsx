@@ -4,6 +4,8 @@ import { HeaderUrlSection } from './HeaderUrlSection'
 
 export type LiveTestHeaderProps = {
   url: string
+  editableUrl?: string
+  onUrlChange?: (url: string) => void
   runId?: string
   ranAt?: string
   version?: string
@@ -15,6 +17,8 @@ export type LiveTestHeaderProps = {
 
 export const LiveTestHeader = ({
   url,
+  editableUrl,
+  onUrlChange,
   runId,
   ranAt,
   version,
@@ -31,7 +35,14 @@ export const LiveTestHeader = ({
           {version && <div className="text-xs text-gray-500">v{version}</div>}
         </div>
 
-        <HeaderUrlSection url={url} runId={runId} ranAt={ranAt} onOpenUrl={onOpenUrl} onOpenReport={onOpenReport} />
+        <HeaderUrlSection
+          editableUrl={editableUrl || url}
+          onUrlChange={onUrlChange || (() => {})}
+          runId={runId}
+          ranAt={ranAt}
+          onOpenUrl={onOpenUrl}
+          onOpenReport={onOpenReport}
+        />
 
         {primaryAction && <div>{primaryAction}</div>}
 
