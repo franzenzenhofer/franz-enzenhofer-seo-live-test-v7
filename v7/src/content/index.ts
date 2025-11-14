@@ -1,6 +1,6 @@
 import { PageInfo, type PageInfoT } from '@/shared/schemas'
 import { extractPageInfo } from '@/shared/extract'
-import { Logger } from '@/shared/logger'
+import { Logger, type LogCategory, type LogData } from '@/shared/logger'
 
 // Set context for logging
 Logger.setContext('content')
@@ -21,9 +21,22 @@ const tabIdPromise = new Promise<number>((resolve) => {
 const q = (sel: string) => document.querySelector(sel)
 
 /**
- * Capture DOM and send to background with logging
+ * DRY abstraction: Log after tabId is ready
  */
-const captureAndSend = (event: string): void => {
+const logWhenReady = (category: LogCategory, action: string, data?: LogData): void => {
+  tabIdPromise.then(() => {
+    Logger.logDirectSend(contentTabId, category, action, data)
+  }).catch(() => {})
+}
+
+/**
+ * Capture DOM and send to background with logging
+ * BULLETPROOF: Always waits for tabId to be ready
+ */
+const captureAndSend = async (event: string): Promise<void> => {
+  // ALWAYS wait for tabId - this makes it bulletproof
+  await tabIdPromise
+
   Logger.logDirectSend(contentTabId, 'dom', 'capture start', { event, url: location.href })
 
   const html = q('html')?.innerHTML || ''
@@ -44,26 +57,20 @@ const captureAndSend = (event: string): void => {
   Logger.logDirectSend(contentTabId, 'dom', 'send', { event, to: 'background', size: htmlSize })
 }
 
-// Register event listeners - await tabId inside handler
-document.addEventListener('DOMContentLoaded', async () => {
-  await tabIdPromise
-  Logger.logDirectSend(contentTabId, 'content', 'fire', { event: 'DOMContentLoaded' })
-  captureAndSend('DOMContentLoaded')
+// Register event listeners - captureAndSend handles tabId internally
+document.addEventListener('DOMContentLoaded', () => {
+  logWhenReady('content', 'fire', { event: 'DOMContentLoaded' })
+  captureAndSend('DOMContentLoaded').catch(() => {})
 })
 
-window.addEventListener('load', async () => {
-  await tabIdPromise
-  Logger.logDirectSend(contentTabId, 'content', 'fire', { event: 'load' })
-  captureAndSend('load')
+window.addEventListener('load', () => {
+  logWhenReady('content', 'fire', { event: 'load' })
+  captureAndSend('load').catch(() => {})
 })
 
-// Immediate captures - MUST wait for tabId first
-tabIdPromise.then(() => {
-  captureAndSend('document_end')
-  captureAndSend('document_idle')
-}).catch((err) => {
-  console.error('[content] Failed to initialize tabId:', err)
-})
+// Immediate captures - captureAndSend handles tabId internally
+captureAndSend('document_end')
+captureAndSend('document_idle')
 
 chrome.runtime.onMessage.addListener((msg, _s, reply) => {
   if (msg?.type !== 'getPageInfo') return
