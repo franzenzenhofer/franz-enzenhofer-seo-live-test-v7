@@ -22,6 +22,7 @@ export type LogCategory =
   | 'auth'
   | 'content'
   | 'alarm'
+  | 'cache'
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
