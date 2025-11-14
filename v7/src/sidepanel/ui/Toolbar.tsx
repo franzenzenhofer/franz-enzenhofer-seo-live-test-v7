@@ -1,27 +1,26 @@
 import { RunNow } from './RunNow'
 
-import { getActiveTabId } from '@/shared/chrome'
-import { clearLogs } from '@/shared/logs'
-import { clearResults } from '@/shared/results'
-
-export const Toolbar = ({ settings, toggleSettings, showLogs, toggleLogs }: {
-  settings: boolean
-  toggleSettings: () => void
-  showLogs: boolean
-  toggleLogs: () => void
+export const Toolbar = ({
+  onOpenLogs,
+  onClean,
+  onOpenSettings,
+}: {
+  onOpenLogs: () => void
+  onClean: () => void
+  onOpenSettings: () => void
 }) => (
-  <div className="flex items-center gap-2">
-    {!settings && <RunNow />}
-    {!settings && <button className="text-sm underline" onClick={toggleLogs}>{showLogs? 'Hide logs' : 'Show logs'}</button>}
-    {!settings && (
-      <button
-        className="text-sm underline"
-        onClick={async ()=>{ const id = await getActiveTabId(); if(id){ await clearResults(id); await clearLogs(id) } }}
-      >
-        Clean
-      </button>
-    )}
-    <button className="text-sm underline" onClick={toggleSettings}>{settings? 'Results' : 'Settings'}</button>
+  <div className="flex items-center gap-3 text-sm">
+    <button className="underline" onClick={onOpenLogs}>
+      Logs
+    </button>
+    <button className="underline" onClick={onClean}>
+      Clean
+    </button>
+    <div className="flex-1 flex justify-center">
+      <RunNow />
+    </div>
+    <button className="underline" onClick={onOpenSettings}>
+      Settings
+    </button>
   </div>
 )
-

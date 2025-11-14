@@ -5,46 +5,35 @@ import { Results } from './Results'
 import { Search } from './Search'
 import { TypeFilters } from './TypeFilters'
 import { Header } from './Header'
-import type { Tab } from './TabStrip'
 
-import { getActiveTabId } from '@/shared/chrome'
+import type { Result } from '@/shared/results'
 
 export const AppBody = ({
-  tab, setTab,
-  showLogs, setShowLogs,
   d, show, setShow,
   query, setQuery,
+  onOpenLogs,
+  openSettings,
+  onClean,
+  results,
+  onOpenReport,
 }: {
-  tab: Tab; setTab: (t: Tab)=>void
-  showLogs: boolean; setShowLogs: (b: boolean)=>void
-  d: { url: string }
+  d: { url: string; stale?: boolean; ranAt?: string; runId?: string }
   show: Record<string, boolean>; setShow: Dispatch<SetStateAction<Record<string, boolean>>>
   query: string; setQuery: (q: string)=>void
+  onOpenLogs: () => void
+  openSettings: () => void
+  onClean: () => void
+  results: Result[]
+  onOpenReport: () => void
 }) => {
-  // Open settings in new tab when selected
-  if (tab === 'settings') {
-    const url = chrome.runtime.getURL('src/settings.html')
-    chrome.tabs.create({ url })
-    setTab('results') // Reset to results
-  }
-
-  // Open logs in new tab when selected
-  if (tab === 'logs') {
-    getActiveTabId().then((tabId) => {
-      const url = chrome.runtime.getURL(`src/logs.html${tabId ? `?tabId=${tabId}` : ''}`)
-      chrome.tabs.create({ url })
-    }).catch(() => {})
-    setTab('results') // Reset to results
-  }
-
   return (
     <div className="dt-panel w-[360px]">
-      <Header tab={tab} showLogs={showLogs} setTab={setTab} setShowLogs={setShowLogs} />
+      <Header onOpenLogs={onOpenLogs} onClean={onClean} onOpenSettings={openSettings} />
       <div className="p-3 space-y-3">
-        <UrlBar url={d.url} />
+        <UrlBar url={d.url} stale={d.stale} ranAt={d.ranAt} runId={d.runId} onOpenReport={onOpenReport} />
         <Search onChange={setQuery} />
         <TypeFilters show={show} setShow={setShow} />
-        <Results types={Object.entries(show).filter(([,v])=>v).map(([k])=>k)} q={query} />
+        <Results items={results} types={Object.entries(show).filter(([,v])=>v).map(([k])=>k)} q={query} />
       </div>
     </div>
   )

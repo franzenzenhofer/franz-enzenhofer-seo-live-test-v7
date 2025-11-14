@@ -52,7 +52,8 @@ Running against real data
 1. Build once (`npm run build`), then load `v7/dist` as an unpacked MV3 extension.
 2. Open any real tab (http/https only) and click the Live Test action to open the side panel.
 3. Optional: open `src/settings.html` (gear icon) to toggle rules or provide API tokens/variables (e.g. PSI key, GSC site URL).
-4. Use the `Run now` button to trigger an immediate capture; results are always sourced from the live DOM plus captured network metadata.
+4. Use the `Run now` button to clear previous results/logs, hard-refresh the tab, and trigger an immediate capture; results are always sourced from the live DOM plus captured network metadata.
+5. Pin critical rules with the ★ icon so they stay at the top (persisted per user). The ⓘ icon opens the full `report.html` for that result and the `Logs` link pops open `logs.html` with the execution log for the active tab.
 
 ### CLI
 
@@ -70,12 +71,13 @@ Token-dependent integrations
 - Google Search Console and PageSpeed Insights rules are disabled by default. They surface real results only when tokens/keys are present in Settings (extension) or env vars (CLI). Without credentials they emit `info` messages (“No Google token”) instead of fake data.
 - Mobile Friendly Test / PSI rules pull live data from Google APIs and cache responses for five minutes (`src/shared/psi.ts`). There is no offline/demo mode.
 - Rules that need Chrome-only data (e.g., SPA history updates, blocked resources) clearly state when that data is unavailable in CLI mode rather than simulating it.
+- `gsc_site_url` is required for Search Console rules (`gsc:is-indexed`, `gsc:top-queries-of-page`, `gsc:page-worldwide`, `gsc:directory-worldwide`). Provide the exact property ID (`https://example.com/` or `sc-domain:example.com`) so results stay honest.
 
 Profile-aware testing & automation
 ----------------------------------
 
 - Playwright e2e tests (`npm run test:e2e`) automatically build the extension and launch Chromium **headed** (Chrome UI visible) with the MV3 bundle loaded. Set `PW_EXT_HEADLESS=1` if you really want the new headless mode. By default they use a temporary profile; set env vars to reuse a real Chrome profile:
-  - `LT_CHROME_PROFILE_NAME="Profile 2"` – folder name from `chrome://version` (mac path `~/Library/Application Support/Google/Chrome/Profile 2`)
+- `LT_CHROME_PROFILE_NAME="Profile 2"` – folder name from `chrome://version` (mac path `~/Library/Application Support/Google/Chrome/Profile 2`). Friendly labels (e.g. “Google Chrome”) also work; the helper resolves them via the `Local State` profile list.
   - or `LT_CHROME_PROFILE_DIR="~/Library/Application Support/Google/Chrome/Profile 2"` – absolute path override
   - Tests **clone** that profile into a temp dir; set `LT_CHROME_PROFILE_MODE=live` to run directly against the profile (not recommended) or `LT_CHROME_PROFILE_KEEP=1` to keep the cloned copy for debugging.
   - `PW_EXT_HEADLESS=0` switches tests to headed Chromium (or use `npm run test:e2e:dev`).

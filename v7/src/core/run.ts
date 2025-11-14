@@ -1,8 +1,9 @@
 import type { Rule, Result, Page, Ctx } from './types'
 
 const enrichResult = (res: Result, rule: Rule): Result => {
-  if (res.what && res.what.length > 0) return res
-  return { ...res, what: rule.name }
+  const what = res.what && res.what.length > 0 ? res.what : rule.name
+  const ruleId = res.ruleId ?? rule.id
+  return { ...res, what, ruleId }
 }
 
 export const runAll = async (rules: Rule[], page: Page, ctx: Ctx): Promise<Result[]> => {

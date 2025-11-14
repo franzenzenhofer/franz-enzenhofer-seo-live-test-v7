@@ -9,7 +9,6 @@ const autoRules: Auto[] = [
   { id: 'psi:mobile', vars: ['google_page_speed_insights_key'] },
   { id: 'psi:desktop', vars: ['google_page_speed_insights_key'] },
   { id: 'psi:mobile-fcp-tbt', vars: ['google_page_speed_insights_key'] },
-  { id: 'mft:mobile-friendly', vars: ['google_mobile_friendly_test_key'] },
   { id: 'gsc:property-available', token: true },
   { id: 'gsc:is-indexed', vars: ['gsc_site_url'], token: true },
   { id: 'gsc:top-queries-of-page', vars: ['gsc_site_url'], token: true },

@@ -1,6 +1,5 @@
 import { ReportHeader } from './ReportHeader'
 import { ReportSection } from './ReportSection'
-import { EnhancedReportSection } from './EnhancedReportSection'
 import { useReportData } from './useReportData'
 
 import type { Result } from '@/shared/results'
@@ -50,15 +49,9 @@ export const ReportApp = () => {
       <div className="max-w-6xl mx-auto p-4 sm:p-6">
         <ReportHeader url={url} resultCount={results.length} groupedResults={groupedResults} results={results} />
         <div className="mt-6 space-y-6">
-          {sortedGroups.map(([type, items]) => {
-            // Use enhanced section for items that have details
-            const hasEnhancedItems = items.some(item => 'details' in item)
-            return hasEnhancedItems ? (
-              <EnhancedReportSection key={type} type={type} items={items} />
-            ) : (
-              <ReportSection key={type} type={type} items={items} />
-            )
-          })}
+          {sortedGroups.map(([type, items]) => (
+            <ReportSection key={type} type={type} items={items} />
+          ))}
         </div>
       </div>
     </div>

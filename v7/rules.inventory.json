@@ -285,11 +285,6 @@
     "enabledByDefault": true
   },
   {
-    "id": "mft:mobile-friendly",
-    "name": "Mobile Friendly Test",
-    "enabledByDefault": false
-  },
-  {
     "id": "body:nofollow",
     "name": "Nofollow Links",
     "enabledByDefault": true

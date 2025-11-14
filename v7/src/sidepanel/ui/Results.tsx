@@ -1,49 +1,50 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
 import { NoResults } from './NoResults'
-import { ResultItem } from './ResultItem'
+import { usePinnedRules, ruleKeyOf } from './usePinnedRules'
 
-import { getActiveTabId } from '@/shared/chrome'
-import { readResults, watchResults, type Result } from '@/shared/results'
-import { getResultColor } from '@/shared/colors'
+import { ResultCard } from '@/components/result/ResultCard'
+import { resultSortOrder } from '@/shared/colors'
+import type { Result } from '@/shared/results'
 
-export const Results = ({ types, q }: { types?: string[]; q?: string }) => {
-  const [items, setItems] = useState<Result[]>([])
-  useEffect(() => {
-    let unsub: (() => void) | null = null
-    getActiveTabId().then((tabId) => {
-      if (!tabId) return
-      readResults(tabId).then(setItems).catch(() => {})
-      unsub = watchResults(tabId, setItems)
-    }).catch(() => {})
-    return () => { unsub?.() }
-  }, [])
-  const vis = useMemo(()=> items.filter(i=> {
+export const Results = ({ items, types, q }: { items: Result[]; types?: string[]; q?: string }) => {
+  const { pinned, togglePin } = usePinnedRules()
+  const filtered = useMemo(() => items.filter((i) => {
     if (types && !types.includes(i.type)) return false
     if (q && !`${i.label} ${i.message}`.toLowerCase().includes(q.toLowerCase())) return false
     return true
   }), [items, types, q])
-  const summary = useMemo(() => vis.reduce((s, r) => {
-    s[r.type] = (s[r.type] || 0) + 1; return s
-  }, {} as Record<string, number>), [vis])
+
+  const sorted = useMemo(() => {
+    return [...filtered].sort((a, b) => {
+      const keyA = ruleKeyOf(a)
+      const keyB = ruleKeyOf(b)
+      const pinA = keyA ? pinned[keyA] : false
+      const pinB = keyB ? pinned[keyB] : false
+      if (pinA !== pinB) return pinA ? -1 : 1
+      const orderA = resultSortOrder[a.type as keyof typeof resultSortOrder] ?? 999
+      const orderB = resultSortOrder[b.type as keyof typeof resultSortOrder] ?? 999
+      if (orderA !== orderB) return orderA - orderB
+      return (keyA || a.label).localeCompare(keyB || b.label)
+    })
+  }, [filtered, pinned])
+
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2 text-xs">
-        {['error', 'warn', 'info', 'ok'].map(type => {
-          const count = summary[type] || 0
-          if (count === 0) return null
-          const color = getResultColor(type)
-          return (
-            <span key={type} className={`px-2 py-1 rounded ${color.badge}`}>
-              {type}: {count}
-            </span>
-          )
-        })}
-      </div>
-      {vis.map((r, i) => (
-        <ResultItem key={i} result={r} index={items.indexOf(r)} />
-      ))}
-      {!vis.length && <NoResults items={items} types={types} q={q} />}
+      {sorted.map((r, i) => {
+        const key = ruleKeyOf(r)
+        return (
+          <ResultCard
+            key={`${key || r.label}-${i}`}
+            result={r}
+            index={items.indexOf(r)}
+            isPinned={Boolean(key && pinned[key])}
+            onTogglePin={key ? () => togglePin(key) : undefined}
+            collapsible
+          />
+        )
+      })}
+      {!filtered.length && <NoResults items={items} types={types} q={q} />}
     </div>
   )
 }

@@ -1,4 +1,11 @@
-export type Result = { label: string; message: string; type: 'info'|'ok'|'warn'|'error'; what?: string|null; priority?: number|null }
+export type Result = {
+  label: string
+  message: string
+  type: 'info'|'ok'|'warn'|'error'
+  what?: string|null
+  priority?: number|null
+  ruleId?: string|null
+}
 export type Page = {
   html: string
   url: string

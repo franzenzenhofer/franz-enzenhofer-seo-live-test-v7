@@ -1,9 +1,6 @@
-export const getActiveTabId = async () => {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-  return tab?.id ?? null
-}
+import { isRestrictedUrl, resolveActiveTabId } from './tabMemory'
 
-const isRestricted = (u?: string) => Boolean(u && /^(chrome|edge|about|devtools|view-source|chrome-extension):/i.test(u))
+export const getActiveTabId = () => resolveActiveTabId()
 
 const contentScriptFiles = (): string[] => {
   const m = chrome.runtime.getManifest()
@@ -22,7 +19,7 @@ export const sendToTab = async <T>(tabId: number, type: string): Promise<T> => {
     const files = contentScriptFiles()
     if (!files.length) throw new Error('No content scripts declared')
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-    if (isRestricted(tab?.url)) throw new Error('Cannot access a chrome:// URL')
+    if (isRestrictedUrl(tab?.url)) throw new Error('Cannot access a chrome:// URL')
     await chrome.storage.session.set({ [`inject:${tabId}`]: files }).catch(() => {})
     await chrome.scripting.executeScript({ target: { tabId }, files })
     const res = await chrome.tabs.sendMessage(tabId, { type })
@@ -34,7 +31,7 @@ export const injectForTab = async (tabId: number) => {
   const files = contentScriptFiles()
   if (!files.length) return
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-  if (isRestricted(tab?.url)) throw new Error('Cannot access a chrome:// URL')
+  if (isRestrictedUrl(tab?.url)) throw new Error('Cannot access a chrome:// URL')
   await chrome.scripting.executeScript({ target: { tabId }, files })
 }
 

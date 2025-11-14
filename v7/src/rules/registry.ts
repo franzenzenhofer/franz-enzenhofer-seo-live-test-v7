@@ -61,7 +61,6 @@ import { linkedImagesAltNoTextRule } from './a11y/linkedImagesAltNoText'
 import { psiMobileRule } from './google/psi/mobile'
 import { psiDesktopRule } from './google/psi/desktop'
 import { psiMobileFcpTbtRule } from './google/psi/mobileFcpTbt'
-import { mobileFriendlyRule } from './google/mft/mobileFriendly'
 import { gscPropertyAvailableRule } from './google/gsc/propertyAvailable'
 import { gscIsIndexedRule } from './google/gsc/isIndexed'
 import { gscTopQueriesOfPageRule } from './google/gsc/topQueriesOfPage'
@@ -177,7 +176,6 @@ export const registry: Rule[] = [
   psiMobileRule,
   psiDesktopRule,
   psiMobileFcpTbtRule,
-  mobileFriendlyRule,
   gscPropertyAvailableRule,
   gscIsIndexedRule,
   gscTopQueriesOfPageRule,

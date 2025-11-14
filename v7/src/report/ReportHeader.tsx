@@ -1,6 +1,6 @@
 import { ReportExportButtons } from './ExportButtons'
+import { ResultBadges } from './ResultBadges'
 
-import { getResultColor } from '@/shared/colors'
 import type { Result } from '@/shared/results'
 
 export const ReportHeader = ({
@@ -15,6 +15,9 @@ export const ReportHeader = ({
   results: Result[]
 }) => {
   const version = chrome.runtime.getManifest().version
+  const counts = Object.fromEntries(
+    Object.entries(groupedResults).map(([type, items]) => [type, items.length]),
+  ) as Record<string, number>
 
   return (
     <div className="border-b pb-4">
@@ -24,15 +27,8 @@ export const ReportHeader = ({
       </h1>
       <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2">
         <span className="text-sm text-gray-600 flex-1">{url}</span>
-        <div className="flex items-center gap-2">
-          {Object.entries(groupedResults).map(([type, items]) => {
-            const color = getResultColor(type)
-            return (
-              <span key={type} className={`px-2 py-1 text-xs rounded ${color.badge}`}>
-                {type}: {items.length}
-              </span>
-            )
-          })}
+        <div className="flex items-center gap-2 flex-wrap">
+          <ResultBadges counts={counts} />
           <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
             Total: {resultCount}
           </span>

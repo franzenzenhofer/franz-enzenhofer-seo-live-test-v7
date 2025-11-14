@@ -3,6 +3,8 @@ export type Result = {
   label: string
   message: string
   type: string
+  what?: string | null
+  ruleId?: string | null
   priority?: number
   details?: {
     sourceHtml?: string

@@ -7,6 +7,7 @@ import { registerCommandAndMenu } from './commands'
 import { initDevAutoReload } from './devReload'
 
 import { refreshIfPresent } from '@/shared/auth'
+import { rememberHttpTab } from '@/shared/tabMemory'
 
 const panelPath = 'src/sidepanel.html'
 
@@ -24,6 +25,7 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
   } catch {
     // ignore
   }
+  rememberHttpTab(tabId).catch(() => {})
 })
 
 chrome.tabs.onUpdated.addListener(async (tabId) => {
@@ -32,6 +34,7 @@ chrome.tabs.onUpdated.addListener(async (tabId) => {
   } catch {
     // ignore
   }
+  rememberHttpTab(tabId).catch(() => {})
 })
 
 registerNavListeners()

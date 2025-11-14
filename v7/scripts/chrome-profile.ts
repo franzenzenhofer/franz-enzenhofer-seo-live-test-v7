@@ -34,9 +34,32 @@ export const resolveChromeProfileSource = (): string | null => {
   if (!name) return null
   const base = baseDirForPlatform()
   if (!base) throw new Error('Unsupported platform: set LT_CHROME_PROFILE_DIR instead')
-  const target = path.join(base, name)
-  if (!fs.existsSync(target)) throw new Error(`Chrome profile "${name}" not found at ${target}`)
-  return target
+  const direct = path.join(base, name)
+  if (fs.existsSync(direct)) return direct
+  const fromLabel = resolveProfileByLabel(base, name)
+  if (fromLabel) return fromLabel
+  throw new Error(`Chrome profile "${name}" not found. Use chrome://version to copy the folder name or set LT_CHROME_PROFILE_DIR.`)
+}
+
+const resolveProfileByLabel = (base: string, label: string) => {
+  const localStatePath = path.join(base, 'Local State')
+  if (!fs.existsSync(localStatePath)) return null
+  try {
+    const raw = JSON.parse(fs.readFileSync(localStatePath, 'utf8')) as {
+      profile?: { info_cache?: Record<string, { name?: string }> }
+    }
+    const cache = raw.profile?.info_cache || {}
+    for (const [dir, meta] of Object.entries(cache)) {
+      if (meta?.name === label) {
+        const folder = dir === 'Default' ? 'Default' : dir
+        const target = path.join(base, folder)
+        if (fs.existsSync(target)) return target
+      }
+    }
+  } catch (err) {
+    console.warn(`[chrome-profile] Failed to read Local State to resolve label ${label}:`, err)
+  }
+  return null
 }
 
 export const prepareProfileDir = (): ProfileChoice => {

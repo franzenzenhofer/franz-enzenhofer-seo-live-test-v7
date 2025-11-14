@@ -1,3 +1,4 @@
+// MOVED TO TRASH: Legacy side-panel settings UI replaced by dedicated settings.html (2025-11-14).
 import React, { useEffect, useState } from 'react'
 
 import { RuleFlags } from './RuleFlags'
@@ -41,11 +42,23 @@ export const Settings = () => {
           {!hasToken ? (<button className="border px-2" onClick={signIn}>Sign in</button>) : (<button className="border px-2" onClick={signOut}>Sign out</button>)}
         </div>
       </div>
-      <div>
+      <div className="space-y-2">
         <h2 className="font-semibold">API Keys & Variables</h2>
-        <label className="block text-sm">PSI Key<input className="border p-1 w-full" value={vars['google_page_speed_insights_key']||''} onChange={setVar('google_page_speed_insights_key')} /></label>
-        <label className="block text-sm">MFT Key<input className="border p-1 w-full" value={vars['google_mobile_friendly_test_key']||''} onChange={setVar('google_mobile_friendly_test_key')} /></label>
-        <label className="block text-sm">GSC Site URL<input className="border p-1 w-full" placeholder="https://example.com/ or sc-domain:example.com" value={vars['gsc_site_url']||''} onChange={setVar('gsc_site_url')} /></label>
+        <label className="block text-sm space-y-1">
+          <span className="font-medium flex items-center gap-2">
+            PageSpeed Insights Key
+            <a href="https://developers.google.com/speed/docs/insights/v5/get-started" target="_blank" rel="noreferrer" className="text-blue-600 underline text-xs">
+              Docs
+            </a>
+          </span>
+          <input className="border p-1 w-full" value={vars['google_page_speed_insights_key']||''} onChange={setVar('google_page_speed_insights_key')} placeholder="Google Cloud API key" />
+          <span className="text-[11px] text-gray-600">Used by PSI rules (mobile/desktop/FCP).</span>
+        </label>
+        <label className="block text-sm space-y-1">
+          <span className="font-medium">GSC Site URL</span>
+          <input className="border p-1 w-full" placeholder="https://example.com/ or sc-domain:example.com" value={vars['gsc_site_url']||''} onChange={setVar('gsc_site_url')} />
+          <span className="text-[11px] text-gray-600">Required for Search Console rules (top queries, indexing).</span>
+        </label>
       </div>
     </div>
   )
