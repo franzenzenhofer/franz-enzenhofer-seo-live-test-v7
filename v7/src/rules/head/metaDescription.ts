@@ -39,7 +39,7 @@ export const metaDescriptionRule: Rule = {
 
     return {
       label: 'HEAD',
-      message: `Meta description: ${content}`,
+      message: `Meta description present (${content.length} chars)`,
       type: 'info',
       priority: 760,
       name: 'metaDescription',
@@ -47,6 +47,7 @@ export const metaDescriptionRule: Rule = {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),
         domPath: getDomPath(metaEl),
+        description: content,
       },
     }
   },
