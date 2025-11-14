@@ -15,7 +15,7 @@ export const discoverOgImageLargeRule: Rule = {
     const has = !!imgEl
 
     if (!has) {
-      return { label: 'DISCOVER', message: 'Missing og:image', type: 'warn', name: 'ogImageLarge' }
+      return { label: 'DISCOVER', message: 'Missing og:image meta tag', type: 'warn', name: 'ogImageLarge' }
     }
 
     const ok = w >= 1200 || h >= 1200
@@ -25,17 +25,17 @@ export const discoverOgImageLargeRule: Rule = {
     return ok
       ? {
           label: 'DISCOVER',
-          message: 'OG image metadata suggests large image',
+          message: `OG image large: ${w}x${h}px`,
           type: 'ok',
           name: 'ogImageLarge',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml) },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), width: w, height: h },
         }
       : {
           label: 'DISCOVER',
-          message: 'OG image <1200px or missing',
+          message: w && h ? `OG image ${w}x${h}px (<1200px)` : 'OG image size metadata missing',
           type: 'info',
           name: 'ogImageLarge',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml) },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), width: w || undefined, height: h || undefined },
         }
   },
 }
