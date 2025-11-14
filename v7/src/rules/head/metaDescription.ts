@@ -13,7 +13,6 @@ export const metaDescriptionRule: Rule = {
         label: 'BODY',
         message: 'No meta description found.',
         type: 'error',
-        what: 'static',
         priority: 0,
         name: 'metaDescription',
       }
@@ -25,7 +24,6 @@ export const metaDescriptionRule: Rule = {
         label: 'HEAD',
         message: 'Multiple meta description found.',
         type: 'error',
-        what: 'static',
         priority: 0,
         name: 'metaDescription',
         details: {
@@ -43,7 +41,6 @@ export const metaDescriptionRule: Rule = {
       label: 'HEAD',
       message: `Meta description: ${content}`,
       type: 'info',
-      what: 'static',
       priority: 760,
       name: 'metaDescription',
       details: {
