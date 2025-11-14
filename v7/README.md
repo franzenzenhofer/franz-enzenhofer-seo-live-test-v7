@@ -11,9 +11,12 @@ Scripts
 - `npm run dev` – Vite dev server for hot-reload assets
 - `npm run build` – Build the extension to `dist/`
 - `npm run test` – Run unit tests
+- `npm run test:e2e` – Build + run Playwright MV3 tests headlessly (Chromium for Testing)
+- `npm run test:e2e:dev` – Run Playwright tests in headed mode (no implicit build)
 - `npm run lint` – ESLint
 - `npm run typecheck` – TS type checks
 - `npm run rules:json` – Emit `rules.inventory.json` (auto-runs before every build so docs can ingest rule metadata)
+- `npm run chrome:profile` – Launch your chosen Chrome profile (see “Profile-aware testing” below)
 
 Async, decoupled architecture
 
@@ -67,3 +70,13 @@ Token-dependent integrations
 - Google Search Console and PageSpeed Insights rules are disabled by default. They surface real results only when tokens/keys are present in Settings (extension) or env vars (CLI). Without credentials they emit `info` messages (“No Google token”) instead of fake data.
 - Mobile Friendly Test / PSI rules pull live data from Google APIs and cache responses for five minutes (`src/shared/psi.ts`). There is no offline/demo mode.
 - Rules that need Chrome-only data (e.g., SPA history updates, blocked resources) clearly state when that data is unavailable in CLI mode rather than simulating it.
+
+Profile-aware testing & automation
+----------------------------------
+
+- Playwright e2e tests (`npm run test:e2e`) automatically build the extension and launch Chromium headlessly with the MV3 bundle loaded. By default they use a temporary profile; set env vars to reuse a real Chrome profile:
+  - `LT_CHROME_PROFILE_NAME="Profile 2"` – folder name from `chrome://version` (mac path `~/Library/Application Support/Google/Chrome/Profile 2`)
+  - or `LT_CHROME_PROFILE_DIR="~/Library/Application Support/Google/Chrome/Profile 2"` – absolute path override
+  - Tests **clone** that profile into a temp dir; set `LT_CHROME_PROFILE_MODE=live` to run directly against the profile (not recommended) or `LT_CHROME_PROFILE_KEEP=1` to keep the cloned copy for debugging.
+  - `PW_EXT_HEADLESS=0` switches tests to headed Chromium (or use `npm run test:e2e:dev`).
+- Launch Chrome with your preferred profile (for manual dev + auto-reload helpers) via `npm run chrome:profile`. It respects the same `LT_CHROME_PROFILE_NAME / DIR` env vars and opens the profile directly (default URL `chrome://extensions/`—override via `LT_CHROME_PROFILE_URL`).

@@ -1,23 +1,33 @@
 import path from 'node:path'
-import { test, expect, chromium, BrowserContext } from '@playwright/test'
 import fs from 'node:fs'
-import os from 'node:os'
+
+import { test, expect, chromium, BrowserContext } from '@playwright/test'
+
+import { cleanupProfileDir, describeProfileChoice, prepareProfileDir } from '../../scripts/chrome-profile'
 
 const dist = path.resolve(new URL('../../dist', import.meta.url).pathname)
 
-const withExtension = async (): Promise<BrowserContext> => {
-  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pw-ext-'))
+type ExtensionContext = { context: BrowserContext; userDataDir: string; cleanup: () => void }
+
+const buildArgs = () => {
   const args = [
-      '--disable-gpu',
-      '--no-sandbox',
-      '--disable-dev-shm-usage',
-      `--disable-extensions-except=${dist}`,
-      `--load-extension=${dist}`,
+    '--disable-gpu',
+    '--no-sandbox',
+    '--disable-dev-shm-usage',
+    `--disable-extensions-except=${dist}`,
+    `--load-extension=${dist}`,
   ]
   if (process.env.PW_EXT_HEADLESS === '1') args.unshift('--headless=new')
-  return chromium.launchPersistentContext(userDataDir, {
-    args,
-  })
+  return args
+}
+
+const withExtension = async (): Promise<ExtensionContext> => {
+  if (!fs.existsSync(dist)) throw new Error('Build dist first (npm run build) before running e2e tests.')
+  const profile = prepareProfileDir()
+  console.info(`[e2e] Using ${describeProfileChoice(profile)}`)
+  const context = await chromium.launchPersistentContext(profile.userDataDir, { args: buildArgs() })
+  const cleanup = () => cleanupProfileDir(profile)
+  return { context, userDataDir: profile.userDataDir, cleanup }
 }
 
 const findExtensionId = async (ctx: BrowserContext) => {
@@ -45,7 +55,7 @@ const findExtensionId = async (ctx: BrowserContext) => {
 }
 
 test('side panel loads and shows results (headless)', async () => {
-  const ctx = await withExtension()
+  const { context: ctx, cleanup } = await withExtension()
   const page = await ctx.newPage()
   await page.goto('https://example.com/')
   await page.waitForTimeout(2500)
@@ -59,4 +69,5 @@ test('side panel loads and shows results (headless)', async () => {
   const hasRows = await side.locator('.border.rounded').count()
   expect(hasRows).toBeGreaterThan(0)
   await ctx.close()
+  cleanup()
 })
