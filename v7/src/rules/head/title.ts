@@ -18,7 +18,6 @@ export const titleRule: Rule = {
       label: 'HEAD',
       message: ok ? `SEO-<title>: ${title}` : 'No title-tag found in head.',
       type: ok ? 'ok' : 'error',
-      what: 'static',
       priority: ok ? 1000 : 0,
       name: 'title',
       details: {

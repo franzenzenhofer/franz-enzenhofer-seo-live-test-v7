@@ -12,7 +12,6 @@ export const canonicalRule: Rule = {
         label: 'HEAD',
         message: 'No canonical link found.',
         type: 'error',
-        what: 'static',
         name: 'canonical',
       }
     }
@@ -21,7 +20,6 @@ export const canonicalRule: Rule = {
       label: 'HEAD',
       message: `Canonical: ${el.href}`,
       type: 'info',
-      what: 'static',
       name: 'canonical',
       details: {
         sourceHtml,
