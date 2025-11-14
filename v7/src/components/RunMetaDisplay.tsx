@@ -19,7 +19,7 @@ export const RunMetaDisplay = ({ runId, ranAt, onOpenReport }: RunMetaDisplayPro
           #{runId}
         </button>
       )}
-      {runId && ranAt && <span> · </span>}
+      {runId && ranAt && <span> - </span>}
       {ranAt && <span>{formatEuropeanDateTime(ranAt)}</span>}
     </div>
   )
