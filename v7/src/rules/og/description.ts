@@ -13,10 +13,10 @@ export const ogDescriptionRule: Rule = {
     const sourceHtml = extractHtml(m)
     return {
       label: 'OG',
-      message: `og:description: ${c}`,
+      message: `og:description present (${c.length} chars)`,
       type: 'info',
       name: 'ogDescription',
-      details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(m) },
+      details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(m), ogDescription: c },
     }
   },
 }
