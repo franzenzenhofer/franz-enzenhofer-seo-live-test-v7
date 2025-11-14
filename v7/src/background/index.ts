@@ -4,6 +4,7 @@ import { registerMessageListeners } from './listeners/messages'
 import { seedDefaults } from './rules/index'
 import { enableAndOpenSidePanel } from './panel'
 import { registerCommandAndMenu } from './commands'
+import { initDevAutoReload } from './devReload'
 
 import { refreshIfPresent } from '@/shared/auth'
 
@@ -37,6 +38,7 @@ registerNavListeners()
 registerRequestListeners()
 registerMessageListeners()
 registerCommandAndMenu()
+initDevAutoReload()
 
 // Try to reuse legacy Google token silently on startup
 refreshIfPresent().catch(() => {})

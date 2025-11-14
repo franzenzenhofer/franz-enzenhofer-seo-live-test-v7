@@ -1,14 +1,18 @@
+import { ReportExportButtons } from './ExportButtons'
+
 import { getResultColor } from '@/shared/colors'
 import type { Result } from '@/shared/results'
 
 export const ReportHeader = ({
   url,
   resultCount,
-  groupedResults
+  groupedResults,
+  results,
 }: {
   url: string
   resultCount: number
   groupedResults: Record<string, (Result & { index: number })[]>
+  results: Result[]
 }) => {
   const version = chrome.runtime.getManifest().version
 
@@ -32,6 +36,7 @@ export const ReportHeader = ({
           <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
             Total: {resultCount}
           </span>
+          <ReportExportButtons url={url} results={results} />
         </div>
       </div>
     </div>

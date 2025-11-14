@@ -1,13 +1,13 @@
 {
   "name": "f19n-obtrusive-livetest-v7",
-  "version": "0.1.195",
+  "version": "0.1.201",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "prebuild": "node scripts/bump-version.mjs && npm run rules:json",
-    "build": "NODE_OPTIONS=\"--require ./scripts/fix-undici.cjs\" vite build",
-    "build:dev": "cross-env EXT_ENV=dev vite build",
+    "build": "NODE_OPTIONS=\"--require ./scripts/fix-undici.cjs\" vite build && npm run dev:reload-token",
+    "build:dev": "cross-env EXT_ENV=dev vite build && npm run dev:reload-token",
     "dist": "npm run build && tsx scripts/dist.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
@@ -15,7 +15,7 @@
     "test": "vitest run",
     "test:watch": "vitest --watch --reporter=dot",
     "test:changed": "vitest --changed --watch --reporter=dot --passWithNoTests",
-    "test:e2e": "npm run build && npx playwright test",
+    "test:e2e": "npm run build:dev && npx playwright test",
     "test:e2e:dev": "cross-env PW_EXT_HEADLESS=0 npx playwright test --project=chromium --headed",
     "cli": "tsx src/cli/main.ts",
     "ci": "npm run typecheck && npm run lint && npm test && npm run build && npm run test:build",
@@ -24,6 +24,7 @@
     "check:watch": "chokidar \"src/**/*.{ts,tsx,js,jsx}\" -c \"npm run check\"",
     "pack": "rm -f dist.zip && cd dist && zip -r ../dist.zip . >/dev/null",
     "rules:json": "tsx scripts/export-rules.ts",
+    "dev:reload-token": "tsx scripts/write-reload-token.ts",
     "chrome:profile": "tsx scripts/open-profile.ts",
     "bump": "node scripts/bump-version.mjs"
   },

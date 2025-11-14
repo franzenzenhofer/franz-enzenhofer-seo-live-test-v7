@@ -31,5 +31,10 @@ try {
     const parent = document.documentElement || document.head || document.body
     if (parent) parent.appendChild(s)
     s.remove()
+    try {
+      document.documentElement?.setAttribute('data-lt-sidepanel-url', u)
+    } catch {
+      // ignore
+    }
   }
 } catch { /* ignore */ }

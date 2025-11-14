@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { ExportButtons } from './ExportButtons'
 import { NoResults } from './NoResults'
 import { ResultItem } from './ResultItem'
 
@@ -27,7 +26,6 @@ export const Results = ({ types, q }: { types?: string[]; q?: string }) => {
   const summary = useMemo(() => vis.reduce((s, r) => {
     s[r.type] = (s[r.type] || 0) + 1; return s
   }, {} as Record<string, number>), [vis])
-  const rows = useMemo(()=> vis.map((r)=> ({ label:r.label, message:r.message, type:r.type })), [vis])
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-xs">
@@ -41,7 +39,6 @@ export const Results = ({ types, q }: { types?: string[]; q?: string }) => {
             </span>
           )
         })}
-        <ExportButtons rows={rows} />
       </div>
       {vis.map((r, i) => (
         <ResultItem key={i} result={r} index={items.indexOf(r)} />
