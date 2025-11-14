@@ -49,7 +49,7 @@ export const runInOffscreen = async <T>(tabId: number, payload: unknown): Promis
       }
     }
     chrome.runtime.onMessage.addListener(onMsg)
-    chrome.runtime.sendMessage({ channel: 'offscreen', id, data: payload }).catch((err) => {
+    chrome.runtime.sendMessage({ channel: 'offscreen', id, tabId, data: payload }).catch((err) => {
       clearTimeout(timeout)
       chrome.runtime.onMessage.removeListener(onMsg)
       Logger.logDirect(tabId, 'offscreen', 'send failed', { error: String(err) })

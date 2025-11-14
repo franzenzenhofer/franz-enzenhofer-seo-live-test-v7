@@ -9,10 +9,8 @@ type Run = { id: number; ev: EventRec[]; domDone?: boolean }
 // Set context for logging
 Logger.setContext('offscreen')
 
-Logger.log('offscreen', 'init', { status: 'ready' })
-
-const handleRun = async (_rules: unknown[], run: Run, globals?: Record<string, unknown>) => {
-  await Logger.log('offscreen', 'handle run start', {
+const handleRun = async (tabId: number, _rules: unknown[], run: Run, globals?: Record<string, unknown>) => {
+  Logger.logDirect(tabId, 'offscreen', 'handle run start', {
     runId: run.id,
     events: run.ev.length,
     domDone: run.domDone,
@@ -22,11 +20,11 @@ const handleRun = async (_rules: unknown[], run: Run, globals?: Record<string, u
 
   const makeDoc = (html: string) => new DOMParser().parseFromString(html, 'text/html')
 
-  await Logger.log('page', 'build start', { events: run.ev.length })
+  Logger.logDirect(tabId, 'page', 'build start', { events: run.ev.length })
 
   const page = await pageFromEvents(run.ev, makeDoc, () => location.href)
 
-  await Logger.log('page', 'build done', {
+  Logger.logDirect(tabId, 'page', 'build done', {
     url: page.url,
     htmlSize: page.html?.length || 0,
     hasDoc: !!page.doc,
@@ -37,7 +35,7 @@ const handleRun = async (_rules: unknown[], run: Run, globals?: Record<string, u
 
   const duration = (performance.now() - start).toFixed(2)
 
-  await Logger.log('offscreen', 'handle run done', {
+  Logger.logDirect(tabId, 'offscreen', 'handle run done', {
     runId: run.id,
     results: results.length,
     duration: `${duration}ms`,
@@ -47,26 +45,22 @@ const handleRun = async (_rules: unknown[], run: Run, globals?: Record<string, u
 }
 
 chrome.runtime.onMessage.addListener(async (msg, _s, send) => {
-  await Logger.log('offscreen', 'message', { channel: msg?.channel, hasData: !!msg?.data })
-  if (msg?.channel !== 'offscreen') {
-    await Logger.log('offscreen', 'ignore', { channel: msg?.channel, reason: 'not offscreen channel' })
-    return
-  }
+  const m = msg as { channel?: string; id?: string; tabId?: number; data?: unknown }
+  const { channel, id, tabId, data } = m
 
-  const { id, data } = msg
-  await Logger.log('offscreen', 'receive message', { id, kind: data?.kind, hasData: !!data })
+  if (channel !== 'offscreen') return
+  if (!tabId) return
 
-  if (data?.kind === 'runRules' || data?.kind === 'runTyped') {
-    await Logger.log('offscreen', 'execute', { kind: data.kind, runId: data.run?.id })
+  const payload = data as { kind?: string; rules?: unknown[]; run?: unknown; globals?: Record<string, unknown> }
 
-    const res = await handleRun(data.rules, data.run, data.globals)
+  if (payload?.kind === 'runRules' || payload?.kind === 'runTyped') {
+    Logger.logDirect(tabId, 'offscreen', 'receive', { id, kind: payload.kind })
 
-    await Logger.log('offscreen', 'send results', { replyTo: id, results: res.length })
+    const res = await handleRun(tabId, payload.rules || [], payload.run as Run, payload.globals)
+
+    Logger.logDirect(tabId, 'offscreen', 'send results', { id, results: res.length })
 
     chrome.runtime.sendMessage({ channel: 'offscreen', replyTo: id, data: res })
-    await Logger.log('offscreen', 'sent', { id })
-  } else {
-    await Logger.log('offscreen', 'unknown kind', { kind: data?.kind })
   }
   send?.('ok')
 })

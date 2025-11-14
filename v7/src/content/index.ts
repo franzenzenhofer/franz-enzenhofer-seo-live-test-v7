@@ -5,6 +5,13 @@ import { Logger } from '@/shared/logger'
 // Set context for logging
 Logger.setContext('content')
 
+// Initialize tabId for logging
+chrome.runtime.sendMessage('tabIdPls', (response) => {
+  if (response?.tabId) {
+    Logger.setTabId(response.tabId)
+  }
+})
+
 const q = (sel: string) => document.querySelector(sel)
 
 /**
