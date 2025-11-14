@@ -7,10 +7,31 @@ import { ResultCard } from '@/components/result/ResultCard'
 import { resultSortOrder } from '@/shared/colors'
 import type { Result } from '@/shared/results'
 
+// Detect if result is "unconfigured" (missing API key, not logged in, etc.)
+const isUnconfigured = (r: Result): boolean => {
+  const msg = r.message.toLowerCase()
+  return (
+    msg.includes('no psi key') ||
+    msg.includes('not logged in') ||
+    msg.includes('no key set') ||
+    msg.includes('no token') ||
+    msg.includes('no api key') ||
+    msg.includes('authentication required') ||
+    msg.includes('auth required')
+  )
+}
+
 export const Results = ({ items, types, q }: { items: Result[]; types?: string[]; q?: string }) => {
   const { pinned, togglePin } = usePinnedRules()
   const filtered = useMemo(() => items.filter((i) => {
-    if (types && !types.includes(i.type)) return false
+    // Handle "unconfigured" type filter
+    if (types && types.includes('unconfigured')) {
+      if (!isUnconfigured(i)) return false
+    } else if (types) {
+      // Regular type filter (exclude unconfigured check)
+      if (!types.includes(i.type)) return false
+    }
+
     if (q && !`${i.label} ${i.message}`.toLowerCase().includes(q.toLowerCase())) return false
     return true
   }), [items, types, q])
