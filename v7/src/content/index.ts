@@ -1,17 +1,53 @@
 import { PageInfo, type PageInfoT } from '@/shared/schemas'
 import { extractPageInfo } from '@/shared/extract'
+import { Logger } from '@/shared/logger'
+
+// Set context for logging
+Logger.setContext('content')
 
 const q = (sel: string) => document.querySelector(sel)
-const send = (event: string, data: unknown) => chrome.runtime.sendMessage({ event, data })
 
+/**
+ * Capture DOM and send to background with logging
+ */
+const captureAndSend = (event: string): void => {
+  Logger.logSync('dom', 'capture start', { event, url: location.href })
+
+  const html = q('html')?.innerHTML || ''
+  const htmlSize = html.length
+
+  Logger.logSync('dom', 'capture done', {
+    event,
+    htmlSize,
+    url: location.href,
+    readyState: document.readyState,
+  })
+
+  const data = { html, location }
+  chrome.runtime.sendMessage({ event, data })
+
+  Logger.logSync('dom', 'send', { event, to: 'background', size: htmlSize })
+}
+
+// Log content script injection
+Logger.logSync('content', 'inject', { url: location.href, readyState: document.readyState })
+
+// Register event listeners with logging
+Logger.logSync('content', 'listen', { event: 'DOMContentLoaded' })
 document.addEventListener('DOMContentLoaded', () => {
-  send('DOMContentLoaded', { html: q('html')?.innerHTML, location })
+  Logger.logSync('content', 'fire', { event: 'DOMContentLoaded' })
+  captureAndSend('DOMContentLoaded')
 })
+
+Logger.logSync('content', 'listen', { event: 'load' })
 window.addEventListener('load', () => {
-  send('load', { html: q('html')?.innerHTML, location })
+  Logger.logSync('content', 'fire', { event: 'load' })
+  captureAndSend('load')
 })
-send('document_end', { html: q('html')?.innerHTML, location })
-send('document_idle', { html: q('html')?.innerHTML, location })
+
+// Immediate captures
+captureAndSend('document_end')
+captureAndSend('document_idle')
 
 chrome.runtime.onMessage.addListener((msg, _s, reply) => {
   if (msg?.type !== 'getPageInfo') return
