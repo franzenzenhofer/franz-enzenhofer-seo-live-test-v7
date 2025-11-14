@@ -4,6 +4,7 @@ import { GeneralSettings } from './GeneralSettings'
 import { GoogleAccount } from './GoogleAccount'
 import { ApiKeys } from './ApiKeys'
 import { RuleToggles } from './RuleToggles'
+import { FavoritesManagement } from './FavoritesManagement'
 import { useSettings } from './useSettings'
 import { useAuthHandlers } from './useAuthHandlers'
 
@@ -39,6 +40,7 @@ export const SettingsApp = () => {
             preserveLog={state.preserveLog} setPreserveLog={state.setPreserveLog}
             toggleSetting={toggleSetting}
           />
+          <FavoritesManagement />
           <GoogleAccount hasToken={state.hasToken} signIn={signIn} signOut={signOut} />
           <ApiKeys vars={state.vars} updateVar={updateVar} />
           <RuleToggles flags={state.flags} updateFlags={updateFlags} autoEnabled={autoEnabled} />
