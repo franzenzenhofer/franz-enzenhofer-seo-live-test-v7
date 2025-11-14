@@ -31,7 +31,7 @@ const handleRun = async (tabId: number, _rules: unknown[], run: Run, globals?: R
     status: page.status,
   })
 
-  const results = await runAll(registry as import('@/core/types').Rule[], page, { globals: globals || {} })
+  const results = await runAll(tabId, registry as import('@/core/types').Rule[], page, { globals: globals || {} })
 
   const duration = (performance.now() - start).toFixed(2)
 

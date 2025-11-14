@@ -16,5 +16,5 @@ export const runAllCli = async (_rules: unknown[], ctx: Ctx) => {
     vars: globals.variables,
     hasToken: Boolean(globals.googleApiAccessToken),
   })
-  return runAll(rules, page, { globals })
+  return runAll(0, rules, page, { globals })
 }
