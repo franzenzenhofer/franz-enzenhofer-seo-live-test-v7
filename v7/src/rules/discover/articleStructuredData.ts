@@ -25,7 +25,7 @@ const findArticle = (doc: Document) => {
 
 export const discoverArticleStructuredDataRule: Rule = {
   id: 'discover:article-structured-data',
-  name: 'Discover: Article structured data',
+  name: 'Article structured data',
   enabled: true,
   async run(page) {
     const result = findArticle(page.doc)

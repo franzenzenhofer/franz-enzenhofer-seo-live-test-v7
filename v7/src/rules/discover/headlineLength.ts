@@ -3,7 +3,7 @@ import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
 export const discoverHeadlineLengthRule: Rule = {
   id: 'discover:headline-length',
-  name: 'Discover: Headline length',
+  name: 'Headline length',
   enabled: true,
   async run(page) {
     const el = page.doc.querySelector('h1')

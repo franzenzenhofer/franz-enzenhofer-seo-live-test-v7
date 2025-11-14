@@ -3,7 +3,7 @@ import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
 export const discoverOgImageLargeRule: Rule = {
   id: 'discover:og-image-large',
-  name: 'Discover: Large OG image (metadata)',
+  name: 'Large OG image (metadata)',
   enabled: true,
   async run(page) {
     const wEl = page.doc.querySelector('meta[property="og:image:width"]')

@@ -34,7 +34,7 @@ const findPublished = (d: Document) => {
 
 export const discoverPublishedTimeRule: Rule = {
   id: 'discover:published-time',
-  name: 'Discover: Published time',
+  name: 'Published time',
   enabled: true,
   async run(page) {
     const result = findPublished(page.doc)

@@ -3,7 +3,7 @@ import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
 export const discoverTwitterLargeCardRule: Rule = {
   id: 'discover:twitter-large-card',
-  name: 'Discover: Twitter large card',
+  name: 'Twitter large card',
   enabled: true,
   async run(page) {
     const el = page.doc.querySelector('meta[name="twitter:card"]')

@@ -3,7 +3,7 @@ import { extractSnippet, getDomPath } from '@/shared/html-utils'
 
 export const discoverPrimaryLanguageRule: Rule = {
   id: 'discover:primary-language',
-  name: 'Discover: Primary language set',
+  name: 'Primary language set',
   enabled: true,
   async run(page) {
     const el = page.doc.documentElement

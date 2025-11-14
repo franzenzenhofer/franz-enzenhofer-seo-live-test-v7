@@ -3,7 +3,7 @@ import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
 export const discoverCanonicalOkRule: Rule = {
   id: 'discover:canonical-ok',
-  name: 'Discover: Canonical present + absolute',
+  name: 'Canonical present + absolute',
   enabled: true,
   async run(page) {
     const el = page.doc.querySelector('link[rel="canonical"]')

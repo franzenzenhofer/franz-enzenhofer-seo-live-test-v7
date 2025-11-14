@@ -28,7 +28,7 @@ const findAuthor = (d: Document) => {
 
 export const discoverAuthorPresentRule: Rule = {
   id: 'discover:author',
-  name: 'Discover: Author present',
+  name: 'Author present',
   enabled: true,
   async run(page) {
     const result = findAuthor(page.doc)

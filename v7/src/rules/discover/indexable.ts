@@ -12,7 +12,7 @@ const checkNoindex = (doc: Document, headers?: Record<string, string>) => {
 
 export const discoverIndexableRule: Rule = {
   id: 'discover:indexable',
-  name: 'Discover: Indexable',
+  name: 'Indexable',
   enabled: true,
   async run(page) {
     const result = checkNoindex(page.doc, page.headers)

@@ -5,7 +5,7 @@ const hasDirective = (s: string, dir: string) => new RegExp(`\\b${dir.replace(/[
 
 export const discoverMaxImagePreviewLargeRule: Rule = {
   id: 'discover:max-image-preview-large',
-  name: 'Discover: max-image-preview:large',
+  name: 'max-image-preview:large',
   enabled: true,
   async run(page) {
     const metaEl = page.doc.querySelector('meta[name="robots"]')
