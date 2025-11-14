@@ -17,6 +17,7 @@ export const AppBody = ({
   setQuery,
   openSettings,
   onClean,
+  onOpenLogs,
   results,
   onOpenReport,
 }: {
@@ -27,6 +28,7 @@ export const AppBody = ({
   setQuery: (q: string) => void
   openSettings: () => void
   onClean: () => void
+  onOpenLogs: () => void
   results: Result[]
   onOpenReport: () => void
 }) => {
@@ -44,14 +46,17 @@ export const AppBody = ({
         onOpenReport={onOpenReport}
         secondaryActions={
           <>
+            <button className="text-blue-600 hover:text-blue-800 underline font-semibold" onClick={onOpenReport}>
+              Open Full Report
+            </button>
             <button className="text-gray-600 hover:text-gray-900 underline" onClick={onClean}>
               Clean
             </button>
+            <button className="text-gray-600 hover:text-gray-900 underline" onClick={onOpenLogs}>
+              Logs
+            </button>
             <button className="text-gray-600 hover:text-gray-900 underline" onClick={openSettings}>
               Settings
-            </button>
-            <button className="text-blue-600 hover:text-blue-800 underline font-medium" onClick={onOpenReport}>
-              Open Full Report
             </button>
           </>
         }
