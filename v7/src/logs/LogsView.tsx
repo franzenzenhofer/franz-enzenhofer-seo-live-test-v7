@@ -7,7 +7,7 @@ import { LogsSummary } from './LogsSummary'
 import { useAggregatedLogs } from './useAggregatedLogs'
 import { useAutoScroll } from './useAutoScroll'
 
-import { clearLogs } from '@/shared/logs'
+import { clearAllLogs } from '@/shared/logs'
 
 export const LogsView = ({ tabId }: { tabId: number | null }) => {
   const allLogs = useAggregatedLogs()
@@ -28,7 +28,9 @@ export const LogsView = ({ tabId }: { tabId: number | null }) => {
     a.click()
     URL.revokeObjectURL(url)
   }
-  const clear = () => { if (typeof tabId === 'number') void clearLogs(tabId) }
+  const clear = async () => {
+    await clearAllLogs()
+  }
 
   return (
     <div className="space-y-4">
@@ -40,7 +42,7 @@ export const LogsView = ({ tabId }: { tabId: number | null }) => {
         onClear={clear}
         autoScroll={autoScroll}
         onToggleAutoScroll={() => setAutoScroll(!autoScroll)}
-        disableClear={typeof tabId !== 'number'}
+        disableClear={false}
       />
       <LogsDisplay logs={visibleLogs} />
     </div>

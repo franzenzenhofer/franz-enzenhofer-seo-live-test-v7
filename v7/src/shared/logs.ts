@@ -70,4 +70,11 @@ export const getAllLogs = async () => {
   return entries
 }
 
+export const clearAllLogs = async () => {
+  if (!hasSessionAccess()) throw new Error('[logs] chrome.storage.session is unavailable in this context')
+  const all = await chrome.storage.session.get(null)
+  const logKeys = Object.keys(all).filter((key) => key.startsWith('logs:'))
+  await chrome.storage.session.remove(logKeys)
+}
+
 export { isValidTabId, SYSTEM_TAB_ID } from './logStore'
