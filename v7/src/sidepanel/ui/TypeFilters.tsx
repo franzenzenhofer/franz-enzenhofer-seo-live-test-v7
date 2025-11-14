@@ -21,7 +21,7 @@ export const TypeFilters = ({ show, setShow, results }: Props) => {
   ]
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-wrap">
       {types.map(({ key, label }) => {
         const count = counts[key] || 0
         const colors = resultColors[key as keyof typeof resultColors]
@@ -30,7 +30,7 @@ export const TypeFilters = ({ show, setShow, results }: Props) => {
         return (
           <button
             key={key}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-all ${
+            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${
               isActive ? colors.badge : 'bg-gray-100 text-gray-500'
             } ${isActive ? 'border-2 ' + colors.border : 'border-2 border-gray-200'}`}
             onClick={() => setShow((s) => ({ ...s, [key]: !s[key] }))}
