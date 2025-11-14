@@ -30,22 +30,13 @@ export const TypeFilters = ({ show, setShow, results }: Props) => {
         return (
           <button
             key={key}
-            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${
+            className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium transition-all ${
               isActive ? colors.badge : 'bg-gray-100 text-gray-500'
             } ${isActive ? 'border-2 ' + colors.border : 'border-2 border-gray-200'}`}
             onClick={() => setShow((s) => ({ ...s, [key]: !s[key] }))}
           >
-            <span className={`w-3 h-3 flex items-center justify-center ${isActive ? '' : 'opacity-30'}`}>
-              {isActive ? (
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-                  <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              ) : (
-                <span className="w-2.5 h-2.5 border-2 border-current rounded-sm"></span>
-              )}
-            </span>
             <span>{label}</span>
-            <span className={`font-semibold ${isActive ? '' : 'opacity-50'}`}>({count})</span>
+            <span className="font-semibold">{count}</span>
           </button>
         )
       })}
