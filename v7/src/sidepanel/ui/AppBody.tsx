@@ -41,6 +41,7 @@ export const AppBody = ({
         version={version}
         primaryAction={<RunNow />}
         onOpenUrl={openUrlInCurrentTab}
+        onOpenReport={onOpenReport}
         secondaryActions={
           <>
             <button className="text-gray-600 hover:text-gray-900 underline" onClick={onClean}>

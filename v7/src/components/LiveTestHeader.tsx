@@ -10,6 +10,7 @@ export type LiveTestHeaderProps = {
   primaryAction?: ReactNode
   secondaryActions?: ReactNode
   onOpenUrl?: (url: string) => void
+  onOpenReport?: () => void
 }
 
 export const LiveTestHeader = ({
@@ -20,6 +21,7 @@ export const LiveTestHeader = ({
   primaryAction,
   secondaryActions,
   onOpenUrl,
+  onOpenReport,
 }: LiveTestHeaderProps) => {
   return (
     <div className="border-b bg-white">
@@ -29,7 +31,7 @@ export const LiveTestHeader = ({
           {version && <div className="text-xs text-gray-500">v{version}</div>}
         </div>
 
-        <HeaderUrlSection url={url} runId={runId} ranAt={ranAt} onOpenUrl={onOpenUrl} />
+        <HeaderUrlSection url={url} runId={runId} ranAt={ranAt} onOpenUrl={onOpenUrl} onOpenReport={onOpenReport} />
 
         {primaryAction && <div>{primaryAction}</div>}
 

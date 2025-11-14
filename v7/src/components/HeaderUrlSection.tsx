@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { formatEuropeanDateTime } from '@/shared/dateFormat'
+import { RunMetaDisplay } from './RunMetaDisplay'
 
 export type HeaderUrlSectionProps = {
   url: string
   runId?: string
   ranAt?: string
   onOpenUrl?: (url: string) => void
+  onOpenReport?: () => void
 }
 
-export const HeaderUrlSection = ({ url, runId, ranAt, onOpenUrl }: HeaderUrlSectionProps) => {
+export const HeaderUrlSection = ({ url, runId, ranAt, onOpenUrl, onOpenReport }: HeaderUrlSectionProps) => {
   const [editableUrl, setEditableUrl] = useState(url || '')
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -69,12 +70,7 @@ export const HeaderUrlSection = ({ url, runId, ranAt, onOpenUrl }: HeaderUrlSect
         </div>
       </div>
 
-      {(runId || ranAt) && (
-        <div className="text-xs text-gray-600 space-y-0.5">
-          {runId && <div>Run #{runId}</div>}
-          {ranAt && <div>{formatEuropeanDateTime(ranAt)}</div>}
-        </div>
-      )}
+      <RunMetaDisplay runId={runId} ranAt={ranAt} onOpenReport={onOpenReport} />
     </div>
   )
 }
