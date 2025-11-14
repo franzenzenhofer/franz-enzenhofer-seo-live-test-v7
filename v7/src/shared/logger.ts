@@ -38,6 +38,12 @@ export class Logger {
     const message = formatLogMessage(category, action, data)
     await writeLog(tabId, message)
   }
+  static logDirectSend(tabId: number, category: LogCategory, action: string, data?: LogData): void {
+    const message = formatLogMessage(category, action, data)
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+      chrome.runtime.sendMessage({ channel: 'log', tabId, message })
+    }
+  }
   static startTimer(label: string): () => Promise<void> {
     const start = performance.now()
     const id = Math.random().toString(36).slice(2, 9)

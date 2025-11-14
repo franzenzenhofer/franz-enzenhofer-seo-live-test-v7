@@ -10,7 +10,7 @@ type Run = { id: number; ev: EventRec[]; domDone?: boolean }
 Logger.setContext('offscreen')
 
 const handleRun = async (tabId: number, _rules: unknown[], run: Run, globals?: Record<string, unknown>) => {
-  Logger.logDirect(tabId, 'offscreen', 'handle run start', {
+  Logger.logDirectSend(tabId, 'offscreen', 'handle run start', {
     runId: run.id,
     events: run.ev.length,
     domDone: run.domDone,
@@ -20,11 +20,11 @@ const handleRun = async (tabId: number, _rules: unknown[], run: Run, globals?: R
 
   const makeDoc = (html: string) => new DOMParser().parseFromString(html, 'text/html')
 
-  Logger.logDirect(tabId, 'page', 'build start', { events: run.ev.length })
+  Logger.logDirectSend(tabId, 'page', 'build start', { events: run.ev.length })
 
   const page = await pageFromEvents(run.ev, makeDoc, () => location.href)
 
-  Logger.logDirect(tabId, 'page', 'build done', {
+  Logger.logDirectSend(tabId, 'page', 'build done', {
     url: page.url,
     htmlSize: page.html?.length || 0,
     hasDoc: !!page.doc,
@@ -35,7 +35,7 @@ const handleRun = async (tabId: number, _rules: unknown[], run: Run, globals?: R
 
   const duration = (performance.now() - start).toFixed(2)
 
-  Logger.logDirect(tabId, 'offscreen', 'handle run done', {
+  Logger.logDirectSend(tabId, 'offscreen', 'handle run done', {
     runId: run.id,
     results: results.length,
     duration: `${duration}ms`,
@@ -54,11 +54,11 @@ chrome.runtime.onMessage.addListener(async (msg, _s, send) => {
   const payload = data as { kind?: string; rules?: unknown[]; run?: unknown; globals?: Record<string, unknown> }
 
   if (payload?.kind === 'runRules' || payload?.kind === 'runTyped') {
-    Logger.logDirect(tabId, 'offscreen', 'receive', { id, kind: payload.kind })
+    Logger.logDirectSend(tabId, 'offscreen', 'receive', { id, kind: payload.kind })
 
     const res = await handleRun(tabId, payload.rules || [], payload.run as Run, payload.globals)
 
-    Logger.logDirect(tabId, 'offscreen', 'send results', { id, results: res.length })
+    Logger.logDirectSend(tabId, 'offscreen', 'send results', { id, results: res.length })
 
     chrome.runtime.sendMessage({ channel: 'offscreen', replyTo: id, data: res })
   }

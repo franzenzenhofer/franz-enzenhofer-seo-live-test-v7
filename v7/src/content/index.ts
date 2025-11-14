@@ -5,10 +5,11 @@ import { Logger } from '@/shared/logger'
 // Set context for logging
 Logger.setContext('content')
 
-// Initialize tabId for logging
+// Get tabId for logging
+let contentTabId: number | null = null
 chrome.runtime.sendMessage('tabIdPls', (response) => {
   if (response?.tabId) {
-    Logger.setTabId(response.tabId)
+    contentTabId = response.tabId
   }
 })
 
@@ -18,39 +19,44 @@ const q = (sel: string) => document.querySelector(sel)
  * Capture DOM and send to background with logging
  */
 const captureAndSend = (event: string): void => {
-  Logger.logSync('dom', 'capture start', { event, url: location.href })
+  if (contentTabId) {
+    Logger.logDirectSend(contentTabId, 'dom', 'capture start', { event, url: location.href })
+  }
 
   const html = q('html')?.innerHTML || ''
   const htmlSize = html.length
 
-  Logger.logSync('dom', 'capture done', {
-    event,
-    htmlSize,
-    html: html.slice(0, 500),
-    htmlFull: html,
-    url: location.href,
-    readyState: document.readyState,
-  })
+  if (contentTabId) {
+    Logger.logDirectSend(contentTabId, 'dom', 'capture done', {
+      event,
+      htmlSize,
+      html: html.slice(0, 500),
+      htmlFull: html,
+      url: location.href,
+      readyState: document.readyState,
+    })
+  }
 
   const data = { html, location }
   chrome.runtime.sendMessage({ event, data })
 
-  Logger.logSync('dom', 'send', { event, to: 'background', size: htmlSize })
+  if (contentTabId) {
+    Logger.logDirectSend(contentTabId, 'dom', 'send', { event, to: 'background', size: htmlSize })
+  }
 }
 
-// Log content script injection
-Logger.logSync('content', 'inject', { url: location.href, readyState: document.readyState })
-
 // Register event listeners with logging
-Logger.logSync('content', 'listen', { event: 'DOMContentLoaded' })
 document.addEventListener('DOMContentLoaded', () => {
-  Logger.logSync('content', 'fire', { event: 'DOMContentLoaded' })
+  if (contentTabId) {
+    Logger.logDirectSend(contentTabId, 'content', 'fire', { event: 'DOMContentLoaded' })
+  }
   captureAndSend('DOMContentLoaded')
 })
 
-Logger.logSync('content', 'listen', { event: 'load' })
 window.addEventListener('load', () => {
-  Logger.logSync('content', 'fire', { event: 'load' })
+  if (contentTabId) {
+    Logger.logDirectSend(contentTabId, 'content', 'fire', { event: 'load' })
+  }
   captureAndSend('load')
 })
 
