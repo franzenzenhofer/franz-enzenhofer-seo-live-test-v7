@@ -16,7 +16,7 @@ export const titleRule: Rule = {
 
     return {
       label: 'HEAD',
-      message: ok ? `SEO-<title>: ${title}` : 'No title-tag found in head.',
+      message: ok ? `Title tag present (${title.length} chars)` : 'No title-tag found in head.',
       type: ok ? 'ok' : 'error',
       priority: ok ? 1000 : 0,
       name: 'title',
@@ -24,6 +24,7 @@ export const titleRule: Rule = {
         sourceHtml,
         snippet,
         domPath,
+        title,
       },
     }
   },
