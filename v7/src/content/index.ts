@@ -5,12 +5,17 @@ import { Logger } from '@/shared/logger'
 // Set context for logging
 Logger.setContext('content')
 
-// Get tabId for logging
+// Get tabId for logging - MUST be initialized before any logging
 let contentTabId: number | null = null
-chrome.runtime.sendMessage('tabIdPls', (response) => {
-  if (response?.tabId) {
-    contentTabId = response.tabId
-  }
+const tabIdPromise = new Promise<number>((resolve) => {
+  chrome.runtime.sendMessage('tabIdPls', (response) => {
+    if (response?.tabId) {
+      contentTabId = response.tabId
+      resolve(response.tabId)
+    } else {
+      throw new Error('Failed to get tabId from background')
+    }
+  })
 })
 
 const q = (sel: string) => document.querySelector(sel)
@@ -39,20 +44,26 @@ const captureAndSend = (event: string): void => {
   Logger.logDirectSend(contentTabId, 'dom', 'send', { event, to: 'background', size: htmlSize })
 }
 
-// Register event listeners with logging
-document.addEventListener('DOMContentLoaded', () => {
+// Register event listeners - await tabId inside handler
+document.addEventListener('DOMContentLoaded', async () => {
+  await tabIdPromise
   Logger.logDirectSend(contentTabId, 'content', 'fire', { event: 'DOMContentLoaded' })
   captureAndSend('DOMContentLoaded')
 })
 
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
+  await tabIdPromise
   Logger.logDirectSend(contentTabId, 'content', 'fire', { event: 'load' })
   captureAndSend('load')
 })
 
-// Immediate captures
-captureAndSend('document_end')
-captureAndSend('document_idle')
+// Immediate captures - MUST wait for tabId first
+tabIdPromise.then(() => {
+  captureAndSend('document_end')
+  captureAndSend('document_idle')
+}).catch((err) => {
+  console.error('[content] Failed to initialize tabId:', err)
+})
 
 chrome.runtime.onMessage.addListener((msg, _s, reply) => {
   if (msg?.type !== 'getPageInfo') return
