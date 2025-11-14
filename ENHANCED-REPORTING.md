@@ -104,7 +104,7 @@ interface EnhancedResultData {
   highlightSelector?: string  // For highlight button
   scrollToSelector?: string   // Auto-scroll in detail view
 
-  // Metadata (existing enhanced-results.ts)
+  // Metadata (see v7/src/report/types.ts; legacy shared/enhanced-results.ts archived under trash/)
   details?: {
     title?: string
     titleLength?: number
@@ -158,7 +158,7 @@ interface EnhancedResultData {
    - Track detail tab ID to reuse
 
 ### Phase 2: Type Enhancements
-**Location**: `v7/src/shared/enhanced-results.ts`
+**Location**: `v7/src/report/types.ts` (legacy `v7/src/shared/enhanced-results.ts` archived in `trash/2025-11-14-enhanced-results.ts`)
 
 Extend `EnhancedResult` interface with:
 - `snippet?: string`
@@ -291,7 +291,7 @@ Extend `EnhancedResult` interface with:
   - `http-status-code.js` - Example with `this.partialCodeLink(rawHttpHeader)`
 
 ### New v7 Code to Enhance
-- `v7/src/shared/enhanced-results.ts` - Type definitions
+- `v7/src/report/types.ts` - Type definitions (shared/enhanced-results.ts moved to trash/2025-11-14-enhanced-results.ts)
 - `v7/src/rules/head/title-enhanced.ts` - First rule to migrate
 - `v7/src/report/DetailsView.tsx` - Replace with DetailViewFull
 - `v7/src/sidepanel/ui/ResultItem.tsx` - Add snippet display

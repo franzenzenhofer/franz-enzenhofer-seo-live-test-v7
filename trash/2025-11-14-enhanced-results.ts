@@ -1,3 +1,4 @@
+// MOVED TO TRASH (2025-11-14): legacy enhanced result typings were unused after report/types.ts became canonical.
 export interface EnhancedResult {
   // Core fields (existing)
   name: string
