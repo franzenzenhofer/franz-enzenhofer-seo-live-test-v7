@@ -1,12 +1,20 @@
 import { runAll } from '../core/run'
 import { registry } from '../rules/registry'
+import { resolveEnabledRules } from '../rules/autoEnable'
 import { pageFromEvents } from '@/shared/page'
 import { JSDOM } from 'jsdom'
 
 import type { Ctx } from './types'
 
+type Globals = { variables?: Record<string, unknown>; googleApiAccessToken?: string | null }
+
 export const runAllCli = async (_rules: unknown[], ctx: Ctx) => {
   const makeDoc = (html: string) => new JSDOM(html).window.document
   const page = await pageFromEvents(ctx.events as unknown as import('@/background/pipeline/types').EventRec[], makeDoc, ()=>'about:blank')
-  return runAll(registry as import('@/core/types').Rule[], page, { globals: ctx.globals || {} })
+  const globals = (ctx.globals || {}) as Globals
+  const rules = resolveEnabledRules(registry as import('@/core/types').Rule[], {
+    vars: globals.variables,
+    hasToken: Boolean(globals.googleApiAccessToken),
+  })
+  return runAll(rules, page, { globals })
 }

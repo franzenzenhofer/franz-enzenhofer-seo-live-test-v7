@@ -1,4 +1,6 @@
 import { registry } from '@/rules/registry'
+import { resolveEnabledRules } from '@/rules/autoEnable'
+import { TOKEN_KEY } from '@/shared/auth'
 
 const FLAGS_KEY = 'rule-flags'
 const readFlags = async (): Promise<Record<string, boolean>> => {
@@ -7,7 +9,12 @@ const readFlags = async (): Promise<Record<string, boolean>> => {
 }
 
 export const getEnabledRules = async () => {
-  const flags = await readFlags()
-  return registry.filter((r)=> (flags[r.id] ?? r.enabled))
+  const [flags, extras] = await Promise.all([
+    readFlags(),
+    chrome.storage.local.get(['globalRuleVariables', TOKEN_KEY]),
+  ])
+  const vars = (extras['globalRuleVariables'] as Record<string, unknown>) || {}
+  const hasToken = Boolean(extras[TOKEN_KEY])
+  return resolveEnabledRules(registry, { flags, vars, hasToken })
 }
 export const seedDefaults = async () => { /* code-defined rules; no seeding needed */ }
