@@ -34,14 +34,24 @@ export class Logger {
       chrome.runtime.sendMessage({ channel: 'log', tabId: this.currentTabId, message })
     }
   }
-  static async logDirect(tabId: number, category: LogCategory, action: string, data?: LogData): Promise<void> {
+  static async logDirect(tabId: number | null, category: LogCategory, action: string, data?: LogData): Promise<void> {
+    if (tabId === null) {
+      console.error(`[Logger.logDirect] FAILED: tabId is null for [${category}] ${action}`, data)
+      throw new Error(`Logger.logDirect called with null tabId - this should never happen! Context: ${this.contextName}`)
+    }
     const message = formatLogMessage(category, action, data)
     await writeLog(tabId, message)
   }
-  static logDirectSend(tabId: number, category: LogCategory, action: string, data?: LogData): void {
+  static logDirectSend(tabId: number | null, category: LogCategory, action: string, data?: LogData): void {
+    if (tabId === null) {
+      console.error(`[Logger.logDirectSend] FAILED: tabId is null for [${category}] ${action}`, data)
+      throw new Error(`Logger.logDirectSend called with null tabId - this should never happen! Context: ${this.contextName}`)
+    }
     const message = formatLogMessage(category, action, data)
     if (typeof chrome !== 'undefined' && chrome.runtime) {
       chrome.runtime.sendMessage({ channel: 'log', tabId, message })
+    } else {
+      console.warn(`[Logger.logDirectSend] TEST CONTEXT: Would send log [${category}] ${action}`, data)
     }
   }
   static startTimer(label: string): () => Promise<void> {

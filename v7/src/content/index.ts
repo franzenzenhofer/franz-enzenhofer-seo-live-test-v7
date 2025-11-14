@@ -19,44 +19,34 @@ const q = (sel: string) => document.querySelector(sel)
  * Capture DOM and send to background with logging
  */
 const captureAndSend = (event: string): void => {
-  if (contentTabId) {
-    Logger.logDirectSend(contentTabId, 'dom', 'capture start', { event, url: location.href })
-  }
+  Logger.logDirectSend(contentTabId, 'dom', 'capture start', { event, url: location.href })
 
   const html = q('html')?.innerHTML || ''
   const htmlSize = html.length
 
-  if (contentTabId) {
-    Logger.logDirectSend(contentTabId, 'dom', 'capture done', {
-      event,
-      htmlSize,
-      html: html.slice(0, 500),
-      htmlFull: html,
-      url: location.href,
-      readyState: document.readyState,
-    })
-  }
+  Logger.logDirectSend(contentTabId, 'dom', 'capture done', {
+    event,
+    htmlSize,
+    html: html.slice(0, 500),
+    htmlFull: html,
+    url: location.href,
+    readyState: document.readyState,
+  })
 
   const data = { html, location }
   chrome.runtime.sendMessage({ event, data })
 
-  if (contentTabId) {
-    Logger.logDirectSend(contentTabId, 'dom', 'send', { event, to: 'background', size: htmlSize })
-  }
+  Logger.logDirectSend(contentTabId, 'dom', 'send', { event, to: 'background', size: htmlSize })
 }
 
 // Register event listeners with logging
 document.addEventListener('DOMContentLoaded', () => {
-  if (contentTabId) {
-    Logger.logDirectSend(contentTabId, 'content', 'fire', { event: 'DOMContentLoaded' })
-  }
+  Logger.logDirectSend(contentTabId, 'content', 'fire', { event: 'DOMContentLoaded' })
   captureAndSend('DOMContentLoaded')
 })
 
 window.addEventListener('load', () => {
-  if (contentTabId) {
-    Logger.logDirectSend(contentTabId, 'content', 'fire', { event: 'load' })
-  }
+  Logger.logDirectSend(contentTabId, 'content', 'fire', { event: 'load' })
   captureAndSend('load')
 })
 
