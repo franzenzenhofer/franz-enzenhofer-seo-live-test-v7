@@ -18,13 +18,14 @@ export const canonicalRule: Rule = {
     const sourceHtml = extractHtml(el)
     return {
       label: 'HEAD',
-      message: `Canonical: ${el.href}`,
+      message: 'Canonical link present',
       type: 'info',
       name: 'canonical',
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),
         domPath: getDomPath(el),
+        canonicalUrl: el.href,
       },
     }
   },
