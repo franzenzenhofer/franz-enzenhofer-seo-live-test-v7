@@ -1,0 +1,507 @@
+[
+  {
+    "id": "http:alt-svc-other",
+    "name": "Alt-Svc other protocols",
+    "enabledByDefault": true
+  },
+  {
+    "id": "google:amp-cache-url",
+    "name": "AMP Cache URL",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head:amphtml",
+    "name": "AMP HTML Link",
+    "enabledByDefault": true
+  },
+  {
+    "id": "speed:blocking-scripts",
+    "name": "Blocking scripts in head",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head:brand-in-title",
+    "name": "Brand in Title",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head:canonical-absolute",
+    "name": "Canonical absolute URL",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head-canonical",
+    "name": "Canonical Link",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head:canonical-chain",
+    "name": "Canonical redirect chain",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head:canonical-redirects",
+    "name": "Canonical Redirects",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head:canonical-self",
+    "name": "Canonical self-referential",
+    "enabledByDefault": true
+  },
+  {
+    "id": "dom:client-side-rendering",
+    "name": "Client-side rendering heuristic",
+    "enabledByDefault": true
+  },
+  {
+    "id": "http:common-mobile-setup",
+    "name": "Common mobile setup",
+    "enabledByDefault": true
+  },
+  {
+    "id": "http:cache-delivery",
+    "name": "Delivered from cache (Age)",
+    "enabledByDefault": true
+  },
+  {
+    "id": "discover:article-structured-data",
+    "name": "Discover: Article structured data",
+    "enabledByDefault": true
+  },
+  {
+    "id": "discover:author",
+    "name": "Discover: Author present",
+    "enabledByDefault": true
+  },
+  {
+    "id": "discover:canonical-ok",
+    "name": "Discover: Canonical present + absolute",
+    "enabledByDefault": true
+  },
+  {
+    "id": "discover:headline-length",
+    "name": "Discover: Headline length",
+    "enabledByDefault": true
+  },
+  {
+    "id": "discover:indexable",
+    "name": "Discover: Indexable",
+    "enabledByDefault": true
+  },
+  {
+    "id": "discover:og-image-large",
+    "name": "Discover: Large OG image (metadata)",
+    "enabledByDefault": true
+  },
+  {
+    "id": "discover:max-image-preview-large",
+    "name": "Discover: max-image-preview:large",
+    "enabledByDefault": true
+  },
+  {
+    "id": "discover:primary-language",
+    "name": "Discover: Primary language set",
+    "enabledByDefault": true
+  },
+  {
+    "id": "discover:published-time",
+    "name": "Discover: Published time",
+    "enabledByDefault": true
+  },
+  {
+    "id": "discover:twitter-large-card",
+    "name": "Discover: Twitter large card",
+    "enabledByDefault": true
+  },
+  {
+    "id": "dom:node-count",
+    "name": "DOM node count",
+    "enabledByDefault": true
+  },
+  {
+    "id": "dom:node-depth",
+    "name": "DOM node depth",
+    "enabledByDefault": true
+  },
+  {
+    "id": "google:is-connected",
+    "name": "Google auth connected",
+    "enabledByDefault": true
+  },
+  {
+    "id": "robots:googlebot-url-check",
+    "name": "Googlebot URL allowed",
+    "enabledByDefault": true
+  },
+  {
+    "id": "gsc:directory-worldwide",
+    "name": "GSC directory worldwide analytics",
+    "enabledByDefault": false
+  },
+  {
+    "id": "gsc:is-indexed",
+    "name": "GSC is indexed (via impressions)",
+    "enabledByDefault": false
+  },
+  {
+    "id": "gsc:page-worldwide",
+    "name": "GSC page worldwide analytics",
+    "enabledByDefault": false
+  },
+  {
+    "id": "gsc:top-queries-of-page",
+    "name": "GSC Top queries of page",
+    "enabledByDefault": false
+  },
+  {
+    "id": "gsc:property-available",
+    "name": "GSC webproperty available",
+    "enabledByDefault": false
+  },
+  {
+    "id": "http:gzip",
+    "name": "Gzip/Brotli",
+    "enabledByDefault": true
+  },
+  {
+    "id": "body:h1",
+    "name": "H1 Present",
+    "enabledByDefault": true
+  },
+  {
+    "id": "url:history-state-update",
+    "name": "History state update detected",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head-hreflang",
+    "name": "Hreflang Links",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head:hreflang-multipage",
+    "name": "Hreflang multipage sanity",
+    "enabledByDefault": true
+  },
+  {
+    "id": "dom:html-lang",
+    "name": "HTML lang attribute",
+    "enabledByDefault": true
+  },
+  {
+    "id": "http:has-header",
+    "name": "HTTP has header (configurable)",
+    "enabledByDefault": true
+  },
+  {
+    "id": "http-status",
+    "name": "HTTP Status",
+    "enabledByDefault": true
+  },
+  {
+    "id": "http:h2-advertised",
+    "name": "HTTP/2 Advertised (Alt-Svc)",
+    "enabledByDefault": true
+  },
+  {
+    "id": "http:h3-advertised",
+    "name": "HTTP/3 Advertised (Alt-Svc)",
+    "enabledByDefault": true
+  },
+  {
+    "id": "http:https-scheme",
+    "name": "HTTPS Scheme",
+    "enabledByDefault": true
+  },
+  {
+    "id": "body:images-lazy",
+    "name": "Images lazy-loading",
+    "enabledByDefault": true
+  },
+  {
+    "id": "body:images-layout",
+    "name": "Images missing dimensions",
+    "enabledByDefault": true
+  },
+  {
+    "id": "body:internal-links",
+    "name": "Internal links count",
+    "enabledByDefault": true
+  },
+  {
+    "id": "dom:ldjson",
+    "name": "LD+JSON presence",
+    "enabledByDefault": true
+  },
+  {
+    "id": "http:link-header",
+    "name": "Link Header",
+    "enabledByDefault": true
+  },
+  {
+    "id": "a11y:linked-images-alt",
+    "name": "Linked Images need alt",
+    "enabledByDefault": true
+  },
+  {
+    "id": "a11y:linked-images-alt-no-text",
+    "name": "Linked images without alt and text",
+    "enabledByDefault": true
+  },
+  {
+    "id": "body:parameterized-links",
+    "name": "Links with query params",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head:meta-charset",
+    "name": "Meta charset",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head-meta-description",
+    "name": "Meta Description",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head:meta-googlebot",
+    "name": "Meta Googlebot",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head:meta-keywords",
+    "name": "Meta Keywords",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head:robots-noindex",
+    "name": "Meta robots noindex",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head:meta-viewport",
+    "name": "Meta Viewport",
+    "enabledByDefault": true
+  },
+  {
+    "id": "mft:mobile-friendly",
+    "name": "Mobile Friendly Test",
+    "enabledByDefault": false
+  },
+  {
+    "id": "body:nofollow",
+    "name": "Nofollow Links",
+    "enabledByDefault": true
+  },
+  {
+    "id": "og:description",
+    "name": "Open Graph Description",
+    "enabledByDefault": true
+  },
+  {
+    "id": "og:image",
+    "name": "Open Graph Image",
+    "enabledByDefault": true
+  },
+  {
+    "id": "og-title",
+    "name": "Open Graph Title",
+    "enabledByDefault": true
+  },
+  {
+    "id": "og:url",
+    "name": "Open Graph URL",
+    "enabledByDefault": true
+  },
+  {
+    "id": "debug:page-summary",
+    "name": "Page summary (debug)",
+    "enabledByDefault": false
+  },
+  {
+    "id": "psi:desktop",
+    "name": "PSI v5 Desktop score",
+    "enabledByDefault": false
+  },
+  {
+    "id": "psi:mobile-fcp-tbt",
+    "name": "PSI v5 Mobile FCP/TBT",
+    "enabledByDefault": false
+  },
+  {
+    "id": "psi:mobile",
+    "name": "PSI v5 Mobile score",
+    "enabledByDefault": false
+  },
+  {
+    "id": "head:rel-alternate-media",
+    "name": "rel=alternate media",
+    "enabledByDefault": true
+  },
+  {
+    "id": "speed:dns-prefetch",
+    "name": "rel=dns-prefetch",
+    "enabledByDefault": true
+  },
+  {
+    "id": "speed:preconnect",
+    "name": "rel=preconnect",
+    "enabledByDefault": true
+  },
+  {
+    "id": "speed:link-preload",
+    "name": "rel=preload links",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head-robots-meta",
+    "name": "Robots Meta",
+    "enabledByDefault": true
+  },
+  {
+    "id": "robots:blocked-resources",
+    "name": "robots.txt blocked resources",
+    "enabledByDefault": true
+  },
+  {
+    "id": "robots:complexity",
+    "name": "robots.txt complexity",
+    "enabledByDefault": true
+  },
+  {
+    "id": "robots-exists",
+    "name": "robots.txt Exists",
+    "enabledByDefault": true
+  },
+  {
+    "id": "robots:sitemap-reference",
+    "name": "robots.txt Sitemap reference",
+    "enabledByDefault": true
+  },
+  {
+    "id": "schema:article:present",
+    "name": "Schema Article present",
+    "enabledByDefault": true
+  },
+  {
+    "id": "schema:article:required",
+    "name": "Schema Article required fields",
+    "enabledByDefault": true
+  },
+  {
+    "id": "schema:breadcrumb",
+    "name": "Schema BreadcrumbList",
+    "enabledByDefault": true
+  },
+  {
+    "id": "schema:event",
+    "name": "Schema Event",
+    "enabledByDefault": true
+  },
+  {
+    "id": "schema:faq",
+    "name": "Schema FAQPage",
+    "enabledByDefault": true
+  },
+  {
+    "id": "schema:howto",
+    "name": "Schema HowTo",
+    "enabledByDefault": true
+  },
+  {
+    "id": "schema:jobposting",
+    "name": "Schema JobPosting",
+    "enabledByDefault": true
+  },
+  {
+    "id": "schema:organization",
+    "name": "Schema Organization/LocalBusiness",
+    "enabledByDefault": true
+  },
+  {
+    "id": "schema:product",
+    "name": "Schema Product",
+    "enabledByDefault": true
+  },
+  {
+    "id": "schema:recipe",
+    "name": "Schema Recipe",
+    "enabledByDefault": true
+  },
+  {
+    "id": "schema:video",
+    "name": "Schema VideoObject",
+    "enabledByDefault": true
+  },
+  {
+    "id": "http:security-headers",
+    "name": "Security headers presence",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head:shortlink",
+    "name": "Shortlink Header",
+    "enabledByDefault": true
+  },
+  {
+    "id": "http:soft-404",
+    "name": "Soft 404 check",
+    "enabledByDefault": true
+  },
+  {
+    "id": "http:hsts",
+    "name": "Strict-Transport-Security",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head:title-length",
+    "name": "Title Length",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head-title",
+    "name": "Title Present",
+    "enabledByDefault": true
+  },
+  {
+    "id": "dom:top-words",
+    "name": "Top words",
+    "enabledByDefault": true
+  },
+  {
+    "id": "head:twitter-card",
+    "name": "Twitter Card",
+    "enabledByDefault": true
+  },
+  {
+    "id": "body:unsecure-input",
+    "name": "Unsecure input over HTTP",
+    "enabledByDefault": true
+  },
+  {
+    "id": "url:trailing-slash",
+    "name": "URL trailing slash consistency",
+    "enabledByDefault": true
+  },
+  {
+    "id": "http:vary-user-agent",
+    "name": "Vary: User-Agent",
+    "enabledByDefault": true
+  },
+  {
+    "id": "http:x-cache",
+    "name": "X-Cache hit/miss",
+    "enabledByDefault": true
+  },
+  {
+    "id": "http:unavailable-after",
+    "name": "X-Robots unavailable_after",
+    "enabledByDefault": true
+  },
+  {
+    "id": "http:x-robots",
+    "name": "X-Robots-Tag",
+    "enabledByDefault": true
+  }
+]

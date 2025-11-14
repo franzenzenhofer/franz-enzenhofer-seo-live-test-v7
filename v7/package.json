@@ -1,11 +1,11 @@
 {
   "name": "f19n-obtrusive-livetest-v7",
-  "version": "0.1.187",
+  "version": "0.1.189",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "node scripts/bump-version.mjs",
+    "prebuild": "node scripts/bump-version.mjs && npm run rules:json",
     "build": "NODE_OPTIONS=\"--require ./scripts/fix-undici.cjs\" vite build",
     "build:dev": "cross-env EXT_ENV=dev vite build",
     "dist": "npm run build && tsx scripts/dist.ts",
@@ -22,6 +22,7 @@
     "check": "npm run typecheck && npm run lint",
     "check:watch": "chokidar \"src/**/*.{ts,tsx,js,jsx}\" -c \"npm run check\"",
     "pack": "rm -f dist.zip && cd dist && zip -r ../dist.zip . >/dev/null",
+    "rules:json": "tsx scripts/export-rules.ts",
     "bump": "node scripts/bump-version.mjs"
   },
   "dependencies": {

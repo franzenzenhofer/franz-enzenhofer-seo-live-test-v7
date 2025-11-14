@@ -13,6 +13,7 @@ Scripts
 - `npm run test` – Run unit tests
 - `npm run lint` – ESLint
 - `npm run typecheck` – TS type checks
+- `npm run rules:json` – Emit `rules.inventory.json` (auto-runs before every build so docs can ingest rule metadata)
 
 Async, decoupled architecture
 
