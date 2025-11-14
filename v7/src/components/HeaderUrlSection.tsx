@@ -16,7 +16,11 @@ export const HeaderUrlSection = ({ url, runId, ranAt, onOpenUrl }: HeaderUrlSect
   useEffect(() => {
     setEditableUrl(url || '')
     if (inputRef.current && url) {
-      inputRef.current.scrollLeft = inputRef.current.scrollWidth
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.scrollLeft = inputRef.current.scrollWidth
+        }
+      }, 0)
     }
   }, [url])
 
@@ -45,7 +49,6 @@ export const HeaderUrlSection = ({ url, runId, ranAt, onOpenUrl }: HeaderUrlSect
           value={editableUrl}
           onChange={(e) => setEditableUrl(e.target.value)}
           placeholder="No URL yet"
-          dir="rtl"
           className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
         <div className="flex gap-1">
