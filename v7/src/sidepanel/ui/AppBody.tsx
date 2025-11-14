@@ -72,7 +72,7 @@ export const AppBody = ({
       />
       <div className="p-3 space-y-3">
         <Search onChange={setQuery} />
-        <TypeFilters show={show} setShow={setShow} />
+        <TypeFilters show={show} setShow={setShow} results={results} />
         <Results items={results} types={Object.entries(show).filter(([, v]) => v).map(([k]) => k)} q={query} />
       </div>
     </div>
