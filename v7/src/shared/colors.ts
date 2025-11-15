@@ -16,12 +16,13 @@ export const getResultColor = (type: string) => {
   }
 }
 
-// Sort order for results (errors first)
+// Sort order for results (errors first, runtime errors second)
 export const resultSortOrder = {
   error: 0,
-  warn: 1,
-  info: 2,
-  ok: 3
+  runtime_error: 1,
+  warn: 2,
+  info: 3,
+  ok: 4
 } as const
 
 export const sortResultsByPriority = <T extends { type: string }>(results: T[]): T[] => {
