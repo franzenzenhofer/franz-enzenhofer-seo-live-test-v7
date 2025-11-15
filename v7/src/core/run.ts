@@ -39,7 +39,21 @@ export const runAll = async (tabId: number, rules: Rule[], page: Page, ctx: Ctx)
       Logger.logDirectSend(tabId, 'rule', 'done', { id: r.id, name: r.name, ruleId, duration: `${duration}ms`, results: results.length })
       out.push(...results.map((item) => enrichResult(item, r)))
     } catch (error) {
-      Logger.logDirectSend(tabId, 'rule', 'error', { id: r.id, name: r.name, ruleId, error: String(error), duration: `${(performance.now() - start).toFixed(2)}ms` })
+      const duration = (performance.now() - start).toFixed(2)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      const errorStack = error instanceof Error ? error.stack : undefined
+      Logger.logDirectSend(tabId, 'rule', 'error', { id: r.id, name: r.name, ruleId, error: errorMessage, stack: errorStack, duration: `${duration}ms` })
+
+      // Create runtime_error result for failed rule execution
+      const runtimeErrorResult: Result = {
+        label: 'SYSTEM',
+        message: `Rule execution failed: ${r.name} - ${errorMessage}`,
+        type: 'runtime_error',
+        what: r.name,
+        ruleId: r.id,
+        priority: -1000, // Low priority for runtime errors
+      }
+      out.push(runtimeErrorResult)
     }
   }
   Logger.logDirectSend(tabId, 'rules', 'done', {
