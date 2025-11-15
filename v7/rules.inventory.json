@@ -2,501 +2,601 @@
   {
     "id": "http:alt-svc-other",
     "name": "Alt-Svc other protocols",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "google:amp-cache-url",
     "name": "AMP Cache URL",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head:amphtml",
     "name": "AMP HTML Link",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
+    "id": "discover:article-structured-data",
+    "name": "Article structured data",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
+    "id": "discover:author",
+    "name": "Author present",
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "speed:blocking-scripts",
     "name": "Blocking scripts in head",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head:brand-in-title",
     "name": "Brand in Title",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head:canonical-absolute",
     "name": "Canonical absolute URL",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head-canonical",
     "name": "Canonical Link",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
+    "id": "discover:canonical-ok",
+    "name": "Canonical present + absolute",
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head:canonical-chain",
     "name": "Canonical redirect chain",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head:canonical-redirects",
     "name": "Canonical Redirects",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head:canonical-self",
     "name": "Canonical self-referential",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "dom:client-side-rendering",
     "name": "Client-side rendering heuristic",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "http:common-mobile-setup",
     "name": "Common mobile setup",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "http:cache-delivery",
     "name": "Delivered from cache (Age)",
-    "enabledByDefault": true
-  },
-  {
-    "id": "discover:article-structured-data",
-    "name": "Discover: Article structured data",
-    "enabledByDefault": true
-  },
-  {
-    "id": "discover:author",
-    "name": "Discover: Author present",
-    "enabledByDefault": true
-  },
-  {
-    "id": "discover:canonical-ok",
-    "name": "Discover: Canonical present + absolute",
-    "enabledByDefault": true
-  },
-  {
-    "id": "discover:headline-length",
-    "name": "Discover: Headline length",
-    "enabledByDefault": true
-  },
-  {
-    "id": "discover:indexable",
-    "name": "Discover: Indexable",
-    "enabledByDefault": true
-  },
-  {
-    "id": "discover:og-image-large",
-    "name": "Discover: Large OG image (metadata)",
-    "enabledByDefault": true
-  },
-  {
-    "id": "discover:max-image-preview-large",
-    "name": "Discover: max-image-preview:large",
-    "enabledByDefault": true
-  },
-  {
-    "id": "discover:primary-language",
-    "name": "Discover: Primary language set",
-    "enabledByDefault": true
-  },
-  {
-    "id": "discover:published-time",
-    "name": "Discover: Published time",
-    "enabledByDefault": true
-  },
-  {
-    "id": "discover:twitter-large-card",
-    "name": "Discover: Twitter large card",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "dom:node-count",
     "name": "DOM node count",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "dom:node-depth",
     "name": "DOM node depth",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "google:is-connected",
     "name": "Google auth connected",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "robots:googlebot-url-check",
     "name": "Googlebot URL allowed",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "gsc:directory-worldwide",
     "name": "GSC directory worldwide analytics",
-    "enabledByDefault": false
+    "enabledByDefault": false,
+    "what": "gsc"
   },
   {
     "id": "gsc:is-indexed",
     "name": "GSC is indexed (via impressions)",
-    "enabledByDefault": false
+    "enabledByDefault": false,
+    "what": "gsc"
   },
   {
     "id": "gsc:page-worldwide",
     "name": "GSC page worldwide analytics",
-    "enabledByDefault": false
+    "enabledByDefault": false,
+    "what": "gsc"
   },
   {
     "id": "gsc:top-queries-of-page",
     "name": "GSC Top queries of page",
-    "enabledByDefault": false
+    "enabledByDefault": false,
+    "what": "gsc"
   },
   {
     "id": "gsc:property-available",
     "name": "GSC webproperty available",
-    "enabledByDefault": false
+    "enabledByDefault": false,
+    "what": "gsc"
   },
   {
     "id": "http:gzip",
     "name": "Gzip/Brotli",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "body:h1",
     "name": "H1 Present",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
+    "id": "discover:headline-length",
+    "name": "Headline length",
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "url:history-state-update",
     "name": "History state update detected",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head-hreflang",
     "name": "Hreflang Links",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head:hreflang-multipage",
     "name": "Hreflang multipage sanity",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "dom:html-lang",
     "name": "HTML lang attribute",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "http:has-header",
     "name": "HTTP has header (configurable)",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "http-status",
     "name": "HTTP Status",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "http:h2-advertised",
     "name": "HTTP/2 Advertised (Alt-Svc)",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "http:h3-advertised",
     "name": "HTTP/3 Advertised (Alt-Svc)",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "http:https-scheme",
     "name": "HTTPS Scheme",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "body:images-lazy",
     "name": "Images lazy-loading",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "body:images-layout",
     "name": "Images missing dimensions",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
+    "id": "discover:indexable",
+    "name": "Indexable",
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "body:internal-links",
     "name": "Internal links count",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
+    "id": "discover:og-image-large",
+    "name": "Large OG image (metadata)",
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "dom:ldjson",
     "name": "LD+JSON presence",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "http:link-header",
     "name": "Link Header",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "a11y:linked-images-alt",
     "name": "Linked Images need alt",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "a11y:linked-images-alt-no-text",
     "name": "Linked images without alt and text",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "body:parameterized-links",
     "name": "Links with query params",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
+    "id": "discover:max-image-preview-large",
+    "name": "max-image-preview:large",
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head:meta-charset",
     "name": "Meta charset",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head-meta-description",
     "name": "Meta Description",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head:meta-googlebot",
     "name": "Meta Googlebot",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head:meta-keywords",
     "name": "Meta Keywords",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head:robots-noindex",
     "name": "Meta robots noindex",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head:meta-viewport",
     "name": "Meta Viewport",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "body:nofollow",
     "name": "Nofollow Links",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "og:description",
     "name": "Open Graph Description",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "og:image",
     "name": "Open Graph Image",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "og-title",
     "name": "Open Graph Title",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "og:url",
     "name": "Open Graph URL",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "debug:page-summary",
     "name": "Page summary (debug)",
-    "enabledByDefault": false
+    "enabledByDefault": false,
+    "what": "static"
+  },
+  {
+    "id": "discover:primary-language",
+    "name": "Primary language set",
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "psi:desktop",
     "name": "PSI v5 Desktop score",
-    "enabledByDefault": false
+    "enabledByDefault": true,
+    "what": "psi"
   },
   {
     "id": "psi:mobile-fcp-tbt",
     "name": "PSI v5 Mobile FCP/TBT",
-    "enabledByDefault": false
+    "enabledByDefault": true,
+    "what": "psi"
   },
   {
     "id": "psi:mobile",
     "name": "PSI v5 Mobile score",
-    "enabledByDefault": false
+    "enabledByDefault": true,
+    "what": "psi"
+  },
+  {
+    "id": "discover:published-time",
+    "name": "Published time",
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head:rel-alternate-media",
     "name": "rel=alternate media",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "speed:dns-prefetch",
     "name": "rel=dns-prefetch",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "speed:preconnect",
     "name": "rel=preconnect",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "speed:link-preload",
     "name": "rel=preload links",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head-robots-meta",
     "name": "Robots Meta",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "robots:blocked-resources",
     "name": "robots.txt blocked resources",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "robots:complexity",
     "name": "robots.txt complexity",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "robots-exists",
     "name": "robots.txt Exists",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "robots:sitemap-reference",
     "name": "robots.txt Sitemap reference",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "schema:article:present",
     "name": "Schema Article present",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "schema:article:required",
     "name": "Schema Article required fields",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "schema:breadcrumb",
     "name": "Schema BreadcrumbList",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "schema:event",
     "name": "Schema Event",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "schema:faq",
     "name": "Schema FAQPage",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "schema:howto",
     "name": "Schema HowTo",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "schema:jobposting",
     "name": "Schema JobPosting",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "schema:organization",
     "name": "Schema Organization/LocalBusiness",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "schema:product",
     "name": "Schema Product",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "schema:recipe",
     "name": "Schema Recipe",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "schema:video",
     "name": "Schema VideoObject",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "http:security-headers",
     "name": "Security headers presence",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "head:shortlink",
     "name": "Shortlink Header",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "http:soft-404",
     "name": "Soft 404 check",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "http:hsts",
     "name": "Strict-Transport-Security",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "head:title-length",
     "name": "Title Length",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head-title",
     "name": "Title Present",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "dom:top-words",
     "name": "Top words",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head:twitter-card",
     "name": "Twitter Card",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
+    "id": "discover:twitter-large-card",
+    "name": "Twitter large card",
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "body:unsecure-input",
     "name": "Unsecure input over HTTP",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "url:trailing-slash",
     "name": "URL trailing slash consistency",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "http:vary-user-agent",
     "name": "Vary: User-Agent",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "http:x-cache",
     "name": "X-Cache hit/miss",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "http:unavailable-after",
     "name": "X-Robots unavailable_after",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "http:x-robots",
     "name": "X-Robots-Tag",
-    "enabledByDefault": true
+    "enabledByDefault": true,
+    "what": "http"
   }
 ]
