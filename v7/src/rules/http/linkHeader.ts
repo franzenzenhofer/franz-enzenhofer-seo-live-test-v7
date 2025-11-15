@@ -4,6 +4,7 @@ export const linkHeaderRule: Rule = {
   id: 'http:link-header',
   name: 'Link Header',
   enabled: true,
+  what: 'http',
   async run(page) {
     const v = page.headers?.['link']
     return {

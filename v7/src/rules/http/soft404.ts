@@ -6,6 +6,7 @@ export const soft404Rule: Rule = {
   id: 'http:soft-404',
   name: 'Soft 404 check',
   enabled: true,
+  what: 'http',
   async run(page) {
     const s = page.status
     if (!s || s >= 400)

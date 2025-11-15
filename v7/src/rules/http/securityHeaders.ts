@@ -6,6 +6,7 @@ export const securityHeadersRule: Rule = {
   id: 'http:security-headers',
   name: 'Security headers presence',
   enabled: true,
+  what: 'http',
   async run(page) {
     const h = page.headers || {}
     const missing = need.filter((k) => !h[k])

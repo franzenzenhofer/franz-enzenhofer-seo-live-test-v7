@@ -5,6 +5,7 @@ export const commonMobileSetupRule: Rule = {
   id: 'http:common-mobile-setup',
   name: 'Common mobile setup',
   enabled: true,
+  what: 'http',
   async run(page) {
     const viewportEl = page.doc.querySelector('meta[name="viewport"]')
     const touchEl = page.doc.querySelector('link[rel~="apple-touch-icon"]')

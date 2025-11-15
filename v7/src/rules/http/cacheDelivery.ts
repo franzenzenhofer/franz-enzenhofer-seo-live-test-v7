@@ -4,6 +4,7 @@ export const cacheDeliveryRule: Rule = {
   id: 'http:cache-delivery',
   name: 'Delivered from cache (Age)',
   enabled: true,
+  what: 'http',
   async run(page) {
     const age = Number(page.headers?.['age'] || '0')
     return {

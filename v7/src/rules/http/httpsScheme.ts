@@ -4,6 +4,7 @@ export const httpsSchemeRule: Rule = {
   id: 'http:https-scheme',
   name: 'HTTPS Scheme',
   enabled: true,
+  what: 'http',
   async run(page) {
     try {
       if (new URL(page.url).protocol === 'https:')
