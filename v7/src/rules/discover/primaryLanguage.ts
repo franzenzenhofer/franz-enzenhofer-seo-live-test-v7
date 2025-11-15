@@ -5,6 +5,7 @@ export const discoverPrimaryLanguageRule: Rule = {
   id: 'discover:primary-language',
   name: 'Primary language set',
   enabled: true,
+  what: 'static',
   async run(page) {
     const el = page.doc.documentElement
     const lang = (el.getAttribute('lang') || '').trim()

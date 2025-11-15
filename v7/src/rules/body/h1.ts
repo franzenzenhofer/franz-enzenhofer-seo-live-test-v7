@@ -5,6 +5,7 @@ export const h1Rule: Rule = {
   id: 'body:h1',
   name: 'H1 Present',
   enabled: true,
+  what: 'static',
   async run(page) {
     const h1Elements = page.doc.querySelectorAll('h1')
     const count = h1Elements.length

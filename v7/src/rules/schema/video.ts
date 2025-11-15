@@ -6,6 +6,7 @@ export const schemaVideoRule: Rule = {
   id: 'schema:video',
   name: 'Schema VideoObject',
   enabled: true,
+  what: 'static',
   async run(page) {
     const scripts = page.doc.querySelectorAll('script[type="application/ld+json"]')
     const n = findType(parseLd(page.doc), 'videoobject')[0]

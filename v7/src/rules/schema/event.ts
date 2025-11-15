@@ -6,6 +6,7 @@ export const schemaEventRule: Rule = {
   id: 'schema:event',
   name: 'Schema Event',
   enabled: true,
+  what: 'static',
   async run(page) {
     const scripts = page.doc.querySelectorAll('script[type="application/ld+json"]')
     const n = findType(parseLd(page.doc), 'event')[0]

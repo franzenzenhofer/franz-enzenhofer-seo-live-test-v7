@@ -6,6 +6,7 @@ export const schemaArticlePresentRule: Rule = {
   id: 'schema:article:present',
   name: 'Schema Article present',
   enabled: true,
+  what: 'static',
   async run(page) {
     const scripts = page.doc.querySelectorAll('script[type="application/ld+json"]')
     const nodes = parseLd(page.doc)

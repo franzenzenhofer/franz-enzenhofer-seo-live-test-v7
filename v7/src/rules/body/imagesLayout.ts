@@ -5,6 +5,7 @@ export const imagesLayoutRule: Rule = {
   id: 'body:images-layout',
   name: 'Images missing dimensions',
   enabled: true,
+  what: 'static',
   async run(page) {
     const imgs = Array.from(page.doc.querySelectorAll('img')) as HTMLImageElement[]
     const missing: HTMLImageElement[] = []

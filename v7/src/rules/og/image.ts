@@ -5,6 +5,7 @@ export const ogImageRule: Rule = {
   id: 'og:image',
   name: 'Open Graph Image',
   enabled: true,
+  what: 'static',
   async run(page) {
     const m = page.doc.querySelector('meta[property="og:image"], meta[name="og:image"]')
     if (!m) return { label: 'OG', message: 'Missing og:image', type: 'warn', name: 'ogImage' }

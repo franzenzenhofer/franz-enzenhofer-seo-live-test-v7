@@ -5,6 +5,7 @@ export const discoverOgImageLargeRule: Rule = {
   id: 'discover:og-image-large',
   name: 'Large OG image (metadata)',
   enabled: true,
+  what: 'static',
   async run(page) {
     const wEl = page.doc.querySelector('meta[property="og:image:width"]')
     const hEl = page.doc.querySelector('meta[property="og:image:height"]')

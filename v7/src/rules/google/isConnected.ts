@@ -4,6 +4,7 @@ export const googleIsConnectedRule: Rule = {
   id: 'google:is-connected',
   name: 'Google auth connected',
   enabled: true,
+  what: 'static',
   async run(_page, ctx) {
     const token = (ctx.globals as { googleApiAccessToken?: string | null }).googleApiAccessToken || null
     return token

@@ -5,6 +5,7 @@ export const ldjsonRule: Rule = {
   id: 'dom:ldjson',
   name: 'LD+JSON presence',
   enabled: true,
+  what: 'static',
   async run(page) {
     const scripts = Array.from(page.doc.querySelectorAll('script[type="application/ld+json"]'))
     const n = scripts.length

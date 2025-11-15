@@ -5,6 +5,7 @@ export const ogUrlRule: Rule = {
   id: 'og:url',
   name: 'Open Graph URL',
   enabled: true,
+  what: 'static',
   async run(page) {
     const m = page.doc.querySelector('meta[property="og:url"], meta[name="og:url"]')
     if (!m) return { label: 'OG', message: 'Missing og:url', type: 'warn', name: 'ogUrl' }

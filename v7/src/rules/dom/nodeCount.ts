@@ -11,6 +11,7 @@ export const nodeCountRule: Rule = {
   id: 'dom:node-count',
   name: 'DOM node count',
   enabled: true,
+  what: 'static',
   async run(page) {
     const n = count(page.doc.documentElement)
     return {

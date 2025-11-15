@@ -5,6 +5,7 @@ export const discoverTwitterLargeCardRule: Rule = {
   id: 'discover:twitter-large-card',
   name: 'Twitter large card',
   enabled: true,
+  what: 'static',
   async run(page) {
     const el = page.doc.querySelector('meta[name="twitter:card"]')
     const v = (el?.getAttribute('content') || '').toLowerCase()

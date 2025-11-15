@@ -7,6 +7,7 @@ export const clientSideRenderingRule: Rule = {
   id: 'dom:client-side-rendering',
   name: 'Client-side rendering heuristic',
   enabled: true,
+  what: 'static',
   async run(page) {
     const len = textLen(page.doc)
     const scriptEls = Array.from(page.doc.querySelectorAll('script[src]'))

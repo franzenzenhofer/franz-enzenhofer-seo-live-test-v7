@@ -5,6 +5,7 @@ export const pageSummaryRule: Rule = {
   id: 'debug:page-summary',
   name: 'Page summary (debug)',
   enabled: false,
+  what: 'static',
   async run(page) {
     const titleEl = page.doc.querySelector('title')
     const t = (titleEl?.textContent || '').trim()

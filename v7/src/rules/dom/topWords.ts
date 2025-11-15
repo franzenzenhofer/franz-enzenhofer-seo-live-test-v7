@@ -13,6 +13,7 @@ export const topWordsRule: Rule = {
   id: 'dom:top-words',
   name: 'Top words',
   enabled: true,
+  what: 'static',
   async run(page) {
     const t = text(page.doc)
     if (!t) return { label: 'DOM', message: 'No text', type: 'info', name: 'topWords' }

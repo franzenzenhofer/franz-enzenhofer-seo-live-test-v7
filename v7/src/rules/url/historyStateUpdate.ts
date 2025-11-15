@@ -4,6 +4,7 @@ export const historyStateUpdateRule: Rule = {
   id: 'url:history-state-update',
   name: 'History state update detected',
   enabled: true,
+  what: 'static',
   async run(_page, ctx) {
     const ev = ((ctx.globals as { events?: Array<{ t?: string }> }).events) || []
     const hasHistory = ev.some((e) => e && e.t === 'nav:history')

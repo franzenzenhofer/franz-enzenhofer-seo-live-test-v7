@@ -5,6 +5,7 @@ export const linkedImagesAltNoTextRule: Rule = {
   id: 'a11y:linked-images-alt-no-text',
   name: 'Linked images without alt and text',
   enabled: true,
+  what: 'static',
   async run(page) {
     const problematic: Element[] = []
     const links = Array.from(page.doc.querySelectorAll('a'))

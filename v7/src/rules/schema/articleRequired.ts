@@ -7,6 +7,7 @@ export const schemaArticleRequiredRule: Rule = {
   id: 'schema:article:required',
   name: 'Schema Article required fields',
   enabled: true,
+  what: 'static',
   async run(page) {
     const scripts = page.doc.querySelectorAll('script[type="application/ld+json"]')
     const nodes = parseLd(page.doc)

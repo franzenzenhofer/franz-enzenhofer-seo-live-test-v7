@@ -14,6 +14,7 @@ export const discoverIndexableRule: Rule = {
   id: 'discover:indexable',
   name: 'Indexable',
   enabled: true,
+  what: 'static',
   async run(page) {
     const result = checkNoindex(page.doc, page.headers)
     const sourceHtml = extractHtml(result.element)

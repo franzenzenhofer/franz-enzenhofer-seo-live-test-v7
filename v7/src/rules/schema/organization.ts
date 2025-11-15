@@ -6,6 +6,7 @@ export const schemaOrganizationRule: Rule = {
   id: 'schema:organization',
   name: 'Schema Organization/LocalBusiness',
   enabled: true,
+  what: 'static',
   async run(page) {
     const scripts = page.doc.querySelectorAll('script[type="application/ld+json"]')
     const nodes = parseLd(page.doc)

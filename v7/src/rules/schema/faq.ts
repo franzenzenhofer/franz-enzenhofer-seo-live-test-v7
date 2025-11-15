@@ -6,6 +6,7 @@ export const schemaFaqRule: Rule = {
   id: 'schema:faq',
   name: 'Schema FAQPage',
   enabled: true,
+  what: 'static',
   async run(page) {
     const scripts = page.doc.querySelectorAll('script[type="application/ld+json"]')
     const n = findType(parseLd(page.doc), 'faqpage')[0]

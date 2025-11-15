@@ -6,6 +6,7 @@ export const schemaJobPostingRule: Rule = {
   id: 'schema:jobposting',
   name: 'Schema JobPosting',
   enabled: true,
+  what: 'static',
   async run(page) {
     const scripts = page.doc.querySelectorAll('script[type="application/ld+json"]')
     const n = findType(parseLd(page.doc), 'jobposting')[0]

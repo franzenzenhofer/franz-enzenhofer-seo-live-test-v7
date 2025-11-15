@@ -27,6 +27,7 @@ export const discoverArticleStructuredDataRule: Rule = {
   id: 'discover:article-structured-data',
   name: 'Article structured data',
   enabled: true,
+  what: 'static',
   async run(page) {
     const result = findArticle(page.doc)
     const sourceHtml = extractHtmlFromList(result.scripts)

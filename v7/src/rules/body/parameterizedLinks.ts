@@ -5,6 +5,7 @@ export const parameterizedLinksRule: Rule = {
   id: 'body:parameterized-links',
   name: 'Links with query params',
   enabled: true,
+  what: 'static',
   async run(page) {
     const a = Array.from(page.doc.querySelectorAll('a[href]')) as HTMLAnchorElement[]
     const paramLinks: HTMLAnchorElement[] = []

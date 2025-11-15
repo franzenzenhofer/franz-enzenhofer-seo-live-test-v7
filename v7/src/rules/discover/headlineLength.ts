@@ -5,6 +5,7 @@ export const discoverHeadlineLengthRule: Rule = {
   id: 'discover:headline-length',
   name: 'Headline length',
   enabled: true,
+  what: 'static',
   async run(page) {
     const el = page.doc.querySelector('h1')
     const h = (el?.textContent || '').trim()

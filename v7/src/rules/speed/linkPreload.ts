@@ -5,6 +5,7 @@ export const linkPreloadRule: Rule = {
   id: 'speed:link-preload',
   name: 'rel=preload links',
   enabled: true,
+  what: 'static',
   async run(page) {
     const links = page.doc.querySelectorAll('link[rel="preload"]')
     const n = links.length

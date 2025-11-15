@@ -5,6 +5,7 @@ export const discoverCanonicalOkRule: Rule = {
   id: 'discover:canonical-ok',
   name: 'Canonical present + absolute',
   enabled: true,
+  what: 'static',
   async run(page) {
     const el = page.doc.querySelector('link[rel="canonical"]')
     if (!el) {

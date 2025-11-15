@@ -15,6 +15,7 @@ export const internalLinksRule: Rule = {
   id: 'body:internal-links',
   name: 'Internal links count',
   enabled: true,
+  what: 'static',
   async run(page) {
     const a = Array.from(page.doc.querySelectorAll('a[href]')) as HTMLAnchorElement[]
     const internalLinks: HTMLAnchorElement[] = []

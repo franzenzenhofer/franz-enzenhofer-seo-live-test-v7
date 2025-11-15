@@ -6,6 +6,7 @@ export const schemaProductRule: Rule = {
   id: 'schema:product',
   name: 'Schema Product',
   enabled: true,
+  what: 'static',
   async run(page) {
     const scripts = page.doc.querySelectorAll('script[type="application/ld+json"]')
     const n = findType(parseLd(page.doc), 'product')[0]
