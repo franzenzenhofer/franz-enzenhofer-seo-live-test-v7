@@ -19,6 +19,7 @@ export const canonicalSelfRule: Rule = {
   id: 'head:canonical-self',
   name: 'Canonical self-referential',
   enabled: true,
+  what: 'static',
   async run(page) {
     const linkEl = page.doc.querySelector('link[rel="canonical"]')
     const href = linkEl?.getAttribute('href') || ''

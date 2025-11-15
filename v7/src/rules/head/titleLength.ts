@@ -7,6 +7,7 @@ export const titleLengthRule: Rule = {
   id: 'head:title-length',
   name: 'Title Length',
   enabled: true,
+  what: 'static',
   async run(page) {
     const titleEl = page.doc.querySelector('head > title')
     const t = titleEl?.textContent || ''

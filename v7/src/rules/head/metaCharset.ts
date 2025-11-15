@@ -5,6 +5,7 @@ export const metaCharsetRule: Rule = {
   id: 'head:meta-charset',
   name: 'Meta charset',
   enabled: true,
+  what: 'static',
   async run(page) {
     const m = page.doc.querySelector('meta[charset]')
     if (m) {

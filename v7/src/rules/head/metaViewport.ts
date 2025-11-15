@@ -5,6 +5,7 @@ export const metaViewportRule: Rule = {
   id: 'head:meta-viewport',
   name: 'Meta Viewport',
   enabled: true,
+  what: 'static',
   async run(page) {
     const m = page.doc.querySelector('meta[name="viewport"]')
     if (!m) return { name: 'Meta Viewport', label: 'HEAD', message: 'Missing meta viewport', type: 'warn' }

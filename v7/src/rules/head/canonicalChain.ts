@@ -5,6 +5,7 @@ export const canonicalChainRule: Rule = {
   id: 'head:canonical-chain',
   name: 'Canonical redirect chain',
   enabled: true,
+  what: 'static',
   async run(page) {
     const linkEl = page.doc.querySelector('link[rel="canonical"]')
     const href = linkEl?.getAttribute('href') || ''

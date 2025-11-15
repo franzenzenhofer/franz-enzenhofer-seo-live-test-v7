@@ -5,6 +5,7 @@ export const brandInTitleRule: Rule = {
   id: 'head:brand-in-title',
   name: 'Brand in Title',
   enabled: true,
+  what: 'static',
   async run(page, ctx) {
     const v = (ctx.globals as { variables?: Record<string, unknown> }).variables || {}
     const brand = String((v as Record<string, unknown>)['brand'] || '').trim()

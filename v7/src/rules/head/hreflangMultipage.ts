@@ -5,6 +5,7 @@ export const hreflangMultipageRule: Rule = {
   id: 'head:hreflang-multipage',
   name: 'Hreflang multipage sanity',
   enabled: true,
+  what: 'static',
   async run(page) {
     const links = Array.from(page.doc.querySelectorAll('link[rel="alternate"][hreflang]'))
     if (!links.length)

@@ -5,6 +5,7 @@ export const googlebotMetaRule: Rule = {
   id: 'head:meta-googlebot',
   name: 'Meta Googlebot',
   enabled: true,
+  what: 'static',
   async run(page) {
     const m = page.doc.querySelector('meta[name="googlebot"]')
     if (m) {

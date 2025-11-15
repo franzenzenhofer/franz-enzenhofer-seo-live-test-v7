@@ -5,6 +5,7 @@ export const relAlternateMediaRule: Rule = {
   id: 'head:rel-alternate-media',
   name: 'rel=alternate media',
   enabled: true,
+  what: 'static',
   async run(page) {
     const links = page.doc.querySelectorAll('link[rel="alternate"][media]')
     const n = links.length

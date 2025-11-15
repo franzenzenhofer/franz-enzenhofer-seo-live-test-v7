@@ -5,6 +5,7 @@ export const twitterCardRule: Rule = {
   id: 'head:twitter-card',
   name: 'Twitter Card',
   enabled: true,
+  what: 'static',
   async run(page) {
     const m = page.doc.querySelector('meta[name="twitter:card"]')
     if (m) {
