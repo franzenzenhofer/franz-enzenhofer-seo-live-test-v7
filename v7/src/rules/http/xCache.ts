@@ -6,6 +6,7 @@ export const xCacheRule: Rule = {
   id: 'http:x-cache',
   name: 'X-Cache hit/miss',
   enabled: true,
+  what: 'http',
   async run(page) {
     const x = v(page.headers, 'x-cache')
     if (!x)

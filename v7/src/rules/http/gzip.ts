@@ -6,6 +6,7 @@ export const gzipRule: Rule = {
   id: 'http:gzip',
   name: 'Gzip/Brotli',
   enabled: true,
+  what: 'http',
   async run(page) {
     const e = enc(page.headers)
     const ok = e.includes('br') || e.includes('gzip')

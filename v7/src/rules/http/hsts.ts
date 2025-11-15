@@ -4,6 +4,7 @@ export const hstsRule: Rule = {
   id: 'http:hsts',
   name: 'Strict-Transport-Security',
   enabled: true,
+  what: 'http',
   async run(page) {
     const v = page.headers?.['strict-transport-security']
     if (!v)

@@ -6,6 +6,7 @@ export const hasHeaderRule: Rule = {
   id: 'http:has-header',
   name: 'HTTP has header (configurable)',
   enabled: true,
+  what: 'http',
   async run(page, ctx) {
     const vars = (ctx.globals as { variables?: Record<string, unknown> }).variables || {}
     const raw = String((vars as Record<string, unknown>)['http_has_header'] || '').trim()

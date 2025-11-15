@@ -4,6 +4,7 @@ export const xRobotsRule: Rule = {
   id: 'http:x-robots',
   name: 'X-Robots-Tag',
   enabled: true,
+  what: 'http',
   async run(page) {
     const v = page.headers?.['x-robots-tag']
     return {

@@ -6,6 +6,7 @@ export const unavailableAfterRule: Rule = {
   id: 'http:unavailable-after',
   name: 'X-Robots unavailable_after',
   enabled: true,
+  what: 'http',
   async run(page) {
     const xr = robots(page.headers)
     const has = /unavailable_after\s*:\s*\S+/.test(xr)

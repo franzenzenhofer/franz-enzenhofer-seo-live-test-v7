@@ -4,6 +4,7 @@ export const varyUserAgentRule: Rule = {
   id: 'http:vary-user-agent',
   name: 'Vary: User-Agent',
   enabled: true,
+  what: 'http',
   async run(page) {
     const vary = (page.headers?.['vary'] || '').toLowerCase()
     return {

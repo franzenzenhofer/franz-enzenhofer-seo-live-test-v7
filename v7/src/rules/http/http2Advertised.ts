@@ -4,6 +4,7 @@ export const http2AdvertisedRule: Rule = {
   id: 'http:h2-advertised',
   name: 'HTTP/2 Advertised (Alt-Svc)',
   enabled: true,
+  what: 'http',
   async run(page) {
     const alt = (page.headers?.['alt-svc'] || '').toLowerCase()
     return {

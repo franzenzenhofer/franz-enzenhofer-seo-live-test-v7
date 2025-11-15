@@ -4,6 +4,7 @@ export const altSvcOtherProtocolsRule: Rule = {
   id: 'http:alt-svc-other',
   name: 'Alt-Svc other protocols',
   enabled: true,
+  what: 'http',
   async run(page) {
     const alt = (page.headers?.['alt-svc'] || '').toLowerCase()
     const known = /(h2|h3)/g

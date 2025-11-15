@@ -12,6 +12,7 @@ export const httpStatusRule: Rule = {
   id: 'http-status',
   name: 'HTTP Status',
   enabled: true,
+  what: 'http',
   run: async (page) => {
     const c = classify(page.status)
     return {
