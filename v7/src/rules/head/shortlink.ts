@@ -5,6 +5,7 @@ export const shortlinkRule: Rule = {
   id: 'head:shortlink',
   name: 'Shortlink Header',
   enabled: true,
+  what: 'static',
   async run(page) {
     const l = page.doc.querySelector('link[rel="shortlink"]')
     if (l) {

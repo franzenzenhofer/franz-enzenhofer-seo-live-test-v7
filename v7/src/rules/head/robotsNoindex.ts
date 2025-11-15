@@ -5,6 +5,7 @@ export const robotsNoindexRule: Rule = {
   id: 'head:robots-noindex',
   name: 'Meta robots noindex',
   enabled: true,
+  what: 'static',
   async run(page) {
     const m = page.doc.querySelector('meta[name="robots"]')
     if (!m) return { name: 'Meta robots noindex', label: 'HEAD', message: 'No robots meta', type: 'info' }

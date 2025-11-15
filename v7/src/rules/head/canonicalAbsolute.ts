@@ -5,6 +5,7 @@ export const canonicalAbsoluteRule: Rule = {
   id: 'head:canonical-absolute',
   name: 'Canonical absolute URL',
   enabled: true,
+  what: 'static',
   async run(page) {
     const linkEl = page.doc.querySelector('link[rel="canonical"]')
     const href = linkEl?.getAttribute('href') || ''

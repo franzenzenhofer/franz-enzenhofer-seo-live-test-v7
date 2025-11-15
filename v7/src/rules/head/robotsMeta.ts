@@ -7,6 +7,7 @@ export const robotsMetaRule: Rule = {
   id: 'head-robots-meta',
   name: 'Robots Meta',
   enabled: true,
+  what: 'static',
   run: async (page) => {
     const el = page.doc.querySelector('meta[name="robots"]') as HTMLMetaElement|null
     if (!el || !el.content) {

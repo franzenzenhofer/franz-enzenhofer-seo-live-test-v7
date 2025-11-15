@@ -5,6 +5,7 @@ export const titleRule: Rule = {
   id: 'head-title',
   name: 'Title Present',
   enabled: true,
+  what: 'static',
   run: async (page) => {
     const titleEl = page.doc.querySelector('head > title')
     const title = titleEl?.textContent?.trim() || ''

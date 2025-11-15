@@ -5,6 +5,7 @@ export const hreflangRule: Rule = {
   id: 'head-hreflang',
   name: 'Hreflang Links',
   enabled: true,
+  what: 'static',
   run: async (page) => {
     const links = page.doc.querySelectorAll('link[rel="alternate"][hreflang]')
     if (links.length === 0)

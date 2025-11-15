@@ -5,6 +5,7 @@ export const metaDescriptionRule: Rule = {
   id: 'head-meta-description',
   name: 'Meta Description',
   enabled: true,
+  what: 'static',
   run: async (page) => {
     const nodes = page.doc.querySelectorAll('meta[name="description"]')
 

@@ -5,6 +5,7 @@ export const canonicalRedirectsRule: Rule = {
   id: 'head:canonical-redirects',
   name: 'Canonical Redirects',
   enabled: true,
+  what: 'static',
   async run(page) {
     const linkEl = page.doc.querySelector('link[rel="canonical"]')
     const href = linkEl?.getAttribute('href')

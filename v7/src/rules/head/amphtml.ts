@@ -5,6 +5,7 @@ export const amphtmlRule: Rule = {
   id: 'head:amphtml',
   name: 'AMP HTML Link',
   enabled: true,
+  what: 'static',
   async run(page) {
     const l = page.doc.querySelector('link[rel="amphtml"]')
     if (l) {

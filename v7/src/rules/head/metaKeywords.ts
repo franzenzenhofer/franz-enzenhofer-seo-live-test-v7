@@ -5,6 +5,7 @@ export const metaKeywordsRule: Rule = {
   id: 'head:meta-keywords',
   name: 'Meta Keywords',
   enabled: true,
+  what: 'static',
   async run(page) {
     const m = page.doc.querySelector('meta[name="keywords"]')
     if (m) {
