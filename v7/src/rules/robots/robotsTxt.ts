@@ -18,6 +18,7 @@ export const robotsTxtRule: Rule = {
   id: 'robots-exists',
   name: 'robots.txt Exists',
   enabled: true,
+  what: 'http',
   run: async (page) => {
     const rUrl = urlOf(page.url)
     if (!rUrl)

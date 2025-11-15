@@ -7,6 +7,7 @@ export const robotsBlockedResourcesRule: Rule = {
   id: 'robots:blocked-resources',
   name: 'robots.txt blocked resources',
   enabled: true,
+  what: 'http',
   async run(page) {
     const list = page.resources || []
     if (!list.length)

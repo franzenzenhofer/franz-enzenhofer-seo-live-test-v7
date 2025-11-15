@@ -5,6 +5,7 @@ export const robotsSitemapReferenceRule: Rule = {
   id: 'robots:sitemap-reference',
   name: 'robots.txt Sitemap reference',
   enabled: true,
+  what: 'http',
   async run(page) {
     let origin = ''
     try {

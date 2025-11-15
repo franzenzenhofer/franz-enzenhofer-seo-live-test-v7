@@ -5,6 +5,7 @@ export const robotsComplexityRule: Rule = {
   id: 'robots:complexity',
   name: 'robots.txt complexity',
   enabled: true,
+  what: 'http',
   async run(page) {
     let origin = ''
     try {

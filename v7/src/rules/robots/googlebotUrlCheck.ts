@@ -6,6 +6,7 @@ export const googlebotUrlCheckRule: Rule = {
   id: 'robots:googlebot-url-check',
   name: 'Googlebot URL allowed',
   enabled: true,
+  what: 'http',
   async run(page) {
     let origin = ''
     try {
