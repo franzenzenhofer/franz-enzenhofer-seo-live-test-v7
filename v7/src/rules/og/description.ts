@@ -5,6 +5,7 @@ export const ogDescriptionRule: Rule = {
   id: 'og:description',
   name: 'Open Graph Description',
   enabled: true,
+  what: 'static',
   async run(page) {
     const m = page.doc.querySelector('meta[property="og:description"], meta[name="og:description"]')
     if (!m) return { label: 'OG', message: 'Missing og:description', type: 'warn', name: 'ogDescription' }

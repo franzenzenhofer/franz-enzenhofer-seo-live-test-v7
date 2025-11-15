@@ -36,6 +36,7 @@ export const discoverPublishedTimeRule: Rule = {
   id: 'discover:published-time',
   name: 'Published time',
   enabled: true,
+  what: 'static',
   async run(page) {
     const result = findPublished(page.doc)
     const sourceHtml = extractHtml(result.element)

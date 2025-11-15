@@ -5,6 +5,7 @@ export const imagesLazyRule: Rule = {
   id: 'body:images-lazy',
   name: 'Images lazy-loading',
   enabled: true,
+  what: 'static',
   async run(page) {
     const imgs = Array.from(page.doc.querySelectorAll('img')) as HTMLImageElement[]
     const noLoading: HTMLImageElement[] = []

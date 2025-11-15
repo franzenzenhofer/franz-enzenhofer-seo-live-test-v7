@@ -6,6 +6,7 @@ export const trailingSlashRule: Rule = {
   id: 'url:trailing-slash',
   name: 'URL trailing slash consistency',
   enabled: true,
+  what: 'static',
   async run(page) {
     let p = '/'
     try {

@@ -30,6 +30,7 @@ export const discoverAuthorPresentRule: Rule = {
   id: 'discover:author',
   name: 'Author present',
   enabled: true,
+  what: 'static',
   async run(page) {
     const result = findAuthor(page.doc)
     const sourceHtml = extractHtml(result.element)

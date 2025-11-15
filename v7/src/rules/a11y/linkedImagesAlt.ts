@@ -5,6 +5,7 @@ export const linkedImagesAltRule: Rule = {
   id: 'a11y:linked-images-alt',
   name: 'Linked Images need alt',
   enabled: true,
+  what: 'static',
   async run(page) {
     const imgs = page.doc.querySelectorAll('a img')
     const missingAlt: Element[] = []

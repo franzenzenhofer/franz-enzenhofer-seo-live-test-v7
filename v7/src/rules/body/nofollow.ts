@@ -5,6 +5,7 @@ export const nofollowRule: Rule = {
   id: 'body:nofollow',
   name: 'Nofollow Links',
   enabled: true,
+  what: 'static',
   async run(page) {
     const a = Array.from(page.doc.querySelectorAll('a[rel~="nofollow"]'))
 

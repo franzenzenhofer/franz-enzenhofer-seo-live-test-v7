@@ -6,6 +6,7 @@ export const schemaRecipeRule: Rule = {
   id: 'schema:recipe',
   name: 'Schema Recipe',
   enabled: true,
+  what: 'static',
   async run(page) {
     const scripts = page.doc.querySelectorAll('script[type="application/ld+json"]')
     const n = findType(parseLd(page.doc), 'recipe')[0]

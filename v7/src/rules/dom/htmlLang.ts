@@ -5,6 +5,7 @@ export const htmlLangRule: Rule = {
   id: 'dom:html-lang',
   name: 'HTML lang attribute',
   enabled: true,
+  what: 'static',
   async run(page) {
     const el = page.doc.documentElement
     const lang = (el.getAttribute('lang') || '').trim()

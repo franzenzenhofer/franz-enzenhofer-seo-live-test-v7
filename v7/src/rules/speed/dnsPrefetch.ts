@@ -5,6 +5,7 @@ export const dnsPrefetchRule: Rule = {
   id: 'speed:dns-prefetch',
   name: 'rel=dns-prefetch',
   enabled: true,
+  what: 'static',
   async run(page) {
     const links = page.doc.querySelectorAll('link[rel="dns-prefetch"]')
     const n = links.length

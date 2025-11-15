@@ -7,6 +7,7 @@ export const discoverMaxImagePreviewLargeRule: Rule = {
   id: 'discover:max-image-preview-large',
   name: 'max-image-preview:large',
   enabled: true,
+  what: 'static',
   async run(page) {
     const metaEl = page.doc.querySelector('meta[name="robots"]')
     const meta = (metaEl?.getAttribute('content') || '').toLowerCase()

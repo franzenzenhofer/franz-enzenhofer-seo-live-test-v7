@@ -5,6 +5,7 @@ export const blockingScriptsRule: Rule = {
   id: 'speed:blocking-scripts',
   name: 'Blocking scripts in head',
   enabled: true,
+  what: 'static',
   async run(page) {
     const scripts = page.doc.querySelectorAll('head script[src]:not([async]):not([defer])')
     const s = scripts.length

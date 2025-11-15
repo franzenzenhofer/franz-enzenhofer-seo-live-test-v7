@@ -5,6 +5,7 @@ export const preconnectRule: Rule = {
   id: 'speed:preconnect',
   name: 'rel=preconnect',
   enabled: true,
+  what: 'static',
   async run(page) {
     const links = page.doc.querySelectorAll('link[rel="preconnect"]')
     const n = links.length

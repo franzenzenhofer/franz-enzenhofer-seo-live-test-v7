@@ -5,6 +5,7 @@ export const unsecureInputRule: Rule = {
   id: 'body:unsecure-input',
   name: 'Unsecure input over HTTP',
   enabled: true,
+  what: 'static',
   async run(page) {
     let proto = ''
     try {

@@ -22,6 +22,7 @@ export const ampCacheUrlRule: Rule = {
   id: 'google:amp-cache-url',
   name: 'AMP Cache URL',
   enabled: true,
+  what: 'static',
   async run(page) {
     const amp = findAmp(page.doc)
     if (!amp.href) return { label: 'HEAD', message: 'No amphtml link', type: 'info', name: 'ampCacheUrl' }
