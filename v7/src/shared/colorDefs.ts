@@ -31,6 +31,14 @@ export const resultColors = {
     badge: 'bg-blue-100 text-blue-800',
     full: 'bg-blue-50 border-blue-300 text-blue-900'
   },
+  runtime_error: {
+    bg: 'bg-orange-50',
+    border: 'border-orange-400',
+    text: 'text-orange-900',
+    dot: 'bg-orange-600',
+    badge: 'bg-orange-100 text-orange-800',
+    full: 'bg-orange-50 border-orange-400 text-orange-900'
+  },
 }
 
 export type ColorSet = typeof resultColors.error
