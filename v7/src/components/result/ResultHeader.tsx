@@ -32,7 +32,14 @@ export const ResultHeader = ({
   return (
     <header className="flex items-center gap-2 text-xs">
       <span className={`${dotClass} w-2 h-2 rounded-full`} />
-      <span className="font-semibold text-slate-900 flex-1 break-words">{heading}</span>
+      <span className="font-semibold text-slate-900 flex-1 break-words flex items-center gap-1.5">
+        {heading}
+        {result.what && (
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase bg-blue-100 text-blue-800">
+            {result.what}
+          </span>
+        )}
+      </span>
       {typeof index === 'number' && (
         <span className="text-[10px] text-slate-500">#{index + 1}</span>
       )}
