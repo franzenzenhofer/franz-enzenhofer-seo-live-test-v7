@@ -1,7 +1,7 @@
 export type Result = {
   label: string
   message: string
-  type: 'info'|'ok'|'warn'|'error'
+  type: 'info'|'ok'|'warn'|'error'|'runtime_error'
   what?: string|null
   priority?: number|null
   ruleId?: string|null
@@ -22,4 +22,4 @@ export type Page = {
   domContentLoadedDoc?: Document
 }
 export type Ctx = { globals: Record<string, unknown> }
-export type Rule = { id: string; name: string; enabled: boolean; run: (page: Page, ctx: Ctx) => Promise<Result|Result[]> }
+export type Rule = { id: string; name: string; enabled: boolean; what?: string; run: (page: Page, ctx: Ctx) => Promise<Result|Result[]> }
