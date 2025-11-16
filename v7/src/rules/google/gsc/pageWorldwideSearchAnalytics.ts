@@ -3,7 +3,7 @@ import type { Rule } from '@/core/types'
 export const gscPageWorldwideRule: Rule = {
   id: 'gsc:page-worldwide',
   name: 'GSC page worldwide analytics',
-  enabled: false,
+  enabled: true,
   what: 'gsc',
   async run(page, ctx) {
     const token = (ctx.globals as { googleApiAccessToken?: string|null }).googleApiAccessToken || null

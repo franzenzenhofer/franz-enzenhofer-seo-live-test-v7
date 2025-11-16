@@ -3,7 +3,7 @@ import type { Rule } from '@/core/types'
 export const gscPropertyAvailableRule: Rule = {
   id: 'gsc:property-available',
   name: 'GSC webproperty available',
-  enabled: false,
+  enabled: true,
   what: 'gsc',
   async run(page, ctx) {
     const token = (ctx.globals as { googleApiAccessToken?: string|null }).googleApiAccessToken || null

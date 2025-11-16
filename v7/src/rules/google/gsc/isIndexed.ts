@@ -5,7 +5,7 @@ import type { Rule } from '@/core/types'
 export const gscIsIndexedRule: Rule = {
   id: 'gsc:is-indexed',
   name: 'GSC is indexed (via impressions)',
-  enabled: false,
+  enabled: true,
   what: 'gsc',
   async run(page, ctx) {
     const { token, vars } = extractGoogleCredentials(ctx)
