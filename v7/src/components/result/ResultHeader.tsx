@@ -1,3 +1,5 @@
+import { CopyButton } from './CopyButton'
+
 import type { Result } from '@/shared/results'
 
 type Props = {
@@ -9,6 +11,7 @@ type Props = {
   open: boolean
   onToggleDetails?: () => void
   dotClass: string
+  copyContent: string
 }
 
 export const ResultHeader = ({
@@ -20,6 +23,7 @@ export const ResultHeader = ({
   open,
   onToggleDetails,
   dotClass,
+  copyContent,
 }: Props) => {
   return (
     <header className="flex items-center gap-2 text-xs">
@@ -29,6 +33,11 @@ export const ResultHeader = ({
         {result.what && (
           <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase bg-blue-100 text-blue-800">
             {result.what}
+          </span>
+        )}
+        {result.bestPractice && (
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase bg-amber-100 text-amber-800">
+            Best Practice
           </span>
         )}
       </span>
@@ -45,7 +54,8 @@ export const ResultHeader = ({
           {isPinned ? '★' : '☆'}
         </button>
       )}
-      {canToggleDetails && (
+      <div className="flex items-center gap-1">
+        {canToggleDetails && (
         <button
           type="button"
           className="text-xs px-2 py-0.5 border rounded bg-white/60 text-slate-700"
@@ -53,7 +63,9 @@ export const ResultHeader = ({
         >
           {open ? 'Hide' : 'Details'}
         </button>
-      )}
+        )}
+        <CopyButton content={copyContent} />
+      </div>
     </header>
   )
 }

@@ -40,6 +40,8 @@ export const App = () => {
         onOpenLogs={openLogs}
         onOpenReport={openReport}
         results={resultsSource.items}
+        tabId={resultsSource.tabId}
+        logUi={logUi}
       />
     </>
   )

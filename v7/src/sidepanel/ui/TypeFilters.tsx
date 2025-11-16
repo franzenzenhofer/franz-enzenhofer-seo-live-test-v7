@@ -1,5 +1,6 @@
 import type { Result } from '@/shared/results'
-import { resultColors } from '@/shared/colorDefs'
+import { getResultColor, getResultLabel, resultTypeOrder } from '@/shared/colors'
+import { rulesInventory } from '@/rules/inventory'
 
 type Props = {
   show: Record<string, boolean>
@@ -12,37 +13,54 @@ export const TypeFilters = ({ show, setShow, results }: Props) => {
     acc[r.type] = (acc[r.type] || 0) + 1
     return acc
   }, {} as Record<string, number>)
-
-  const types: Array<{ key: string; label: string }> = [
-    { key: 'error', label: 'error' },
-    { key: 'runtime_error', label: 'failed' },
-    { key: 'warn', label: 'warn' },
-    { key: 'info', label: 'info' },
-    { key: 'ok', label: 'ok' },
-    { key: 'pending', label: 'pending' },
-    { key: 'disabled', label: 'disabled' },
-  ]
+  const totalRules = rulesInventory.length
+  const counted = resultTypeOrder.reduce((sum, type) => sum + (counts[type] || 0), 0)
+  const missing = totalRules - counted
+  const showMissing = missing !== 0
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
-      {types.map(({ key, label }) => {
-        const count = counts[key] || 0
-        const colors = resultColors[key as keyof typeof resultColors]
-        const isActive = show[key]
-
-        return (
-          <button
-            key={key}
-            className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium transition-all ${
-              isActive ? colors.badge : 'bg-gray-100 text-gray-500'
-            } ${isActive ? 'border-2 ' + colors.border : 'border-2 border-gray-200'}`}
-            onClick={() => setShow((s) => ({ ...s, [key]: !s[key] }))}
-          >
-            <span>{label}</span>
-            <span className="font-semibold">{count}</span>
-          </button>
-        )
-      })}
-    </div>
+    <>
+      <div className="text-xs text-gray-600 flex items-center gap-3 mb-1">
+        <span>Total {totalRules}</span>
+        {showMissing && <span className="text-red-600 font-semibold">Missing {missing}</span>}
+      </div>
+      <div className="flex items-center gap-2 flex-wrap">
+        {resultTypeOrder.map((type) => {
+          const count = counts[type] || 0
+          const colors = getResultColor(type)
+          const isActive = show[type]
+          const handleClick = () => {
+            const currentlyOnlyThis = show[type] && resultTypeOrder.every((key) => (key === type ? show[key] : !show[key]))
+            if (currentlyOnlyThis) {
+              setShow(() =>
+                resultTypeOrder.reduce<Record<string, boolean>>((acc, key) => {
+                  acc[key] = true
+                  return acc
+                }, {}),
+              )
+              return
+            }
+            setShow(() =>
+              resultTypeOrder.reduce<Record<string, boolean>>((acc, key) => {
+                acc[key] = key === type
+                return acc
+              }, {}),
+            )
+          }
+          return (
+            <button
+              key={type}
+              className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium transition-all ${
+                isActive ? colors.badge : 'bg-gray-100 text-gray-500'
+              } ${isActive ? 'border-2 ' + colors.border : 'border-2 border-gray-200'}`}
+              onClick={handleClick}
+            >
+              <span>{getResultLabel(type)}</span>
+              <span className="font-semibold">{count}</span>
+            </button>
+          )
+        })}
+      </div>
+    </>
   )
 }

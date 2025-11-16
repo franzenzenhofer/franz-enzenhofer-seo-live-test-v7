@@ -52,6 +52,10 @@ export default [
     },
   },
   {
+    files: ['src/rules/**/*.ts'],
+    rules: { 'max-lines': ['error', { max: 150, skipBlankLines: true, skipComments: true }] },
+  },
+  {
     files: ['src/rules/registry.ts', 'src/rules/head/metaDescription-enhanced.ts'],
     rules: { 'max-lines': 'off' },
   },

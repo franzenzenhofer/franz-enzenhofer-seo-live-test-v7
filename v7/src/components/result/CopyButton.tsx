@@ -1,10 +1,10 @@
 import { useState } from 'react'
 
 type Props = {
-  content: string
+  content?: string
 }
 
-export const CopyButton = ({ content }: Props) => {
+export const CopyButton = ({ content = '' }: Props) => {
   const [copied, setCopied] = useState(false)
 
   const copy = async () => {

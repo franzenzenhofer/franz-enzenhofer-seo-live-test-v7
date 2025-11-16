@@ -1,51 +1,43 @@
 import type { Rule } from '@/core/types'
-import { extractHtmlFromList, extractSnippet, getDomPath } from '@/shared/html-utils'
+import { stripAttributesDeep } from '@/shared/html-utils'
+
+const LABEL = 'BODY', NAME = 'H1 Present', RULE_ID = 'body:h1', SPEC = 'https://developers.google.com/style/headings?hl=en'
 
 export const h1Rule: Rule = {
-  id: 'body:h1',
-  name: 'H1 Present',
+  id: RULE_ID,
+  name: NAME,
   enabled: true,
   what: 'static',
+  bestPractice: true,
   async run(page) {
-    const h1Elements = page.doc.querySelectorAll('h1')
-    const count = h1Elements.length
-
-    if (count === 0) {
+    const nodes = Array.from(page.doc.querySelectorAll('h1'))
+    const count = nodes.length
+    const header = { ruleId: RULE_ID, label: LABEL, name: NAME, what: 'static' } as const
+    if (count !== 1) {
+      const message = count ? `${count} <h1> elements found.` : 'No <h1> found.'
+      const priority = count ? 100 : 0
+      const details = count
+        ? { domPaths: nodes.map((_, idx) => (idx === 0 ? 'h1' : `h1:nth-of-type(${idx + 1})`)), reference: SPEC }
+        : { reference: SPEC }
+      return { ...header, message, type: 'warn', priority, details }
+    }
+    const node = nodes[0]!
+    const hasContent = Boolean(node.textContent && node.textContent.trim().length)
+    if (!hasContent) {
       return {
-        label: 'BODY',
-        message: 'No <h1> found',
+        ...header,
+        message: '<h1> is empty.',
         type: 'warn',
-        name: 'H1 Present',
+        priority: 200,
+        details: { snippet: stripAttributesDeep(node), sourceHtml: node.outerHTML, domPath: 'h1', reference: SPEC },
       }
     }
-
-    const sourceHtml = extractHtmlFromList(h1Elements)
-    const firstH1 = h1Elements[0] || null
-
-    if (count > 1) {
-      return {
-        label: 'BODY',
-        message: `Multiple <h1> found (${count})`,
-        type: 'warn',
-        name: 'H1 Present',
-        details: {
-          sourceHtml,
-          snippet: extractSnippet(sourceHtml),
-        },
-      }
-    }
-
     return {
-      label: 'BODY',
-      message: '<h1> OK',
+      ...header,
+      message: '1 <h1> found.',
       type: 'ok',
-      name: 'H1 Present',
-      details: {
-        sourceHtml,
-        snippet: extractSnippet(sourceHtml),
-        domPath: getDomPath(firstH1),
-      },
+      priority: 1000,
+      details: { snippet: stripAttributesDeep(node), sourceHtml: node.outerHTML, domPath: 'h1', reference: SPEC },
     }
   },
 }
-

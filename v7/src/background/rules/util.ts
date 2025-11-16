@@ -21,18 +21,25 @@ export const summarizeEvents = (ev: Array<{ t: string; u?: string }>) => {
   return { top, navs, reqs }
 }
 
+const withoutPending = <T extends { type?: string }>(list: T[] | undefined) =>
+  Array.isArray(list) ? list.filter((item) => item?.type !== 'pending') : list
+
 export const dedupRunner = <T extends { name?: string; message?: string }>(list: T[]) =>
   list.filter((r, i, a) => r.name !== 'system:runner' || a.findIndex((x) => x.name === r.name && x.message === r.message) === i)
 
-export const persistResults = async (tabId: number, key: string, prev: Array<{ name?: string; message?: string }> | undefined, add: Array<{ name?: string; message?: string }>) => {
-  const set = async (arr: Array<{ name?: string; message?: string }>) => { await chrome.storage.local.set({ [key]: arr }); return arr.length }
+type MinimalResult = { name?: string; message?: string; type?: string; bestPractice?: boolean }
+
+export const persistResults = async (tabId: number, key: string, prev: MinimalResult[] | undefined, add: MinimalResult[]) => {
+  const set = async (arr: MinimalResult[]) => { await chrome.storage.local.set({ [key]: arr }); return arr.length }
   try {
-    const merged = dedupRunner(Array.isArray(prev) ? [...prev, ...add] : add)
+    const prevClean = withoutPending(prev)
+    const merged = dedupRunner(prevClean ? [...prevClean, ...add] : add)
     return await set(merged)
   } catch {
     // Quota exceeded or similar. Fallbacks: latest only, then last <=100
-    try { return await set(add) } catch {
-      const keep = add.slice(-Math.max(10, Math.min(100, add.length)))
+    const cleanAdd = withoutPending(add) || []
+    try { return await set(cleanAdd) } catch {
+      const keep = cleanAdd.slice(-Math.max(10, Math.min(100, cleanAdd.length)))
       return await set(keep)
     }
   }

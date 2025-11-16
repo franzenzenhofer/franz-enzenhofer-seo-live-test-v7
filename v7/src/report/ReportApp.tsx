@@ -1,32 +1,23 @@
 import { ReportSection } from './ReportSection'
 import { useReportData } from './useReportData'
 import { ReportExportButtons } from './ExportButtons'
+import { ResultBadges } from './ResultBadges'
+import { ResultSummary } from './ResultSummary'
+import { groupResults } from './groupResults'
 
 import { LiveTestHeader } from '@/components/LiveTestHeader'
-import type { Result } from '@/shared/results'
-import { resultSortOrder } from '@/shared/colors'
 import { openUrlInCurrentTab } from '@/shared/openUrlInCurrentTab'
-
-const groupAndSortResults = (results: Result[]) => {
-  const grouped = results.reduce(
-    (acc, result, index) => {
-      const type = result.type || 'info'
-      if (!acc[type]) acc[type] = []
-      acc[type].push({ ...result, index })
-      return acc
-    },
-    {} as Record<string, (Result & { index: number })[]>,
-  )
-  return Object.entries(grouped).sort(([a], [b]) => {
-    const orderA = resultSortOrder[a as keyof typeof resultSortOrder] ?? 999
-    const orderB = resultSortOrder[b as keyof typeof resultSortOrder] ?? 999
-    return orderA - orderB
-  })
-}
+import { rulesInventory } from '@/rules/inventory'
 
 export const ReportApp = () => {
   const { results, runMeta, loading } = useReportData()
-  const sortedGroups = groupAndSortResults(results)
+  const sortedGroups = groupResults(results)
+  const counts = results.reduce((acc, r) => {
+    acc[r.type] = (acc[r.type] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+  const presentIds = new Set(results.map((r) => r.ruleId).filter(Boolean))
+  const missingRules = rulesInventory.filter((rule) => !presentIds.has(rule.id))
   const version = chrome.runtime.getManifest().version
 
   if (loading) {
@@ -67,6 +58,8 @@ export const ReportApp = () => {
           }
         />
         <div className="p-4 sm:p-6 space-y-6">
+          <ResultSummary totalRules={rulesInventory.length} resultsCount={results.length} missing={missingRules} />
+          <ResultBadges counts={counts} />
           {sortedGroups.map(([type, items]) => (
             <ReportSection key={type} type={type} items={items} />
           ))}

@@ -2,7 +2,7 @@ import { useCallback } from 'react'
 
 import { Logger } from '@/shared/logger'
 
-type LogFn = (action: string, data?: Record<string, unknown>) => void
+export type LogFn = (action: string, data?: Record<string, unknown>) => void
 
 export const usePanelLogger = (tabId: number | null): LogFn => {
   return useCallback<LogFn>((action, data) => {

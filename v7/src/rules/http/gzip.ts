@@ -1,30 +1,63 @@
 import type { Rule } from '@/core/types'
 
-const enc = (h?: Record<string, string>) => (h?.['content-encoding'] || '').toLowerCase()
+const LABEL = 'HTTP'
+const NAME = 'Gzip/Brotli'
+const RULE_ID = 'http:gzip'
+const SPEC = 'https://developer.chrome.com/docs/lighthouse/performance/uses-text-compression'
+const compressible = (encoding: string | null | undefined) => {
+  const lower = (encoding || '').toLowerCase()
+  if (!lower) return null
+  if (lower.includes('br')) return 'Brotli'
+  if (lower.includes('gzip')) return 'gzip'
+  return lower
+}
 
 export const gzipRule: Rule = {
-  id: 'http:gzip',
-  name: 'Gzip/Brotli',
+  id: RULE_ID,
+  name: NAME,
   enabled: true,
   what: 'http',
+  bestPractice: true,
   async run(page) {
-    const e = enc(page.headers)
-    const ok = e.includes('br') || e.includes('gzip')
-    if (!e)
+    const encoding = page.headers?.['content-encoding'] || page.headers?.['Content-Encoding'] || ''
+    const compressed = compressible(encoding)
+    if (!compressed) {
       return {
-        label: 'HTTP',
-        message: 'No content-encoding header',
+        label: LABEL,
+        message: 'No content-encoding header (gzip or Brotli).',
         type: 'warn',
-        name: 'Gzip/Brotli',
-        details: { httpHeaders: page.headers || {} },
+        priority: 200,
+        name: NAME,
+        details: { httpHeaders: page.headers || {}, reference: SPEC },
       }
+    }
+    if (compressed === 'gzip' || compressed === 'Brotli') {
+      return {
+        label: LABEL,
+        message: `Compressed with ${compressed}.`,
+        type: 'ok',
+        priority: 900,
+        name: NAME,
+        details: { httpHeaders: page.headers || {}, reference: SPEC },
+      }
+    }
+    if (compressed === encoding.toLowerCase()) {
+      return {
+        label: LABEL,
+        message: `Unsupported content encoding (${encoding}).`,
+        type: 'warn',
+        priority: 100,
+        name: NAME,
+        details: { httpHeaders: page.headers || {}, reference: SPEC },
+      }
+    }
     return {
-      label: 'HTTP',
-      message: ok ? `Compressed (${e})` : `Not compressed (${e})`,
-      type: ok ? 'ok' : 'warn',
-      name: 'Gzip/Brotli',
-      details: { httpHeaders: page.headers || {} },
+      label: LABEL,
+      message: `Compressed with ${compressed}.`,
+      type: 'ok',
+      priority: 900,
+      name: NAME,
+      details: { httpHeaders: page.headers || {}, reference: SPEC },
     }
   },
 }
-

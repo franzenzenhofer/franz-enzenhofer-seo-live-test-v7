@@ -1,5 +1,19 @@
 import { useMemo } from 'react'
 
+import { resultTypeLabels } from '@/shared/colors'
+
+const keywordToType = (() => {
+  const map = new Map<string, string>()
+  Object.entries(resultTypeLabels).forEach(([type, label]) => {
+    map.set(type.toLowerCase(), type)
+    map.set(label.toLowerCase(), type)
+  })
+  map.set('error', 'runtime_error')
+  map.set('failed', 'error')
+  map.set('unconfigured', 'unconfigured')
+  return map
+})()
+
 // Parse filter query to extract types and text
 // Examples:
 // "ok" -> types: ['ok'], text: ""
@@ -12,13 +26,13 @@ export const useFilterParser = (query: string) => {
     if (!trimmed) return { types: [], text: '', hasTypeFilter: false }
 
     const words = trimmed.split(/\s+/)
-    const typeKeywords = new Set(['ok', 'warn', 'error', 'info', 'unconfigured'])
     const foundTypes: string[] = []
     const textWords: string[] = []
 
     for (const word of words) {
-      if (typeKeywords.has(word)) {
-        foundTypes.push(word)
+      const type = keywordToType.get(word)
+      if (type) {
+        foundTypes.push(type)
       } else {
         textWords.push(word)
       }

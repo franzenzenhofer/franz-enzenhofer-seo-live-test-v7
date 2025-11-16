@@ -1,6 +1,9 @@
+import { handleHighlightMessage } from './highlight'
+import { initDomCapture } from './domCapture'
+
 import { PageInfo, type PageInfoT } from '@/shared/schemas'
 import { extractPageInfo } from '@/shared/extract'
-import { Logger, type LogCategory, type LogData } from '@/shared/logger'
+import { Logger } from '@/shared/logger'
 
 // Set context for logging
 Logger.setContext('content')
@@ -18,61 +21,10 @@ const tabIdPromise = new Promise<number>((resolve) => {
   })
 })
 
-const q = (sel: string) => document.querySelector(sel)
-
-/**
- * DRY abstraction: Log after tabId is ready
- */
-const logWhenReady = (category: LogCategory, action: string, data?: LogData): void => {
-  tabIdPromise.then(() => {
-    Logger.logDirectSend(contentTabId, category, action, data)
-  }).catch(() => {})
-}
-
-/**
- * Capture DOM and send to background with logging
- * BULLETPROOF: Always waits for tabId to be ready
- */
-const captureAndSend = async (event: string): Promise<void> => {
-  // ALWAYS wait for tabId - this makes it bulletproof
-  await tabIdPromise
-
-  Logger.logDirectSend(contentTabId, 'dom', 'capture start', { event, url: location.href })
-
-  const html = q('html')?.innerHTML || ''
-  const htmlSize = html.length
-
-  Logger.logDirectSend(contentTabId, 'dom', 'capture done', {
-    event,
-    htmlSize,
-    html: html.slice(0, 500),
-    htmlFull: html,
-    url: location.href,
-    readyState: document.readyState,
-  })
-
-  const data = { html, location }
-  chrome.runtime.sendMessage({ event, data })
-
-  Logger.logDirectSend(contentTabId, 'dom', 'send', { event, to: 'background', size: htmlSize })
-}
-
-// Register event listeners - captureAndSend handles tabId internally
-document.addEventListener('DOMContentLoaded', () => {
-  logWhenReady('content', 'fire', { event: 'DOMContentLoaded' })
-  captureAndSend('DOMContentLoaded').catch(() => {})
-})
-
-window.addEventListener('load', () => {
-  logWhenReady('content', 'fire', { event: 'load' })
-  captureAndSend('load').catch(() => {})
-})
-
-// Immediate captures - captureAndSend handles tabId internally
-captureAndSend('document_end')
-captureAndSend('document_idle')
+initDomCapture(tabIdPromise, () => contentTabId)
 
 chrome.runtime.onMessage.addListener((msg, _s, reply) => {
+  if (handleHighlightMessage(msg, reply)) return true
   if (msg?.type !== 'getPageInfo') return
   const data = PageInfo.parse(extractPageInfo())
   reply(data satisfies PageInfoT)

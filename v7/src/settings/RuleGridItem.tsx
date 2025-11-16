@@ -19,6 +19,11 @@ export const RuleGridItem = ({
               {rule.what}
             </span>
           )}
+          {rule.bestPractice && (
+            <span className="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-semibold uppercase bg-amber-100 text-amber-800">
+              Best Practice
+            </span>
+          )}
         </span>
         <span className="block text-[10px] text-gray-500 mt-0.5">
           {rule.id}

@@ -38,7 +38,7 @@ export const RuleToggles = ({ flags, updateFlags }: Props) => {
 
       <input
         type="search"
-        placeholder="Search 101 rules by name or ID..."
+        placeholder={`Search ${rulesInventory.length} rules by name or ID...`}
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         className="w-full px-4 py-2 border rounded-md mb-3 text-sm"

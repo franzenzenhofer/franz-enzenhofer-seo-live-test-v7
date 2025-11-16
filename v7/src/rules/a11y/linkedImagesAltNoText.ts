@@ -1,42 +1,38 @@
+import { buildLinkedImageDetails, evaluateLinkedImages } from './linkedImages'
+
 import type { Rule } from '@/core/types'
-import { extractHtml, extractSnippet } from '@/shared/html-utils'
+
+const LABEL = 'A11Y'
+const NAME = 'Linked images without alt and text'
+const RULE_ID = 'a11y:linked-images-alt-no-text'
+const SPEC = 'https://web.dev/alt-text/#linked-images-need-alt-text'
 
 export const linkedImagesAltNoTextRule: Rule = {
-  id: 'a11y:linked-images-alt-no-text',
-  name: 'Linked images without alt and text',
+  id: RULE_ID,
+  name: NAME,
   enabled: true,
   what: 'static',
   async run(page) {
-    const problematic: Element[] = []
-    const links = Array.from(page.doc.querySelectorAll('a'))
-    for (const a of links) {
-      const img = a.querySelector('img')
-      if (!img) continue
-      const alt = (img.getAttribute('alt') || '').trim()
-      const txt = (a.textContent || '').trim()
-      if (!alt && !txt) problematic.push(a)
+    const result = evaluateLinkedImages(
+      page,
+      (link) => {
+        const img = link.querySelector('img')
+        const alt = (img?.getAttribute('alt') || '').trim()
+        const txt = (link.textContent || '').trim()
+        return Boolean(alt || txt)
+      },
+      'linked images without alt and text',
+    )
+    if (!result) {
+      return { label: LABEL, message: 'Linked images have alt or surrounding text.', type: 'ok', priority: 500, name: NAME, details: { reference: SPEC } }
     }
-
-    if (problematic.length > 0) {
-      const sourceHtml = problematic.map(el => extractHtml(el)).join('\n')
-      return {
-        label: 'A11Y',
-        message: `${problematic.length} linked images without alt and text`,
-        type: 'warn',
-        name: 'Linked images without alt and text',
-        details: {
-          sourceHtml,
-          snippet: extractSnippet(sourceHtml),
-        },
-      }
-    }
-
     return {
-      label: 'A11Y',
-      message: 'Linked images have alt or text',
-      type: 'ok',
-      name: 'Linked images without alt and text',
+      label: LABEL,
+      message: result.message,
+      type: 'warn',
+      priority: 150,
+      name: NAME,
+      details: { ...buildLinkedImageDetails(result.failing, result.selectors), reference: SPEC },
     }
   },
 }
-

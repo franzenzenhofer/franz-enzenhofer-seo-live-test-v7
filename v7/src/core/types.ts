@@ -1,10 +1,21 @@
+export type ResultDetails = {
+  snippet?: string
+  sourceHtml?: string
+  domPath?: string
+  domPaths?: string[]
+  [key: string]: unknown
+}
+
 export type Result = {
+  name: string
   label: string
   message: string
   type: 'info'|'ok'|'warn'|'error'|'runtime_error'|'pending'|'disabled'
   what?: string|null
   priority?: number|null
   ruleId?: string|null
+  details?: ResultDetails
+  bestPractice?: boolean
 }
 export type Page = {
   html: string
@@ -22,4 +33,11 @@ export type Page = {
   domContentLoadedDoc?: Document
 }
 export type Ctx = { globals: Record<string, unknown> }
-export type Rule = { id: string; name: string; enabled: boolean; what?: string; run: (page: Page, ctx: Ctx) => Promise<Result|Result[]> }
+export type Rule = {
+  id: string
+  name: string
+  enabled: boolean
+  what?: string
+  bestPractice?: boolean
+  run: (page: Page, ctx: Ctx) => Promise<Result|Result[]>
+}
