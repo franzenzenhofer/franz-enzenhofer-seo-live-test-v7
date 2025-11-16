@@ -1,5 +1,6 @@
-import type { Rule } from '@/core/types'
+import { HTTP_STATUS } from '@/shared/http-constants'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
+import type { Rule } from '@/core/types'
 
 export const canonicalChainRule: Rule = {
   id: 'head:canonical-chain',
@@ -17,7 +18,7 @@ export const canonicalChainRule: Rule = {
     let hops = 0
     for (let i = 0; i < 5; i++) {
       const r = await fetch(url, { method: 'HEAD', redirect: 'manual' })
-      if (r.status >= 300 && r.status < 400) {
+      if (r.status >= HTTP_STATUS.REDIRECT_MIN && r.status < HTTP_STATUS.REDIRECT_MAX) {
         const loc = r.headers.get('location')
         if (!loc) break
         url = new URL(loc, url).toString()
