@@ -10,6 +10,7 @@ import { useAuthHandlers } from './useAuthHandlers'
 
 import { TOKEN_KEY, getStoredToken } from '@/shared/auth'
 import { isAutoEnabled } from '@/rules/autoEnable'
+import { Toast } from '@/shared/components/Toast'
 
 type Flags = Record<string, boolean>
 
@@ -61,6 +62,9 @@ export const SettingsApp = () => {
           <RuleToggles flags={flags} updateFlags={updateFlags} autoEnabled={autoEnabled} />
         </div>
       </div>
+
+      {/* Toast notifications */}
+      <Toast />
     </div>
   )
 }
