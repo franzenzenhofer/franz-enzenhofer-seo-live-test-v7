@@ -25,7 +25,7 @@ export const topWordsRule: Rule = {
       label: 'DOM',
       message: `Top words: ${f}`,
       type: 'info',
-      name: 'topWords',
+      name: 'Top words',
       details: { topWords: Object.fromEntries(topFreq) },
     }
   },

@@ -19,7 +19,7 @@ export const schemaBreadcrumbRule: Rule = {
       label: 'SCHEMA',
       message: ok ? `Breadcrumb OK · Docs: ${docs('breadcrumb')}` : `Breadcrumb needs ≥2 items · Docs: ${docs('breadcrumb')}`,
       type: ok ? 'ok' : 'warn',
-      name: 'schemaBreadcrumb',
+      name: 'Schema BreadcrumbList',
       details: script
         ? {
             sourceHtml,

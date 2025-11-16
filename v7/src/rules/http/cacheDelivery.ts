@@ -11,7 +11,7 @@ export const cacheDeliveryRule: Rule = {
       label: 'HTTP',
       message: age > 0 ? `Age: ${age} (from cache)` : 'No cache Age header',
       type: 'info',
-      name: 'cacheDelivery',
+      name: 'Delivered from cache (Age)',
       details: { httpHeaders: page.headers || {} },
     }
   },

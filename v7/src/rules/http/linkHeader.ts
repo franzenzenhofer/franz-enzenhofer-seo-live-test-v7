@@ -11,7 +11,7 @@ export const linkHeaderRule: Rule = {
       label: 'HTTP',
       message: v ? `Link: ${v}` : 'No Link header',
       type: 'info',
-      name: 'linkHeader',
+      name: 'Link Header',
       details: { httpHeaders: page.headers || {} },
     }
   },

@@ -14,7 +14,7 @@ export const xCacheRule: Rule = {
         label: 'HTTP',
         message: 'No X-Cache header',
         type: 'info',
-        name: 'xCache',
+        name: 'X-Cache hit/miss',
         details: { httpHeaders: page.headers || {} },
       }
     const t = x.includes('hit') ? 'HIT' : x.includes('miss') ? 'MISS' : x
@@ -22,7 +22,7 @@ export const xCacheRule: Rule = {
       label: 'HTTP',
       message: `X-Cache: ${t}`,
       type: 'info',
-      name: 'xCache',
+      name: 'X-Cache hit/miss',
       details: { httpHeaders: page.headers || {} },
     }
   },

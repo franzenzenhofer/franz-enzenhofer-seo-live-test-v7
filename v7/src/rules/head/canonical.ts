@@ -13,7 +13,7 @@ export const canonicalRule: Rule = {
         label: 'HEAD',
         message: 'No canonical link found.',
         type: 'error',
-        name: 'canonical',
+        name: 'Canonical Link',
       }
     }
     const sourceHtml = extractHtml(el)
@@ -21,7 +21,7 @@ export const canonicalRule: Rule = {
       label: 'HEAD',
       message: 'Canonical link present',
       type: 'info',
-      name: 'canonical',
+      name: 'Canonical Link',
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),

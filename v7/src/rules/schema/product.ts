@@ -25,7 +25,7 @@ export const schemaProductRule: Rule = {
         ? `Product missing: ${miss.join(', ')} · Docs: ${docs('product')}`
         : `Product OK · Docs: ${docs('product')}`,
       type: miss.length ? 'warn' : 'ok',
-      name: 'schemaProduct',
+      name: 'Schema Product',
       details: script
         ? {
             sourceHtml,

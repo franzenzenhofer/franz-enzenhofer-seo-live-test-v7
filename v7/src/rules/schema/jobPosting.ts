@@ -18,7 +18,7 @@ export const schemaJobPostingRule: Rule = {
       label: 'SCHEMA',
       message: ok ? `JobPosting OK · Docs: ${docs('jobposting')}` : `JobPosting missing fields · Docs: ${docs('jobposting')}`,
       type: ok ? 'ok' : 'warn',
-      name: 'schemaJobPosting',
+      name: 'Schema JobPosting',
       details: script
         ? {
             sourceHtml,

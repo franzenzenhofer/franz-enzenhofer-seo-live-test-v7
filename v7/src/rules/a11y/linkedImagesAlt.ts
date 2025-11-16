@@ -20,7 +20,7 @@ export const linkedImagesAltRule: Rule = {
         label: 'A11Y',
         message: `${missingAlt.length} linked images missing alt`,
         type: 'warn',
-        name: 'linkedImagesAlt',
+        name: 'Linked Images need alt',
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),
@@ -33,7 +33,7 @@ export const linkedImagesAltRule: Rule = {
       label: 'A11Y',
       message: 'Linked images have alt',
       type: 'ok',
-      name: 'linkedImagesAlt',
+      name: 'Linked Images need alt',
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),

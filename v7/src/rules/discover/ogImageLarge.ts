@@ -28,14 +28,14 @@ export const discoverOgImageLargeRule: Rule = {
           label: 'DISCOVER',
           message: `OG image large: ${w}x${h}px`,
           type: 'ok',
-          name: 'ogImageLarge',
+          name: 'Large OG image (metadata)',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml), width: w, height: h },
         }
       : {
           label: 'DISCOVER',
           message: w && h ? `OG image ${w}x${h}px (<1200px)` : 'OG image size metadata missing',
           type: 'info',
-          name: 'ogImageLarge',
+          name: 'Large OG image (metadata)',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml), width: w || undefined, height: h || undefined },
         }
   },

@@ -14,7 +14,7 @@ export const soft404Rule: Rule = {
         label: 'HTTP',
         message: 'Status not 2xx, skipping soft 404',
         type: 'info',
-        name: 'soft404',
+        name: 'Soft 404 check',
         details: { httpHeaders: page.headers || {} },
       }
     const bad = looksNotFound(page.html)
@@ -22,7 +22,7 @@ export const soft404Rule: Rule = {
       label: 'HTTP',
       message: bad ? 'Possible soft 404: page looks not found but status is 2xx' : 'Not a soft 404',
       type: bad ? 'warn' : 'ok',
-      name: 'soft404',
+      name: 'Soft 404 check',
       details: { httpHeaders: page.headers || {} },
     }
   },

@@ -16,7 +16,7 @@ export const htmlLangRule: Rule = {
           label: 'DOM',
           message: `lang=${lang}`,
           type: 'info',
-          name: 'htmlLang',
+          name: 'HTML lang attribute',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el) },
         }
       : { label: 'DOM', message: 'Missing html[lang]', type: 'warn', name: 'htmlLang' }

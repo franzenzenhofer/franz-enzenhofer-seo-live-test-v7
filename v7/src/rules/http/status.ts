@@ -19,7 +19,7 @@ export const httpStatusRule: Rule = {
       label: 'HTTP',
       message: c.m,
       type: c.t as 'ok' | 'warn' | 'error' | 'info',
-      name: 'httpStatus',
+      name: 'HTTP Status',
       details: {
         httpHeaders: page.headers || {},
       },

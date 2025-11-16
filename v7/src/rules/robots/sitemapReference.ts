@@ -15,7 +15,7 @@ export const robotsSitemapReferenceRule: Rule = {
           label: 'ROBOTS',
           message: `Skipped: ${url.protocol} URL`,
           type: 'info',
-          name: 'robotsSitemapReference',
+          name: 'robots.txt Sitemap reference',
         }
       }
       origin = url.origin
@@ -28,14 +28,14 @@ export const robotsSitemapReferenceRule: Rule = {
         label: 'ROBOTS',
         message: 'robots.txt not reachable',
         type: 'info',
-        name: 'robotsSitemapReference',
+        name: 'robots.txt Sitemap reference',
       }
     const has = /\n\s*sitemap\s*:\s*\S+/i.test(`\n${txt}`)
     return {
       label: 'ROBOTS',
       message: has ? 'Sitemap reference present' : 'No Sitemap reference',
       type: has ? 'ok' : 'warn',
-      name: 'robotsSitemapReference',
+      name: 'robots.txt Sitemap reference',
       details: { robotsTxt: txt },
     }
   },

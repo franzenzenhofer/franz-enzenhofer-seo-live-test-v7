@@ -16,7 +16,7 @@ export const ogImageRule: Rule = {
     const abs = isAbsoluteUrl(c)
     const sourceHtml = extractHtml(m)
     return abs
-      ? { label: 'OG', message: 'og:image present (absolute URL)', type: 'info', name: 'ogImage', details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(m), ogImage: c } }
-      : { label: 'OG', message: 'og:image not absolute', type: 'warn', name: 'ogImage', details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(m), ogImage: c } }
+      ? { label: 'OG', message: 'og:image present (absolute URL)', type: 'info', name: 'Open Graph Image', details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(m), ogImage: c } }
+      : { label: 'OG', message: 'og:image not absolute', type: 'warn', name: 'Open Graph Image', details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(m), ogImage: c } }
   },
 }

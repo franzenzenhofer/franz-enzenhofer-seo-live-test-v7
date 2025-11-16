@@ -40,7 +40,7 @@ export const discoverAuthorPresentRule: Rule = {
           label: 'DISCOVER',
           message: `Author: ${result.name}`,
           type: 'info',
-          name: 'authorPresent',
+          name: 'Author present',
           details: {
             sourceHtml,
             snippet: extractSnippet(sourceHtml),
@@ -51,7 +51,7 @@ export const discoverAuthorPresentRule: Rule = {
           label: 'DISCOVER',
           message: 'No author (meta or LD+JSON)',
           type: 'warn',
-          name: 'authorPresent',
+          name: 'Author present',
         }
   },
 }

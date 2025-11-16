@@ -23,7 +23,7 @@ export const trailingSlashRule: Rule = {
         label: 'URL',
         message: ok ? 'Trailing slash consistent' : 'Trailing slash inconsistency with canonical',
         type: ok ? 'ok' : 'warn',
-        name: 'trailingSlash',
+        name: 'URL trailing slash consistency',
       }
     } catch {
       return { label: 'URL', message: 'Invalid canonical URL', type: 'warn', name: 'trailingSlash' }

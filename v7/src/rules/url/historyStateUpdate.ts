@@ -16,7 +16,7 @@ export const historyStateUpdateRule: Rule = {
           ? 'History state update (SPA navigation) observed'
           : 'No SPA-only history update detected',
       type: 'info',
-      name: 'historyStateUpdate',
+      name: 'History state update detected',
     }
   },
 }

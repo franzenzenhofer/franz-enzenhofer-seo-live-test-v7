@@ -120,5 +120,45 @@ if (missingInRegistry.length > 0) {
 }
 console.log('   ✓ Inventory matches registry perfectly\n')
 
+// 11. Verify Rule.name is proper case (no camelCase)
+console.log('11. Checking Rule.name is proper case (not camelCase)...')
+const camelCasePattern = /^[a-z][a-zA-Z]*[A-Z]/
+const camelCaseRuleNames = registry.filter(r => camelCasePattern.test(r.name))
+if (camelCaseRuleNames.length > 0) {
+  console.error(`   ❌ ERROR: ${camelCaseRuleNames.length} rules have camelCase names:`)
+  camelCaseRuleNames.forEach(r => console.error(`      - ${r.id}: "${r.name}"`))
+  process.exit(1)
+}
+console.log('   ✓ All Rule.name values are proper case\n')
+
+// 12. Verify Rule.name contains no technical identifiers
+console.log('12. Checking Rule.name contains no generic/technical names...')
+const genericNames = registry.filter(r =>
+  r.name.toLowerCase() === 'googlerule' ||
+  r.name.toLowerCase() === 'rule' ||
+  r.name.trim().length === 0
+)
+if (genericNames.length > 0) {
+  console.error(`   ❌ ERROR: ${genericNames.length} rules have generic/empty names:`)
+  genericNames.forEach(r => console.error(`      - ${r.id}: "${r.name}"`))
+  process.exit(1)
+}
+console.log('   ✓ All Rule.name values are descriptive\n')
+
+// 13. Verify Rule.name starts with uppercase letter (allow technical terms)
+console.log('13. Checking Rule.name starts with uppercase letter...')
+const technicalTerms = ['robots.txt', 'rel=', 'max-image-preview']
+const lowercaseStart = registry.filter(r => {
+  if (r.name.length === 0) return true
+  if (technicalTerms.some(term => r.name.startsWith(term))) return false
+  return r.name[0] !== r.name[0].toUpperCase()
+})
+if (lowercaseStart.length > 0) {
+  console.error(`   ❌ ERROR: ${lowercaseStart.length} rules have lowercase Rule.name:`)
+  lowercaseStart.forEach(r => console.error(`      - ${r.id}: "${r.name}"`))
+  process.exit(1)
+}
+console.log('   ✓ All Rule.name values start with uppercase (or are technical terms)\n')
+
 console.log('=== ✅ ALL VERIFICATIONS PASSED ===')
 console.log(`\n100 rules properly registered and ready to execute!\n`)

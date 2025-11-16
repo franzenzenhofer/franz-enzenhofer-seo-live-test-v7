@@ -14,7 +14,7 @@ export const dnsPrefetchRule: Rule = {
       label: 'SPEED',
       message: n ? `dns-prefetch links: ${n}` : 'No dns-prefetch links',
       type: 'info',
-      name: 'dnsPrefetch',
+      name: 'rel=dns-prefetch',
       details: n
         ? {
             sourceHtml,

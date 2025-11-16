@@ -20,7 +20,7 @@ export const titleRule: Rule = {
       message: ok ? `Title tag present (${title.length} chars)` : 'No title-tag found in head.',
       type: ok ? 'ok' : 'error',
       priority: ok ? 1000 : 0,
-      name: 'title',
+      name: 'Title Present',
       details: {
         sourceHtml,
         snippet,

@@ -18,7 +18,7 @@ export const schemaEventRule: Rule = {
       label: 'SCHEMA',
       message: ok ? `Event OK · Docs: ${docs('event')}` : `Event missing fields · Docs: ${docs('event')}`,
       type: ok ? 'ok' : 'warn',
-      name: 'schemaEvent',
+      name: 'Schema Event',
       details: script
         ? {
             sourceHtml,

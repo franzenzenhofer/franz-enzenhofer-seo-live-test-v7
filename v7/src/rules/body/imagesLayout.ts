@@ -19,7 +19,7 @@ export const imagesLayoutRule: Rule = {
         label: 'BODY',
         message: `${missing.length} images missing width/height`,
         type: 'warn',
-        name: 'imagesLayout',
+        name: 'Images missing dimensions',
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),
@@ -31,7 +31,7 @@ export const imagesLayoutRule: Rule = {
       label: 'BODY',
       message: 'All images have dimensions',
       type: 'ok',
-      name: 'imagesLayout',
+      name: 'Images missing dimensions',
     }
   },
 }

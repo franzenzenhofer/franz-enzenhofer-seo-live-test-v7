@@ -16,7 +16,7 @@ export const ldjsonRule: Rule = {
           label: 'DOM',
           message: `ld+json blocks: ${n}`,
           type: 'info',
-          name: 'ldjson',
+          name: 'LD+JSON presence',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml) },
         }
       : { label: 'DOM', message: 'No ld+json', type: 'info', name: 'ldjson' }

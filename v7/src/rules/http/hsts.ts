@@ -12,14 +12,14 @@ export const hstsRule: Rule = {
         label: 'HTTP',
         message: 'Missing HSTS header',
         type: 'warn',
-        name: 'hsts',
+        name: 'Strict-Transport-Security',
         details: { httpHeaders: page.headers || {} },
       }
     return {
       label: 'HTTP',
       message: `HSTS: ${v}`,
       type: 'info',
-      name: 'hsts',
+      name: 'Strict-Transport-Security',
       details: { httpHeaders: page.headers || {} },
     }
   },

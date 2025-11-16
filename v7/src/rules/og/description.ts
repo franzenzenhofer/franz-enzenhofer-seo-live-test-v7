@@ -18,7 +18,7 @@ export const ogDescriptionRule: Rule = {
       label: 'OG',
       message: `og:description present (${c.length} chars)`,
       type: 'info',
-      name: 'ogDescription',
+      name: 'Open Graph Description',
       details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(m), ogDescription: c },
     }
   },

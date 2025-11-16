@@ -19,7 +19,7 @@ export const schemaFaqRule: Rule = {
       label: 'SCHEMA',
       message: ok ? `FAQPage OK · Docs: ${docs('faq')}` : `FAQPage invalid (questions/answers) · Docs: ${docs('faq')}`,
       type: ok ? 'ok' : 'warn',
-      name: 'schemaFaq',
+      name: 'Schema FAQPage',
       details: script
         ? {
             sourceHtml,

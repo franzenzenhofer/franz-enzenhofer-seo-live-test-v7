@@ -23,7 +23,7 @@ export const schemaOrganizationRule: Rule = {
       label: 'SCHEMA',
       message: ok ? `Org OK · Docs: ${link}` : `Org missing fields · Docs: ${link}`,
       type: ok ? 'ok' : 'warn',
-      name: 'schemaOrganization',
+      name: 'Schema Organization/LocalBusiness',
       details: script
         ? {
             sourceHtml,

@@ -17,7 +17,7 @@ export const commonMobileSetupRule: Rule = {
       label: 'HEAD',
       message: ok ? `Viewport present${touch ? ', apple-touch-icon present' : ''}` : 'Missing meta viewport',
       type: ok ? 'info' : 'warn',
-      name: 'commonMobileSetup',
+      name: 'Common mobile setup',
       details: viewportEl
         ? {
             sourceHtml,

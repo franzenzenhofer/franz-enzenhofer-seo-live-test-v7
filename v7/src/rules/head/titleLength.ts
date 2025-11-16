@@ -22,7 +22,7 @@ export const titleLengthRule: Rule = {
       label: 'HEAD',
       message: n < 10 ? 'Title too short' : n > 70 ? 'Title too long' : `Title length OK (${n})`,
       type: n < 10 || n > 70 ? 'warn' : 'ok',
-      name: 'titleLength',
+      name: 'Title Length',
       details: titleEl
         ? {
             sourceHtml,

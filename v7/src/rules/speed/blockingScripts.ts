@@ -14,7 +14,7 @@ export const blockingScriptsRule: Rule = {
       label: 'SPEED',
       message: s ? `Blocking scripts in head: ${s}` : 'No blocking head scripts',
       type: s ? 'warn' : 'ok',
-      name: 'blockingScripts',
+      name: 'Blocking scripts in head',
       details: s
         ? {
             sourceHtml,

@@ -14,7 +14,7 @@ export const unavailableAfterRule: Rule = {
       label: 'HTTP',
       message: has ? `unavailable_after set (${xr})` : 'No unavailable_after',
       type: has ? 'warn' : 'ok',
-      name: 'unavailableAfter',
+      name: 'X-Robots unavailable_after',
       details: { httpHeaders: page.headers || {} },
     }
   },

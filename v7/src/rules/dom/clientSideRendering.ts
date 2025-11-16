@@ -21,7 +21,7 @@ export const clientSideRenderingRule: Rule = {
           label: 'DOM',
           message: 'Possible client-side rendering (very low text, many scripts)',
           type: 'info',
-          name: 'clientSideRendering',
+          name: 'Client-side rendering heuristic',
           details: {
             sourceHtml,
             snippet: extractSnippet(sourceHtml),
@@ -34,7 +34,7 @@ export const clientSideRenderingRule: Rule = {
           label: 'DOM',
           message: 'Server-rendered content likely present',
           type: 'info',
-          name: 'clientSideRendering',
+          name: 'Client-side rendering heuristic',
         }
   },
 }
