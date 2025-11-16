@@ -3,7 +3,7 @@ import type { Rule } from '@/core/types'
 export const gscTopQueriesOfPageRule: Rule = {
   id: 'gsc:top-queries-of-page',
   name: 'GSC Top queries of page',
-  enabled: false,
+  enabled: true,
   what: 'gsc',
   async run(page, ctx) {
     const token = (ctx.globals as { googleApiAccessToken?: string|null }).googleApiAccessToken || null

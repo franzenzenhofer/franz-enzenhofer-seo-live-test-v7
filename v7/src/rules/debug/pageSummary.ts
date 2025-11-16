@@ -4,7 +4,7 @@ import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 export const pageSummaryRule: Rule = {
   id: 'debug:page-summary',
   name: 'Page summary (debug)',
-  enabled: false,
+  enabled: true,
   what: 'static',
   async run(page) {
     const titleEl = page.doc.querySelector('title')
