@@ -1,0 +1,28 @@
+
+Running 1 test using 1 worker
+
+[e2e] Using temporary profile
+[DEBUG] Waiting for rules to execute...
+[DEBUG] Extension ID: kdnajmbmaaaopnlippleebaookdicnac
+[DEBUG] Side panel URL: chrome-extension://kdnajmbmaaaopnlippleebaookdicnac/src/sidepanel.html
+[DEBUG] Side panel loaded, checking for results...
+[DEBUG] ✓ Header visible
+[DEBUG] Result rows found: 123
+[DEBUG] Page text length: [33m6909[39m
+[DEBUG] Results with common selectors: 0
+[DEBUG] Content analysis:
+  - Contains OK type: true
+  - Contains WARN type: false
+  - Contains INFO type: false
+[DEBUG] Chrome storage:
+  - Total keys: 4
+  - Keys: results-meta:1663578702, results:1663578702, ui:lastRun, ui:pinnedRules
+  - Has result keys: true
+
+[DEBUG] ═══════════════════════════════════════
+[DEBUG] TEST RESULT: ✅ RULES EXECUTED
+[DEBUG] ═══════════════════════════════════════
+
+  ✓  1 [chromium] › tests/e2e/rules-execution-debug.spec.ts:88:1 › DEBUG: Check if rules actually execute and produce results (9.8s)
+
+  1 passed (10.0s)
