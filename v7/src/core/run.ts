@@ -15,7 +15,18 @@ export const runAll = async (tabId: number, rules: Rule[], page: Page, ctx: Ctx)
   let enabledIndex = 0
   for (const r of rules) {
     if (!r.enabled) {
-      Logger.logDirectSend(tabId, 'rule', 'skip', { id: r.id, name: r.name, reason: 'disabled' })
+      // Create disabled result for rules disabled in settings
+      const label = (r.id.split(':')[0] || 'RULE').toUpperCase()
+      const disabledResult: Result = {
+        label,
+        message: 'Rule disabled in settings. Enable to run checks.',
+        type: 'disabled',
+        what: r.what || null,
+        ruleId: r.id,
+        priority: -3000, // Lower priority than runtime errors
+      }
+      out.push(disabledResult)
+      Logger.logDirectSend(tabId, 'rule', 'skip', { id: r.id, name: r.name, reason: 'disabled', state: 'disabled' })
       continue
     }
     enabledIndex++
