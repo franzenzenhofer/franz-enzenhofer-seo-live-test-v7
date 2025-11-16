@@ -1,6 +1,4 @@
 import { registry } from '@/rules/registry'
-import { resolveEnabledRules } from '@/rules/autoEnable'
-import { TOKEN_KEY } from '@/shared/auth'
 
 const FLAGS_KEY = 'rule-flags'
 const PIN_KEY = 'ui:pinnedRules'
@@ -14,13 +12,15 @@ const readFlags = async (): Promise<Record<string, boolean>> => {
 }
 
 export const getEnabledRules = async () => {
-  const [flags, extras] = await Promise.all([
-    readFlags(),
-    chrome.storage.local.get(['globalRuleVariables', TOKEN_KEY]),
-  ])
-  const vars = (extras['globalRuleVariables'] as Record<string, unknown>) || {}
-  const hasToken = Boolean(extras[TOKEN_KEY])
-  return resolveEnabledRules(registry, { flags, vars, hasToken })
+  const flags = await readFlags()
+  // Apply user flags to rules (all rules enabled by default)
+  return registry.map((rule) => {
+    const override = flags[rule.id]
+    if (typeof override === 'boolean') {
+      return { ...rule, enabled: override }
+    }
+    return rule
+  })
 }
 
 export const seedDefaults = async (): Promise<void> => {

@@ -10,12 +10,11 @@ type Flags = Record<string, boolean>
 type Props = {
   flags: Flags
   updateFlags: (next: Flags) => void
-  autoEnabled: (id: string) => boolean
 }
 
 const getCategory = (id: string) => id.split(':')[0] || 'other'
 
-export const RuleToggles = ({ flags, updateFlags, autoEnabled }: Props) => {
+export const RuleToggles = ({ flags, updateFlags }: Props) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set())
 
@@ -58,13 +57,12 @@ export const RuleToggles = ({ flags, updateFlags, autoEnabled }: Props) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[60vh] overflow-y-auto pr-1">
         {filteredRules.map((rule) => {
           const override = flags[rule.id]
-          const checked = typeof override === 'boolean' ? override : (autoEnabled(rule.id) || rule.enabledByDefault)
+          const checked = typeof override === 'boolean' ? override : rule.enabledByDefault
           return (
             <RuleGridItem
               key={rule.id}
               rule={rule}
               checked={checked}
-              autoEnabled={autoEnabled(rule.id)}
               onChange={(checked) => updateFlags({ ...flags, [rule.id]: checked })}
             />
           )

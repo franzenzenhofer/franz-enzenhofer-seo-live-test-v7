@@ -1,6 +1,5 @@
 import { runAll } from '../core/run'
 import { registry } from '../rules/registry'
-import { resolveEnabledRules } from '../rules/autoEnable'
 import { pageFromEvents } from '@/shared/page'
 import { JSDOM } from 'jsdom'
 
@@ -12,9 +11,7 @@ export const runAllCli = async (_rules: unknown[], ctx: Ctx) => {
   const makeDoc = (html: string) => new JSDOM(html).window.document
   const page = await pageFromEvents(ctx.events as unknown as import('@/background/pipeline/types').EventRec[], makeDoc, ()=>'about:blank')
   const globals = (ctx.globals || {}) as Globals
-  const rules = resolveEnabledRules(registry as import('@/core/types').Rule[], {
-    vars: globals.variables,
-    hasToken: Boolean(globals.googleApiAccessToken),
-  })
+  // All rules enabled by default, no auto-enable needed
+  const rules = registry as import('@/core/types').Rule[]
   return runAll(0, rules, page, { globals })
 }
