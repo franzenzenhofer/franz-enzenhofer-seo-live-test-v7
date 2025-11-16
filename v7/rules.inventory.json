@@ -122,31 +122,31 @@
   {
     "id": "gsc:directory-worldwide",
     "name": "GSC directory worldwide analytics",
-    "enabledByDefault": false,
+    "enabledByDefault": true,
     "what": "gsc"
   },
   {
     "id": "gsc:is-indexed",
     "name": "GSC is indexed (via impressions)",
-    "enabledByDefault": false,
+    "enabledByDefault": true,
     "what": "gsc"
   },
   {
     "id": "gsc:page-worldwide",
     "name": "GSC page worldwide analytics",
-    "enabledByDefault": false,
+    "enabledByDefault": true,
     "what": "gsc"
   },
   {
     "id": "gsc:top-queries-of-page",
     "name": "GSC Top queries of page",
-    "enabledByDefault": false,
+    "enabledByDefault": true,
     "what": "gsc"
   },
   {
     "id": "gsc:property-available",
     "name": "GSC webproperty available",
-    "enabledByDefault": false,
+    "enabledByDefault": true,
     "what": "gsc"
   },
   {
@@ -356,7 +356,7 @@
   {
     "id": "debug:page-summary",
     "name": "Page summary (debug)",
-    "enabledByDefault": false,
+    "enabledByDefault": true,
     "what": "static"
   },
   {
