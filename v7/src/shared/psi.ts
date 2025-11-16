@@ -22,7 +22,7 @@ export const runPSI = async (url: string, strategy: 'mobile'|'desktop', key: str
   return j
 }
 
-export const getPSIKey = (userKey: string | undefined): string => {
+export const getPSIKey = (userKey: string | null | undefined): string => {
   const trimmed = (userKey || '').trim()
   return trimmed || DEFAULT_PSI_KEY
 }
