@@ -11,7 +11,7 @@ export const ogImageRule: Rule = {
   what: 'static',
   async run(page) {
     const m = page.doc.querySelector(OG_SELECTORS.IMAGE)
-    if (!m) return { label: 'OG', message: 'Missing og:image', type: 'warn', name: 'ogImage' }
+    if (!m) return { label: 'OG', message: 'Missing og:image', type: 'warn', name: 'Open Graph Image' }
     const c = (m.getAttribute('content') || '').trim()
     const abs = isAbsoluteUrl(c)
     const sourceHtml = extractHtml(m)

@@ -10,7 +10,7 @@ export const schemaProductRule: Rule = {
   async run(page) {
     const scripts = page.doc.querySelectorAll('script[type="application/ld+json"]')
     const n = findType(parseLd(page.doc), 'product')[0]
-    if (!n) return { label: 'SCHEMA', message: 'No Product JSON‑LD', type: 'info', name: 'schemaProduct' }
+    if (!n) return { label: 'SCHEMA', message: 'No Product JSON‑LD', type: 'info', name: 'Schema Product' }
     const miss: string[] = []
     if (!get(n, 'name')) miss.push('name')
     const price = get(n, 'offers.price')

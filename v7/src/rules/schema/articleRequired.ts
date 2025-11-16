@@ -13,7 +13,7 @@ export const schemaArticleRequiredRule: Rule = {
     const nodes = parseLd(page.doc)
     const items = [...findType(nodes, 'article'), ...findType(nodes, 'newsarticle'), ...findType(nodes, 'blogposting')]
     if (!items.length)
-      return { label: 'SCHEMA', message: 'No Article JSON‑LD', type: 'info', name: 'schemaArticleRequired' }
+      return { label: 'SCHEMA', message: 'No Article JSON‑LD', type: 'info', name: 'Schema Article (required fields)' }
     const n = items[0]
     const req = ['headline']
     const altOk = !!get(n, 'datePublished') || !!get(n, 'dateModified')

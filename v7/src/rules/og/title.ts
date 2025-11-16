@@ -11,7 +11,7 @@ export const ogTitleRule: Rule = {
   run: async (page) => {
     const el = page.doc.querySelector(OG_SELECTORS.TITLE) as HTMLMetaElement|null
     if (!el || !el.content) {
-      return { label: 'HEAD', message: 'No og:title meta.', type: 'info', name: 'ogTitle' }
+      return { label: 'HEAD', message: 'No og:title meta.', type: 'info', name: 'Open Graph Title' }
     }
     const sourceHtml = extractHtml(el)
     return {

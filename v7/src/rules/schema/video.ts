@@ -10,7 +10,7 @@ export const schemaVideoRule: Rule = {
   async run(page) {
     const scripts = page.doc.querySelectorAll('script[type="application/ld+json"]')
     const n = findType(parseLd(page.doc), 'videoobject')[0]
-    if (!n) return { label: 'SCHEMA', message: 'No VideoObject JSON‑LD', type: 'info', name: 'schemaVideo' }
+    if (!n) return { label: 'SCHEMA', message: 'No VideoObject JSON‑LD', type: 'info', name: 'Schema VideoObject' }
     const ok = !!n['name'] && !!n['description'] && !!n['thumbnailUrl'] && !!n['uploadDate']
     const script = Array.from(scripts).find((s) => s.textContent?.includes('Video')) || null
     const sourceHtml = extractHtml(script)

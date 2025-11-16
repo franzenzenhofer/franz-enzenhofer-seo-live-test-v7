@@ -10,7 +10,7 @@ export const schemaRecipeRule: Rule = {
   async run(page) {
     const scripts = page.doc.querySelectorAll('script[type="application/ld+json"]')
     const n = findType(parseLd(page.doc), 'recipe')[0]
-    if (!n) return { label: 'SCHEMA', message: 'No Recipe JSON‑LD', type: 'info', name: 'schemaRecipe' }
+    if (!n) return { label: 'SCHEMA', message: 'No Recipe JSON‑LD', type: 'info', name: 'Schema Recipe' }
     const ok = !!n['name'] && !!n['image'] && (Array.isArray(n['recipeIngredient']) || Array.isArray(n['recipeInstructions']))
     const script = Array.from(scripts).find((s) => s.textContent?.includes('Recipe')) || null
     const sourceHtml = extractHtml(script)

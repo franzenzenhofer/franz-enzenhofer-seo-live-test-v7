@@ -10,9 +10,9 @@ export const ogDescriptionRule: Rule = {
   what: 'static',
   async run(page) {
     const m = page.doc.querySelector(OG_SELECTORS.DESCRIPTION)
-    if (!m) return { label: 'OG', message: 'Missing og:description', type: 'warn', name: 'ogDescription' }
+    if (!m) return { label: 'OG', message: 'Missing og:description', type: 'warn', name: 'Open Graph Description' }
     const c = m.getAttribute('content')?.trim() || ''
-    if (!c) return { label: 'OG', message: 'Empty og:description', type: 'warn', name: 'ogDescription' }
+    if (!c) return { label: 'OG', message: 'Empty og:description', type: 'warn', name: 'Open Graph Description' }
     const sourceHtml = extractHtml(m)
     return {
       label: 'OG',

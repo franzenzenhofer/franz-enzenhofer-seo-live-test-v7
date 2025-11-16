@@ -10,7 +10,7 @@ export const schemaBreadcrumbRule: Rule = {
   async run(page) {
     const scripts = page.doc.querySelectorAll('script[type="application/ld+json"]')
     const n = findType(parseLd(page.doc), 'breadcrumblist')[0]
-    if (!n) return { label: 'SCHEMA', message: 'No BreadcrumbList JSON‑LD', type: 'info', name: 'schemaBreadcrumb' }
+    if (!n) return { label: 'SCHEMA', message: 'No BreadcrumbList JSON‑LD', type: 'info', name: 'Schema BreadcrumbList' }
     const els = (n['itemListElement'] as unknown[]) || []
     const ok = els.length >= 2
     const script = Array.from(scripts).find((s) => s.textContent?.includes('BreadcrumbList')) || null

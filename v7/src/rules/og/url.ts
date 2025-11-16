@@ -10,7 +10,7 @@ export const ogUrlRule: Rule = {
   what: 'static',
   async run(page) {
     const m = page.doc.querySelector(OG_SELECTORS.URL)
-    if (!m) return { label: 'OG', message: 'Missing og:url', type: 'warn', name: 'ogUrl' }
+    if (!m) return { label: 'OG', message: 'Missing og:url', type: 'warn', name: 'Open Graph URL' }
     const c = m.getAttribute('content')?.trim() || ''
     const sourceHtml = extractHtml(m)
     return c
