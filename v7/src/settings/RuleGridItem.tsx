@@ -3,12 +3,10 @@ import type { RuleSummary } from '@/rules/inventory'
 export const RuleGridItem = ({
   rule,
   checked,
-  autoEnabled,
   onChange
 }: {
   rule: RuleSummary
   checked: boolean
-  autoEnabled: boolean
   onChange: (checked: boolean) => void
 }) => {
   return (
@@ -23,7 +21,7 @@ export const RuleGridItem = ({
           )}
         </span>
         <span className="block text-[10px] text-gray-500 mt-0.5">
-          {rule.id}{autoEnabled ? ' · auto' : ''}
+          {rule.id}
         </span>
       </span>
       <input
