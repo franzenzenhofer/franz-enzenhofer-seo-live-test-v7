@@ -77,15 +77,15 @@ if (gscRules.length !== 5) {
 gscRules.forEach(r => console.log(`   ✓ ${r.id.padEnd(25)} ${r.name} (enabled: ${r.enabled})`))
 console.log()
 
-// 8. Verify all GSC rules are disabled by default
-console.log('8. GSC rules default state:')
-const enabledGscRules = gscRules.filter(r => r.enabled)
-if (enabledGscRules.length > 0) {
-  console.error(`   ❌ ERROR: ${enabledGscRules.length} GSC rules enabled by default (should be disabled):`)
-  enabledGscRules.forEach(r => console.error(`      - ${r.id}`))
+// 8. Verify all rules are enabled by default
+console.log('8. Rule default state:')
+const disabledRules = registry.filter(r => !r.enabled)
+if (disabledRules.length > 0) {
+  console.error(`   ❌ ERROR: ${disabledRules.length} rules disabled by default (all should be enabled):`)
+  disabledRules.forEach(r => console.error(`      - ${r.id}`))
   process.exit(1)
 }
-console.log('   ✓ All GSC rules disabled by default (auto-enabled when authenticated)\n')
+console.log('   ✓ All rules enabled by default\n')
 
 // 9. Check for duplicate IDs
 console.log('9. Checking for duplicate rule IDs...')
