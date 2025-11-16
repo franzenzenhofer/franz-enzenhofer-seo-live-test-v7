@@ -4,7 +4,7 @@ import { Logger } from '@/shared/logger'
 
 const enrichResult = (res: Result, rule: Rule): Result => ({
   ...res,
-  what: res.what && res.what.length > 0 ? res.what : rule.name,
+  what: res.what && res.what.length > 0 ? res.what : rule.what,
   ruleId: res.ruleId ?? rule.id,
 })
 
