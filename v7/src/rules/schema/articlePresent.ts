@@ -12,7 +12,7 @@ export const schemaArticlePresentRule: Rule = {
     const nodes = parseLd(page.doc)
     const items = [...findType(nodes, 'article'), ...findType(nodes, 'newsarticle'), ...findType(nodes, 'blogposting')]
     if (!items.length)
-      return { label: 'SCHEMA', message: 'No Article/NewsArticle JSON‑LD', type: 'info', name: 'schemaArticlePresent' }
+      return { label: 'SCHEMA', message: 'No Article/NewsArticle JSON‑LD', type: 'info', name: 'Schema Article (presence check)' }
     const script =
       Array.from(scripts).find((s) => s.textContent?.includes('Article') || s.textContent?.includes('BlogPosting')) || null
     const sourceHtml = extractHtml(script)

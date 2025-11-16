@@ -15,7 +15,7 @@ export const unsecureInputRule: Rule = {
     }
 
     if (proto !== 'http:') {
-      return { label: 'BODY', message: 'Page not HTTP', type: 'info', name: 'unsecureInput' }
+      return { label: 'BODY', message: 'Page not HTTP', type: 'info', name: 'Unsecure input over HTTP' }
     }
 
     const pwdInputs = Array.from(page.doc.querySelectorAll('input[type="password"]'))

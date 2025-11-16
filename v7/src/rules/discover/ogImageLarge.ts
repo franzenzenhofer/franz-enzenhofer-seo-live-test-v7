@@ -16,7 +16,7 @@ export const discoverOgImageLargeRule: Rule = {
     const has = !!imgEl
 
     if (!has) {
-      return { label: 'DISCOVER', message: 'Missing og:image meta tag', type: 'warn', name: 'ogImageLarge' }
+      return { label: 'DISCOVER', message: 'Missing og:image meta tag', type: 'warn', name: 'Large OG image (metadata)' }
     }
 
     const ok = w >= 1200 || h >= 1200

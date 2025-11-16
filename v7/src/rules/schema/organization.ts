@@ -12,7 +12,7 @@ export const schemaOrganizationRule: Rule = {
     const nodes = parseLd(page.doc)
     const n = findType(nodes, 'organization')[0] || findType(nodes, 'localbusiness')[0]
     if (!n)
-      return { label: 'SCHEMA', message: 'No Organization/LocalBusiness JSON‑LD', type: 'info', name: 'schemaOrganization' }
+      return { label: 'SCHEMA', message: 'No Organization/LocalBusiness JSON‑LD', type: 'info', name: 'Schema Organization/LocalBusiness' }
     const ok = !!n['name'] && (!!n['logo'] || !!n['image']) && !!n['url']
     const link =
       n['@type'] && String(n['@type']).toLowerCase().includes('localbusiness') ? docs('localbusiness') : docs('organization')

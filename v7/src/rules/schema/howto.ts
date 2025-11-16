@@ -10,7 +10,7 @@ export const schemaHowToRule: Rule = {
   async run(page) {
     const scripts = page.doc.querySelectorAll('script[type="application/ld+json"]')
     const n = findType(parseLd(page.doc), 'howto')[0]
-    if (!n) return { label: 'SCHEMA', message: 'No HowTo JSON‑LD', type: 'info', name: 'schemaHowTo' }
+    if (!n) return { label: 'SCHEMA', message: 'No HowTo JSON‑LD', type: 'info', name: 'Schema HowTo' }
     const ok = !!n['name'] && Array.isArray(n['step'])
     const script = Array.from(scripts).find((s) => s.textContent?.includes('HowTo')) || null
     const sourceHtml = extractHtml(script)

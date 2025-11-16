@@ -11,11 +11,11 @@ export const robotsComplexityRule: Rule = {
     try {
       origin = new URL(page.url).origin
     } catch {
-      return { label: 'ROBOTS', message: 'Invalid URL', type: 'info', name: 'robotsComplexity' }
+      return { label: 'ROBOTS', message: 'Invalid URL', type: 'info', name: 'robots.txt complexity' }
     }
     const txt = await fetchTextOnce(`${origin}/robots.txt`)
     if (!txt)
-      return { label: 'ROBOTS', message: 'robots.txt not reachable', type: 'info', name: 'robotsComplexity' }
+      return { label: 'ROBOTS', message: 'robots.txt not reachable', type: 'info', name: 'robots.txt complexity' }
     const lines = txt.split(/\r?\n/)
     const dis = lines.filter((l) => /^\s*disallow\s*:/i.test(l)).length
     const al = lines.filter((l) => /^\s*allow\s*:/i.test(l)).length

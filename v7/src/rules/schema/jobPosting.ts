@@ -10,7 +10,7 @@ export const schemaJobPostingRule: Rule = {
   async run(page) {
     const scripts = page.doc.querySelectorAll('script[type="application/ld+json"]')
     const n = findType(parseLd(page.doc), 'jobposting')[0]
-    if (!n) return { label: 'SCHEMA', message: 'No JobPosting JSON‑LD', type: 'info', name: 'schemaJobPosting' }
+    if (!n) return { label: 'SCHEMA', message: 'No JobPosting JSON‑LD', type: 'info', name: 'Schema JobPosting' }
     const ok = !!n['title'] && !!n['datePosted'] && !!(n as Record<string, unknown>)['hiringOrganization']
     const script = Array.from(scripts).find((s) => s.textContent?.includes('JobPosting')) || null
     const sourceHtml = extractHtml(script)

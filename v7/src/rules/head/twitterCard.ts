@@ -22,7 +22,7 @@ export const twitterCardRule: Rule = {
         },
       }
     }
-    return { label: 'HEAD', message: 'No twitter:card', type: 'info', name: 'twitterCard' }
+    return { label: 'HEAD', message: 'No twitter:card', type: 'info', name: 'Twitter Card' }
   },
 }
 

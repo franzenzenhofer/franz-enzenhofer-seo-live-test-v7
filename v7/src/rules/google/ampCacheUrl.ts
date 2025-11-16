@@ -25,7 +25,7 @@ export const ampCacheUrlRule: Rule = {
   what: 'static',
   async run(page) {
     const amp = findAmp(page.doc)
-    if (!amp.href) return { label: 'HEAD', message: 'No amphtml link', type: 'info', name: 'ampCacheUrl' }
+    if (!amp.href) return { label: 'HEAD', message: 'No amphtml link', type: 'info', name: 'AMP Cache URL' }
 
     const url = ampCache(amp.href)
     const sourceHtml = extractHtml(amp.element)
