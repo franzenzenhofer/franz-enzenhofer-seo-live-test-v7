@@ -22,7 +22,9 @@ export const resultSortOrder = {
   runtime_error: 1,
   warn: 2,
   info: 3,
-  ok: 4
+  ok: 4,
+  pending: 5,
+  disabled: 6
 } as const
 
 export const sortResultsByPriority = <T extends { type: string }>(results: T[]): T[] => {
