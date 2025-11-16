@@ -10,6 +10,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const dist = path.resolve(new URL('../../dist', import.meta.url).pathname)
+const artifactsDir = path.join(__dirname, '../../test-results')
 
 type ExtensionContext = { context: BrowserContext; userDataDir: string; cleanup: () => void }
 
@@ -198,6 +199,14 @@ test('e2e with comprehensive log validation', async () => {
   const hasRows = await side.locator('.border.rounded').count()
   expect(hasRows).toBeGreaterThan(0)
 
+  // Ensure no pending "Running..." cards remain — verifies results actually update
+  const runningLocator = side.locator('text=Running...')
+  await expect(runningLocator).toHaveCount(0, { timeout: 10_000 })
+
+  fs.mkdirSync(artifactsDir, { recursive: true })
+  const screenshotPath = path.join(artifactsDir, 'sidepanel.png')
+  await side.screenshot({ path: screenshotPath, fullPage: true })
+
   // Write comprehensive log report
   const logReport = {
     summary: {
@@ -206,17 +215,18 @@ test('e2e with comprehensive log validation', async () => {
       warnings: warnings.length,
       testPassed: true,
       timestamp: new Date().toISOString(),
+      screenshotPath,
     },
-    logs: logs.slice(-100), // Last 100 logs
+    logs,
     errors,
     warnings,
   }
 
-  const logFilePath = path.join(__dirname, '../../test-results/e2e-log-report.json')
+  const logFilePath = path.join(artifactsDir, 'e2e-log-report.json')
   try {
-    fs.mkdirSync(path.dirname(logFilePath), { recursive: true })
     fs.writeFileSync(logFilePath, JSON.stringify(logReport, null, 2))
     console.log(`✅ Log file written successfully to: ${logFilePath}`)
+    console.log(`🖼️ Sidepanel screenshot captured at: ${screenshotPath}`)
   } catch (error) {
     console.error(`❌ Failed to write log file: ${error}`)
     throw error
