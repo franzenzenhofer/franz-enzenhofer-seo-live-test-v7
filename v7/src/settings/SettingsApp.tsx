@@ -7,6 +7,8 @@ import { ApiKeys } from './ApiKeys'
 import { RuleToggles } from './RuleToggles'
 import { FavoritesManagement } from './FavoritesManagement'
 import { useAuthHandlers } from './useAuthHandlers'
+import { ImportExport } from './ImportExport'
+import { StorageDebug } from './StorageDebug'
 
 import { TOKEN_KEY, getStoredToken } from '@/shared/auth'
 import { isAutoEnabled } from '@/rules/autoEnable'
@@ -60,6 +62,8 @@ export const SettingsApp = () => {
           <GoogleAccount hasToken={hasToken} signIn={signIn} signOut={signOut} />
           <ApiKeys vars={vars} updateVar={updateVar} />
           <RuleToggles flags={flags} updateFlags={updateFlags} autoEnabled={autoEnabled} />
+          <ImportExport />
+          <StorageDebug />
         </div>
       </div>
 
