@@ -68,7 +68,7 @@ npm run -w v7 cli -- file ./page.html
 Token-dependent integrations
 ----------------------------
 
-- Google Search Console and PageSpeed Insights rules are disabled by default. They surface real results only when tokens/keys are present in Settings (extension) or env vars (CLI). Without credentials they emit `info` messages (“No Google token”) instead of fake data.
+- All rules are enabled by default. PageSpeed Insights rules use a built-in default API key but can be overridden. Google Search Console rules return `runtime_error` when not authenticated. Without credentials they show clear error messages instead of fake data.
 - Mobile Friendly Test / PSI rules pull live data from Google APIs and cache responses for five minutes (`src/shared/psi.ts`). There is no offline/demo mode.
 - Rules that need Chrome-only data (e.g., SPA history updates, blocked resources) clearly state when that data is unavailable in CLI mode rather than simulating it.
 - `gsc_site_url` is required for Search Console rules (`gsc:is-indexed`, `gsc:top-queries-of-page`, `gsc:page-worldwide`, `gsc:directory-worldwide`). Provide the exact property ID (`https://example.com/` or `sc-domain:example.com`) so results stay honest.
@@ -114,7 +114,6 @@ TypeScript Rule Definitions (src/rules/**/*.ts)
 - `src/rules/registry.ts` - Central registry importing all 100 rules
 - `src/rules/**/*.ts` - Individual rule implementations (100 files organized by category)
 - `src/rules/inventory.ts` - Derives summary from registry for UI/export
-- `src/rules/autoEnable.ts` - Auto-enable configuration for credential-dependent rules
 
 **Generated Artifacts (DO NOT EDIT MANUALLY):**
 - `rules.inventory.json` - **AUTO-GENERATED** JSON export of all rules for external consumption
@@ -233,10 +232,10 @@ if (!apiKey) {
 }
 ```
 
-**Auto-Enable Configuration** (`src/rules/autoEnable.ts`):
-- PSI rules (3): Auto-enabled when `google_page_speed_insights_key` is set
-- GSC rules (5): Auto-enabled when Google OAuth token + `gsc_site_url` are set
-- Rules disabled by default will appear in settings with "auto" indicator when credentials present
+**PSI Default Key**:
+- PSI rules (3) use a built-in default API key when user hasn't configured their own
+- Users can override with custom key in settings (`google_page_speed_insights_key`)
+- GSC rules (5) require Google OAuth token + `gsc_site_url` configuration
 
 ### Verification
 
@@ -253,7 +252,7 @@ npx tsx scripts/verify-all-rules.ts
 - ✓ No duplicate rule IDs
 - ✓ Inventory matches registry perfectly
 - ✓ PSI rules (3/3) present with config checks
-- ✓ GSC rules (5/5) present, disabled by default, with config checks
+- ✓ GSC rules (5/5) present, enabled by default, with config checks
 
 ### Documentation
 
@@ -261,5 +260,5 @@ npx tsx scripts/verify-all-rules.ts
 - Complete list of all 100 rules organized by category
 - Detailed breakdown by test type (static/http/psi/gsc)
 - Error type definitions and examples
-- Auto-enable configuration details
+- Result type states: ok, warn, error, runtime_error, info, pending, disabled
 - Quality assurance procedures
