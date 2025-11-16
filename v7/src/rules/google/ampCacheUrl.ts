@@ -35,14 +35,14 @@ export const ampCacheUrlRule: Rule = {
           label: 'HEAD',
           message: `AMP Cache: ${url}`,
           type: 'info',
-          name: 'ampCacheUrl',
+          name: 'AMP Cache URL',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(amp.element) },
         }
       : {
           label: 'HEAD',
           message: 'AMP Cache not derivable',
           type: 'info',
-          name: 'ampCacheUrl',
+          name: 'AMP Cache URL',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(amp.element) },
         }
   },

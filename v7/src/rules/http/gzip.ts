@@ -15,14 +15,14 @@ export const gzipRule: Rule = {
         label: 'HTTP',
         message: 'No content-encoding header',
         type: 'warn',
-        name: 'gzip',
+        name: 'Gzip/Brotli',
         details: { httpHeaders: page.headers || {} },
       }
     return {
       label: 'HTTP',
       message: ok ? `Compressed (${e})` : `Not compressed (${e})`,
       type: ok ? 'ok' : 'warn',
-      name: 'gzip',
+      name: 'Gzip/Brotli',
       details: { httpHeaders: page.headers || {} },
     }
   },

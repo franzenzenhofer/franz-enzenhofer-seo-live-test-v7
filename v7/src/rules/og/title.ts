@@ -18,7 +18,7 @@ export const ogTitleRule: Rule = {
       label: 'HEAD',
       message: `og:title present (${el.content.length} chars)`,
       type: 'info',
-      name: 'ogTitle',
+      name: 'Open Graph Title',
       details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), ogTitle: el.content },
     }
   },

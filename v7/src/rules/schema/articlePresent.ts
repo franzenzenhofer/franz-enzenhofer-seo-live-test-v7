@@ -20,7 +20,7 @@ export const schemaArticlePresentRule: Rule = {
       label: 'SCHEMA',
       message: `Article JSON‑LD found · Docs: ${docs('article')}`,
       type: 'ok',
-      name: 'schemaArticlePresent',
+      name: 'Schema Article present',
       details: script
         ? {
             sourceHtml,

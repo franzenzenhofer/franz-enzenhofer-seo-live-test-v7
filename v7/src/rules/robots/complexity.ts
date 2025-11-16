@@ -24,7 +24,7 @@ export const robotsComplexityRule: Rule = {
       label: 'ROBOTS',
       message: `Rules: Disallow ${dis}, Allow ${al}, Sitemaps ${sa}`,
       type: 'info',
-      name: 'robotsComplexity',
+      name: 'robots.txt complexity',
       details: { robotsTxt: txt },
     }
   },

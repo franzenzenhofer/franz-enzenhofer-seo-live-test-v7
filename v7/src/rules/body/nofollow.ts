@@ -15,7 +15,7 @@ export const nofollowRule: Rule = {
         label: 'BODY',
         message: `${a.length} nofollow links`,
         type: 'info',
-        name: 'nofollow',
+        name: 'Nofollow Links',
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),
@@ -27,7 +27,7 @@ export const nofollowRule: Rule = {
       label: 'BODY',
       message: 'No rel=nofollow links',
       type: 'ok',
-      name: 'nofollow',
+      name: 'Nofollow Links',
     }
   },
 }

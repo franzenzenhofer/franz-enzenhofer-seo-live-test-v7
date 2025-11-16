@@ -17,7 +17,7 @@ export const nodeDepthRule: Rule = {
       label: 'DOM',
       message: `Max depth: ${d}`,
       type: 'info',
-      name: 'nodeDepth',
+      name: 'DOM node depth',
       details: { maxDepth: d },
     }
   },

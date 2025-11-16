@@ -18,7 +18,7 @@ export const schemaVideoRule: Rule = {
       label: 'SCHEMA',
       message: ok ? `VideoObject OK · Docs: ${docs('video')}` : `VideoObject missing fields · Docs: ${docs('video')}`,
       type: ok ? 'ok' : 'warn',
-      name: 'schemaVideo',
+      name: 'Schema VideoObject',
       details: script
         ? {
             sourceHtml,

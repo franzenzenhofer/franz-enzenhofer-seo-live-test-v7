@@ -14,7 +14,7 @@ export const linkPreloadRule: Rule = {
       label: 'SPEED',
       message: n ? `preload links: ${n}` : 'No preload links',
       type: 'info',
-      name: 'linkPreload',
+      name: 'rel=preload links',
       details: n
         ? {
             sourceHtml,

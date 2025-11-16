@@ -15,7 +15,7 @@ export const metaDescriptionRule: Rule = {
         message: 'No meta description found.',
         type: 'error',
         priority: 0,
-        name: 'metaDescription',
+        name: 'Meta Description',
       }
     }
 
@@ -26,7 +26,7 @@ export const metaDescriptionRule: Rule = {
         message: 'Multiple meta description found.',
         type: 'error',
         priority: 0,
-        name: 'metaDescription',
+        name: 'Meta Description',
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),
@@ -43,7 +43,7 @@ export const metaDescriptionRule: Rule = {
       message: `Meta description present (${content.length} chars)`,
       type: 'info',
       priority: 760,
-      name: 'metaDescription',
+      name: 'Meta Description',
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),

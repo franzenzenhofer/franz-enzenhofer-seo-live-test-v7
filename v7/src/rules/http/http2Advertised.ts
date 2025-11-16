@@ -11,7 +11,7 @@ export const http2AdvertisedRule: Rule = {
       label: 'HTTP',
       message: /\bh2\b|h2=/.test(alt) ? 'Alt-Svc advertises HTTP/2' : 'HTTP/2 not advertised',
       type: 'info',
-      name: 'http2Advertised',
+      name: 'HTTP/2 Advertised (Alt-Svc)',
       details: { httpHeaders: page.headers || {} },
     }
   },

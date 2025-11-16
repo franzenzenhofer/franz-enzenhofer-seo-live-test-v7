@@ -23,7 +23,7 @@ export const linkedImagesAltNoTextRule: Rule = {
         label: 'A11Y',
         message: `${problematic.length} linked images without alt and text`,
         type: 'warn',
-        name: 'linkedImagesAltNoText',
+        name: 'Linked images without alt and text',
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),
@@ -35,7 +35,7 @@ export const linkedImagesAltNoTextRule: Rule = {
       label: 'A11Y',
       message: 'Linked images have alt or text',
       type: 'ok',
-      name: 'linkedImagesAltNoText',
+      name: 'Linked images without alt and text',
     }
   },
 }

@@ -34,7 +34,7 @@ export const internalLinksRule: Rule = {
       label: 'BODY',
       message: `Links: internal ${internalLinks.length}, external ${externalLinks.length}`,
       type: 'info',
-      name: 'internalLinks',
+      name: 'Internal links count',
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),

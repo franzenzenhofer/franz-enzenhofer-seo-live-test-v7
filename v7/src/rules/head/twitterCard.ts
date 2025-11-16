@@ -14,7 +14,7 @@ export const twitterCardRule: Rule = {
         label: 'HEAD',
         message: `twitter:card=${m.getAttribute('content') || ''}`,
         type: 'info',
-        name: 'twitterCard',
+        name: 'Twitter Card',
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),

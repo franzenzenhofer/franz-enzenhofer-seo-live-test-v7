@@ -14,7 +14,7 @@ export const preconnectRule: Rule = {
       label: 'SPEED',
       message: n ? `preconnect links: ${n}` : 'No preconnect links',
       type: 'info',
-      name: 'preconnect',
+      name: 'rel=preconnect',
       details: n
         ? {
             sourceHtml,

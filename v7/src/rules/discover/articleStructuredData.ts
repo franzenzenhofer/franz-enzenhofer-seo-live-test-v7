@@ -37,14 +37,14 @@ export const discoverArticleStructuredDataRule: Rule = {
           label: 'DISCOVER',
           message: 'Article/NewsArticle structured data present',
           type: 'ok',
-          name: 'articleStructuredData',
+          name: 'Article structured data',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml) },
         }
       : {
           label: 'DISCOVER',
           message: 'No Article structured data',
           type: 'warn',
-          name: 'articleStructuredData',
+          name: 'Article structured data',
         }
   },
 }

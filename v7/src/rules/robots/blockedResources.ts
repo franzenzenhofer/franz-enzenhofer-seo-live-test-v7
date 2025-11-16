@@ -15,7 +15,7 @@ export const robotsBlockedResourcesRule: Rule = {
         label: 'ROBOTS',
         message: 'No resource requests captured',
         type: 'info',
-        name: 'robotsBlockedResources',
+        name: 'robots.txt blocked resources',
       }
     const base = new URL(page.url)
     const r = (await fetch(`${base.origin}/robots.txt`).catch(() => null)) as Response | null
@@ -24,7 +24,7 @@ export const robotsBlockedResourcesRule: Rule = {
         label: 'ROBOTS',
         message: 'robots.txt not reachable for blocked check',
         type: 'info',
-        name: 'robotsBlockedResources',
+        name: 'robots.txt blocked resources',
       }
     const txt = await r.text()
     const ua = 'Googlebot'
@@ -40,7 +40,7 @@ export const robotsBlockedResourcesRule: Rule = {
       label: 'ROBOTS',
       message: blocked ? `${blocked} resources disallowed by robots.txt` : 'No blocked resources',
       type: blocked ? 'warn' : 'ok',
-      name: 'robotsBlockedResources',
+      name: 'robots.txt blocked resources',
       details: { robotsTxt: txt },
     }
   },

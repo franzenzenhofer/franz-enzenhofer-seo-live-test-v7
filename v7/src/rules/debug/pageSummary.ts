@@ -17,7 +17,7 @@ export const pageSummaryRule: Rule = {
       label: 'DEBUG',
       message: `Title: ${t} · headers: ${l} · resources: ${res}`,
       type: 'info',
-      name: 'pageSummary',
+      name: 'Page summary (debug)',
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),

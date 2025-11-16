@@ -19,7 +19,7 @@ export const imagesLazyRule: Rule = {
         label: 'BODY',
         message: `${noLoading.length} images without loading attribute`,
         type: 'info',
-        name: 'imagesLazy',
+        name: 'Images lazy-loading',
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),
@@ -31,7 +31,7 @@ export const imagesLazyRule: Rule = {
       label: 'BODY',
       message: 'Images have loading attribute',
       type: 'ok',
-      name: 'imagesLazy',
+      name: 'Images lazy-loading',
     }
   },
 }

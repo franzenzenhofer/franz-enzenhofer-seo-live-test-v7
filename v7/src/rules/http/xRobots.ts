@@ -11,7 +11,7 @@ export const xRobotsRule: Rule = {
       label: 'HTTP',
       message: v ? `X-Robots-Tag: ${v}` : 'No X-Robots-Tag',
       type: 'info',
-      name: 'xRobots',
+      name: 'X-Robots-Tag',
       details: { httpHeaders: page.headers || {} },
     }
   },

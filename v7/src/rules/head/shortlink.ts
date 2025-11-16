@@ -14,7 +14,7 @@ export const shortlinkRule: Rule = {
         label: 'HEAD',
         message: `shortlink: ${l.getAttribute('href') || ''}`,
         type: 'info',
-        name: 'shortlink',
+        name: 'Shortlink Header',
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),

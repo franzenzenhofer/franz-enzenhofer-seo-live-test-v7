@@ -32,7 +32,7 @@ export const schemaArticleRequiredRule: Rule = {
         ? `Article missing: ${miss.join(', ')} · Docs: ${docs('article')}`
         : `Article required OK · Docs: ${docs('article')}`,
       type: miss.length ? 'warn' : 'ok',
-      name: 'schemaArticleRequired',
+      name: 'Schema Article required fields',
       details: script
         ? {
             sourceHtml,

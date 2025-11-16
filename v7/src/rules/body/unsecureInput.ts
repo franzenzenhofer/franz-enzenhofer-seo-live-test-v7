@@ -25,7 +25,7 @@ export const unsecureInputRule: Rule = {
         label: 'BODY',
         message: 'Password input over HTTP',
         type: 'warn',
-        name: 'unsecureInput',
+        name: 'Unsecure input over HTTP',
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),
@@ -37,7 +37,7 @@ export const unsecureInputRule: Rule = {
       label: 'BODY',
       message: 'No password inputs over HTTP',
       type: 'ok',
-      name: 'unsecureInput',
+      name: 'Unsecure input over HTTP',
     }
   },
 }

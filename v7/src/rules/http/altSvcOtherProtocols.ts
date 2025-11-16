@@ -15,7 +15,7 @@ export const altSvcOtherProtocolsRule: Rule = {
       label: 'HTTP',
       message: hasAlt && other ? `Alt-Svc other protocols: ${alt}` : 'No other Alt-Svc protocols',
       type: 'info',
-      name: 'altSvcOtherProtocols',
+      name: 'Alt-Svc other protocols',
       details: { httpHeaders: page.headers || {} },
     }
   },

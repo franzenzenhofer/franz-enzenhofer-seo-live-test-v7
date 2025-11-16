@@ -14,7 +14,7 @@ export const securityHeadersRule: Rule = {
       label: 'HTTP',
       message: missing.length ? `Missing security headers: ${missing.join(', ')}` : 'Security headers present',
       type: 'info',
-      name: 'securityHeaders',
+      name: 'Security headers presence',
       details: { httpHeaders: h },
     }
   },

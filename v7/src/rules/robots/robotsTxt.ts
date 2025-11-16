@@ -30,7 +30,7 @@ export const robotsTxtRule: Rule = {
           label: 'ROBOTS',
           message: `robots.txt not reachable (${r.status})`,
           type: 'warn',
-          name: 'robotsTxt',
+          name: 'robots.txt Exists',
         }
       const body = await r.text()
       const hasSitemap = /\n\s*sitemap\s*:/i.test(`\n${body}`)
@@ -38,7 +38,7 @@ export const robotsTxtRule: Rule = {
         label: 'ROBOTS',
         message: hasSitemap ? 'robots.txt with Sitemap' : 'robots.txt present',
         type: 'info',
-        name: 'robotsTxt',
+        name: 'robots.txt Exists',
         details: { robotsTxt: body },
       }
     } catch (e) {

@@ -16,14 +16,14 @@ export const discoverPrimaryLanguageRule: Rule = {
           label: 'DISCOVER',
           message: `html[lang] set to '${lang}'`,
           type: 'info',
-          name: 'primaryLanguage',
+          name: 'Primary language set',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), language: lang },
         }
       : {
           label: 'DISCOVER',
           message: 'Missing lang attribute on <html> tag',
           type: 'warn',
-          name: 'primaryLanguage',
+          name: 'Primary language set',
         }
   },
 }

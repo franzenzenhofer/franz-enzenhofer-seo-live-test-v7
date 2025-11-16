@@ -16,7 +16,7 @@ export const robotsMetaRule: Rule = {
         message: 'No robots meta tag.',
         type: 'info',
         priority: 610,
-        name: 'robotsMeta',
+        name: 'Robots Meta',
       }
     }
     const tokens = parse(el.content)
@@ -29,7 +29,7 @@ export const robotsMetaRule: Rule = {
       message: msg,
       type: t,
       priority: 610,
-      name: 'robotsMeta',
+      name: 'Robots Meta',
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),

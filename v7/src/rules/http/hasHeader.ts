@@ -15,7 +15,7 @@ export const hasHeaderRule: Rule = {
         label: 'HTTP',
         message: 'No header configured (set variables.http_has_header)',
         type: 'info',
-        name: 'hasHeader',
+        name: 'HTTP has header (configurable)',
         details: { httpHeaders: page.headers || {} },
       }
     const keys = raw.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
@@ -24,7 +24,7 @@ export const hasHeaderRule: Rule = {
       label: 'HTTP',
       message: miss.length ? `Missing headers: ${miss.join(', ')}` : `All headers present: ${keys.join(', ')}`,
       type: miss.length ? 'warn' : 'ok',
-      name: 'hasHeader',
+      name: 'HTTP has header (configurable)',
       details: { httpHeaders: page.headers || {} },
     }
   },

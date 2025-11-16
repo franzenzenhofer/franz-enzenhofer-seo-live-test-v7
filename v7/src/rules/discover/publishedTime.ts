@@ -46,7 +46,7 @@ export const discoverPublishedTimeRule: Rule = {
           label: 'DISCOVER',
           message: `Published: ${result.value}`,
           type: 'info',
-          name: 'publishedTime',
+          name: 'Published time',
           details: {
             sourceHtml,
             snippet: extractSnippet(sourceHtml),
@@ -57,7 +57,7 @@ export const discoverPublishedTimeRule: Rule = {
           label: 'DISCOVER',
           message: 'No published time (meta or LD+JSON)',
           type: 'warn',
-          name: 'publishedTime',
+          name: 'Published time',
         }
   },
 }

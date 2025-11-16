@@ -18,7 +18,7 @@ export const parameterizedLinksRule: Rule = {
       label: 'BODY',
       message: `Links with parameters: ${paramLinks.length}`,
       type: 'info',
-      name: 'parameterizedLinks',
+      name: 'Links with query params',
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),

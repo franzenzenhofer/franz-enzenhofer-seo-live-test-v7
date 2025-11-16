@@ -18,7 +18,7 @@ export const nodeCountRule: Rule = {
       label: 'DOM',
       message: `Node count: ${n}`,
       type: 'info',
-      name: 'nodeCount',
+      name: 'DOM node count',
       details: { nodeCount: n },
     }
   },

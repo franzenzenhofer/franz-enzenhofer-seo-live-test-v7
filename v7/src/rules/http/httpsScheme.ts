@@ -12,7 +12,7 @@ export const httpsSchemeRule: Rule = {
           label: 'HTTP',
           message: 'HTTPS in use',
           type: 'ok',
-          name: 'httpsScheme',
+          name: 'HTTPS Scheme',
           details: { httpHeaders: page.headers || {} },
         }
     } catch {
@@ -22,7 +22,7 @@ export const httpsSchemeRule: Rule = {
       label: 'HTTP',
       message: 'Not using HTTPS',
       type: 'warn',
-      name: 'httpsScheme',
+      name: 'HTTPS Scheme',
       details: { httpHeaders: page.headers || {} },
     }
   },

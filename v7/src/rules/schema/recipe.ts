@@ -18,7 +18,7 @@ export const schemaRecipeRule: Rule = {
       label: 'SCHEMA',
       message: ok ? `Recipe OK · Docs: ${docs('recipe')}` : `Recipe missing fields · Docs: ${docs('recipe')}`,
       type: ok ? 'ok' : 'warn',
-      name: 'schemaRecipe',
+      name: 'Schema Recipe',
       details: script
         ? {
             sourceHtml,

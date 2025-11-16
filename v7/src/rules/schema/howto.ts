@@ -18,7 +18,7 @@ export const schemaHowToRule: Rule = {
       label: 'SCHEMA',
       message: ok ? `HowTo OK · Docs: ${docs('howto')}` : `HowTo missing name/step · Docs: ${docs('howto')}`,
       type: ok ? 'ok' : 'warn',
-      name: 'schemaHowTo',
+      name: 'Schema HowTo',
       details: script
         ? {
             sourceHtml,

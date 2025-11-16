@@ -15,7 +15,7 @@ export const h1Rule: Rule = {
         label: 'BODY',
         message: 'No <h1> found',
         type: 'warn',
-        name: 'h1',
+        name: 'H1 Present',
       }
     }
 
@@ -27,7 +27,7 @@ export const h1Rule: Rule = {
         label: 'BODY',
         message: `Multiple <h1> found (${count})`,
         type: 'warn',
-        name: 'h1',
+        name: 'H1 Present',
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),
@@ -39,7 +39,7 @@ export const h1Rule: Rule = {
       label: 'BODY',
       message: '<h1> OK',
       type: 'ok',
-      name: 'h1',
+      name: 'H1 Present',
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),

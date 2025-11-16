@@ -24,7 +24,7 @@ export const discoverIndexableRule: Rule = {
           label: 'DISCOVER',
           message: 'Noindex detected',
           type: 'warn',
-          name: 'indexable',
+          name: 'Indexable',
           details: {
             sourceHtml,
             snippet: extractSnippet(sourceHtml),
@@ -36,7 +36,7 @@ export const discoverIndexableRule: Rule = {
           label: 'DISCOVER',
           message: 'Indexable',
           type: 'ok',
-          name: 'indexable',
+          name: 'Indexable',
         }
   },
 }

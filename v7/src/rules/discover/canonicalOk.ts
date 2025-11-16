@@ -24,14 +24,14 @@ export const discoverCanonicalOkRule: Rule = {
             label: 'DISCOVER',
             message: 'Canonical link present (absolute URL)',
             type: 'ok',
-            name: 'canonicalOk',
+            name: 'Canonical present + absolute',
             details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), canonicalUrl: abs },
           }
         : {
             label: 'DISCOVER',
             message: 'Canonical URL not absolute (relative)',
             type: 'warn',
-            name: 'canonicalOk',
+            name: 'Canonical present + absolute',
             details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), canonicalUrl: href },
           }
     } catch {
@@ -39,7 +39,7 @@ export const discoverCanonicalOkRule: Rule = {
         label: 'DISCOVER',
         message: 'Invalid canonical URL',
         type: 'warn',
-        name: 'canonicalOk',
+        name: 'Canonical present + absolute',
         details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el) },
       }
     }

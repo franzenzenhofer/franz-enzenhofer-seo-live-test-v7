@@ -16,14 +16,14 @@ export const discoverTwitterLargeCardRule: Rule = {
           label: 'DISCOVER',
           message: 'twitter:card=summary_large_image',
           type: 'ok',
-          name: 'twitterLargeCard',
+          name: 'Twitter large card',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el) },
         }
       : {
           label: 'DISCOVER',
           message: 'twitter:card not summary_large_image',
           type: 'info',
-          name: 'twitterLargeCard',
+          name: 'Twitter large card',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el) },
         }
   },

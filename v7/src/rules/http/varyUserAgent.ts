@@ -13,7 +13,7 @@ export const varyUserAgentRule: Rule = {
         ? 'Vary includes User-Agent'
         : 'Vary does not include User-Agent',
       type: 'info',
-      name: 'varyUserAgent',
+      name: 'Vary: User-Agent',
       details: { httpHeaders: page.headers || {} },
     }
   },

@@ -20,7 +20,7 @@ export const googlebotUrlCheckRule: Rule = {
         label: 'ROBOTS',
         message: 'robots.txt not reachable',
         type: 'info',
-        name: 'googlebotUrlCheck',
+        name: 'Googlebot URL allowed',
       }
     const res = parse(txt, page.url, 'Googlebot') as Record<string, unknown>
     const allowed = Boolean(res['allowed'])
@@ -28,7 +28,7 @@ export const googlebotUrlCheckRule: Rule = {
       label: 'ROBOTS',
       message: allowed ? 'Googlebot is allowed' : 'Googlebot is disallowed',
       type: allowed ? 'ok' : 'warn',
-      name: 'googlebotUrlCheck',
+      name: 'Googlebot URL allowed',
       details: { robotsTxt: txt },
     }
   },

@@ -14,8 +14,8 @@ export const ogUrlRule: Rule = {
     const c = m.getAttribute('content')?.trim() || ''
     const sourceHtml = extractHtml(m)
     return c
-      ? { label: 'OG', message: 'og:url present', type: 'info', name: 'ogUrl', details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(m), ogUrl: c } }
-      : { label: 'OG', message: 'Empty og:url', type: 'warn', name: 'ogUrl', details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(m) } }
+      ? { label: 'OG', message: 'og:url present', type: 'info', name: 'Open Graph URL', details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(m), ogUrl: c } }
+      : { label: 'OG', message: 'Empty og:url', type: 'warn', name: 'Open Graph URL', details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(m) } }
   },
 }
 
