@@ -5,6 +5,7 @@ import type { RuleResult } from './types'
 import { log } from '@/shared/logs'
 import { writeRunMeta } from '@/shared/runMeta'
 import { getActiveRunId, isActiveRun } from '@/shared/activeRun'
+import { sanitizeForLogging } from '@/shared/logSanitizer'
 
 const k = (tabId: number) => `results:${tabId}`
 
@@ -56,7 +57,7 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
       (chunk) => chunkSync.append(Array.isArray(chunk) ? (chunk as RuleResult[]) : []),
     )
     for (let i = 0; i < res.length; i++) {
-      await log(tabId, `runner:result ${i + 1}/${res.length} payload=${JSON.stringify(res[i])}`)
+      await log(tabId, `runner:result ${i + 1}/${res.length} payload=${JSON.stringify(sanitizeForLogging(res[i]))}`)
     }
     await log(tabId, `runner:offscreen results=${res.length}`)
   } catch (e: unknown) {
