@@ -213,8 +213,14 @@ test('e2e with comprehensive log validation', async () => {
   }
 
   const logFilePath = path.join(__dirname, '../../test-results/e2e-log-report.json')
-  fs.mkdirSync(path.dirname(logFilePath), { recursive: true })
-  fs.writeFileSync(logFilePath, JSON.stringify(logReport, null, 2))
+  try {
+    fs.mkdirSync(path.dirname(logFilePath), { recursive: true })
+    fs.writeFileSync(logFilePath, JSON.stringify(logReport, null, 2))
+    console.log(`✅ Log file written successfully to: ${logFilePath}`)
+  } catch (error) {
+    console.error(`❌ Failed to write log file: ${error}`)
+    throw error
+  }
 
   console.log('\n═══════════════════════════════════════════════════════════════════')
   console.log('    E2E LOG VALIDATION REPORT')
