@@ -1,6 +1,7 @@
 import { Logger } from '@/shared/logger'
 
 const url = 'src/offscreen.html'
+const DEFAULT_TIMEOUT_MS = 15000
 
 const hasOffscreenSupport = () => Boolean(chrome.offscreen?.createDocument)
 
@@ -24,8 +25,13 @@ export const ensureOffscreen = async (tabId: number): Promise<boolean> => {
   return true
 }
 
-export const runInOffscreen = async <T>(tabId: number, payload: unknown): Promise<T> => {
-  await Logger.logDirect(tabId, 'offscreen', 'call start', {})
+export const runInOffscreen = async <T>(
+  tabId: number,
+  payload: unknown,
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+  onChunk?: (chunk: unknown) => void,
+): Promise<T> => {
+  await Logger.logDirect(tabId, 'offscreen', 'call start', { timeoutMs })
   const ok = await ensureOffscreen(tabId)
   if (!ok) {
     await Logger.logDirect(tabId, 'offscreen', 'ensure failed', {})
@@ -36,12 +42,16 @@ export const runInOffscreen = async <T>(tabId: number, payload: unknown): Promis
     const id = Math.random().toString(36).slice(2)
     const timeout = setTimeout(() => {
       chrome.runtime.onMessage.removeListener(onMsg)
-      Logger.logDirect(tabId, 'offscreen', 'TIMEOUT', { id })
+      Logger.logDirect(tabId, 'offscreen', 'TIMEOUT', { id, timeoutMs })
       reject(new Error('offscreen-timeout'))
-    }, 15000)
+    }, timeoutMs)
     function onMsg(msg: unknown) {
-      const m = msg as { channel?: string; replyTo?: string; data?: unknown }
+      const m = msg as { channel?: string; replyTo?: string; data?: unknown; chunk?: boolean }
       if (m?.channel === 'offscreen' && m?.replyTo === id) {
+        if (m.chunk) {
+          onChunk?.(m.data)
+          return
+        }
         clearTimeout(timeout)
         chrome.runtime.onMessage.removeListener(onMsg)
         Logger.logDirect(tabId, 'offscreen', 'got response', { id })

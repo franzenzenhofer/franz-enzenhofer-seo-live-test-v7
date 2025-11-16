@@ -1,16 +1,26 @@
 import { describe, it, expect } from 'vitest'
+
 import { gzipRule } from '@/rules/http/gzip'
 
-const P = (h: Record<string,string>) => ({ html:'', url:'', doc: new DOMParser().parseFromString('<p/>','text/html'), headers: h })
+const run = (headers?: Record<string, string>) =>
+  gzipRule.run({ html: '', url: 'https://example.com', doc: new DOMParser().parseFromString('<html></html>', 'text/html'), headers } as any, { globals: {} })
 
-describe('rule: http gzip', () => {
-  it('warns on missing header', async () => {
-    const r = await gzipRule.run(P({}), { globals: {} })
-    expect((r as any).type).toBe('warn')
+describe('http:gzip rule', () => {
+  it('warns when no encoding header', async () => {
+    const result = await run({})
+    expect(result.type).toBe('warn')
+    expect(result.message).toContain('No content-encoding header')
   })
-  it('ok on br/gzip', async () => {
-    const r = await gzipRule.run(P({ 'content-encoding': 'br' }), { globals: {} })
-    expect((r as any).type).toBe('ok')
+
+  it('warns when encoding unsupported', async () => {
+    const result = await run({ 'content-encoding': 'deflate' })
+    expect(result.message).toContain('Unsupported')
+    expect(result.type).toBe('warn')
+  })
+
+  it('passes when gzip present', async () => {
+    const result = await run({ 'content-encoding': 'gzip' })
+    expect(result.type).toBe('ok')
+    expect(result.message).toContain('Compressed')
   })
 })
-

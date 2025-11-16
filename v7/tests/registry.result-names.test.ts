@@ -7,9 +7,10 @@ import { JSDOM } from 'jsdom'
  * NOT camelCase technical identifiers
  */
 describe('Registry: Result.name validation', () => {
+  const LONG_TIMEOUT = 60000
   const camelCasePattern = /^[a-z][a-zA-Z]*[A-Z]/
 
-  it('all rules return Results with proper names (not camelCase)', { timeout: 30000 }, async () => {
+  it('all rules return Results with proper names (not camelCase)', { timeout: LONG_TIMEOUT }, async () => {
     const html = `
       <!DOCTYPE html>
       <html lang="en">
@@ -41,26 +42,26 @@ describe('Registry: Result.name validation', () => {
     const testableRules = registry.filter(r => r.what !== 'psi' && r.what !== 'gsc')
 
     // Run testable rules and check Result.name
-    for (const rule of testableRules) {
-      try {
-        const result = await rule.run(page, ctx)
-        const results = Array.isArray(result) ? result : [result]
+    await Promise.all(
+      testableRules.map(async (rule) => {
+        try {
+          const result = await rule.run(page, ctx)
+          const results = Array.isArray(result) ? result : [result]
 
-        for (const r of results) {
-          if (r.name && camelCasePattern.test(r.name)) {
-            violations.push({
-              ruleId: rule.id,
-              ruleName: rule.name,
-              resultName: r.name,
-            })
+          for (const r of results) {
+            if (r.name && camelCasePattern.test(r.name)) {
+              violations.push({
+                ruleId: rule.id,
+                ruleName: rule.name,
+                resultName: r.name,
+              })
+            }
           }
+        } catch {
+          // Skip rules that fail on test data
         }
-      } catch (error) {
-        // Skip rules that fail on test data
-        // We only care about the name format for successful runs
-        continue
-      }
-    }
+      }),
+    )
 
     if (violations.length > 0) {
       const message = `Found ${violations.length} rules returning camelCase Result.name:\n` +

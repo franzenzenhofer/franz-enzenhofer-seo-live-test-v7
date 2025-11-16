@@ -38,13 +38,20 @@ Quality Gates (must pass)
 
 Coding Standards
 
-- File size: ≤ 50 lines per file in `v7/src` (config files are exempt). Split modules aggressively.
+- File size: ≤ 75 lines per file in `v7/src` (configs exempt). Rule modules under `v7/src/rules/**` may extend to ≤ 150 lines to keep result details readable. Split aggressively elsewhere.
 - Single responsibility: separate collection, aggregation, rule execution, and display.
 - Types first: define shared types near boundaries; avoid `any` (or use minimal `unknown` + narrow).
 - Async discipline: await with try/catch or `.catch()`; no unhandled promises.
 - No dead code or commented blocks; remove or move to `trash/` with a note.
 - No `eval`/`new Function` in SW; confine dynamic code to the offscreen sandbox.
 - Import hygiene: consistent order/grouping; keep public imports stable.
+
+Best Practice Rules
+
+- Certain HTTP/DOM rules are tagged as “Best Practice” (see `BEST-PRACTICE-RULES.md` for the canonical list).
+- These rules must set `bestPractice: true`, emit `snippet`, `sourceHtml`, and `domPath`/`domPaths`, and include a `reference` URL.
+- UI guarantees (auto-expand, DOM highlight) depend on selectors, so never strip them before storing results.
+- Update the documentation + run `npm run -w v7 rules:json` whenever you add or remove a best practice rule.
 
 Dependencies
 
@@ -112,7 +119,7 @@ Commit & PR Checklist
 - Update docs when behavior or config changes.
 - Run locally: `npm run typecheck && npm run lint && npm test && npm run build`.
 - Verify side panel loads and reacts to a live tab.
-- Ensure files in `v7/src` respect the ≤ 50‑line rule.
+- Ensure files in `v7/src` respect the ≤ 75‑line rule (≤150 for files inside `v7/src/rules/**`).
 
 Do / Don’t
 
@@ -140,7 +147,7 @@ Learnings & Practices
   - Share contracts and execution between CLI and extension.
   - Use `src/core/types.ts` and `src/core/run.ts` as the canonical interfaces and runner.
   - Keep the rules registry at `src/rules/registry.ts` as the only rule list.
-- Typed Rules (≤50 lines)
+- Typed Rules (≤150 lines)
   - Each rule is a tiny typed module: `Rule.run(page, ctx) => Result | Result[]`.
   - Keep one test per rule or per utility; avoid monolithic test files.
   - Prefer pure logic; rely on `Page` (html/url/doc/status/headers) instead of ad‑hoc scraping.
@@ -166,7 +173,7 @@ Learnings & Practices
   - Build: `npm run -w v7 build`.
   - For local loop: `npm run -w v7 check:watch`.
 - File Size & Structure
-  - Enforce ≤50 lines per file in `src/**` via ESLint.
+- Enforce ≤75 lines per file in `src/**` (≤150 for `src/rules/**`) via ESLint.
   - Split aggressively; place shared helpers in `src/core/**` or the most logical directory.
 - Import Order & Style
   - Keep import groups clean: external → shared → local; respect ESLint import/order.

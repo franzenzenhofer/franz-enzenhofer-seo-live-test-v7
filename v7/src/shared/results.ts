@@ -1,18 +1,6 @@
-export type Result = {
-  name: string
-  label: string
-  message: string
-  type: string
-  what?: string | null
-  ruleId?: string | null
-  priority?: number
-  details?: {
-    sourceHtml?: string
-    snippet?: string
-    domPath?: string
-    [key: string]: unknown
-  }
-}
+import type { Result as CoreResult } from '@/core/types'
+
+export type Result = CoreResult
 
 const key = (tabId: number) => `results:${tabId}`
 
@@ -32,4 +20,17 @@ export const watchResults = (tabId: number, cb: (r: Result[]) => void) => {
 
 export const clearResults = async (tabId: number) => {
   await chrome.storage.local.remove(key(tabId))
+}
+
+export const isResultUnconfigured = (r: Result): boolean => {
+  const msg = r.message.toLowerCase()
+  return (
+    msg.includes('no psi key') ||
+    msg.includes('not logged in') ||
+    msg.includes('no key set') ||
+    msg.includes('no token') ||
+    msg.includes('no api key') ||
+    msg.includes('authentication required') ||
+    msg.includes('auth required')
+  )
 }

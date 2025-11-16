@@ -19,6 +19,8 @@ export const AppBody = ({
   onOpenLogs,
   results,
   onOpenReport,
+  tabId,
+  logUi,
 }: {
   d: { url: string; stale?: boolean; ranAt?: string; runId?: string }
   show: Record<string, boolean>
@@ -30,6 +32,8 @@ export const AppBody = ({
   onOpenLogs: () => void
   results: Result[]
   onOpenReport: () => void
+  tabId?: number | null
+  logUi?: (action: string, data?: Record<string, unknown>) => void
 }) => {
   const parsed = useFilterParser(query)
 
@@ -51,6 +55,8 @@ export const AppBody = ({
           items={results}
           types={parsed.hasTypeFilter ? parsed.types : Object.entries(show).filter(([, v]) => v).map(([k]) => k)}
           q={parsed.text}
+          tabId={tabId}
+          logUi={logUi}
         />
       </div>
     </div>

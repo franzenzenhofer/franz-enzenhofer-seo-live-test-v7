@@ -1,4 +1,5 @@
 import { ResultCard } from '@/components/result/ResultCard'
+import { getResultLabel } from '@/shared/colors'
 import type { Result } from '@/shared/results'
 
 export const ReportSection = ({
@@ -10,7 +11,7 @@ export const ReportSection = ({
 }) => (
   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
     <h2 className="text-lg font-semibold">
-      {type.toUpperCase()} ({items.length})
+      {getResultLabel(type).toUpperCase()} ({items.length})
     </h2>
     <div className="space-y-2">
       {items.map((item) => (

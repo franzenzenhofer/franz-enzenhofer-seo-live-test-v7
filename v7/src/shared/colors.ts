@@ -5,32 +5,38 @@ export { resultColors } from './colorDefs'
 
 export type ResultType = keyof typeof resultColors
 
-export const getResultColor = (type: string) => {
-  return resultColors[type as ResultType] || {
+export const resultTypeOrder = ['error', 'runtime_error', 'warn', 'info', 'ok', 'pending', 'disabled'] as const
+
+export const resultTypeLabels: Record<ResultType, string> = {
+  error: 'failed',
+  runtime_error: 'error',
+  warn: 'warn',
+  info: 'info',
+  ok: 'ok',
+  pending: 'pending',
+  disabled: 'disabled',
+}
+
+export const getResultLabel = (type: string) => resultTypeLabels[type as ResultType] || type
+
+export const getResultColor = (type: string) =>
+  resultColors[type as ResultType] || {
     bg: 'bg-gray-50',
     border: 'border-gray-300',
     text: 'text-gray-900',
     dot: 'bg-gray-500',
     badge: 'bg-gray-100 text-gray-800',
-    full: 'bg-gray-50 border-gray-300 text-gray-900'
+    full: 'bg-gray-50 border-gray-300 text-gray-900',
   }
-}
 
-// Sort order for results (errors first, runtime errors second)
-export const resultSortOrder = {
-  error: 0,
-  runtime_error: 1,
-  warn: 2,
-  info: 3,
-  ok: 4,
-  pending: 5,
-  disabled: 6
-} as const
+export const resultSortOrder = resultTypeOrder.reduce<Record<ResultType, number>>((acc, type, index) => {
+  acc[type] = index
+  return acc
+}, {} as Record<ResultType, number>)
 
-export const sortResultsByPriority = <T extends { type: string }>(results: T[]): T[] => {
-  return [...results].sort((a, b) => {
+export const sortResultsByPriority = <T extends { type: string }>(results: T[]) =>
+  [...results].sort((a, b) => {
     const orderA = resultSortOrder[a.type as ResultType] ?? 999
     const orderB = resultSortOrder[b.type as ResultType] ?? 999
     return orderA - orderB
   })
-}

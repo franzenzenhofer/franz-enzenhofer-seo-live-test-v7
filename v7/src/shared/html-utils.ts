@@ -57,6 +57,21 @@ export const getDomPath = (element: Element | null): string => {
   return path.join(' > ')
 }
 
+export const stripAttributesDeep = (element: Element | null): string => {
+  if (!element) return ''
+  const clone = element.cloneNode(true) as Element
+  const clean = (node: Element) => {
+    Array.from(node.attributes).forEach((attr) => node.removeAttribute(attr.name))
+    Array.from(node.children).forEach((child) => {
+      clean(child)
+      const hasContent = child.textContent?.trim().length
+      if (!hasContent && child.children.length === 0) child.remove()
+    })
+  }
+  clean(clone)
+  return clone.outerHTML
+}
+
 export const htmlEntitiesEncode = (str: string): string => {
   return String(str)
     .replace(/&/g, '&amp;')

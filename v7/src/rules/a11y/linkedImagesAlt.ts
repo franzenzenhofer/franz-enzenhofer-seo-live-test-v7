@@ -1,43 +1,33 @@
+import { buildLinkedImageDetails, evaluateLinkedImages } from './linkedImages'
+
 import type { Rule } from '@/core/types'
-import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
+
+const LABEL = 'A11Y'
+const NAME = 'Linked Images need alt'
+const RULE_ID = 'a11y:linked-images-alt'
+const SPEC = 'https://developer.mozilla.org/docs/Web/HTML/Element/img#attr-alt'
 
 export const linkedImagesAltRule: Rule = {
-  id: 'a11y:linked-images-alt',
-  name: 'Linked Images need alt',
+  id: RULE_ID,
+  name: NAME,
   enabled: true,
   what: 'static',
   async run(page) {
-    const imgs = page.doc.querySelectorAll('a img')
-    const missingAlt: Element[] = []
-    imgs.forEach(img => {
-      const alt = (img.getAttribute('alt') || '').trim()
-      if (!alt) missingAlt.push(img)
-    })
-
-    if (missingAlt.length > 0) {
-      const sourceHtml = extractHtmlFromList(missingAlt)
-      return {
-        label: 'A11Y',
-        message: `${missingAlt.length} linked images missing alt`,
-        type: 'warn',
-        name: 'Linked Images need alt',
-        details: {
-          sourceHtml,
-          snippet: extractSnippet(sourceHtml),
-        },
-      }
+    const result = evaluateLinkedImages(page, (link) => {
+      const img = link.querySelector('img')
+      const alt = (img?.getAttribute('alt') || '').trim()
+      return Boolean(alt)
+    }, 'linked images missing alt')
+    if (!result) {
+      return { label: LABEL, message: 'Linked images have alt.', type: 'ok', priority: 500, name: NAME, details: { reference: SPEC } }
     }
-
-    const sourceHtml = extractHtmlFromList(imgs)
     return {
-      label: 'A11Y',
-      message: 'Linked images have alt',
-      type: 'ok',
-      name: 'Linked Images need alt',
-      details: {
-        sourceHtml,
-        snippet: extractSnippet(sourceHtml),
-      },
+      label: LABEL,
+      message: result.message,
+      type: 'warn',
+      priority: 100,
+      name: NAME,
+      details: { ...buildLinkedImageDetails(result.failing, result.selectors), reference: SPEC },
     }
   },
 }
