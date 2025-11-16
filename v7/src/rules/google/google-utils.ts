@@ -41,3 +41,14 @@ export const createPSIKeyMissingResult = () => {
     priority: -1000,
   }
 }
+
+/**
+ * Build external PageSpeed Insights URL for user to view full report
+ * @param url - Page URL to analyze
+ * @param strategy - 'mobile' or 'desktop'
+ * @returns Full PSI web interface URL
+ */
+export const buildPSIExternalUrl = (url: string, strategy: 'mobile' | 'desktop'): string => {
+  const encoded = encodeURIComponent(url)
+  return `https://pagespeed.web.dev/analysis?url=${encoded}&form_factor=${strategy}`
+}
