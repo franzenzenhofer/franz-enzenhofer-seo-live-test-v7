@@ -1,5 +1,6 @@
-import type { Rule } from '@/core/types'
+import { isAbsoluteUrl } from '@/shared/url-utils'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
+import type { Rule } from '@/core/types'
 
 export const canonicalAbsoluteRule: Rule = {
   id: 'head:canonical-absolute',
@@ -13,7 +14,7 @@ export const canonicalAbsoluteRule: Rule = {
     const sourceHtml = linkEl ? extractHtml(linkEl) : ''
     try {
       new URL(href, page.url)
-      const isAbsolute = href.startsWith('http')
+      const isAbsolute = isAbsoluteUrl(href)
       return {
         name: 'Canonical absolute URL',
         label: 'HEAD',
