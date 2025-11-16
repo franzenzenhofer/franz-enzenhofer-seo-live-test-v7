@@ -1,4 +1,4 @@
-import { extractPSIKey, createPSIKeyMissingResult } from '../google-utils'
+import { extractPSIKey } from '../google-utils'
 
 import { runPSI, getPSIKey } from '@/shared/psi'
 import type { Rule } from '@/core/types'
@@ -10,8 +10,6 @@ export const psiMobileFcpTbtRule: Rule = {
   what: 'psi',
   async run(page, ctx) {
     const userKey = extractPSIKey(ctx)
-    if (!userKey) return createPSIKeyMissingResult()
-
     const key = getPSIKey(userKey)
     const j = await runPSI(page.url, 'mobile', key)
     const audits = j.lighthouseResult?.audits || {}
