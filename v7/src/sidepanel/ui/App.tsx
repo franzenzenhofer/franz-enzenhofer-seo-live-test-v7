@@ -12,7 +12,7 @@ import { useResultsLogger } from './useResultsLogger'
 import { RestrictedInfo } from './RestrictedInfo'
 
 export const App = () => {
-  const [show, setShow] = useState<Record<string, boolean>>({ ok: true, warn: true, error: true, info: true })
+  const [show, setShow] = useState<Record<string, boolean>>({ ok: true, warn: true, error: true, runtime_error: true, info: true, pending: true, disabled: true })
   const [query, setQuery] = useState('')
   const q = usePageInfo()
   const resultsSource = useResultsSource()
