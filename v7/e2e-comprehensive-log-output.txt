@@ -1,0 +1,19 @@
+
+Running 1 test using 1 worker
+
+[e2e] Using temporary profile
+
+═══════════════════════════════════════════════════════════════════
+    E2E LOG VALIDATION REPORT
+═══════════════════════════════════════════════════════════════════
+Total Logs Captured: 2
+Errors Found: 2
+Warnings Found: 0
+Results Displayed: 123
+Log Report: /Users/franzenzenhofer/dev/franz-enzenhofer-seo-live-test-v7/v7/test-results/e2e-log-report.json
+═══════════════════════════════════════════════════════════════════
+
+✅ No critical extension errors found!
+  ✓  1 [chromium] › tests/e2e/log-validation.spec.ts:88:1 › e2e with comprehensive log validation (7.8s)
+
+  1 passed (8.0s)
