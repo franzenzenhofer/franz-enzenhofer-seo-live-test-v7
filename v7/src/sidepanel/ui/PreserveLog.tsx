@@ -1,12 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useStorageSetting } from '@/shared/hooks/useStorageSetting'
 
 export const PreserveLog = () => {
-  const [keep, setKeep] = useState(true)
-  useEffect(()=>{ chrome.storage.local.get('ui:preserveLog').then((v)=> setKeep(v['ui:preserveLog'] !== false)).catch(()=>{}) },[])
-  const toggle = async () => { const v = !keep; setKeep(v); await chrome.storage.local.set({ 'ui:preserveLog': v }) }
+  // ONE line replaces 5 lines of duplicate storage logic!
+  // Real-time sync with settings page automatically
+  const [preserveLog, setPreserveLog] = useStorageSetting('ui:preserveLog', false)
+
   return (
     <label className="flex items-center gap-2 text-sm">
-      <input type="checkbox" checked={keep} onChange={toggle} />
+      <input
+        type="checkbox"
+        checked={preserveLog}
+        onChange={(e) => setPreserveLog(e.target.checked)}
+      />
       Preserve logs
     </label>
   )

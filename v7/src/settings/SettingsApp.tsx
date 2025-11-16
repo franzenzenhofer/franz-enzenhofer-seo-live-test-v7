@@ -1,28 +1,48 @@
 import React from 'react'
+import { useEffect, useState } from 'react'
 
 import { GeneralSettings } from './GeneralSettings'
 import { GoogleAccount } from './GoogleAccount'
 import { ApiKeys } from './ApiKeys'
 import { RuleToggles } from './RuleToggles'
 import { FavoritesManagement } from './FavoritesManagement'
-import { useSettings } from './useSettings'
 import { useAuthHandlers } from './useAuthHandlers'
 
+import { TOKEN_KEY, getStoredToken } from '@/shared/auth'
 import { isAutoEnabled } from '@/rules/autoEnable'
 
 type Flags = Record<string, boolean>
 
 export const SettingsApp = () => {
-  const state = useSettings()
-  const { signIn, signOut } = useAuthHandlers(state.setHasToken)
+  // Minimal state for components that haven't been refactored yet
+  const [flags, setFlags] = useState<Flags>({})
+  const [vars, setVars] = useState<Record<string, string>>({})
+  const [hasToken, setHasToken] = useState(false)
+
+  const { signIn, signOut } = useAuthHandlers(setHasToken)
   const version = chrome.runtime.getManifest().version
-  const updateFlags = (next: Flags) => { state.setFlags(next); chrome.storage.local.set({ 'rule-flags': next }) }
-  const updateVar = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const vars = { ...state.vars, [k]: e.target.value }
-    state.setVars(vars); chrome.storage.local.set({ globalRuleVariables: vars })
+
+  // Load state for components not yet refactored
+  useEffect(() => {
+    chrome.storage.local.get(['rule-flags', 'globalRuleVariables', TOKEN_KEY], (items) => {
+      setFlags(items['rule-flags'] || {})
+      setVars(items['globalRuleVariables'] || {})
+    })
+    getStoredToken().then((t) => setHasToken(!!t)).catch(() => {})
+  }, [])
+
+  const updateFlags = (next: Flags) => {
+    setFlags(next)
+    chrome.storage.local.set({ 'rule-flags': next })
   }
-  const toggleSetting = (k: string, v: boolean) => chrome.storage.local.set({ [k]: v })
-  const autoEnabled = (id: string) => isAutoEnabled(id, state.vars, state.hasToken)
+
+  const updateVar = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const vars2 = { ...vars, [k]: e.target.value }
+    setVars(vars2)
+    chrome.storage.local.set({ globalRuleVariables: vars2 })
+  }
+
+  const autoEnabled = (id: string) => isAutoEnabled(id, vars, hasToken)
 
   return (
     <div className="min-h-screen bg-white">
@@ -34,16 +54,11 @@ export const SettingsApp = () => {
           <p className="text-sm text-gray-600 mt-1">Configure extension behavior and API keys</p>
         </div>
         <div className="space-y-6">
-          <GeneralSettings
-            autoRun={state.autoRun} setAutoRun={state.setAutoRun}
-            autoClear={state.autoClear} setAutoClear={state.setAutoClear}
-            preserveLog={state.preserveLog} setPreserveLog={state.setPreserveLog}
-            toggleSetting={toggleSetting}
-          />
+          <GeneralSettings />
           <FavoritesManagement />
-          <GoogleAccount hasToken={state.hasToken} signIn={signIn} signOut={signOut} />
-          <ApiKeys vars={state.vars} updateVar={updateVar} />
-          <RuleToggles flags={state.flags} updateFlags={updateFlags} autoEnabled={autoEnabled} />
+          <GoogleAccount hasToken={hasToken} signIn={signIn} signOut={signOut} />
+          <ApiKeys vars={vars} updateVar={updateVar} />
+          <RuleToggles flags={flags} updateFlags={updateFlags} autoEnabled={autoEnabled} />
         </div>
       </div>
     </div>
