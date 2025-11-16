@@ -39,6 +39,22 @@ export const resultColors = {
     badge: 'bg-orange-100 text-orange-800',
     full: 'bg-orange-50 border-orange-400 text-orange-900'
   },
+  pending: {
+    bg: 'bg-sky-50',
+    border: 'border-sky-300',
+    text: 'text-sky-700',
+    dot: 'bg-sky-500',
+    badge: 'bg-sky-100 text-sky-700',
+    full: 'bg-sky-50 border-sky-300 text-sky-700'
+  },
+  disabled: {
+    bg: 'bg-gray-50',
+    border: 'border-gray-300',
+    text: 'text-gray-500',
+    dot: 'bg-gray-400',
+    badge: 'bg-gray-100 text-gray-600',
+    full: 'bg-gray-50 border-gray-300 text-gray-500'
+  },
 }
 
 export type ColorSet = typeof resultColors.error
