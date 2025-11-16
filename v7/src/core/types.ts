@@ -1,7 +1,7 @@
 export type Result = {
   label: string
   message: string
-  type: 'info'|'ok'|'warn'|'error'|'runtime_error'
+  type: 'info'|'ok'|'warn'|'error'|'runtime_error'|'pending'|'disabled'
   what?: string|null
   priority?: number|null
   ruleId?: string|null
