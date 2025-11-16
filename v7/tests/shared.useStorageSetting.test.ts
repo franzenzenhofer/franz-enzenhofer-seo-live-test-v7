@@ -11,11 +11,9 @@ describe('useStorageSetting hook', () => {
     // Import components that use the hook
     const generalSettings = await import('@/settings/GeneralSettings')
     const autoRun = await import('@/sidepanel/ui/AutoRun')
-    const preserveLog = await import('@/sidepanel/ui/PreserveLog')
 
     // Verify components export correctly
     expect(generalSettings.GeneralSettings).toBeDefined()
     expect(autoRun.AutoRun).toBeDefined()
-    expect(preserveLog.PreserveLog).toBeDefined()
   })
 })

@@ -7,7 +7,6 @@ export const GeneralSettings = () => {
   // Real-time sync across all contexts (settings page, sidepanel, etc.)
   const [autoRun, setAutoRun] = useStorageSetting('ui:autoRun', true)
   const [autoClear, setAutoClear] = useStorageSetting('ui:autoClear', true)
-  const [preserveLog, setPreserveLog] = useStorageSetting('ui:preserveLog', false)
 
   return (
     <div className="bg-gray-50 rounded-lg p-4">
@@ -27,12 +26,6 @@ export const GeneralSettings = () => {
           description="Clear previous test results when navigating to a new page (prevents clutter)"
           checked={autoClear}
           onChange={setAutoClear}
-        />
-        <ToggleRow
-          label="Preserve Log"
-          description="Keep console logs visible when navigating away (useful for debugging)"
-          checked={preserveLog}
-          onChange={setPreserveLog}
         />
       </div>
     </div>

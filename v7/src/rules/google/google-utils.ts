@@ -26,20 +26,6 @@ export const createNoTokenResult = (label = 'GSC', name = 'googleRule') => {
   }
 }
 
-export const createMissingSiteUrlResult = (label = 'GSC', name = 'googleRule') => {
-  return {
-    label,
-    message: 'GSC site URL not configured. Set gsc_site_url in settings.',
-    type: 'runtime_error' as const,
-    name,
-    priority: -1000,
-  }
-}
-
-export const extractGscSiteUrl = (vars: Record<string, unknown>): string => {
-  return String(vars['gsc_site_url'] || '')
-}
-
 export const extractPSIKey = (ctx: Ctx): string | null => {
   const vars = (ctx.globals as { variables?: Record<string, unknown> }).variables || {}
   const key = String(vars['google_page_speed_insights_key'] || '')
