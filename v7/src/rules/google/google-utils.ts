@@ -39,3 +39,19 @@ export const createMissingSiteUrlResult = (label = 'GSC', name = 'googleRule') =
 export const extractGscSiteUrl = (vars: Record<string, unknown>): string => {
   return String(vars['gsc_site_url'] || '')
 }
+
+export const extractPSIKey = (ctx: Ctx): string | null => {
+  const vars = (ctx.globals as { variables?: Record<string, unknown> }).variables || {}
+  const key = String(vars['google_page_speed_insights_key'] || '')
+  return key || null
+}
+
+export const createPSIKeyMissingResult = () => {
+  return {
+    label: 'PSI',
+    message: 'PageSpeed Insights API key not configured. Set google_page_speed_insights_key in settings.',
+    type: 'runtime_error' as const,
+    name: 'googleRule',
+    priority: -1000,
+  }
+}
