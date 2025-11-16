@@ -6,7 +6,6 @@
 export const STORAGE_KEYS = {
   UI: {
     AUTO_RUN: 'ui:autoRun',
-    PRESERVE_LOG: 'ui:preserveLog',
     AUTO_CLEAR: 'ui:autoClear',
   },
   RULES: {

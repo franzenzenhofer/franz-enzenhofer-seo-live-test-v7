@@ -1,7 +1,6 @@
 import React from 'react'
 
 import { PSIKeyInput } from './PSIKeyInput'
-import { GSCUrlInput } from './GSCUrlInput'
 
 export const ApiKeys = ({
   vars, updateVar
@@ -16,10 +15,6 @@ export const ApiKeys = ({
         <PSIKeyInput
           value={vars['google_page_speed_insights_key'] || ''}
           onChange={updateVar('google_page_speed_insights_key')}
-        />
-        <GSCUrlInput
-          value={vars['gsc_site_url'] || ''}
-          onChange={updateVar('gsc_site_url')}
         />
       </div>
     </div>

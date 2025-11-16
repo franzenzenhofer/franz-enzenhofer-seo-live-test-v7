@@ -5,7 +5,6 @@ const SETTINGS_KEYS = [
   'globalRuleVariables',
   'ui:autoClear',
   'ui:autoRun',
-  'ui:preserveLog',
   'ui:pinnedRules'
 ] as const
 
