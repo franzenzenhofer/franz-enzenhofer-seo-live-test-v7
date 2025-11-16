@@ -14,10 +14,13 @@ export const TypeFilters = ({ show, setShow, results }: Props) => {
   }, {} as Record<string, number>)
 
   const types: Array<{ key: string; label: string }> = [
-    { key: 'ok', label: 'ok' },
-    { key: 'warn', label: 'warn' },
     { key: 'error', label: 'error' },
+    { key: 'runtime_error', label: 'failed' },
+    { key: 'warn', label: 'warn' },
     { key: 'info', label: 'info' },
+    { key: 'ok', label: 'ok' },
+    { key: 'pending', label: 'pending' },
+    { key: 'disabled', label: 'disabled' },
   ]
 
   return (
