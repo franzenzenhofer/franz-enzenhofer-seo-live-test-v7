@@ -1,5 +1,7 @@
-import type { Rule } from '@/core/types'
+import { OG_SELECTORS } from './og-constants'
+
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
+import type { Rule } from '@/core/types'
 
 export const ogDescriptionRule: Rule = {
   id: 'og:description',
@@ -7,7 +9,7 @@ export const ogDescriptionRule: Rule = {
   enabled: true,
   what: 'static',
   async run(page) {
-    const m = page.doc.querySelector('meta[property="og:description"], meta[name="og:description"]')
+    const m = page.doc.querySelector(OG_SELECTORS.DESCRIPTION)
     if (!m) return { label: 'OG', message: 'Missing og:description', type: 'warn', name: 'ogDescription' }
     const c = m.getAttribute('content')?.trim() || ''
     if (!c) return { label: 'OG', message: 'Empty og:description', type: 'warn', name: 'ogDescription' }
