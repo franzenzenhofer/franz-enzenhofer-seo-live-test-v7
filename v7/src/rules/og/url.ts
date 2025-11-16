@@ -1,5 +1,7 @@
-import type { Rule } from '@/core/types'
+import { OG_SELECTORS } from './og-constants'
+
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
+import type { Rule } from '@/core/types'
 
 export const ogUrlRule: Rule = {
   id: 'og:url',
@@ -7,7 +9,7 @@ export const ogUrlRule: Rule = {
   enabled: true,
   what: 'static',
   async run(page) {
-    const m = page.doc.querySelector('meta[property="og:url"], meta[name="og:url"]')
+    const m = page.doc.querySelector(OG_SELECTORS.URL)
     if (!m) return { label: 'OG', message: 'Missing og:url', type: 'warn', name: 'ogUrl' }
     const c = m.getAttribute('content')?.trim() || ''
     const sourceHtml = extractHtml(m)
