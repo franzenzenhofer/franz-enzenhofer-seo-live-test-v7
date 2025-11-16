@@ -41,14 +41,14 @@ export const prepareRulesForRun = (rules: Rule[]) => {
   }
 }
 
-export const createChunkSync = (tabId: number, key: string) => {
+export const createChunkSync = (tabId: number, key: string, runId?: string) => {
   let queue = Promise.resolve()
   const append = (chunk: RuleResult[]) => {
     if (!chunk.length) return queue
     queue = queue.then(async () => {
       const got = await chrome.storage.local.get(key)
       const prev = got[key] as RuleResult[] | undefined
-      await persistResults(tabId, key, prev, chunk)
+      await persistResults(tabId, key, prev, chunk, runId)
     })
     return queue
   }

@@ -29,7 +29,23 @@ export const dedupRunner = <T extends { name?: string; message?: string }>(list:
 
 type MinimalResult = { name?: string; message?: string; type?: string; bestPractice?: boolean }
 
-export const persistResults = async (tabId: number, key: string, prev: MinimalResult[] | undefined, add: MinimalResult[]) => {
+export const persistResults = async (
+  tabId: number,
+  key: string,
+  prev: MinimalResult[] | undefined,
+  add: MinimalResult[],
+  runId?: string,
+): Promise<number> => {
+  // If runId is provided, validate that this run is still active
+  if (runId) {
+    const { isActiveRun } = await import('@/shared/activeRun')
+    const stillActive = await isActiveRun(tabId, runId)
+    if (!stillActive) {
+      // This run has been cancelled/superseded, skip write
+      return 0
+    }
+  }
+
   const set = async (arr: MinimalResult[]) => { await chrome.storage.local.set({ [key]: arr }); return arr.length }
   try {
     const prevClean = withoutPending(prev)

@@ -4,11 +4,14 @@ import type { RuleResult } from './types'
 
 import { log } from '@/shared/logs'
 import { writeRunMeta } from '@/shared/runMeta'
+import { getActiveRunId, isActiveRun } from '@/shared/activeRun'
 
 const k = (tabId: number) => `results:${tabId}`
 
 export const runRulesOn = async (tabId: number, run: import('../pipeline/types').Run) => {
-  const runId = `run-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, runTimestamp = new Date()
+  const runId = await getActiveRunId(tabId)
+  if (!runId) { await log(tabId, 'runner:skip no-active-run'); return }
+  const runTimestamp = new Date()
   const globals = await ruleSupport.buildRunGlobals(run, runId, runTimestamp)
   const pageUrl = ruleSupport.derivePageUrl(run.ev as unknown as Array<{t:string;u?:string}>)
   const hasDom = ruleSupport.hasDomSnapshot(run.ev as unknown as Array<{t:string; d?:{html?:string}}>)
@@ -38,8 +41,7 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
     await chrome.storage.local.set({ [key]: pending })
     await log(tabId, `runner:pending seeded count=${pending.length}`)
   }
-  const chunkSync = ruleSupport.createChunkSync(tabId, key)
-
+  const chunkSync = ruleSupport.createChunkSync(tabId, key, runId)
   try {
     const de = [...run.ev].reverse().find((e) => e.t.startsWith('dom:')) as { d?: { html?: string } } | undefined
     const htmlLen = typeof de?.d?.html === 'string' ? de.d!.html!.length : 0
@@ -63,6 +65,8 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
     await chunkSync.append(res)
   }
   await chunkSync.flush()
+  const stillActive = await isActiveRun(tabId, runId)
+  if (!stillActive) { await log(tabId, `runner:cancelled runId=${runId}`); return }
   const got = await chrome.storage.local.get(key)
   const stored = (got[key] as RuleResult[]) || []
   await writeRunMeta(tabId, { url: pageUrl || '', ranAt: runTimestamp.toISOString(), runId })

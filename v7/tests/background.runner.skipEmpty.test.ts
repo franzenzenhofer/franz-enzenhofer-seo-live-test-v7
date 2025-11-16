@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 import * as support from '@/background/rules/support'
 import { runRulesOn } from '@/background/rules/runner'
+import { setActiveRunId } from '@/shared/activeRun'
 import type { RuleResult } from '@/background/rules/types'
 
 vi.mock('@/background/rules/offscreen', () => ({ runInOffscreen: vi.fn() }))
@@ -26,7 +27,7 @@ const createChromeStub = () => {
   return {
     storage: {
       local: { get, set, remove },
-      session: { get: vi.fn(async () => ({})), set: vi.fn(async () => ({})) },
+      session: { get, set, remove },
     },
     runtime: { getURL: (p: string) => p, sendMessage: vi.fn() },
   }
@@ -40,14 +41,20 @@ beforeEach(() => {
 
 describe('runner: skip empty/early runs', () => {
   it('does not call offscreen when no dom events', async () => {
-    const run = { id: 1, ev: [ { t:'nav:before', u:'https://a.example' } ] } as any
-    await runRulesOn(4, run)
+    const tabId = 4
+    await setActiveRunId(tabId, 'run-test-skip')
+
+    const run = { id: 1, ev: [{ t: 'nav:before', u: 'https://a.example' }] } as any
+    await runRulesOn(tabId, run)
     expect((off.runInOffscreen as unknown as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled()
   })
 })
 
 describe('runner: chunked results', () => {
   it('stores each streamed result only once', async () => {
+    const tabId = 7
+    await setActiveRunId(tabId, 'run-test-chunks')
+
     const runInOffscreenMock = off.runInOffscreen as unknown as ReturnType<typeof vi.fn>
     runInOffscreenMock.mockImplementation(async (_tabId, _payload, _timeout, emit?: (chunk: RuleResult[]) => Promise<void>) => {
       const chunk: RuleResult[] = [
@@ -62,7 +69,7 @@ describe('runner: chunked results', () => {
       { id: 'rule-b', name: 'Rule B', enabled: true, what: 'static', run: vi.fn() } as any,
     ])
     const run = { id: 1, ev: [{ t: 'dom:document_idle', d: { html: '<html><body></body></html>' } }] } as any
-    await runRulesOn(7, run)
+    await runRulesOn(tabId, run)
     const stored = storageState['results:7'] as RuleResult[]
     expect(Array.isArray(stored)).toBe(true)
     expect(stored).toHaveLength(2)
