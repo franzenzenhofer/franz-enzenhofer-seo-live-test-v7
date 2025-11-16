@@ -1,5 +1,6 @@
-import type { Rule } from '@/core/types'
+import { HTTP_STATUS } from '@/shared/http-constants'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
+import type { Rule } from '@/core/types'
 
 export const canonicalRedirectsRule: Rule = {
   id: 'head:canonical-redirects',
@@ -15,7 +16,7 @@ export const canonicalRedirectsRule: Rule = {
     try {
       const r = await fetch(href, { method: 'HEAD', redirect: 'manual' })
       const loc = r.headers.get('location')
-      const is3xx = r.status >= 300 && r.status < 400
+      const is3xx = r.status >= HTTP_STATUS.REDIRECT_MIN && r.status < HTTP_STATUS.REDIRECT_MAX
       return {
         name: 'Canonical Redirects',
         label: 'HEAD',
