@@ -1,4 +1,5 @@
 import { runRulesOn } from '../rules/runner'
+import { determineTrigger } from '../rules/triggerDetect'
 
 import { addEvent, popRun, setDomDone } from './store'
 import { scheduleFinalize, onAlarm } from './alarms'
@@ -51,6 +52,12 @@ onAlarm(async (tabId) => {
     await Logger.logDirect(tabId, 'alarm', 'no run', { reason: 'popRun returned null' })
     return
   }
-  await Logger.logDirect(tabId, 'alarm', 'execute', { runId: run.id, events: run.ev.length, domDone: run.domDone })
+  const trigger = determineTrigger(run.ev)
+  await Logger.logDirect(tabId, 'alarm', 'execute', {
+    runId: run.id,
+    events: run.ev.length,
+    domDone: run.domDone,
+    triggeredBy: trigger,
+  })
   await runRulesOn(tabId, run)
 })
