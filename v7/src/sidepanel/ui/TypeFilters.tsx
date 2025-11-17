@@ -14,9 +14,9 @@ export const TypeFilters = ({ show, setShow, results }: Props) => {
     return acc
   }, {} as Record<string, number>)
   const totalRules = rulesInventory.length
-  const counted = resultTypeOrder.reduce((sum, type) => sum + (counts[type] || 0), 0)
-  const missing = totalRules - counted
-  const showMissing = missing !== 0
+  const uniqueRulesWithResults = new Set(results.map(r => r.name)).size
+  const missing = totalRules - uniqueRulesWithResults
+  const showMissing = missing > 0
 
   return (
     <>
