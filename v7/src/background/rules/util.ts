@@ -54,8 +54,16 @@ type MinimalResult = { name?: string; message?: string; type?: string; bestPract
 export const persistResults = async (tabId: number, key: string, prev: MinimalResult[] | undefined, add: MinimalResult[]) => {
   const set = async (arr: MinimalResult[]) => { await chrome.storage.local.set({ [key]: arr }); return arr.length }
   try {
-    const prevClean = withoutPending(prev)
-    const merged = dedupRunner(prevClean ? [...prevClean, ...add] : add)
+    // Create set of rule names being replaced in this chunk
+    const replacingNames = new Set(add.map(r => r.name).filter(Boolean))
+
+    // Only remove pending results for rules being replaced, keep all others
+    const prevFiltered = prev?.filter(item => {
+      if (item.type !== 'pending') return true  // Keep all non-pending
+      return !replacingNames.has(item.name)      // Keep pending if not being replaced
+    }) || []
+
+    const merged = dedupRunner([...prevFiltered, ...add])
     return await set(merged)
   } catch {
     // Quota exceeded or similar. Fallbacks: latest only, then last <=100
