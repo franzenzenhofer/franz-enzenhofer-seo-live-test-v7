@@ -7,6 +7,7 @@ type LogFn = (action: string, data?: Record<string, unknown>) => void
 
 export const usePanelBootstrap = (logUi: LogFn) => {
   useEffect(() => {
+    Logger.setContext('sidepanel')
     let cancelled = false
     getActiveTabId()
       .then(async (id) => {
