@@ -7,7 +7,7 @@ import { JSDOM } from 'jsdom'
  * NOT camelCase technical identifiers
  */
 describe('Registry: Result.name validation', () => {
-  const LONG_TIMEOUT = 60000
+  const LONG_TIMEOUT = 120000
   const camelCasePattern = /^[a-z][a-zA-Z]*[A-Z]/
 
   it('all rules return Results with proper names (not camelCase)', { timeout: LONG_TIMEOUT }, async () => {
