@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 
 import { getActiveTabId } from '@/shared/chrome'
-import { readResults, watchResults, type Result } from '@/shared/results'
+import { readResults, watchResults, filterResultsByRunId, type Result } from '@/shared/results'
+import { readRunMeta, watchRunMeta } from '@/shared/runMeta'
 import { Logger } from '@/shared/logger'
 
 export const useResultsSource = () => {
   const [tabId, setTabId] = useState<number | null>(null)
   const [items, setItems] = useState<Result[]>([])
+  const [runId, setRunId] = useState<string | undefined>(undefined)
   const [refreshKey, setRefreshKey] = useState(0)
 
   // Listen for tab activation changes AND navigation within tab
@@ -54,5 +56,17 @@ export const useResultsSource = () => {
     return () => { unsub?.() }
   }, [tabId, refreshKey])
 
-  return { tabId, items }
+  // Subscribe to runMeta for current tab to get runId
+  useEffect(() => {
+    if (!tabId) {
+      setRunId(undefined)
+      return
+    }
+    let unsub: (() => void) | null = null
+    readRunMeta(tabId).then((meta) => setRunId(meta?.runId)).catch(() => {})
+    unsub = watchRunMeta(tabId, (meta) => setRunId(meta?.runId))
+    return () => { unsub?.() }
+  }, [tabId, refreshKey])
+
+  return { tabId, items: filterResultsByRunId(items, runId) }
 }
