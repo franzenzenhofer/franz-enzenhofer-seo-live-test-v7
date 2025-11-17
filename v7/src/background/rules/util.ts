@@ -12,6 +12,25 @@ export const derivePageUrl = (ev: Array<{ t: string; u?: string }>) => {
   return lastNav || (([...ev].reverse().find((e) => !!e.u)?.u as string | undefined) || '')
 }
 
+export const getPageUrl = async (tabId: number, ev: Array<{ t: string; u?: string }>) => {
+  let pageUrl = derivePageUrl(ev)
+  if (!pageUrl) {
+    try {
+      const tab = await chrome.tabs.get(tabId)
+      pageUrl = tab.url || ''
+    } catch {
+      pageUrl = ''
+    }
+  }
+  return pageUrl
+}
+
+export const checkUrlChange = async (tabId: number, currentUrl: string, readMeta: (tabId: number) => Promise<{ url?: string } | null>) => {
+  const prevMeta = await readMeta(tabId)
+  const prevUrl = prevMeta?.url || ''
+  return prevUrl && currentUrl && prevUrl !== currentUrl ? { changed: true, prevUrl, currentUrl } : { changed: false, prevUrl: '', currentUrl: '' }
+}
+
 export const summarizeEvents = (ev: Array<{ t: string; u?: string }>) => {
   const c = new Map<string, number>()
   for (const e of ev) c.set(e.t, (c.get(e.t) || 0) + 1)
