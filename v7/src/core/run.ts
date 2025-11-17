@@ -30,12 +30,11 @@ export const runAll = async (
     try {
       const res = await r.run(page, ctx)
       const duration = (performance.now() - start).toFixed(2)
-      const results = Array.isArray(res) ? res : [res]
-      logRuleResults(tabId, r, ruleId, results)
-      Logger.logDirectSend(tabId, 'rule', 'done', { id: r.id, name: r.name, ruleId, duration: `${duration}ms`, results: results.length })
-      const enriched = results.map((item) => enrichResult(item, r, runId))
-      out.push(...enriched)
-      await emitChunk(emit, enriched)
+      logRuleResults(tabId, r, ruleId, [res])
+      Logger.logDirectSend(tabId, 'rule', 'done', { id: r.id, name: r.name, ruleId, duration: `${duration}ms`, results: 1 })
+      const enriched = enrichResult(res, r, runId)
+      out.push(enriched)
+      await emitChunk(emit, [enriched])
     } catch (error) {
       const duration = (performance.now() - start).toFixed(2)
       const errorMessage = error instanceof Error ? error.message : String(error)
