@@ -1,31 +1,48 @@
 import { useEffect, useState } from 'react'
 
-import { readResults, type Result } from '@/shared/results'
+import { readResults, filterResultsByRunId, type Result } from '@/shared/results'
 import { readRunMeta, type RunMeta } from '@/shared/runMeta'
+import { getActiveTabId } from '@/shared/chrome'
 
 export const useReportData = () => {
   const [results, setResults] = useState<Result[]>([])
   const [runMeta, setRunMeta] = useState<RunMeta | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const tabId = params.get('tabId')
+    const runId = params.get('runid')
     const resultIndex = params.get('index')
 
-    if (!tabId) {
+    if (!runId) {
+      setError('No runid parameter provided')
       setLoading(false)
       return
     }
 
     const loadData = async () => {
       try {
-        const tabIdNum = parseInt(tabId, 10)
-        const [data, meta] = await Promise.all([
-          readResults(tabIdNum),
-          readRunMeta(tabIdNum).catch(() => null),
+        const tabId = await getActiveTabId()
+        if (!tabId) {
+          setError('No active tab found')
+          setLoading(false)
+          return
+        }
+
+        const [allResults, meta] = await Promise.all([
+          readResults(tabId),
+          readRunMeta(tabId).catch(() => null),
         ])
-        setResults(data)
+
+        const filtered = filterResultsByRunId(allResults, runId)
+        if (filtered.length === 0) {
+          setError(`No results found for runid: ${runId}`)
+          setLoading(false)
+          return
+        }
+
+        setResults(filtered)
         setRunMeta(meta)
 
         // If specific index, scroll to it
@@ -35,8 +52,9 @@ export const useReportData = () => {
             element?.scrollIntoView({ behavior: 'smooth', block: 'center' })
           }, 100)
         }
-      } catch (error) {
-        console.error('Failed to load report data:', error)
+      } catch (err) {
+        console.error('Failed to load report data:', err)
+        setError(err instanceof Error ? err.message : String(err))
       } finally {
         setLoading(false)
       }
@@ -45,5 +63,5 @@ export const useReportData = () => {
     void loadData()
   }, [])
 
-  return { results, runMeta, loading }
+  return { results, runMeta, loading, error }
 }
