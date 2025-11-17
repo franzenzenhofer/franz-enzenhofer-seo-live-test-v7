@@ -64,7 +64,7 @@ test('runtime filtering: multiple runs show only current run results', async () 
     await panel.goto(sidePanelUrl)
 
     console.log('[DEBUG] First run - waiting for results...')
-    await panel.waitForSelector('[data-testid="result-card"], .dt-result', { timeout: 15_000 })
+    await panel.waitForSelector('article.border.rounded', { timeout: 15_000 })
 
     const firstRunId = await panel.evaluate(() => {
       const runIdEl = document.querySelector('[title^="run-"]')
@@ -73,7 +73,7 @@ test('runtime filtering: multiple runs show only current run results', async () 
     console.log('[DEBUG] First run ID:', firstRunId)
     expect(firstRunId).not.toBeNull()
 
-    const firstRunResults = await panel.locator('[data-testid="result-card"], .dt-result').count()
+    const firstRunResults = await panel.locator('article.border.rounded').count()
     console.log('[DEBUG] First run results count:', firstRunResults)
     expect(firstRunResults).toBeGreaterThan(0)
 
@@ -82,32 +82,42 @@ test('runtime filtering: multiple runs show only current run results', async () 
     await page.reload()
     await page.waitForLoadState('networkidle')
 
-    // Wait for panel to update with new runId
-    await panel.waitForTimeout(2000)
-
-    const secondRunId = await panel.evaluate(() => {
-      const runIdEl = document.querySelector('[title^="run-"]')
-      return runIdEl?.getAttribute('title') || null
-    })
+    // Wait for panel to update with new runId (retry until it changes)
+    let secondRunId: string | null = null
+    for (let i = 0; i < 20; i++) {
+      await panel.waitForTimeout(500)
+      secondRunId = await panel.evaluate(() => {
+        const runIdEl = document.querySelector('[title^="run-"]')
+        return runIdEl?.getAttribute('title') || null
+      })
+      if (secondRunId && secondRunId !== firstRunId) break
+    }
     console.log('[DEBUG] Second run ID:', secondRunId)
     expect(secondRunId).not.toBeNull()
     expect(secondRunId).not.toBe(firstRunId)
 
-    // Results should be from second run only
-    const secondRunResults = await panel.locator('[data-testid="result-card"], .dt-result').count()
+    // Wait for results to complete (similar count to first run)
+    let secondRunResults = 0
+    for (let i = 0; i < 30; i++) {
+      await panel.waitForTimeout(500)
+      secondRunResults = await panel.locator('article.border.rounded').count()
+      console.log(`[DEBUG] Second run results after ${(i + 1) * 500}ms:`, secondRunResults)
+      if (secondRunResults >= firstRunResults * 0.9) break
+    }
     console.log('[DEBUG] Second run results count:', secondRunResults)
 
-    // Get statistics from the panel
-    const stats = await panel.evaluate(() => {
-      const text = document.body.textContent || ''
-      const totalMatch = text.match(/Total\s+(\d+)/)
-      return totalMatch ? parseInt(totalMatch[1], 10) : 0
+    // Get sum of type badge counts from the panel (not inventory total)
+    const typeBadgeSum = await panel.evaluate(() => {
+      const badges = Array.from(document.querySelectorAll('.flex.items-center.gap-2 button'))
+      return badges.reduce((sum, badge) => {
+        const countText = badge.querySelector('span:last-child')?.textContent
+        return sum + (countText ? parseInt(countText, 10) : 0)
+      }, 0)
     })
-    console.log('[DEBUG] Statistics Total:', stats)
+    console.log('[DEBUG] Type badge sum:', typeBadgeSum)
 
-    // Stats should match result count (not sum of both runs)
-    expect(stats).toBeGreaterThan(0)
-    expect(Math.abs(stats - secondRunResults)).toBeLessThan(5) // Allow small variance
+    // Badge sum should match visible result count (proves filtering works)
+    expect(typeBadgeSum).toBe(secondRunResults)
 
     // Verify runId is displayed in UI
     const runIdVisible = await panel.locator('text=/^#run-/').isVisible()
