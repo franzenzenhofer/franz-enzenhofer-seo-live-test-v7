@@ -5,6 +5,8 @@ import type { RuleResult } from './types'
 import { getEnabledRules } from './index'
 
 import type { Rule } from '@/core/types'
+import { cleanupOldResults } from '@/shared/results'
+import { log } from '@/shared/logs'
 
 
 const FAST_TIMEOUT_MS = 15000
@@ -54,6 +56,18 @@ export const createChunkSync = (tabId: number, key: string) => {
   }
   const flush = () => queue
   return { append, flush }
+}
+
+export const prepareResultsStorage = async (tabId: number, key: string, enabledRules: Rule[], runId: string) => {
+  const { [key]: existingResults } = await chrome.storage.local.get(key)
+  const cleaned = cleanupOldResults((existingResults as RuleResult[]) || [], 2)
+  await log(tabId, `runner:cleanup tab=${tabId} runId=${runId} kept=${cleaned.length} from previous runs`)
+  const pending = buildPendingResults(enabledRules, runId)
+  const combined = [...cleaned, ...pending]
+  if (combined.length) {
+    await chrome.storage.local.set({ [key]: combined })
+    await log(tabId, `runner:pending tab=${tabId} runId=${runId} seeded count=${pending.length} total=${combined.length}`)
+  }
 }
 
 export {
