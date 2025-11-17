@@ -2,7 +2,7 @@ import type { Result, Rule } from '@/core/types'
 
 const labelFor = (rule: Rule) => (rule.id.split(':')[0] || 'RULE').toUpperCase()
 
-export const buildPendingResults = (rules: Rule[]): Result[] =>
+export const buildPendingResults = (rules: Rule[], runId: string): Result[] =>
   rules.map((rule) => ({
     name: rule.name,
     label: labelFor(rule),
@@ -10,6 +10,7 @@ export const buildPendingResults = (rules: Rule[]): Result[] =>
     type: 'pending',
     what: rule.what || null,
     ruleId: rule.id,
+    runIdentifier: runId,
     priority: 5000,
     bestPractice: Boolean(rule.bestPractice),
   }))
