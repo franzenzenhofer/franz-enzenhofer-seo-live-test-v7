@@ -11,14 +11,19 @@ import {
 describe('runState module', () => {
   describe('generateRunId', () => {
     it('generates unique run IDs', () => {
-      const id1 = generateRunId()
-      const id2 = generateRunId()
+      const id1 = generateRunId(123)
+      const id2 = generateRunId(123)
       expect(id1).not.toBe(id2)
     })
 
-    it('generates IDs with correct format', () => {
-      const id = generateRunId()
-      expect(id).toMatch(/^run-\d+-[a-z0-9]{6}$/)
+    it('generates IDs with correct format including tabId', () => {
+      const id = generateRunId(456)
+      expect(id).toMatch(/^run-456-\d+-[a-z0-9]{6}$/)
+    })
+
+    it('includes tabId in the runId', () => {
+      const id = generateRunId(789)
+      expect(id).toContain('run-789-')
     })
   })
 
@@ -26,7 +31,7 @@ describe('runState module', () => {
     it('creates run state with all required fields', () => {
       const state = createRunState(123, 'https://example.com', 'manual')
 
-      expect(state.runId).toMatch(/^run-/)
+      expect(state.runId).toMatch(/^run-123-\d+-[a-z0-9]{6}$/)
       expect(state.tabId).toBe(123)
       expect(state.url).toBe('https://example.com')
       expect(state.triggeredBy).toBe('manual')
