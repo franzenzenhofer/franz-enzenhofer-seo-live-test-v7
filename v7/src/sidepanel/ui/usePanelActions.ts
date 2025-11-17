@@ -31,9 +31,15 @@ export const usePanelActions = (logUi: LogFn) => {
   }
   const openReport = async () => {
     const tabId = await getActiveTabId()
-    logUi('action:open-report', { tabId: tabId || 'none' })
+    if (!tabId) {
+      logUi('action:open-report-error', { error: 'No active tab' })
+      return
+    }
+    const meta = await import('@/shared/runMeta').then((m) => m.readRunMeta(tabId))
+    const runId = meta?.runId
+    logUi('action:open-report', { tabId, runId: runId || 'none' })
     const base = chrome.runtime.getURL('src/report.html')
-    const url = tabId ? `${base}?tabId=${tabId}` : base
+    const url = runId ? `${base}?runid=${runId}` : base
     chrome.tabs.create({ url })
   }
   const openLogs = () => { logUi('action:open-logs-view'); void openLogsTab() }
