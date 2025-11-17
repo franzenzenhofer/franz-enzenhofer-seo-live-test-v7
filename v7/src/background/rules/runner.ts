@@ -11,16 +11,17 @@ import { writeRunMeta } from '@/shared/runMeta'
 const k = (tabId: number) => `results:${tabId}`
 
 export const runRulesOn = async (tabId: number, run: import('../pipeline/types').Run) => {
-  const runId = `run-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, runTimestamp = new Date()
-  const globals = await ruleSupport.buildRunGlobals(run, runId, runTimestamp)
+  const runTimestamp = new Date()
   const pageUrl = ruleSupport.derivePageUrl(run.ev as unknown as Array<{t:string;u?:string}>)
   const hasDom = ruleSupport.hasDomSnapshot(run.ev as unknown as Array<{t:string; d?:{html?:string}}>)
   const allowed = pageUrl ? ruleSupport.allowedScheme(pageUrl) : hasDom
 
-  // Create run state for tracking
+  // Create run state for tracking - this generates the ONLY runId for this execution
   const trigger = determineTrigger(run.ev)
   let runState = createRunState(tabId, pageUrl || '(no-url)', trigger)
   await log(tabId, `runner:state-created runId=${runState.runId} trigger=${trigger} url=${pageUrl || '(none)'}`)
+
+  const globals = await ruleSupport.buildRunGlobals(run, runState.runId, runTimestamp)
   let res: RuleResult[] = []
   if (!pageUrl && !hasDom) {
     await log(tabId, `runner:skip no-url-yet ev=${run.ev.length}`)
@@ -73,7 +74,7 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
   await chunkSync.flush()
   const got = await chrome.storage.local.get(key)
   const stored = (got[key] as RuleResult[]) || []
-  await writeRunMeta(tabId, { url: pageUrl || '', ranAt: runTimestamp.toISOString(), runId })
+  await writeRunMeta(tabId, { url: pageUrl || '', ranAt: runTimestamp.toISOString(), runId: runState.runId })
 
   // Complete run state tracking
   runState = completeRunState(runState, stored.length)
