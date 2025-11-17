@@ -31,3 +31,7 @@ export const writeRunMeta = async (tabId: number, meta: RunMeta) => {
     [LAST_KEY]: { ...meta, tabId },
   })
 }
+
+export const clearRunMeta = async (tabId: number) => {
+  await chrome.storage.local.remove(metaKey(tabId))
+}
