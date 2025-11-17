@@ -1,3 +1,5 @@
+import { dedupRunner } from './dedup'
+
 export const allowedScheme = (url: string) => {
   const s = (url.split(':', 1)[0] || '').toLowerCase()
   return s === 'http' || s === 'https' || s === 'file'
@@ -45,9 +47,6 @@ export const summarizeEvents = (ev: Array<{ t: string; u?: string }>) => {
 
 const withoutPending = <T extends { type?: string }>(list: T[] | undefined) =>
   Array.isArray(list) ? list.filter((item) => item?.type !== 'pending') : list
-
-export const dedupRunner = <T extends { name?: string; message?: string }>(list: T[]) =>
-  list.filter((r, i, a) => r.name !== 'system:runner' || a.findIndex((x) => x.name === r.name && x.message === r.message) === i)
 
 type MinimalResult = { name?: string; message?: string; type?: string; bestPractice?: boolean }
 
