@@ -27,10 +27,10 @@ export interface RunState {
 /**
  * Generate unique run ID
  */
-export const generateRunId = (): string => {
+export const generateRunId = (tabId: number): string => {
   const timestamp = Date.now()
   const random = Math.random().toString(36).slice(2, 8)
-  return `run-${timestamp}-${random}`
+  return `run-${tabId}-${timestamp}-${random}`
 }
 
 /**
@@ -42,7 +42,7 @@ export const createRunState = (
   triggeredBy: TriggerReason,
 ): RunState => {
   return {
-    runId: generateRunId(),
+    runId: generateRunId(tabId),
     tabId,
     url,
     triggeredBy,
