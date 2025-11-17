@@ -66,18 +66,23 @@ test('hard reload: runId and timestamp update', async () => {
     console.log('[DEBUG] Waiting for first test run...')
     await panel.waitForSelector('[title^="run-"]', { timeout: 15_000 })
 
-    const firstRunId = await panel.evaluate(() => {
-      const runIdEl = document.querySelector('[title^="run-"]')
-      return runIdEl?.getAttribute('title') || null
+    const firstMeta = await panel.evaluate(async () => {
+      const tabId = parseInt(window.location.hash.slice(1)) || null
+      if (!tabId) {
+        const allKeys = await chrome.storage.local.get(null)
+        const metaKey = Object.keys(allKeys).find((k) => k.startsWith('results-meta:'))
+        if (!metaKey) return null
+        return allKeys[metaKey] as { runId: string; ranAt: string } | null
+      }
+      const key = `results-meta:${tabId}`
+      const result = await chrome.storage.local.get(key)
+      return result[key] as { runId: string; ranAt: string } | null
     })
-    console.log('[DEBUG] First run ID:', firstRunId)
-    expect(firstRunId).not.toBeNull()
-
-    const firstRanAt = await panel.evaluate(() => {
-      const ranAtEl = document.querySelector('.text-\\[9px\\].text-gray-500.text-right')
-      return ranAtEl?.textContent || null
-    })
-    console.log('[DEBUG] First ranAt:', firstRanAt)
+    console.log('[DEBUG] First meta:', firstMeta)
+    expect(firstMeta).not.toBeNull()
+    expect(firstMeta?.runId).toBeTruthy()
+    const firstRunId = firstMeta!.runId
+    const firstRanAt = firstMeta!.ranAt
 
     // Click "Hard Reload" button
     console.log('[DEBUG] Clicking Hard Reload button...')
@@ -89,35 +94,34 @@ test('hard reload: runId and timestamp update', async () => {
     console.log('[DEBUG] Hard reload completed')
 
     // Wait for new runId to appear (it should be different from the first one)
-    let secondRunId: string | null = null
+    let secondMeta: { runId: string; ranAt: string } | null = null
     for (let i = 0; i < 40; i++) {
       await panel.waitForTimeout(500)
-      secondRunId = await panel.evaluate(() => {
-        const runIdEl = document.querySelector('[title^="run-"]')
-        return runIdEl?.getAttribute('title') || null
+      secondMeta = await panel.evaluate(async () => {
+        const tabId = parseInt(window.location.hash.slice(1)) || null
+        if (!tabId) {
+          const allKeys = await chrome.storage.local.get(null)
+          const metaKey = Object.keys(allKeys).find((k) => k.startsWith('results-meta:'))
+          if (!metaKey) return null
+          return allKeys[metaKey] as { runId: string; ranAt: string } | null
+        }
+        const key = `results-meta:${tabId}`
+        const result = await chrome.storage.local.get(key)
+        return result[key] as { runId: string; ranAt: string } | null
       })
-      console.log(`[DEBUG] Attempt ${i + 1}: runId =`, secondRunId)
-      if (secondRunId && secondRunId !== firstRunId) {
+      console.log(`[DEBUG] Attempt ${i + 1}: meta =`, secondMeta)
+      if (secondMeta && secondMeta.runId !== firstRunId) {
         console.log('[DEBUG] RunId changed!')
         break
       }
     }
 
-    console.log('[DEBUG] First run ID:', firstRunId)
-    console.log('[DEBUG] Second run ID:', secondRunId)
+    console.log('[DEBUG] First meta:', firstMeta)
+    console.log('[DEBUG] Second meta:', secondMeta)
 
-    expect(secondRunId).not.toBeNull()
-    expect(secondRunId).not.toBe(firstRunId)
-
-    const secondRanAt = await panel.evaluate(() => {
-      const ranAtEl = document.querySelector('.text-\\[9px\\].text-gray-500.text-right')
-      return ranAtEl?.textContent || null
-    })
-    console.log('[DEBUG] First ranAt:', firstRanAt)
-    console.log('[DEBUG] Second ranAt:', secondRanAt)
-
-    expect(secondRanAt).not.toBeNull()
-    expect(secondRanAt).not.toBe(firstRanAt)
+    expect(secondMeta).not.toBeNull()
+    expect(secondMeta?.runId).not.toBe(firstRunId)
+    expect(secondMeta?.ranAt).not.toBe(firstRanAt)
 
     console.log('[DEBUG] ✅ Hard reload test passed!')
   } finally {
