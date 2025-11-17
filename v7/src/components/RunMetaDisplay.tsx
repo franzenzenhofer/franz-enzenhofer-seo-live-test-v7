@@ -16,19 +16,20 @@ export const RunMetaDisplay = ({ runId, ranAt, onOpenReport }: RunMetaDisplayPro
   const tabId = runId ? parseTabIdFromRunId(runId) : null
 
   return (
-    <div className="text-xs text-gray-600 space-y-1">
-      <div className="flex items-center gap-2">
-        {tabId && <span className="font-mono text-gray-500">Tab {tabId}</span>}
+    <div className="space-y-0.5">
+      <div className="flex items-center gap-1.5 text-[9px] leading-tight">
+        {tabId && <span className="font-mono text-gray-500 shrink-0">Tab {tabId}</span>}
         {runId && (
           <button
             onClick={onOpenReport}
-            className="hover:text-blue-600 underline decoration-gray-300 hover:decoration-blue-600 font-mono"
+            className="hover:text-blue-600 underline decoration-gray-300 hover:decoration-blue-600 font-mono truncate"
+            title={runId}
           >
             #{runId}
           </button>
         )}
       </div>
-      {ranAt && <div className="text-gray-500">{formatEuropeanDateTime(ranAt)}</div>}
+      {ranAt && <div className="text-[9px] text-gray-500 text-right">{formatEuropeanDateTime(ranAt)}</div>}
     </div>
   )
 }
