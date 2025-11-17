@@ -1,6 +1,6 @@
 {
   "name": "f19n-obtrusive-livetest-v7",
-  "version": "0.1.484",
+  "version": "0.1.487",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,6 +8,7 @@
     "prebuild": "node scripts/bump-version.mjs && npm run rules:json && npm run typecheck && npm run lint && npm test",
     "build": "NODE_OPTIONS=\"--require ./scripts/fix-undici.cjs\" vite build && npm run dev:reload-token && npm run test:e2e:quick",
     "build:dev": "cross-env EXT_ENV=dev vite build && npm run dev:reload-token",
+    "fastbuild": "npm run rules:json && npm run typecheck && npm run lint && NODE_OPTIONS=\"--require ./scripts/fix-undici.cjs\" vite build && npm run dev:reload-token",
     "dist": "npm run build && tsx scripts/dist.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
