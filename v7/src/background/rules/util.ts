@@ -9,7 +9,10 @@ export const hasDomSnapshot = (ev: Array<{ t: string; d?: { html?: string } }>) 
 export const derivePageUrl = (ev: Array<{ t: string; u?: string }>) => {
   const nav = ev.filter((e) => !!e.u && e.t.startsWith('nav:'))
   const lastNav = nav.length ? (nav[nav.length - 1]!.u || '') : ''
-  return lastNav || (([...ev].reverse().find((e) => !!e.u)?.u as string | undefined) || '')
+  if (lastNav) return lastNav
+  // Fallback: find last event with URL, but skip resource requests (req:*) to avoid using favicon/image URLs
+  const fallback = [...ev].reverse().find((e) => !!e.u && !e.t.startsWith('req:'))
+  return (fallback?.u as string | undefined) || ''
 }
 
 export const getPageUrl = async (tabId: number, ev: Array<{ t: string; u?: string }>) => {
