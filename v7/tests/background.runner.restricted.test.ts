@@ -16,9 +16,14 @@ describe('runner: restricted schemes', () => {
     const run = { id: 1, ev: [ { t:'nav:before', u:'chrome://extensions/' } ] } as any
     await runRulesOn(9, run)
     const setCalls = (chrome.storage.local.set as unknown as ReturnType<typeof vi.fn>).mock.calls
-    expect(setCalls.length).toBeGreaterThan(0)
-    const payload = setCalls[setCalls.length-1][0]
-    const arr = payload[Object.keys(payload)[0]]
+    expect(setCalls.length).toBeGreaterThan(1)
+    const resultsPayload = setCalls.find((call) => {
+      const payload = call[0]
+      const key = Object.keys(payload)[0]
+      return key?.startsWith('results:') && Array.isArray(payload[key])
+    })
+    expect(resultsPayload).toBeTruthy()
+    const arr = resultsPayload![0][Object.keys(resultsPayload![0])[0]]
     expect(Array.isArray(arr)).toBe(true)
     expect(arr[0].type).toBe('error')
     expect(String(arr[0].message)).toContain('Restricted page scheme')
