@@ -2,10 +2,11 @@ import type { Result, Rule } from './types'
 
 import { Logger } from '@/shared/logger'
 
-export const enrichResult = (res: Result, rule: Rule): Result => ({
+export const enrichResult = (res: Result, rule: Rule, runId: string | undefined): Result => ({
   ...res,
   what: rule.what,
   ruleId: res.ruleId ?? rule.id,
+  runIdentifier: runId,
   bestPractice: typeof res.bestPractice === 'boolean' ? res.bestPractice : Boolean(rule.bestPractice),
 })
 
@@ -18,24 +19,26 @@ export const emitChunk = async (emit: ((chunk: Result[]) => Promise<void> | void
   }
 }
 
-export const createDisabledResult = (rule: Rule): Result => ({
+export const createDisabledResult = (rule: Rule, runId: string | undefined): Result => ({
   name: rule.name,
   label: (rule.id.split(':')[0] || 'RULE').toUpperCase(),
   message: 'Rule disabled in settings. Enable to run checks.',
   type: 'disabled',
   what: rule.what || null,
   ruleId: rule.id,
+  runIdentifier: runId,
   priority: -3000,
   bestPractice: Boolean(rule.bestPractice),
 })
 
-export const createRuntimeError = (rule: Rule, message: string): Result => ({
+export const createRuntimeError = (rule: Rule, message: string, runId: string | undefined): Result => ({
   name: rule.name,
   label: 'SYSTEM',
   message: `Rule execution failed: ${rule.name} - ${message}`,
   type: 'runtime_error',
   what: rule.name,
   ruleId: rule.id,
+  runIdentifier: runId,
   priority: -1000,
   bestPractice: Boolean(rule.bestPractice),
 })
