@@ -8,19 +8,44 @@ export const useResultsSource = () => {
   const [tabId, setTabId] = useState<number | null>(null)
   const [items, setItems] = useState<Result[]>([])
 
+  // Listen for tab activation changes
   useEffect(() => {
-    let unsub: (() => void) | null = null
+    const onActivated = (info: chrome.tabs.TabActiveInfo) => {
+      setTabId(info.tabId)
+    }
+
+    chrome.tabs.onActivated.addListener(onActivated)
+
+    // Get initial active tab
     getActiveTabId()
       .then((id) => {
-        setTabId(id)
-        if (!id) return
-        Logger.setTabId(id)
-        readResults(id).then(setItems).catch(() => {})
-        unsub = watchResults(id, setItems)
+        if (id) setTabId(id)
       })
       .catch(() => {})
-    return () => { unsub?.() }
+
+    return () => {
+      chrome.tabs.onActivated.removeListener(onActivated)
+    }
   }, [])
+
+  // Subscribe to results for current tab
+  useEffect(() => {
+    if (!tabId) return
+
+    Logger.setTabId(tabId)
+
+    let unsub: (() => void) | null = null
+
+    readResults(tabId)
+      .then(setItems)
+      .catch(() => {})
+
+    unsub = watchResults(tabId, setItems)
+
+    return () => {
+      unsub?.()
+    }
+  }, [tabId])
 
   return { tabId, items }
 }
