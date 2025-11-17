@@ -15,12 +15,9 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
   const pageUrl = ruleSupport.derivePageUrl(run.ev as unknown as Array<{t:string;u?:string}>)
   const hasDom = ruleSupport.hasDomSnapshot(run.ev as unknown as Array<{t:string; d?:{html?:string}}>)
   const allowed = pageUrl ? ruleSupport.allowedScheme(pageUrl) : hasDom
-
-  // Create run state for tracking - this generates the ONLY runId for this execution
   const trigger = determineTrigger(run.ev)
   let runState = createRunState(tabId, pageUrl || '(no-url)', trigger)
   await log(tabId, `runner:state-created runId=${runState.runId} trigger=${trigger} url=${pageUrl || '(none)'}`)
-
   const globals = await ruleSupport.buildRunGlobals(run, runState.runId, runTimestamp)
   let res: RuleResult[] = []
   if (!pageUrl && !hasDom) {
@@ -62,9 +59,6 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
       timeoutMs,
       (chunk) => chunkSync.append(Array.isArray(chunk) ? (chunk as RuleResult[]) : []),
     )
-    for (let i = 0; i < res.length; i++) {
-      await log(tabId, `runner:result ${i + 1}/${res.length} payload=${JSON.stringify(res[i])}`)
-    }
     await log(tabId, `runner:offscreen results=${res.length}`)
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e)
@@ -72,13 +66,9 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
     await chunkSync.append(res)
   }
   await chunkSync.flush()
-  const got = await chrome.storage.local.get(key)
-  const stored = (got[key] as RuleResult[]) || []
+  const stored = ((await chrome.storage.local.get(key))[key] as RuleResult[]) || []
   await writeRunMeta(tabId, { url: pageUrl || '', ranAt: runTimestamp.toISOString(), runId: runState.runId })
-
-  // Complete run state tracking
   runState = completeRunState(runState, stored.length)
   await appendRunHistory(runState)
-  await log(tabId, `runner:state-completed runId=${runState.runId} results=${stored.length} status=${runState.status}`)
-  await log(tabId, `runner:done stored=${stored.length}`)
+  await log(tabId, `runner:done runId=${runState.runId} results=${stored.length} status=${runState.status}`)
 }
