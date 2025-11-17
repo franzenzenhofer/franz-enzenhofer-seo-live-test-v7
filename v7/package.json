@@ -1,6 +1,6 @@
 {
   "name": "f19n-obtrusive-livetest-v7",
-  "version": "0.1.490",
+  "version": "0.1.491",
   "private": true,
   "type": "module",
   "scripts": {
@@ -31,7 +31,6 @@
     "bump": "node scripts/bump-version.mjs"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.57.0",
     "dotenv": "^16.4.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
