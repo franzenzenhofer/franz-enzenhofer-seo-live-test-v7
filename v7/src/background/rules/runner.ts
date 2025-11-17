@@ -18,20 +18,22 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
   const trigger = determineTrigger(run.ev)
   let runState = createRunState(tabId, pageUrl || '(no-url)', trigger)
   await log(tabId, `runner:state-created runId=${runState.runId} trigger=${trigger} url=${pageUrl || '(none)'}`)
+  await writeRunMeta(tabId, { url: pageUrl || '', ranAt: runTimestamp.toISOString(), runId: runState.runId, status: 'running' })
   const globals = await ruleSupport.buildRunGlobals(run, runState.runId, runTimestamp)
   let res: RuleResult[] = []
   if (!pageUrl && !hasDom) {
-    await log(tabId, `runner:skip no-url-yet ev=${run.ev.length}`)
+    await Promise.all([log(tabId, `runner:skip no-url-yet ev=${run.ev.length}`), writeRunMeta(tabId, { url: '', ranAt: runTimestamp.toISOString(), runId: runState.runId, status: 'skipped' })])
     return
   }
   if (!allowed) {
     const scheme = (pageUrl.split(':',1)[0]||'')
     res = [{ name: 'system:runner', label: 'Runner', type: 'error', message: `Restricted page scheme (${scheme||'(none)'}://). Open an http(s) page to run rules.` }]
     const k2 = k(tabId); const { [k2]: existing } = await chrome.storage.local.get(k2); await chrome.storage.local.set({ [k2]: Array.isArray(existing)?[...existing, ...res]:res })
+    await writeRunMeta(tabId, { url: pageUrl || '', ranAt: runTimestamp.toISOString(), runId: runState.runId, status: 'error' })
     return
   }
   if (!hasDom) {
-    await log(tabId, `runner:skip no-dom ev=${run.ev.length} url=${pageUrl||'(none)'}`)
+    await Promise.all([log(tabId, `runner:skip no-dom ev=${run.ev.length} url=${pageUrl||'(none)'}`), writeRunMeta(tabId, { url: pageUrl || '', ranAt: runTimestamp.toISOString(), runId: runState.runId, status: 'skipped' })])
     return
   }
   const key = k(tabId)
@@ -45,7 +47,7 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
     await log(tabId, `runner:pending seeded count=${pending.length}`)
   }
   const chunkSync = ruleSupport.createChunkSync(tabId, key)
-
+  let hadError = false
   try {
     const de = [...run.ev].reverse().find((e) => e.t.startsWith('dom:')) as { d?: { html?: string } } | undefined
     const htmlLen = typeof de?.d?.html === 'string' ? de.d!.html!.length : 0
@@ -61,14 +63,14 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
     )
     await log(tabId, `runner:offscreen results=${res.length}`)
   } catch (e: unknown) {
+    hadError = true
     const msg = e instanceof Error ? e.message : String(e)
     res = [{ name:'system:runner', label:'Runner', type:'error', message: msg.includes('offscreen-unavailable') ? 'Offscreen documents are unavailable. Please enable the permission or update Chrome.' : msg.includes('offscreen-timeout') ? 'Timed out waiting for offscreen document.' : `Failed to run rules: ${msg}` }]
     await chunkSync.append(res)
   }
   await chunkSync.flush()
   const stored = ((await chrome.storage.local.get(key))[key] as RuleResult[]) || []
-  await writeRunMeta(tabId, { url: pageUrl || '', ranAt: runTimestamp.toISOString(), runId: runState.runId })
+  await writeRunMeta(tabId, { url: pageUrl || '', ranAt: runTimestamp.toISOString(), runId: runState.runId, status: hadError ? 'error' : 'completed' })
   runState = completeRunState(runState, stored.length)
-  await appendRunHistory(runState)
-  await log(tabId, `runner:done runId=${runState.runId} results=${stored.length} status=${runState.status}`)
+  await Promise.all([appendRunHistory(runState), log(tabId, `runner:done runId=${runState.runId} results=${stored.length} status=${runState.status}`)])
 }

@@ -12,7 +12,7 @@ export const useRunMeta = (tabId: number | null) => {
     const boot = async () => {
       if (!tabId) {
         const last = await readLastRunMeta().catch(() => null)
-        if (!cancelled) setMeta(last ? { url: last.url, ranAt: last.ranAt, runId: last.runId } : null)
+        if (!cancelled) setMeta(last ? { url: last.url, ranAt: last.ranAt, runId: last.runId, status: last.status || 'completed' } : null)
         return
       }
       const initial = await readRunMeta(tabId).catch(() => null)
