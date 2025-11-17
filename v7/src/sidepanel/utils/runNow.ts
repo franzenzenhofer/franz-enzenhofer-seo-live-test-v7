@@ -2,10 +2,7 @@ import { getActiveTabId } from '@/shared/chrome'
 import { log } from '@/shared/logs'
 import { clearResults } from '@/shared/results'
 import { hardRefreshTab } from '@/shared/hardRefresh'
-
-const clearRunMeta = async (tabId: number) => {
-  await chrome.storage.local.remove(`results-meta:${tabId}`)
-}
+import { clearRunMeta } from '@/shared/runMeta'
 
 export const executeRunNow = async (url?: string) => {
   const tabId = await getActiveTabId()
