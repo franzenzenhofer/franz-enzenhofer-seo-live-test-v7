@@ -21,7 +21,7 @@ export const CONTENT_SCRIPTS = [
 ]
 
 export const WEB_ACCESSIBLE = [
-  { resources: ['src/offscreen.html', 'src/report.html', 'src/settings.html', 'src/sidepanel.html', 'dev-reload.json'], matches: ['<all_urls>'] },
+  { resources: ['src/offscreen.html', 'src/report.html', 'src/settings.html', 'src/ruleruns.html', 'dev-reload.json'], matches: ['<all_urls>'] },
 ]
 
 export const COMMANDS = {
