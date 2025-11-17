@@ -5,6 +5,7 @@ import { determineTrigger } from './triggerDetect'
 import type { RuleResult } from './types'
 
 import { log } from '@/shared/logs'
+import { appendRunHistory } from '@/shared/runHistory'
 import { writeRunMeta } from '@/shared/runMeta'
 
 const k = (tabId: number) => `results:${tabId}`
@@ -76,6 +77,7 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
 
   // Complete run state tracking
   runState = completeRunState(runState, stored.length)
+  await appendRunHistory(runState)
   await log(tabId, `runner:state-completed runId=${runState.runId} results=${stored.length} status=${runState.status}`)
   await log(tabId, `runner:done stored=${stored.length}`)
 }
