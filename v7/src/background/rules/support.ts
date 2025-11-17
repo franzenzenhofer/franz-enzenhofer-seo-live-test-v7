@@ -1,5 +1,5 @@
 import { buildPendingResults, buildRuleOverrides } from './pending'
-import { allowedScheme, hasDomSnapshot, derivePageUrl, summarizeEvents, persistResults } from './util'
+import { allowedScheme, hasDomSnapshot, derivePageUrl, getPageUrl, checkUrlChange, summarizeEvents, persistResults } from './util'
 import type { RuleResult } from './types'
 
 import { getEnabledRules } from './index'
@@ -62,6 +62,8 @@ export {
   allowedScheme,
   hasDomSnapshot,
   derivePageUrl,
+  getPageUrl,
+  checkUrlChange,
   summarizeEvents,
   persistResults,
   getEnabledRules,
