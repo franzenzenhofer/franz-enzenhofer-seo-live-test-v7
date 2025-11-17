@@ -1,6 +1,7 @@
 import { buildPendingResults, buildRuleOverrides } from './pending'
 import { allowedScheme, hasDomSnapshot, derivePageUrl, getPageUrl, checkUrlChange, summarizeEvents, persistResults } from './util'
 import type { RuleResult } from './types'
+import { createChunkSync } from './chunking'
 
 import { getEnabledRules } from './index'
 
@@ -43,21 +44,6 @@ export const prepareRulesForRun = (rules: Rule[]) => {
   }
 }
 
-export const createChunkSync = (tabId: number, key: string) => {
-  let queue = Promise.resolve()
-  const append = (chunk: RuleResult[]) => {
-    if (!chunk.length) return queue
-    queue = queue.then(async () => {
-      const got = await chrome.storage.local.get(key)
-      const prev = got[key] as RuleResult[] | undefined
-      await persistResults(tabId, key, prev, chunk)
-    })
-    return queue
-  }
-  const flush = () => queue
-  return { append, flush }
-}
-
 export const prepareResultsStorage = async (tabId: number, key: string, enabledRules: Rule[], runId: string) => {
   const { [key]: existingResults } = await chrome.storage.local.get(key)
   const cleaned = cleanupOldResults((existingResults as RuleResult[]) || [], 2)
@@ -81,4 +67,5 @@ export {
   summarizeEvents,
   persistResults,
   getEnabledRules,
+  createChunkSync,
 }
