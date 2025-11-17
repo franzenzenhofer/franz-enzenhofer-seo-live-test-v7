@@ -1,7 +1,13 @@
 import { describe, it, expect, vi } from 'vitest'
 
 // @ts-expect-error test shim
-globalThis.chrome = { storage: { local: { get: vi.fn(async ()=> ({ })), set: vi.fn(async ()=>{}) } }, runtime: { getURL: (p: string)=> p } }
+globalThis.chrome = {
+  storage: {
+    local: { get: vi.fn(async ()=> ({ })), set: vi.fn(async ()=>{}) },
+    session: { get: vi.fn(async ()=> ({ })), set: vi.fn(async ()=>{}) },
+  },
+  runtime: { getURL: (p: string)=> p },
+}
 
 import { runRulesOn } from '@/background/rules/runner'
 
