@@ -22,7 +22,7 @@ export const AppBody = ({
   tabId,
   logUi,
 }: {
-  d: { url: string; stale?: boolean; ranAt?: string; runId?: string }
+  d: { url: string; ranAt?: string; runId?: string; status?: 'pending' | 'running' | 'completed' | 'skipped' | 'error' }
   show: Record<string, boolean>
   setShow: Dispatch<SetStateAction<Record<string, boolean>>>
   query: string
