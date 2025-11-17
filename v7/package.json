@@ -1,12 +1,12 @@
 {
   "name": "f19n-obtrusive-livetest-v7",
-  "version": "0.1.475",
+  "version": "0.1.478",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "node scripts/bump-version.mjs && npm run rules:json",
-    "build": "NODE_OPTIONS=\"--require ./scripts/fix-undici.cjs\" vite build && npm run dev:reload-token",
+    "prebuild": "node scripts/bump-version.mjs && npm run rules:json && npm run typecheck && npm run lint && npm test",
+    "build": "NODE_OPTIONS=\"--require ./scripts/fix-undici.cjs\" vite build && npm run dev:reload-token && npm run test:e2e:quick",
     "build:dev": "cross-env EXT_ENV=dev vite build && npm run dev:reload-token",
     "dist": "npm run build && tsx scripts/dist.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -16,6 +16,7 @@
     "test:watch": "vitest --watch --reporter=dot",
     "test:changed": "vitest --changed --watch --reporter=dot --passWithNoTests",
     "test:e2e": "npm run build:dev && npx playwright test",
+    "test:e2e:quick": "npx playwright test",
     "test:e2e:dev": "cross-env PW_EXT_HEADLESS=0 npx playwright test --project=chromium --headed",
     "cli": "tsx src/cli/main.ts",
     "ci": "npm run typecheck && npm run lint && npm test && npm run build && npm run test:build",
