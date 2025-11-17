@@ -7,6 +7,7 @@ import { Logger } from '@/shared/logger'
 export const useResultsSource = () => {
   const [tabId, setTabId] = useState<number | null>(null)
   const [items, setItems] = useState<Result[]>([])
+  const [refreshKey, setRefreshKey] = useState(0)
 
   // Listen for tab activation changes AND navigation within tab
   useEffect(() => {
@@ -15,12 +16,12 @@ export const useResultsSource = () => {
     const onActivated = (info: chrome.tabs.TabActiveInfo) => {
       currentTabId = info.tabId
       setTabId(info.tabId)
+      setRefreshKey((k) => k + 1)
     }
 
     const onUpdated = (updatedTabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
-      // Only trigger if it's the current active tab AND URL changed
       if (updatedTabId === currentTabId && changeInfo.url) {
-        setTabId(updatedTabId) // Force re-subscribe to results
+        setRefreshKey((k) => k + 1)
       }
     }
 
@@ -46,21 +47,12 @@ export const useResultsSource = () => {
   // Subscribe to results for current tab
   useEffect(() => {
     if (!tabId) return
-
     Logger.setTabId(tabId)
-
     let unsub: (() => void) | null = null
-
-    readResults(tabId)
-      .then(setItems)
-      .catch(() => {})
-
+    readResults(tabId).then(setItems).catch(() => {})
     unsub = watchResults(tabId, setItems)
-
-    return () => {
-      unsub?.()
-    }
-  }, [tabId])
+    return () => { unsub?.() }
+  }, [tabId, refreshKey])
 
   return { tabId, items }
 }
