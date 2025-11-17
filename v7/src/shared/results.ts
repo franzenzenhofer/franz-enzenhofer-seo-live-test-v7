@@ -22,6 +22,19 @@ export const clearResults = async (tabId: number) => {
   await chrome.storage.local.remove(key(tabId))
 }
 
+/**
+ * Filter results to only those matching a specific runId.
+ * Results without runIdentifier are excluded when filtering.
+ *
+ * @param results - All results to filter
+ * @param runId - The runId to filter by (undefined = no filtering)
+ * @returns Filtered results array
+ */
+export const filterResultsByRunId = (results: Result[], runId: string | undefined): Result[] => {
+  if (!runId) return results
+  return results.filter((r) => r.runIdentifier === runId)
+}
+
 export const isResultUnconfigured = (r: Result): boolean => {
   const msg = r.message.toLowerCase()
   return (
