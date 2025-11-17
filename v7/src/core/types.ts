@@ -40,5 +40,5 @@ export type Rule = {
   enabled: boolean
   what?: string
   bestPractice?: boolean
-  run: (page: Page, ctx: Ctx) => Promise<Result|Result[]>
+  run: (page: Page, ctx: Ctx) => Promise<Result>
 }
