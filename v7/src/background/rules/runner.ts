@@ -1,5 +1,7 @@
 import { runInOffscreen } from './offscreen'
+import { createRunState, completeRunState } from './runState'
 import * as ruleSupport from './support'
+import { determineTrigger } from './triggerDetect'
 import type { RuleResult } from './types'
 
 import { log } from '@/shared/logs'
@@ -13,6 +15,11 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
   const pageUrl = ruleSupport.derivePageUrl(run.ev as unknown as Array<{t:string;u?:string}>)
   const hasDom = ruleSupport.hasDomSnapshot(run.ev as unknown as Array<{t:string; d?:{html?:string}}>)
   const allowed = pageUrl ? ruleSupport.allowedScheme(pageUrl) : hasDom
+
+  // Create run state for tracking
+  const trigger = determineTrigger(run.ev)
+  let runState = createRunState(tabId, pageUrl || '(no-url)', trigger)
+  await log(tabId, `runner:state-created runId=${runState.runId} trigger=${trigger} url=${pageUrl || '(none)'}`)
   let res: RuleResult[] = []
   if (!pageUrl && !hasDom) {
     await log(tabId, `runner:skip no-url-yet ev=${run.ev.length}`)
@@ -66,5 +73,9 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
   const got = await chrome.storage.local.get(key)
   const stored = (got[key] as RuleResult[]) || []
   await writeRunMeta(tabId, { url: pageUrl || '', ranAt: runTimestamp.toISOString(), runId })
+
+  // Complete run state tracking
+  runState = completeRunState(runState, stored.length)
+  await log(tabId, `runner:state-completed runId=${runState.runId} results=${stored.length} status=${runState.status}`)
   await log(tabId, `runner:done stored=${stored.length}`)
 }
