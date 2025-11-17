@@ -19,6 +19,7 @@ export default defineConfig({
         report: r(root, 'src/report.html'),
         settings: r(root, 'src/settings.html'),
         logs: r(root, 'src/logs.html'),
+        ruleruns: r(root, 'src/ruleruns.html'),
       },
     },
   },
