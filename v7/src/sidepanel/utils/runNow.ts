@@ -3,6 +3,10 @@ import { log } from '@/shared/logs'
 import { clearResults } from '@/shared/results'
 import { hardRefreshTab } from '@/shared/hardRefresh'
 
+const clearRunMeta = async (tabId: number) => {
+  await chrome.storage.local.remove(`results-meta:${tabId}`)
+}
+
 export const executeRunNow = async (url?: string) => {
   const tabId = await getActiveTabId()
   if (!tabId) throw new Error('No active tab')
@@ -10,7 +14,7 @@ export const executeRunNow = async (url?: string) => {
   // Mark start of new test run in logs (do not clear logs)
   await log(tabId, '========== NEW TEST RUN STARTED ==========')
 
-  await clearResults(tabId)
+  await Promise.all([clearResults(tabId), clearRunMeta(tabId)])
 
   // Hard refresh will trigger DOM capture and rule execution automatically
   await hardRefreshTab(tabId, url)
