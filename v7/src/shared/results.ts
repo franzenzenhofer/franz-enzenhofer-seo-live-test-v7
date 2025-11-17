@@ -47,3 +47,20 @@ export const isResultUnconfigured = (r: Result): boolean => {
     msg.includes('auth required')
   )
 }
+
+/**
+ * Keep only results from the last N unique runIds.
+ * Results without runIdentifier are discarded.
+ *
+ * @param results - All results to clean
+ * @param keepLastN - Number of most recent runs to keep (default 3)
+ * @returns Cleaned results array
+ */
+export const cleanupOldResults = (results: Result[], keepLastN = 3): Result[] => {
+  if (!results.length) return []
+  const withRunId = results.filter((r) => r.runIdentifier)
+  if (!withRunId.length) return []
+  const uniqueRunIds = Array.from(new Set(withRunId.map((r) => r.runIdentifier!)))
+  const recentRunIds = uniqueRunIds.slice(-keepLastN)
+  return withRunId.filter((r) => recentRunIds.includes(r.runIdentifier!))
+}

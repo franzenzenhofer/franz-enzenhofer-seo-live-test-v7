@@ -38,15 +38,9 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
     return
   }
   const key = k(tabId)
-  await chrome.storage.local.remove(key)
-  await log(tabId, `runner:cleared tab=${tabId} runId=${runState.runId} old results for new test`)
   const rules = await ruleSupport.getEnabledRules()
   const { enabled: enabledRules, ruleOverrides, timeoutMs } = ruleSupport.prepareRulesForRun(rules)
-  const pending = ruleSupport.buildPendingResults(enabledRules, runState.runId)
-  if (pending.length) {
-    await chrome.storage.local.set({ [key]: pending })
-    await log(tabId, `runner:pending tab=${tabId} runId=${runState.runId} seeded count=${pending.length}`)
-  }
+  await ruleSupport.prepareResultsStorage(tabId, key, enabledRules, runState.runId)
   const chunkSync = ruleSupport.createChunkSync(tabId, key)
   let hadError = false
   try {
