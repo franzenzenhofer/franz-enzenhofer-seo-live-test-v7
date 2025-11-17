@@ -4,7 +4,7 @@ import { countResultTypes } from './counts'
 
 import { log } from '@/shared/logs'
 
-export const createChunkSync = (tabId: number, key: string) => {
+export const createChunkSync = (tabId: number, key: string, runId?: string) => {
   let queue = Promise.resolve()
   const append = (chunk: RuleResult[]) => {
     if (!chunk.length) return queue
@@ -15,7 +15,9 @@ export const createChunkSync = (tabId: number, key: string) => {
       const { [key]: updated } = await chrome.storage.local.get(key)
       const all = (updated as RuleResult[]) || []
       const c = countResultTypes(all)
-      await log(tabId, `runner:counts tab=${tabId} total=${all.length} ok=${c.ok} warn=${c.warn} error=${c.error} runtime_error=${c.runtime_error} info=${c.info} pending=${c.pending} disabled=${c.disabled}`)
+      const uniqueRules = new Set(all.map(r => r.name)).size
+      const runPrefix = runId ? `runId=${runId} ` : ''
+      await log(tabId, `runner:counts ${runPrefix}tab=${tabId} total=${all.length} rules=${uniqueRules} ok=${c.ok} warn=${c.warn} error=${c.error} runtime_error=${c.runtime_error} info=${c.info} pending=${c.pending} disabled=${c.disabled}`)
     })
     return queue
   }

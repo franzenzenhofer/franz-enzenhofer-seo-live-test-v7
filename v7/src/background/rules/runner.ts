@@ -41,7 +41,7 @@ export const runRulesOn = async (tabId: number, run: import('../pipeline/types')
   const rules = await ruleSupport.getEnabledRules()
   const { enabled: enabledRules, ruleOverrides, timeoutMs } = ruleSupport.prepareRulesForRun(rules)
   await ruleSupport.prepareResultsStorage(tabId, key, enabledRules, runState.runId)
-  const chunkSync = ruleSupport.createChunkSync(tabId, key)
+  const chunkSync = ruleSupport.createChunkSync(tabId, key, runState.runId)
   let hadError = false
   try {
     const de = [...run.ev].reverse().find((e) => e.t.startsWith('dom:')) as { d?: { html?: string } } | undefined
