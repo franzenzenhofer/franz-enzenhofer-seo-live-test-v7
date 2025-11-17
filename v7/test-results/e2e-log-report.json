@@ -1,36 +1,24 @@
 {
   "summary": {
-    "totalLogs": 4,
-    "errors": 4,
+    "totalLogs": 2,
+    "errors": 2,
     "warnings": 0,
     "testPassed": true,
-    "timestamp": "2025-11-16T10:28:51.282Z"
+    "timestamp": "2025-11-17T19:43:17.208Z"
   },
   "logs": [
     {
       "type": "error",
-      "message": "Refused to execute inline script because it violates the following Content Security Policy directive: \"script-src 'self' 'wasm-unsafe-eval' 'inline-speculation-rules' http://localhost:* http://127.0.0.1:* chrome-extension://43a622f6-ee58-4c39-acb8-0159139627f8/\". Either the 'unsafe-inline' keyword, a hash ('sha256-r58tTaptVVfycuKarKWC8/tBMpTJLNUjJIHEoD7xZkM='), or a nonce ('nonce-...') is required to enable inline execution.\n",
-      "timestamp": 1763288925676
-    },
-    {
-      "type": "error",
-      "message": "Refused to execute inline script because it violates the following Content Security Policy directive: \"script-src 'self' 'wasm-unsafe-eval' 'inline-speculation-rules' http://localhost:* http://127.0.0.1:* chrome-extension://43a622f6-ee58-4c39-acb8-0159139627f8/\". Either the 'unsafe-inline' keyword, a hash ('sha256-r58tTaptVVfycuKarKWC8/tBMpTJLNUjJIHEoD7xZkM='), or a nonce ('nonce-...') is required to enable inline execution.\n",
-      "timestamp": 1763288925676
+      "message": "Failed to load resource: the server responded with a status of 404 ()",
+      "timestamp": 1763408591755
     },
     {
       "type": "error",
       "message": "Failed to load resource: the server responded with a status of 404 ()",
-      "timestamp": 1763288925910
-    },
-    {
-      "type": "error",
-      "message": "Failed to load resource: the server responded with a status of 404 ()",
-      "timestamp": 1763288925910
+      "timestamp": 1763408591755
     }
   ],
   "errors": [
-    "Refused to execute inline script because it violates the following Content Security Policy directive: \"script-src 'self' 'wasm-unsafe-eval' 'inline-speculation-rules' http://localhost:* http://127.0.0.1:* chrome-extension://43a622f6-ee58-4c39-acb8-0159139627f8/\". Either the 'unsafe-inline' keyword, a hash ('sha256-r58tTaptVVfycuKarKWC8/tBMpTJLNUjJIHEoD7xZkM='), or a nonce ('nonce-...') is required to enable inline execution.\n",
-    "Refused to execute inline script because it violates the following Content Security Policy directive: \"script-src 'self' 'wasm-unsafe-eval' 'inline-speculation-rules' http://localhost:* http://127.0.0.1:* chrome-extension://43a622f6-ee58-4c39-acb8-0159139627f8/\". Either the 'unsafe-inline' keyword, a hash ('sha256-r58tTaptVVfycuKarKWC8/tBMpTJLNUjJIHEoD7xZkM='), or a nonce ('nonce-...') is required to enable inline execution.\n",
     "Failed to load resource: the server responded with a status of 404 ()",
     "Failed to load resource: the server responded with a status of 404 ()"
   ],
