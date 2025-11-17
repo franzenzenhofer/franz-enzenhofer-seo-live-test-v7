@@ -14,6 +14,7 @@ export type Result = {
   what?: string|null
   priority?: number|null
   ruleId?: string|null
+  runIdentifier?: string
   details?: ResultDetails
   bestPractice?: boolean
 }
