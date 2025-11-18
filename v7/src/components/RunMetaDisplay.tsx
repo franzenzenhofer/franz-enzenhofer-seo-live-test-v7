@@ -17,7 +17,8 @@ export const RunMetaDisplay = ({ runId, ranAt, onOpenReport }: RunMetaDisplayPro
 
   return (
     <div className="space-y-0.5">
-      <div className="flex items-center gap-1.5 text-[9px] leading-tight">
+      <div className="flex flex-wrap items-center gap-1.5 text-[9px] leading-tight text-gray-600">
+        {ranAt && <span>{formatEuropeanDateTime(ranAt)}</span>}
         {tabId && <span className="font-mono text-gray-500 shrink-0">Tab {tabId}</span>}
         {runId && (
           <button
@@ -29,7 +30,6 @@ export const RunMetaDisplay = ({ runId, ranAt, onOpenReport }: RunMetaDisplayPro
           </button>
         )}
       </div>
-      {ranAt && <div className="text-[9px] text-gray-500 text-right">{formatEuropeanDateTime(ranAt)}</div>}
     </div>
   )
 }
