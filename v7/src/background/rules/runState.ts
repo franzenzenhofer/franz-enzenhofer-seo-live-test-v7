@@ -1,9 +1,6 @@
-/**
- * Run State Tracking
- * Tracks metadata for each test run cycle
- */
+import type { RunStatus } from '@/shared/runStatus'
 
-export type RunStatus = 'pending' | 'running' | 'completed' | 'aborted' | 'error'
+export type { RunStatus } from '@/shared/runStatus'
 
 export type TriggerReason =
   | 'nav:before'

@@ -1,4 +1,6 @@
-export type RunMeta = { url: string; ranAt: string; runId: string; status: 'pending' | 'running' | 'completed' | 'skipped' | 'error' | 'aborted' }
+import type { RunStatus } from './runStatus'
+
+export type RunMeta = { url: string; ranAt: string; runId: string; status: RunStatus }
 
 const metaKey = (tabId: number) => `results-meta:${tabId}`
 const LAST_KEY = 'ui:lastRun'
