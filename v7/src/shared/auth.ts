@@ -1,36 +1,75 @@
+import { logAuthEvent as logAuth } from './authLog'
 export const TOKEN_KEY = 'googleApiAccessToken'
 
-export const getStoredToken = async (): Promise<string | null> => {
-  const { [TOKEN_KEY]: t } = await chrome.storage.local.get(TOKEN_KEY)
-  return (t as string) || null
-}
+export const getStoredToken = async (): Promise<string | null> =>
+  ((await chrome.storage.local.get(TOKEN_KEY))[TOKEN_KEY] as string) || null
 
 export const setStoredToken = async (token: string | null) => {
-  if (token) await chrome.storage.local.set({ [TOKEN_KEY]: token })
-  else await chrome.storage.local.remove(TOKEN_KEY)
+  if (token) {
+    await chrome.storage.local.set({ [TOKEN_KEY]: token })
+    logAuth('token:stored', { masked: `${token.slice(0, 4)}…` })
+  } else {
+    await chrome.storage.local.remove(TOKEN_KEY)
+    logAuth('token:cleared')
+  }
 }
 
 export const refreshIfPresent = async (): Promise<string | null> => {
   const t = await getStoredToken()
-  if (!t) return null
+  if (!t) {
+    logAuth('refresh:skip', { reason: 'no-token' })
+    return null
+  }
+  logAuth('refresh:start')
   return new Promise((res) => {
     chrome.identity.getAuthToken({ interactive: false }, (nt) => {
-      if (nt) setStoredToken(nt).then(() => res(nt)).catch(() => res(nt))
-      else res(t)
+      const err = chrome.runtime?.lastError?.message
+      if (err) logAuth('refresh:error', { error: err })
+      if (nt) {
+        logAuth('refresh:success')
+        setStoredToken(nt).then(() => res(nt)).catch(() => res(nt))
+      } else {
+        logAuth('refresh:fallback', { reason: 'token-reused' })
+        res(t)
+      }
     })
   })
 }
 
 export const interactiveLogin = async (): Promise<string | null> => new Promise((res) => {
+  logAuth('login:start')
   chrome.identity.getAuthToken({ interactive: true }, (token) => {
-    if (token) setStoredToken(token).then(() => res(token)).catch(() => res(token))
-    else res(null)
+    const err = chrome.runtime?.lastError?.message
+    if (err) logAuth('login:error', { error: err })
+    if (token) {
+      logAuth('login:success')
+      setStoredToken(token).then(() => res(token)).catch(() => res(token))
+    } else {
+      logAuth('login:cancelled')
+      res(null)
+    }
   })
 })
 
 export const revoke = async (): Promise<void> => {
-  const t = await getStoredToken(); if (!t) return
-  await fetch('https://accounts.google.com/o/oauth2/revoke?token=' + t)
-  await new Promise((r) => chrome.identity.removeCachedAuthToken({ token: t }, () => r(null)))
+  const t = await getStoredToken()
+  if (!t) {
+    logAuth('revoke:skip', { reason: 'no-token' })
+    return
+  }
+  logAuth('revoke:start')
+  try {
+    await fetch('https://accounts.google.com/o/oauth2/revoke?token=' + t)
+  } catch (error) {
+    logAuth('revoke:fetch-error', { error: error instanceof Error ? error.message : String(error) })
+  }
+  await new Promise((r) => {
+    chrome.identity.removeCachedAuthToken({ token: t }, () => {
+      const err = chrome.runtime?.lastError?.message
+      if (err) logAuth('revoke:cache-error', { error: err })
+      r(null)
+    })
+  })
   await setStoredToken(null)
+  logAuth('revoke:done')
 }
