@@ -9,9 +9,10 @@ import { usePanelActions } from './usePanelActions'
 import { useResultsLogger } from './useResultsLogger'
 
 import { useDebugFlag } from '@/shared/hooks/useDebugFlag'
+import { createDefaultTypeVisibility } from '@/shared/resultFilterState'
 
 export const App = () => {
-  const [show, setShow] = useState<Record<string, boolean>>({ ok: true, warn: true, error: true, runtime_error: true, info: true, pending: true, disabled: true })
+  const [show, setShow] = useState<Record<string, boolean>>(() => createDefaultTypeVisibility())
   const [query, setQuery] = useState('')
   const resultsSource = useResultsSource()
   const [debugEnabled] = useDebugFlag()

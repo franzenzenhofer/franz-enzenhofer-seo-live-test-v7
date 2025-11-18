@@ -1,6 +1,7 @@
 import type { Result } from '@/shared/results'
 import { getResultColor, getResultLabel, resultTypeOrder } from '@/shared/colors'
 import { computeResultCoverage } from '@/shared/resultCoverage'
+import { createDefaultTypeVisibility } from '@/shared/resultFilterState'
 
 type Props = {
   show: Record<string, boolean>
@@ -29,12 +30,7 @@ export const TypeFilters = ({ show, setShow, results, debugEnabled }: Props) => 
           const handleClick = () => {
             const currentlyOnlyThis = show[type] && resultTypeOrder.every((key) => (key === type ? show[key] : !show[key]))
             if (currentlyOnlyThis) {
-              setShow(() =>
-                resultTypeOrder.reduce<Record<string, boolean>>((acc, key) => {
-                  acc[key] = true
-                  return acc
-                }, {}),
-              )
+              setShow(() => createDefaultTypeVisibility())
               return
             }
             setShow(() =>
