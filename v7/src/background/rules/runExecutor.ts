@@ -15,7 +15,7 @@ type ExecuteArgs = {
 }
 
 export const executeRuleBatch = async ({ tabId, run, runState, key, pageUrl, signal, runTimestamp }: ExecuteArgs) => {
-  const globals = await ruleSupport.buildRunGlobals(run, runState.runId, runTimestamp)
+  const globals = await ruleSupport.buildRunGlobals(tabId, run, runState.runId, runTimestamp)
   const rules = await ruleSupport.getEnabledRules()
   const { enabled: enabledRules, ruleOverrides, timeoutMs } = ruleSupport.prepareRulesForRun(rules)
   await ruleSupport.prepareResultsStorage(tabId, key, enabledRules, runState.runId)

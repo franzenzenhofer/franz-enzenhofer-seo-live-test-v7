@@ -12,6 +12,7 @@ import { log } from '@/shared/logs'
 
 
 export const buildRunGlobals = async (
+  tabId: number,
   run: import('../pipeline/types').Run,
   runId: string,
   runTimestamp: Date,
@@ -20,6 +21,8 @@ export const buildRunGlobals = async (
     'globalRuleVariables',
     'googleApiAccessToken',
   ])
+  const authStatus = googleApiAccessToken ? 'present' : 'missing'
+  await log(tabId, `auth:token status=${authStatus} runId=${runId}`)
   return {
     variables: globalRuleVariables || {},
     googleApiAccessToken: googleApiAccessToken || null,
