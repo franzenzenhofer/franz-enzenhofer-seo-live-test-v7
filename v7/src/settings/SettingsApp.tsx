@@ -1,5 +1,4 @@
-import React from 'react'
-import { useEffect, useState } from 'react'
+import React, { useMemo } from 'react'
 
 import { GeneralSettings } from './GeneralSettings'
 import { GoogleAccount } from './GoogleAccount'
@@ -10,38 +9,30 @@ import { useAuthHandlers } from './useAuthHandlers'
 import { ImportExport } from './ImportExport'
 import { StorageDebug } from './StorageDebug'
 
-import { TOKEN_KEY, getStoredToken } from '@/shared/auth'
+import { TOKEN_KEY } from '@/shared/auth'
 import { Toast } from '@/shared/components/Toast'
+import { useStorageSetting } from '@/shared/hooks/useStorageSetting'
 
 type Flags = Record<string, boolean>
 
 export const SettingsApp = () => {
-  // Minimal state for components that haven't been refactored yet
-  const [flags, setFlags] = useState<Flags>({})
-  const [vars, setVars] = useState<Record<string, string>>({})
-  const [hasToken, setHasToken] = useState(false)
+  const [storedFlags, setStoredFlags] = useStorageSetting<Flags | null>('rule-flags', null)
+  const [storedVars, setStoredVars] = useStorageSetting<Record<string, string> | null>('globalRuleVariables', null)
+  const [token] = useStorageSetting<string | null>(TOKEN_KEY, null)
+  const flags = storedFlags || {}
+  const vars = storedVars || {}
+  const hasToken = useMemo(() => Boolean(token), [token])
 
-  const { signIn, signOut } = useAuthHandlers(setHasToken)
+  const { signIn, signOut } = useAuthHandlers()
   const version = chrome.runtime.getManifest().version
 
-  // Load state for components not yet refactored
-  useEffect(() => {
-    chrome.storage.local.get(['rule-flags', 'globalRuleVariables', TOKEN_KEY], (items) => {
-      setFlags(items['rule-flags'] || {})
-      setVars(items['globalRuleVariables'] || {})
-    })
-    getStoredToken().then((t) => setHasToken(!!t)).catch(() => {})
-  }, [])
-
   const updateFlags = (next: Flags) => {
-    setFlags(next)
-    chrome.storage.local.set({ 'rule-flags': next })
+    setStoredFlags(next).catch(() => {})
   }
 
   const updateVar = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const vars2 = { ...vars, [k]: e.target.value }
-    setVars(vars2)
-    chrome.storage.local.set({ globalRuleVariables: vars2 })
+    setStoredVars(vars2).catch(() => {})
   }
 
   return (
