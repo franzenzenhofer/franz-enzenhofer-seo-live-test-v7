@@ -53,13 +53,15 @@ type MinimalResult = { name?: string; message?: string; type?: string; bestPract
 export const persistResults = async (tabId: number, key: string, prev: MinimalResult[] | undefined, add: MinimalResult[]) => {
   const set = async (arr: MinimalResult[]) => { await chrome.storage.local.set({ [key]: arr }); return arr.length }
   try {
-    // Create set of rule names being replaced in this chunk
-    const replacingNames = new Set(add.map(r => r.name).filter(Boolean))
+    const replacingIds = new Set(add.map((r) => (r as { ruleId?: string }).ruleId).filter(Boolean))
+    const replacingNames = new Set(add.map((r) => r.name).filter(Boolean))
 
     // Only remove pending results for rules being replaced, keep all others
     const prevFiltered = prev?.filter(item => {
-      if (item.type !== 'pending') return true  // Keep all non-pending
-      return !replacingNames.has(item.name)      // Keep pending if not being replaced
+      if (item.type !== 'pending') return true
+      const ruleId = (item as { ruleId?: string }).ruleId
+      if (ruleId && replacingIds.has(ruleId)) return false
+      return !replacingNames.has(item.name)
     }) || []
 
     const merged = dedupRunner([...prevFiltered, ...add])
