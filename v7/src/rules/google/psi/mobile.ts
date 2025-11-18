@@ -3,9 +3,11 @@ import { extractPSIKey } from '../google-utils'
 import { runPSI, getPSIKey } from '@/shared/psi'
 import type { Rule } from '@/core/types'
 
+const NAME = 'v5 Mobile score'
+
 export const psiMobileRule: Rule = {
   id: 'psi:mobile',
-  name: 'PSI v5 Mobile score',
+  name: NAME,
   enabled: true,
   what: 'psi',
   async run(page, ctx) {
@@ -13,6 +15,6 @@ export const psiMobileRule: Rule = {
     const key = getPSIKey(userKey)
     const j = await runPSI(page.url, 'mobile', key)
     const score = Math.round(((j.lighthouseResult?.categories?.performance?.score || 0) as number) * 100)
-    return { label: 'PSI', message: `Mobile performance: ${score}`, type: 'info', name: "googleRule", details: { url: page.url, strategy: 'mobile', score, apiResponse: j } }
+    return { label: 'PSI', message: `Mobile performance: ${score}`, type: 'info', name: NAME, details: { url: page.url, strategy: 'mobile', score, apiResponse: j } }
   },
 }

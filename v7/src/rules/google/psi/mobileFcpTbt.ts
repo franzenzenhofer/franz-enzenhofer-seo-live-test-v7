@@ -3,9 +3,11 @@ import { extractPSIKey } from '../google-utils'
 import { runPSI, getPSIKey } from '@/shared/psi'
 import type { Rule } from '@/core/types'
 
+const NAME = 'v5 Mobile FCP/TBT'
+
 export const psiMobileFcpTbtRule: Rule = {
   id: 'psi:mobile-fcp-tbt',
-  name: 'PSI v5 Mobile FCP/TBT',
+  name: NAME,
   enabled: true,
   what: 'psi',
   async run(page, ctx) {
@@ -20,7 +22,7 @@ export const psiMobileFcpTbtRule: Rule = {
       label: 'PSI',
       message: parts.join(', ') || 'Metrics unavailable',
       type: 'info',
-      name: "googleRule",
+      name: NAME,
       details: { url: page.url, strategy: 'mobile', fcp, tbt, apiResponse: j }
     }
   },

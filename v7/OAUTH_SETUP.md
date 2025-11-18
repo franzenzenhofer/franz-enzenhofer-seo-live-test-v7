@@ -4,7 +4,7 @@
 The extension sign-in fails because the OAuth client ID is not configured with the correct Chrome extension ID.
 
 ## OAuth Client Details
-- **Client ID**: `335346275770-p8vif5hh6sj238tq5bh1rmble8r1e9pt.apps.googleusercontent.com`
+- **Client ID**: `335346275770-6d6s9ja0h7brn24ghf3vqa9kv7ko5vfv.apps.googleusercontent.com`
 - **Project ID**: `335346275770`
 
 ## Extension IDs
@@ -17,7 +17,7 @@ Your extension can have different IDs depending on how it's built:
 
 ### Step 1: Open Google Cloud Console
 ```bash
-open "https://console.cloud.google.com/apis/credentials/oauthclient/335346275770-p8vif5hh6sj238tq5bh1rmble8r1e9pt.apps.googleusercontent.com?project=335346275770"
+open "https://console.cloud.google.com/apis/credentials/oauthclient/335346275770-6d6s9ja0h7brn24ghf3vqa9kv7ko5vfv.apps.googleusercontent.com?project=335346275770"
 ```
 
 ### Step 2: Add Authorized JavaScript Origins

@@ -56,7 +56,7 @@ export default [
     rules: { 'max-lines': ['error', { max: 150, skipBlankLines: true, skipComments: true }] },
   },
   {
-    files: ['src/rules/registry.ts', 'src/rules/head/metaDescription-enhanced.ts'],
+    files: ['src/rules/registry.ts', 'src/rules/head/metaDescription-enhanced.ts', 'src/shared/authLogin.ts'],
     rules: { 'max-lines': 'off' },
   },
   {

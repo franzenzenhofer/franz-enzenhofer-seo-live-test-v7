@@ -96,6 +96,12 @@
     "what": "http"
   },
   {
+    "id": "gsc:directory-worldwide",
+    "name": "directory worldwide analytics",
+    "enabledByDefault": true,
+    "what": "gsc"
+  },
+  {
     "id": "dom:node-count",
     "name": "DOM node count",
     "enabledByDefault": true,
@@ -118,36 +124,6 @@
     "name": "Googlebot URL allowed",
     "enabledByDefault": true,
     "what": "http"
-  },
-  {
-    "id": "gsc:directory-worldwide",
-    "name": "GSC directory worldwide analytics",
-    "enabledByDefault": true,
-    "what": "gsc"
-  },
-  {
-    "id": "gsc:is-indexed",
-    "name": "GSC is indexed (via impressions)",
-    "enabledByDefault": true,
-    "what": "gsc"
-  },
-  {
-    "id": "gsc:page-worldwide",
-    "name": "GSC page worldwide analytics",
-    "enabledByDefault": true,
-    "what": "gsc"
-  },
-  {
-    "id": "gsc:top-queries-of-page",
-    "name": "GSC Top queries of page",
-    "enabledByDefault": true,
-    "what": "gsc"
-  },
-  {
-    "id": "gsc:property-available",
-    "name": "GSC webproperty available",
-    "enabledByDefault": true,
-    "what": "gsc"
   },
   {
     "id": "http:gzip",
@@ -244,6 +220,12 @@
     "name": "Internal links count",
     "enabledByDefault": true,
     "what": "static"
+  },
+  {
+    "id": "gsc:is-indexed",
+    "name": "is indexed (via impressions)",
+    "enabledByDefault": true,
+    "what": "gsc"
   },
   {
     "id": "discover:og-image-large",
@@ -360,28 +342,16 @@
     "what": "static"
   },
   {
+    "id": "gsc:page-worldwide",
+    "name": "page worldwide analytics",
+    "enabledByDefault": true,
+    "what": "gsc"
+  },
+  {
     "id": "discover:primary-language",
     "name": "Primary language set",
     "enabledByDefault": true,
     "what": "static"
-  },
-  {
-    "id": "psi:desktop",
-    "name": "PSI v5 Desktop score",
-    "enabledByDefault": true,
-    "what": "psi"
-  },
-  {
-    "id": "psi:mobile-fcp-tbt",
-    "name": "PSI v5 Mobile FCP/TBT",
-    "enabledByDefault": true,
-    "what": "psi"
-  },
-  {
-    "id": "psi:mobile",
-    "name": "PSI v5 Mobile score",
-    "enabledByDefault": true,
-    "what": "psi"
   },
   {
     "id": "discover:published-time",
@@ -546,6 +516,12 @@
     "what": "static"
   },
   {
+    "id": "gsc:top-queries-of-page",
+    "name": "Top queries of page",
+    "enabledByDefault": true,
+    "what": "gsc"
+  },
+  {
     "id": "dom:top-words",
     "name": "Top words",
     "enabledByDefault": true,
@@ -576,10 +552,34 @@
     "what": "static"
   },
   {
+    "id": "psi:desktop",
+    "name": "v5 Desktop score",
+    "enabledByDefault": true,
+    "what": "psi"
+  },
+  {
+    "id": "psi:mobile-fcp-tbt",
+    "name": "v5 Mobile FCP/TBT",
+    "enabledByDefault": true,
+    "what": "psi"
+  },
+  {
+    "id": "psi:mobile",
+    "name": "v5 Mobile score",
+    "enabledByDefault": true,
+    "what": "psi"
+  },
+  {
     "id": "http:vary-user-agent",
     "name": "Vary: User-Agent",
     "enabledByDefault": true,
     "what": "http"
+  },
+  {
+    "id": "gsc:property-available",
+    "name": "webproperty available",
+    "enabledByDefault": true,
+    "what": "gsc"
   },
   {
     "id": "http:x-cache",

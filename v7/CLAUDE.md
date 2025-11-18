@@ -3,6 +3,14 @@
 ## Project Overview
 Production-ready Chrome Extension (Manifest V3) for SEO/performance testing with Chrome DevTools-inspired UI.
 
+## OAuth Configuration
+**See [README.md - OAuth Configuration](README.md#oauth-configuration-google-search-console--analytics) for complete setup.**
+
+**Critical values (DO NOT CHANGE):**
+- OAuth Client ID: `335346275770-6d6s9ja0h7brn24ghf3vqa9kv7ko5vfv`
+- Extension ID: `jbnaibigcohjfefpfocphcjeliohhold` (generated from DEV_EXTENSION_KEY)
+- All values in `config.js` match the published Chrome Web Store extension
+
 ## Architecture
 - **Side Panel UI**: React 18 + Tailwind CSS + Vite
 - **Service Worker**: Background event processing + Chrome alarms

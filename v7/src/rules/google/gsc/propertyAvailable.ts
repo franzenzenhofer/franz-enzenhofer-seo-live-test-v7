@@ -1,28 +1,50 @@
 import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
+import { deriveGscProperty } from '../google-gsc-utils'
 
 import type { Rule } from '@/core/types'
 
+const NAME = 'webproperty available'
+
 export const gscPropertyAvailableRule: Rule = {
   id: 'gsc:property-available',
-  name: 'GSC webproperty available',
+  name: NAME,
   enabled: true,
   what: 'gsc',
   async run(page, ctx) {
     const { token } = extractGoogleCredentials(ctx)
     if (!token) return createNoTokenResult()
-    const origin = new URL(page.url).origin
-    try {
-      const r = await fetch('https://www.googleapis.com/webmasters/v3/sites', { headers: { Authorization: `Bearer ${token}` } })
-      if (!r.ok) {
-        return { label: 'GSC', message: `GSC error ${r.status}`, type: 'warn', name: 'googleRule', details: { status: r.status, url: page.url } }
+
+    const derived = await deriveGscProperty(page.url, token)
+    const { property, type: propertyType } = derived || {}
+
+    if (!derived) {
+      const parsedUrl = new URL(page.url)
+      const domain = parsedUrl.hostname.replace(/^www\./, '')
+      return {
+        label: 'GSC',
+        message: `No GSC property access for ${parsedUrl.hostname}. Add property in Search Console.`,
+        type: 'runtime_error',
+        name: NAME,
+        priority: -1000,
+        details: {
+          url: page.url,
+          hostname: parsedUrl.hostname,
+          triedUrlPrefix: `${parsedUrl.origin}/`,
+          triedDomain: `sc-domain:${domain}`,
+        },
       }
-      const j = (await r.json()) as { siteEntry?: Array<{ siteUrl?: string }> }
-      const ok = (j.siteEntry || []).some((s) => (s.siteUrl || '').includes(origin))
-      return ok
-        ? { label: 'GSC', message: 'Property available', type: 'ok', name: 'googleRule', details: { url: page.url, origin, properties: j.siteEntry } }
-        : { label: 'GSC', message: 'Property not available', type: 'warn', name: 'googleRule', details: { url: page.url, origin, properties: j.siteEntry } }
-    } catch (error) {
-      return { label: 'GSC', message: 'GSC sites lookup failed', type: 'runtime_error', name: 'googleRule', details: { error: error instanceof Error ? error.message : String(error), url: page.url } }
+    }
+
+    return {
+      label: 'GSC',
+      message: `Property available: ${property}`,
+      type: 'ok',
+      name: NAME,
+      details: {
+        url: page.url,
+        property,
+        propertyType,
+      },
     }
   },
 }
