@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react'
 
 import { getActiveTabId } from '@/shared/chrome'
 import { readResults, watchResults, filterResultsByRunId, type Result } from '@/shared/results'
-import { readRunMeta, watchRunMeta } from '@/shared/runMeta'
+import { readRunMeta, readLastRunMeta, watchRunMeta, type RunMeta } from '@/shared/runMeta'
 import { Logger } from '@/shared/logger'
 
 export const useResultsSource = () => {
   const [tabId, setTabId] = useState<number | null>(null)
   const [items, setItems] = useState<Result[]>([])
-  const [runId, setRunId] = useState<string | undefined>(undefined)
+  const [meta, setMeta] = useState<RunMeta | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
 
   // Listen for tab activation changes AND navigation within tab
@@ -56,17 +56,26 @@ export const useResultsSource = () => {
     return () => { unsub?.() }
   }, [tabId, refreshKey])
 
-  // Subscribe to runMeta for current tab to get runId
+  // Subscribe to runMeta for current tab to get full metadata
   useEffect(() => {
-    if (!tabId) {
-      setRunId(undefined)
-      return
-    }
     let unsub: (() => void) | null = null
-    readRunMeta(tabId).then((meta) => setRunId(meta?.runId)).catch(() => {})
-    unsub = watchRunMeta(tabId, (meta) => setRunId(meta?.runId))
-    return () => { unsub?.() }
+    let cancelled = false
+    const boot = async () => {
+      if (!tabId) {
+        const last = await readLastRunMeta().catch(() => null)
+        if (!cancelled) setMeta(last)
+        return
+      }
+      const initial = await readRunMeta(tabId).catch(() => null)
+      if (!cancelled) setMeta(initial)
+      unsub = watchRunMeta(tabId, (next) => setMeta(next))
+    }
+    boot().catch(() => {})
+    return () => {
+      cancelled = true
+      unsub?.()
+    }
   }, [tabId, refreshKey])
 
-  return { tabId, items: filterResultsByRunId(items, runId) }
+  return { tabId, items: filterResultsByRunId(items, meta?.runId), meta }
 }
