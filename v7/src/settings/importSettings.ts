@@ -5,6 +5,7 @@ const VALID_SETTINGS_KEYS = [
   'globalRuleVariables',
   'ui:autoClear',
   'ui:autoRun',
+  'ui:debug',
   'ui:pinnedRules'
 ] as const
 

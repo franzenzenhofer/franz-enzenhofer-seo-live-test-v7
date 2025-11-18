@@ -8,10 +8,13 @@ import { usePanelBootstrap } from './usePanelBootstrap'
 import { usePanelActions } from './usePanelActions'
 import { useResultsLogger } from './useResultsLogger'
 
+import { useDebugFlag } from '@/shared/hooks/useDebugFlag'
+
 export const App = () => {
   const [show, setShow] = useState<Record<string, boolean>>({ ok: true, warn: true, error: true, runtime_error: true, info: true, pending: true, disabled: true })
   const [query, setQuery] = useState('')
   const resultsSource = useResultsSource()
+  const [debugEnabled] = useDebugFlag()
   const runMeta = resultsSource.meta
   const logUi = usePanelLogger(resultsSource.tabId)
   usePanelBootstrap(logUi)
@@ -28,6 +31,7 @@ export const App = () => {
         setShow={setShow}
         query={query}
         setQuery={setQuery}
+        debugEnabled={debugEnabled}
         openSettings={openSettings}
         onClean={clean}
         onOpenLogs={openLogs}
