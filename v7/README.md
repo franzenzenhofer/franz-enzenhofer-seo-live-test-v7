@@ -6,6 +6,66 @@ F19N Obtrusive Live Test v7 (MV3)
 - Tailwind styling
 - Decoupled pipeline: collect → aggregate → run rules → display
 
+## OAuth Configuration (Google Search Console & Analytics)
+
+### Current Setup - Matches Published Extension
+
+The extension uses the **EXACT SAME** OAuth configuration as the published "Franz Enzenhofer SEO Live Test" extension in Chrome Web Store.
+
+**Configuration Values (from `config.js`):**
+```javascript
+// OAuth Client ID (MUST NOT CHANGE - matches published extension)
+OAUTH_CLIENT_ID = '335346275770-6d6s9ja0h7brn24ghf3vqa9kv7ko5vfv.apps.googleusercontent.com'
+
+// OAuth Scopes
+OAUTH_SCOPES = [
+  'https://www.googleapis.com/auth/webmasters.readonly',  // Google Search Console
+  'https://www.googleapis.com/auth/analytics.readonly',   // Google Analytics
+]
+
+// Extension Public Key (MUST NOT CHANGE - generates same extension ID)
+DEV_EXTENSION_KEY = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsWxGAo8gbhOgcRRk5BK+...'
+// This key generates extension ID: jbnaibigcohjfefpfocphcjeliohhold
+```
+
+**Why these values matter:**
+- Extension ID `jbnaibigcohjfefpfocphcjeliohhold` is SAME as published extension
+- OAuth client already has this extension ID registered in Google Cloud Console
+- OAuth works immediately - no additional setup needed!
+
+### Testing OAuth
+
+1. Build extension: `npm run build:dev`
+2. Load unpacked from `/v7/dist` folder
+3. Verify Extension ID: `jbnaibigcohjfefpfocphcjeliohhold` (must match!)
+4. Open Settings → Google Account
+5. Click "Show" under "Authentication Logs (Live)"
+6. Click "Sign In" - OAuth popup should appear immediately
+
+**Success logs:**
+```
+auth:login:success - tokenMasked: ya29.a0...
+auth:login:token-stored
+```
+
+### OAuth Token Storage
+
+Tokens stored in `chrome.storage.session` with key `gsc:token`
+
+Access via:
+```typescript
+import { getStoredToken, setStoredToken } from '@/shared/auth'
+const token = await getStoredToken()  // Returns string | null
+```
+
+### Google Cloud Console Configuration
+
+- **OAuth Client:** `335346275770-6d6s9ja0h7brn24ghf3vqa9kv7ko5vfv`
+- **Project ID:** 335346275770
+- **Authorized JavaScript origins:** Should include `chrome-extension://jbnaibigcohjfefpfocphcjeliohhold`
+
+**⚠️ IMPORTANT:** DO NOT change `OAUTH_CLIENT_ID` or `DEV_EXTENSION_KEY` in `config.js` unless you want to break OAuth!
+
 Scripts
 
 - `npm run dev` – Vite dev server for hot-reload assets

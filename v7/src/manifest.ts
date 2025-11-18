@@ -38,5 +38,6 @@ export default defineManifest({
         },
       }
     : {}),
-  ...(isDev ? { key: DEV_EXTENSION_KEY } : {}),
+  // ALWAYS include key to ensure consistent extension ID (same as old extension)
+  key: DEV_EXTENSION_KEY,
 })

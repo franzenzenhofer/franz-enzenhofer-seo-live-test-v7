@@ -7,6 +7,7 @@
  * All other files MUST import from this file.
  */
 
+// Using the EXACT SAME client ID as old PUBLISHED extension!
 export const OAUTH_CLIENT_ID = '335346275770-6d6s9ja0h7brn24ghf3vqa9kv7ko5vfv.apps.googleusercontent.com'
 
 export const OAUTH_SCOPES = [
@@ -17,7 +18,7 @@ export const OAUTH_SCOPES = [
 export const EXTENSION_NAME = 'F19N Obtrusive Live Test v7'
 export const EXTENSION_NAME_DEV = 'F19N Obtrusive Live Test v7 (Dev)'
 
-// Extension public key for stable extension ID in dev mode
-export const DEV_EXTENSION_KEY = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvU2J55ldTJRJsfzk9SCDJgvFacfjx2fjRn6VSDfk0NKC4lyq6wy5T/kTUQaiIhLteOKkIVbWKju8q9Q7GICCRqVMj7UTVbYgRVpWkLGReCXuqVZav46B1ADGuL7KpK7X3TLKsjGgZqWcsla3bdJK6qnFwPtmIJPnjoIh5EsYfEP6SjnZvHH4ZM8guh0s7aOoh06WV4WRzk+B7uq87Btko7ZyKdln3ka66/vqbAzEf3BeQR57OoMSgZKCEMkjfw9peL+15o6b9T5Y88GgRPQA6s4gIH8HN+okXMY5KSVZ1jyEd3gFrfL6lfp3gSGuXtdjtHlitvGmEqtza3B+u2zBAQIDAQAB'
+// Using OLD extension's public key so NEW extension gets SAME extension ID!
+export const DEV_EXTENSION_KEY = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsWxGAo8gbhOgcRRk5BK+T2GTm+BwZEoLpCbf+1cCDVe0SgM7z69xW8o82TgqPtMO5GIqz0039fcWp88bCcLQHyhv/l9pf8+zp28PRp34Rhc1RwDp/EcSAf2D/QfAqTCImOH5Z9yEbuWRwkVEuJuKdYtYK/QqTd/iqmvlfXJ1Smhsb0Ulqdk2PlAOS0l8N8/03JJNto7mQ70HO3bqU0A1bL96Peo70wlBLL1OPWh9XxnOlw4MVet9nL3SevCjp9iZUFMgncYlm6oMnUSRnVbuhCwVqw1AF1QB8uOv814NU4SIu++YdUtzzb3ATK6eXAoZ/cPCrYG/J7cZLcKObxyWNwIDAQAB'
 
-// This key generates extension ID: enkjceaniaomnogacnigmlpofdcegcfc
+// This key generates extension ID: jbnaibigcohjfefpfocphcjeliohhold (SAME as old extension!)

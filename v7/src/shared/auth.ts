@@ -1,9 +1,8 @@
-import { OAUTH_SCOPES } from '../../config.js'
-
 import { logAuthEvent as logAuth } from './authLog'
+import { interactiveLogin } from './authLogin'
 import { getStoredToken, setStoredToken, TOKEN_KEY } from './tokenStorage'
 
-export { TOKEN_KEY, getStoredToken, setStoredToken }
+export { TOKEN_KEY, getStoredToken, setStoredToken, interactiveLogin }
 
 export const refreshIfPresent = async (): Promise<string | null> => {
   const t = await getStoredToken()
@@ -26,27 +25,6 @@ export const refreshIfPresent = async (): Promise<string | null> => {
     })
   })
 }
-
-export const interactiveLogin = async (): Promise<string | null> => new Promise((res) => {
-  logAuth('login:start')
-  chrome.identity.getAuthToken(
-    {
-      interactive: true,
-      scopes: OAUTH_SCOPES,
-    },
-    (token) => {
-      const err = chrome.runtime?.lastError?.message
-      if (err) logAuth('login:error', { error: err })
-      if (token) {
-        logAuth('login:success')
-        setStoredToken(token).then(() => res(token)).catch(() => res(token))
-      } else {
-        logAuth('login:cancelled')
-        res(null)
-      }
-    }
-  )
-})
 
 export const revoke = async (): Promise<void> => {
   const t = await getStoredToken()
