@@ -64,3 +64,23 @@ export const cleanupOldResults = (results: Result[], keepLastN = 3): Result[] =>
   const recentRunIds = uniqueRunIds.slice(-keepLastN)
   return withRunId.filter((r) => recentRunIds.includes(r.runIdentifier!))
 }
+
+/**
+ * Find results for a specific runId by searching ALL tabs.
+ * @param runId - The runId to search for
+ * @returns Object with tabId and filtered results, or null if not found
+ */
+export const findResultsByRunId = async (runId: string): Promise<{ tabId: number; results: Result[] } | null> => {
+  const all = await chrome.storage.local.get(null)
+  for (const [k, v] of Object.entries(all)) {
+    if (k.startsWith('results:') && Array.isArray(v)) {
+      const results = v as Result[]
+      const filtered = filterResultsByRunId(results, runId)
+      if (filtered.length > 0) {
+        const tabId = parseInt(k.replace('results:', ''), 10)
+        return { tabId, results: filtered }
+      }
+    }
+  }
+  return null
+}
