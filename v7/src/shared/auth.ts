@@ -1,3 +1,5 @@
+import { OAUTH_SCOPES } from '../../config.js'
+
 import { logAuthEvent as logAuth } from './authLog'
 import { getStoredToken, setStoredToken, TOKEN_KEY } from './tokenStorage'
 
@@ -30,10 +32,7 @@ export const interactiveLogin = async (): Promise<string | null> => new Promise(
   chrome.identity.getAuthToken(
     {
       interactive: true,
-      scopes: [
-        'https://www.googleapis.com/auth/webmasters.readonly',
-        'https://www.googleapis.com/auth/analytics.readonly',
-      ],
+      scopes: OAUTH_SCOPES,
     },
     (token) => {
       const err = chrome.runtime?.lastError?.message
