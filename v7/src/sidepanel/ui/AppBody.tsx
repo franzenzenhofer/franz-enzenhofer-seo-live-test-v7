@@ -55,6 +55,7 @@ export const AppBody = ({
         onClean={onClean}
         onOpenLogs={onOpenLogs}
         onOpenSettings={openSettings}
+        debugEnabled={debugEnabled}
       />
       <div className="p-3 space-y-3">
         <Search onChange={setQuery} />
