@@ -7,10 +7,10 @@ import { useFilterParser } from './useFilterParser'
 import { PanelHeader } from './PanelHeader'
 
 import type { Result } from '@/shared/results'
-import type { RunStatus } from '@/shared/runStatus'
+import type { RunMeta } from '@/shared/runMeta'
 
 export const AppBody = ({
-  d,
+  meta,
   show,
   setShow,
   query,
@@ -23,7 +23,7 @@ export const AppBody = ({
   tabId,
   logUi,
 }: {
-  d: { url: string; ranAt?: string; runId?: string; status?: RunStatus }
+  meta: RunMeta | null
   show: Record<string, boolean>
   setShow: Dispatch<SetStateAction<Record<string, boolean>>>
   query: string
@@ -41,9 +41,9 @@ export const AppBody = ({
   return (
     <div className="dt-panel w-[360px]">
       <PanelHeader
-        url={d.url}
-        runId={d.runId}
-        ranAt={d.ranAt}
+        url={meta?.url || ''}
+        runId={meta?.runId}
+        ranAt={meta?.ranAt}
         onOpenReport={onOpenReport}
         onClean={onClean}
         onOpenLogs={onOpenLogs}

@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { Shortcuts } from './Shortcuts'
 import { AppBody } from './AppBody'
 import { useResultsSource } from './useResultsSource'
-import { useRunMeta } from './useRunMeta'
 import { usePanelLogger } from './usePanelLogger'
 import { usePanelBootstrap } from './usePanelBootstrap'
 import { usePanelActions } from './usePanelActions'
@@ -13,7 +12,7 @@ export const App = () => {
   const [show, setShow] = useState<Record<string, boolean>>({ ok: true, warn: true, error: true, runtime_error: true, info: true, pending: true, disabled: true })
   const [query, setQuery] = useState('')
   const resultsSource = useResultsSource()
-  const runMeta = useRunMeta(resultsSource.tabId)
+  const runMeta = resultsSource.meta
   const logUi = usePanelLogger(resultsSource.tabId)
   usePanelBootstrap(logUi)
   useResultsLogger(logUi, resultsSource.items.length)
@@ -24,7 +23,7 @@ export const App = () => {
     <>
       <Shortcuts runNow={runNow} clean={clean} openLogs={openLogs} openSettings={openSettings} />
       <AppBody
-        d={{ url: runMeta?.url || '', ranAt: runMeta?.ranAt, runId: runMeta?.runId, status: runMeta?.status }}
+        meta={runMeta}
         show={show}
         setShow={setShow}
         query={query}
