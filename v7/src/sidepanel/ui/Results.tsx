@@ -12,12 +12,14 @@ export const Results = ({
   items,
   types,
   q,
+  debugEnabled,
   tabId,
   logUi,
 }: {
   items: Result[]
   types?: string[]
   q?: string
+  debugEnabled: boolean
   tabId?: number | null
   logUi?: LogFn
 }) => {
@@ -67,7 +69,7 @@ export const Results = ({
           />
         )
       })}
-      {!filtered.length && <NoResults items={items} types={types} q={q} />}
+      {!filtered.length && <NoResults items={items} types={types} q={q} debugEnabled={debugEnabled} />}
     </div>
   )
 }

@@ -4,16 +4,19 @@ type Props = {
   totalRules: number
   resultsCount: number
   missing: RuleSummary[]
+  debugEnabled: boolean
 }
 
-export const ResultSummary = ({ totalRules, resultsCount, missing }: Props) => (
+export const ResultSummary = ({ totalRules, resultsCount, missing, debugEnabled }: Props) => (
   <div className="rounded border border-gray-200 bg-white p-3 text-xs text-gray-700 space-y-1">
     <div className="flex flex-wrap gap-3">
       <span>Total rules: {totalRules}</span>
       <span>Results received: {resultsCount}</span>
-      <span className={missing.length ? 'text-red-600 font-semibold' : ''}>Missing: {missing.length}</span>
+      {debugEnabled && (
+        <span className={missing.length ? 'text-red-600 font-semibold' : ''}>Missing: {missing.length}</span>
+      )}
     </div>
-    {!!missing.length && (
+    {debugEnabled && !!missing.length && (
       <div>
         <p className="font-semibold text-red-600">Missing results:</p>
         <ul className="list-disc pl-4">

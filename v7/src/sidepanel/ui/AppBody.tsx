@@ -15,6 +15,7 @@ export const AppBody = ({
   setShow,
   query,
   setQuery,
+  debugEnabled,
   openSettings,
   onClean,
   onOpenLogs,
@@ -28,6 +29,7 @@ export const AppBody = ({
   setShow: Dispatch<SetStateAction<Record<string, boolean>>>
   query: string
   setQuery: (q: string) => void
+  debugEnabled: boolean
   openSettings: () => void
   onClean: () => void
   onOpenLogs: () => void
@@ -51,11 +53,12 @@ export const AppBody = ({
       />
       <div className="p-3 space-y-3">
         <Search onChange={setQuery} />
-        <TypeFilters show={show} setShow={setShow} results={results} />
+        <TypeFilters show={show} setShow={setShow} results={results} debugEnabled={debugEnabled} />
         <Results
           items={results}
           types={parsed.hasTypeFilter ? parsed.types : Object.entries(show).filter(([, v]) => v).map(([k]) => k)}
           q={parsed.text}
+          debugEnabled={debugEnabled}
           tabId={tabId}
           logUi={logUi}
         />

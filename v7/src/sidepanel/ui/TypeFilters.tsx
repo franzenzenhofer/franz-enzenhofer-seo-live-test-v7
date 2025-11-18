@@ -6,22 +6,20 @@ type Props = {
   show: Record<string, boolean>
   setShow: (u: (s: Record<string, boolean>) => Record<string, boolean>) => void
   results: Result[]
+  debugEnabled: boolean
 }
-
-export const TypeFilters = ({ show, setShow, results }: Props) => {
+export const TypeFilters = ({ show, setShow, results, debugEnabled }: Props) => {
   const counts = results.reduce((acc, r) => {
     acc[r.type] = (acc[r.type] || 0) + 1
     return acc
   }, {} as Record<string, number>)
   const { totalRules, missingRules } = computeResultCoverage(results)
-  const missing = missingRules.length
-  const showMissing = missing > 0
-
+  const showMissing = debugEnabled && missingRules.length > 0
   return (
     <>
       <div className="text-xs text-gray-600 flex items-center gap-3 mb-1">
         <span>Total {totalRules}</span>
-        {showMissing && <span className="text-red-600 font-semibold">Missing {missing}</span>}
+        {showMissing && <span className="text-red-600 font-semibold">Missing {missingRules.length}</span>}
       </div>
       <div className="flex items-center gap-2 flex-wrap">
         {resultTypeOrder.map((type) => {

@@ -7,6 +7,7 @@ export const GeneralSettings = () => {
   // Real-time sync across all contexts (settings page, sidepanel, etc.)
   const [autoRun, setAutoRun] = useStorageSetting('ui:autoRun', true)
   const [autoClear, setAutoClear] = useStorageSetting('ui:autoClear', true)
+  const [debugMode, setDebugMode] = useStorageSetting('ui:debug', true)
 
   return (
     <div className="bg-gray-50 rounded-lg p-4">
@@ -26,6 +27,12 @@ export const GeneralSettings = () => {
           description="Clear previous test results when navigating to a new page (prevents clutter)"
           checked={autoClear}
           onChange={setAutoClear}
+        />
+        <ToggleRow
+          label="Debug data"
+          description="Show missing rule counts and advanced debugging helpers in the UI"
+          checked={debugMode}
+          onChange={setDebugMode}
         />
       </div>
     </div>

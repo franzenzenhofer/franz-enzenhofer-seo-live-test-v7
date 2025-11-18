@@ -11,7 +11,7 @@ export const buildBugReport = async (): Promise<string> => {
   const lastRun = tabId ? (await chrome.storage.session.get(k))[k as string] : null
   const logs = tabId ? await getLogs(tabId) : []
   const results = tabId ? await readResults(tabId) : []
-  const settings = await chrome.storage.local.get(['ui:autoRun','ui:autoClear','rule-flags','globalRuleVariables'])
+  const settings = await chrome.storage.local.get(['ui:autoRun','ui:autoClear','ui:debug','rule-flags','globalRuleVariables'])
   const report = {
     meta: { time: new Date().toISOString(), ua, manifest: { name: manifest.name, version: manifest.version, version_name: (manifest as unknown as { version_name?: string }).version_name || '' } },
     tab: { id: tabId, url: tab?.url || null, title: tab?.title || null },
@@ -23,4 +23,3 @@ export const buildBugReport = async (): Promise<string> => {
   }
   return JSON.stringify(report, null, 2)
 }
-

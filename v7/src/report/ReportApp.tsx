@@ -10,6 +10,7 @@ import { TypeFilters } from '@/sidepanel/ui/TypeFilters'
 import { Results } from '@/sidepanel/ui/Results'
 import { useFilterParser } from '@/sidepanel/ui/useFilterParser'
 import { computeResultCoverage } from '@/shared/resultCoverage'
+import { useDebugFlag } from '@/shared/hooks/useDebugFlag'
 
 export const ReportApp = () => {
   const { results, runMeta, loading, error } = useReportData()
@@ -17,23 +18,16 @@ export const ReportApp = () => {
   const [query, setQuery] = useState('')
   const parsed = useFilterParser(query)
   const version = chrome.runtime.getManifest().version
+  const [debugEnabled] = useDebugFlag()
 
-  if (loading) {
+  if (loading || error) {
     return (
       <div className="min-h-screen bg-white">
         <div className="max-w-6xl mx-auto p-4 sm:p-6">
-          <h1 className="text-2xl font-semibold">Loading Report...</h1>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="max-w-6xl mx-auto p-4 sm:p-6">
-          <h1 className="text-2xl font-semibold mb-2 text-red-600">Error</h1>
-          <p className="text-sm text-gray-600">{error}</p>
+          <h1 className={`text-2xl font-semibold${error ? ' mb-2 text-red-600' : ''}`}>
+            {error ? 'Error' : 'Loading Report...'}
+          </h1>
+          {error && <p className="text-sm text-gray-600">{error}</p>}
         </div>
       </div>
     )
@@ -62,12 +56,13 @@ export const ReportApp = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <TypeFilters show={show} setShow={setShow} results={results} />
-          <ResultSummary totalRules={coverage.totalRules} resultsCount={coverage.coveredRules} missing={coverage.missingRules} />
+          <TypeFilters show={show} setShow={setShow} results={results} debugEnabled={debugEnabled} />
+          <ResultSummary totalRules={coverage.totalRules} resultsCount={coverage.coveredRules} missing={coverage.missingRules} debugEnabled={debugEnabled} />
           <Results
             items={results}
             types={parsed.hasTypeFilter ? parsed.types : Object.entries(show).filter(([, v]) => v).map(([k]) => k)}
             q={parsed.text}
+            debugEnabled={debugEnabled}
             tabId={null}
             logUi={undefined}
           />
