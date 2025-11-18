@@ -13,9 +13,19 @@ type Props = {
   onClean: () => void
   onOpenLogs: () => void
   onOpenSettings: () => void
+  debugEnabled: boolean
 }
 
-export const PanelHeader = ({ url, runId, ranAt, onOpenReport, onClean, onOpenLogs, onOpenSettings }: Props) => {
+export const PanelHeader = ({
+  url,
+  runId,
+  ranAt,
+  onOpenReport,
+  onClean,
+  onOpenLogs,
+  onOpenSettings,
+  debugEnabled,
+}: Props) => {
   const version = chrome.runtime.getManifest().version
   const [editableUrl, setEditableUrl] = useState(url || '')
 
@@ -42,9 +52,11 @@ export const PanelHeader = ({ url, runId, ranAt, onOpenReport, onClean, onOpenLo
           <button className="text-gray-600 hover:text-gray-900 underline" onClick={onClean}>
             Clean
           </button>
-          <button className="text-gray-600 hover:text-gray-900 underline" onClick={onOpenLogs}>
-            Logs
-          </button>
+          {debugEnabled && (
+            <button className="text-gray-600 hover:text-gray-900 underline" onClick={onOpenLogs}>
+              Logs
+            </button>
+          )}
           <button className="text-gray-600 hover:text-gray-900 underline" onClick={onOpenSettings}>
             Settings
           </button>

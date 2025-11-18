@@ -25,7 +25,7 @@ export const App = () => {
 
   return (
     <>
-      <Shortcuts runNow={runNow} clean={clean} openLogs={openLogs} openSettings={openSettings} />
+      <Shortcuts runNow={runNow} clean={clean} openLogs={openLogs} openSettings={openSettings} logsEnabled={debugEnabled} />
       <AppBody
         meta={runMeta}
         show={show}

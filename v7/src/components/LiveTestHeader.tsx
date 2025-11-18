@@ -30,9 +30,9 @@ export const LiveTestHeader = ({
   return (
     <div className="border-b bg-white">
       <div className="p-3 space-y-2">
-        <div className="space-y-0.5">
+        <div className="flex items-end justify-between gap-2">
           <h1 className="text-base font-bold text-gray-900">Franz Enzenhofer SEO Live Test</h1>
-          {version && <div className="text-xs text-gray-500">v{version}</div>}
+          {version && <span className="text-[10px] uppercase tracking-wide text-gray-400">v{version}</span>}
         </div>
 
         <HeaderUrlSection
@@ -46,7 +46,7 @@ export const LiveTestHeader = ({
 
         {primaryAction && <div>{primaryAction}</div>}
 
-        {secondaryActions && <div className="flex items-center gap-3 text-sm">{secondaryActions}</div>}
+        {secondaryActions && <div className="flex flex-wrap items-center gap-3 text-sm">{secondaryActions}</div>}
       </div>
     </div>
   )

@@ -5,11 +5,13 @@ export const Shortcuts = ({
   clean,
   openLogs,
   openSettings,
+  logsEnabled,
 }: {
   runNow: () => void
   clean: () => void
   openLogs: () => void
   openSettings: () => void
+  logsEnabled: boolean
 }) => {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -17,12 +19,12 @@ export const Shortcuts = ({
       if (mod && e.key.toLowerCase()==='k') { e.preventDefault(); clean() }
       if (e.key==='Enter') { runNow() }
       if (mod && e.key === '1') { e.preventDefault() }
-      if (mod && e.key === '2') { e.preventDefault(); openLogs() }
+      if (logsEnabled && mod && e.key === '2') { e.preventDefault(); openLogs() }
       if (mod && e.key === '3') { e.preventDefault(); openSettings() }
       if (mod && e.key.toLowerCase()==='f') { const el = document.querySelector<HTMLInputElement>('input[placeholder^="Filter results"]'); el?.focus() }
     }
     addEventListener('keydown', onKey)
     return () => removeEventListener('keydown', onKey)
-  }, [runNow, clean, openLogs, openSettings])
+  }, [runNow, clean, openLogs, openSettings, logsEnabled])
   return null
 }
