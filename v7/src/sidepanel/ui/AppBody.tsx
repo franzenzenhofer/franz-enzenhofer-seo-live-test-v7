@@ -7,6 +7,7 @@ import { useFilterParser } from './useFilterParser'
 import { PanelHeader } from './PanelHeader'
 
 import type { Result } from '@/shared/results'
+import type { RunStatus } from '@/shared/runStatus'
 
 export const AppBody = ({
   d,
@@ -22,7 +23,7 @@ export const AppBody = ({
   tabId,
   logUi,
 }: {
-  d: { url: string; ranAt?: string; runId?: string; status?: 'pending' | 'running' | 'completed' | 'skipped' | 'error' | 'aborted' }
+  d: { url: string; ranAt?: string; runId?: string; status?: RunStatus }
   show: Record<string, boolean>
   setShow: Dispatch<SetStateAction<Record<string, boolean>>>
   query: string

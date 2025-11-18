@@ -12,13 +12,15 @@ export const RunRow = ({ run }: Props): React.JSX.Element => {
     return date.toLocaleTimeString()
   }
 
-  const statusColor = {
+  const statusColors: Record<RunState['status'], string> = {
     completed: 'text-green-700 bg-green-50',
     running: 'text-blue-700 bg-blue-50',
     pending: 'text-yellow-700 bg-yellow-50',
     aborted: 'text-gray-700 bg-gray-50',
     error: 'text-red-700 bg-red-50',
-  }[run.status]
+    skipped: 'text-purple-700 bg-purple-50',
+  }
+  const statusColor = statusColors[run.status]
 
   return (
     <tr className="hover:bg-gray-50">

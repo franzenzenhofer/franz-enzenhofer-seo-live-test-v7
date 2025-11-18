@@ -1,4 +1,6 @@
-type SessionStatus = 'running' | 'completed' | 'error' | 'aborted' | 'skipped'
+import type { RunStatus } from '@/shared/runStatus'
+
+type SessionStatus = Exclude<RunStatus, 'pending'>
 
 type SessionRecord = {
   tabId: number
