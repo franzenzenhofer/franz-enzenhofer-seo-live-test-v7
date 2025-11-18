@@ -1,5 +1,6 @@
 import { runRulesOn } from '../rules/runner'
 import { determineTrigger } from '../rules/triggerDetect'
+import { abortSession } from '../rules/sessions'
 
 import { addEvent, popRun, setDomDone } from './store'
 import { scheduleFinalize, onAlarm } from './alarms'
@@ -30,6 +31,7 @@ export const pushEvent = async (tabId: number, ev: import('./types').EventRec) =
       await chrome.storage.local.remove(`results:${tabId}`)
       await Logger.logDirect(tabId, 'event', 'clear results', { reason: 'autoClear' })
     }
+    await abortSession(tabId, 'navigation')
     return
   }
   if (ev.t === 'dom:document_idle') {

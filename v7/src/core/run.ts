@@ -1,7 +1,10 @@
 import type { Rule, Result, Page, Ctx } from './types'
-import { createDisabledResult, createRuntimeError, emitChunk, enrichResult, logRuleResults } from './runHelpers'
+import { createDisabledResult, emitChunk } from './runHelpers'
+import { runRuleQueue, CANCELLATION_ERROR } from './ruleQueue'
 
 import { Logger } from '@/shared/logger'
+
+type RunOptions = { signal?: AbortSignal }
 
 export const runAll = async (
   tabId: number,
@@ -9,43 +12,43 @@ export const runAll = async (
   page: Page,
   ctx: Ctx,
   emit?: (chunk: Result[]) => Promise<void> | void,
+  options: RunOptions = {},
 ): Promise<Result[]> => {
   const runId = typeof ctx.globals['runId'] === 'string' ? ctx.globals['runId'] : undefined
-  const enabledRules = rules.filter((r) => r.enabled)
-  Logger.logDirectSend(tabId, 'rules', 'start', { total: rules.length, enabled: enabledRules.length, disabled: rules.length - enabledRules.length, url: page.url || 'unknown' })
-  const out: Result[] = []
-  let enabledIndex = 0
-  for (const r of rules) {
-    if (!r.enabled) {
-      const disabled = createDisabledResult(r, runId)
-      out.push(disabled)
+  const enabled = rules.filter((rule) => rule.enabled)
+  Logger.logDirectSend(tabId, 'rules', 'start', { total: rules.length, enabled: enabled.length, disabled: rules.length - enabled.length, url: page.url || 'unknown' })
+  const slots: Array<Result | null> = []
+  const tasks: Array<{ rule: Rule; slot: number; ordinal: number }> = []
+  let ordinal = 0
+  for (const rule of rules) {
+    const slot = slots.length
+    slots.push(null)
+    if (!rule.enabled) {
+      const disabled = createDisabledResult(rule, runId)
+      slots[slot] = disabled
       await emitChunk(emit, [disabled])
-      Logger.logDirectSend(tabId, 'rule', 'skip', { id: r.id, name: r.name, reason: 'disabled', state: 'disabled' })
+      Logger.logDirectSend(tabId, 'rule', 'skip', { id: rule.id, name: rule.name, reason: 'disabled', state: 'disabled' })
       continue
     }
-    enabledIndex++
-    const ruleId = `${r.id}-${Math.random().toString(36).slice(2, 7)}`
-    Logger.logDirectSend(tabId, 'rule', 'start', { id: r.id, name: r.name, index: enabledIndex, total: enabledRules.length, ruleId })
-    const start = performance.now()
-    try {
-      const res = await r.run(page, ctx)
-      const duration = (performance.now() - start).toFixed(2)
-      logRuleResults(tabId, r, ruleId, [res])
-      Logger.logDirectSend(tabId, 'rule', 'done', { id: r.id, name: r.name, ruleId, duration: `${duration}ms`, results: 1 })
-      const enriched = enrichResult(res, r, runId)
-      out.push(enriched)
-      await emitChunk(emit, [enriched])
-    } catch (error) {
-      const duration = (performance.now() - start).toFixed(2)
-      const errorMessage = error instanceof Error ? error.message : String(error)
-      const errorStack = error instanceof Error ? error.stack : undefined
-      Logger.logDirectSend(tabId, 'rule', 'error', { id: r.id, name: r.name, ruleId, error: errorMessage, stack: errorStack, duration: `${duration}ms` })
-
-      const runtimeError = createRuntimeError(r, errorMessage, runId)
-      out.push(runtimeError)
-      await emitChunk(emit, [runtimeError])
-    }
+    ordinal++
+    tasks.push({ rule, slot, ordinal })
   }
+  try {
+    await runRuleQueue({
+      tabId,
+      page,
+      ctx,
+      runId,
+      tasks,
+      emit,
+      signal: options.signal,
+      assign: (slot, result) => { slots[slot] = result },
+    })
+  } catch (error) {
+    if (error instanceof Error && error.message === CANCELLATION_ERROR) throw error
+    throw error
+  }
+  const out = slots.filter((res): res is Result => res !== null)
   Logger.logDirectSend(tabId, 'rules', 'done', {
     total: out.length,
     byType: { ok: out.filter((r) => r.type === 'ok').length, info: out.filter((r) => r.type === 'info').length, warn: out.filter((r) => r.type === 'warn').length, error: out.filter((r) => r.type === 'error').length },

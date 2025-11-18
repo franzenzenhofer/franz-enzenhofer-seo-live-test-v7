@@ -26,7 +26,7 @@ const createChromeStub = () => {
   return {
     storage: {
       local: { get, set, remove },
-      session: { get: vi.fn(async () => ({})), set: vi.fn(async () => ({})) },
+      session: { get: vi.fn(async () => ({})), set: vi.fn(async () => ({})), remove: vi.fn(async () => ({})) },
     },
     runtime: { getURL: (p: string) => p, sendMessage: vi.fn() },
   }
@@ -49,7 +49,7 @@ describe('runner: skip empty/early runs', () => {
 describe('runner: chunked results', () => {
   it('stores each streamed result only once', async () => {
     const runInOffscreenMock = off.runInOffscreen as unknown as ReturnType<typeof vi.fn>
-    runInOffscreenMock.mockImplementation(async (_tabId, _payload, _timeout, emit?: (chunk: RuleResult[]) => Promise<void>) => {
+    runInOffscreenMock.mockImplementation(async (_tabId, _payload, _timeout, emit?: (chunk: RuleResult[]) => Promise<void>, _options?: unknown) => {
       const chunk: RuleResult[] = [
         { label: 'TEST', message: 'one', type: 'info', name: 'Rule A', ruleId: 'rule-a' },
         { label: 'TEST', message: 'two', type: 'info', name: 'Rule B', ruleId: 'rule-b' },

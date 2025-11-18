@@ -1,6 +1,7 @@
 import type { RuleResult } from './types'
 import { persistResults } from './util'
 import { countResultTypes } from './counts'
+import { isSessionActive } from './sessions'
 
 import { log } from '@/shared/logs'
 
@@ -9,6 +10,10 @@ export const createChunkSync = (tabId: number, key: string, runId?: string) => {
   const append = (chunk: RuleResult[]) => {
     if (!chunk.length) return queue
     queue = queue.then(async () => {
+      if (runId && !isSessionActive(tabId, runId)) {
+        await log(tabId, `runner:drop-stale runId=${runId} tab=${tabId} chunk=${chunk.length}`)
+        return
+      }
       const got = await chrome.storage.local.get(key)
       const prev = got[key] as RuleResult[] | undefined
       await persistResults(tabId, key, prev, chunk)
