@@ -25,6 +25,13 @@ const persist = async (tabId: number, snapshot?: SessionRecord) => {
 }
 
 export const startSession = async (tabId: number, runId: string) => {
+  const previous = sessions.get(tabId)
+  if (previous) {
+    previous.status = 'aborted'
+    previous.reason = 'superseded'
+    previous.controller.abort()
+    sessions.delete(tabId)
+  }
   const session: SessionRecord = {
     tabId,
     runId,
