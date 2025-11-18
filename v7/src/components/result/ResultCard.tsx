@@ -46,7 +46,7 @@ export const ResultCard = ({ result, index, isPinned, onTogglePin, collapsible, 
   const domPathPreview = selectors[0]
   const additionalTargets = selectors.length > 1 ? selectors.length - 1 : 0
   return (
-    <article className={`${color.full} border rounded p-3 space-y-2`}>
+    <article className={`${color.full} border rounded p-3 space-y-2`} data-testid="result-card">
       <ResultHeader
         result={result}
         index={index}

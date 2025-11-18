@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 
-import { readResults, filterResultsByRunId, type Result } from '@/shared/results'
+import { findResultsByRunId, type Result } from '@/shared/results'
 import { readRunMeta, type RunMeta } from '@/shared/runMeta'
-import { getActiveTabId } from '@/shared/chrome'
 
 export const useReportData = () => {
   const [results, setResults] = useState<Result[]>([])
@@ -23,26 +22,15 @@ export const useReportData = () => {
 
     const loadData = async () => {
       try {
-        const tabId = await getActiveTabId()
-        if (!tabId) {
-          setError('No active tab found')
-          setLoading(false)
-          return
-        }
-
-        const [allResults, meta] = await Promise.all([
-          readResults(tabId),
-          readRunMeta(tabId).catch(() => null),
-        ])
-
-        const filtered = filterResultsByRunId(allResults, runId)
-        if (filtered.length === 0) {
+        const found = await findResultsByRunId(runId)
+        if (!found) {
           setError(`No results found for runid: ${runId}`)
           setLoading(false)
           return
         }
 
-        setResults(filtered)
+        const meta = await readRunMeta(found.tabId).catch(() => null)
+        setResults(found.results)
         setRunMeta(meta)
 
         // If specific index, scroll to it
