@@ -16,6 +16,7 @@ export const Results = ({
   onResetFilters,
   tabId,
   logUi,
+  defaultExpanded = false,
 }: {
   items: Result[]
   types?: string[]
@@ -24,6 +25,7 @@ export const Results = ({
   onResetFilters?: () => void
   tabId?: number | null
   logUi?: LogFn
+  defaultExpanded?: boolean
 }) => {
   const { pinned, togglePin } = usePinnedRules()
   const filtered = useMemo(() => items.filter((i) => {
@@ -61,8 +63,7 @@ export const Results = ({
             index={items.indexOf(r)}
             isPinned={Boolean(key && pinned[key])}
             onTogglePin={key ? () => togglePin(key) : undefined}
-            collapsible
-            defaultExpanded={Boolean(r.priority && r.priority >= 1000)}
+            defaultExpanded={defaultExpanded}
             tabId={tabId}
             logUi={logUi}
           />

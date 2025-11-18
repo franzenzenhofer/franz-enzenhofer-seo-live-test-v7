@@ -14,15 +14,15 @@ type Props = {
   index?: number
   isPinned?: boolean
   onTogglePin?: () => void
-  collapsible?: boolean
   defaultExpanded?: boolean
   tabId?: number | null
   logUi?: (action: string, data?: Record<string, unknown>) => void
 }
-export const ResultCard = ({ result, index, isPinned, onTogglePin, collapsible, defaultExpanded, tabId, logUi }: Props) => {
+export const ResultCard = ({ result, index, isPinned, onTogglePin, defaultExpanded = false, tabId, logUi }: Props) => {
   const color = getResultColor(result.type)
-  const [open, setOpen] = useState(!collapsible || Boolean(defaultExpanded))
-  const showDetails = open && Boolean(result.details)
+  const hasDetails = Boolean(result.details)
+  const [open, setOpen] = useState(hasDetails && defaultExpanded)
+  const showDetails = open && hasDetails
   const snippet = typeof result.details?.snippet === 'string' ? result.details?.snippet : null
   const selectors = useMemo(() => {
     if (!result.details) return []
@@ -51,9 +51,9 @@ export const ResultCard = ({ result, index, isPinned, onTogglePin, collapsible, 
         index={index}
         isPinned={isPinned}
         onTogglePin={onTogglePin}
-        canToggleDetails={Boolean(result.details && collapsible)}
-        open={open}
-        onToggleDetails={() => setOpen((v) => !v)}
+        canToggleDetails={hasDetails}
+        open={hasDetails ? open : false}
+        onToggleDetails={hasDetails ? () => setOpen((v) => !v) : undefined}
         dotClass={color.dot}
         copyContent={copyPayload}
       />
