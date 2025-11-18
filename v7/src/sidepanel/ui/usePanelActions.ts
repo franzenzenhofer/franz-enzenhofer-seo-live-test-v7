@@ -21,6 +21,7 @@ export const usePanelActions = (logUi: LogFn) => {
     if (id) {
       await clearResults(id)
       await clearLogs(id)
+      await chrome.runtime.sendMessage({ t: 'panel:clean', d: { tabId: id } })
       logUi('action:clean:done', { tabId: id })
     }
   }

@@ -3,7 +3,7 @@ import { extractPSIKey } from '../google-utils'
 import { runPSI, getPSIKey } from '@/shared/psi'
 import type { Rule } from '@/core/types'
 
-const NAME = 'v5 Desktop score'
+const NAME = 'V5 Desktop score'
 
 export const psiDesktopRule: Rule = {
   id: 'psi:desktop',

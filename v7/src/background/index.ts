@@ -5,16 +5,27 @@ import { seedDefaults } from './rules/index'
 import { enableAndOpenSidePanel } from './panel'
 import { registerCommandAndMenu } from './commands'
 import { initDevAutoReload } from './devReload'
+import { abortSession } from './rules/sessions'
 
 import { refreshIfPresent } from '@/shared/auth'
 import { rememberHttpTab } from '@/shared/tabMemory'
 import { Logger } from '@/shared/logger'
+import { isValidTabId } from '@/shared/logs'
 
 Logger.setContext('background')
 
 const panelPath = 'src/sidepanel.html'
 
 chrome.runtime.onInstalled.addListener(() => { seedDefaults() })
+
+chrome.runtime.onMessage.addListener(async (message) => {
+  if (message.t === 'panel:clean') {
+    const { tabId } = message.d
+    if (isValidTabId(tabId)) {
+      await abortSession(tabId, 'cleaned')
+    }
+  }
+})
 
 chrome.action.onClicked.addListener((tab) => {
   if (!tab.id) return
@@ -38,6 +49,10 @@ chrome.tabs.onUpdated.addListener(async (tabId) => {
     // ignore
   }
   rememberHttpTab(tabId).catch(() => {})
+})
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+  abortSession(tabId, 'tab-closed').catch(() => {})
 })
 
 registerNavListeners()
