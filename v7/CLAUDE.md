@@ -57,11 +57,6 @@ npm run bump         # Auto-increment version before build
 3. **domPath**: CSS selector path to element
 4. **httpHeaders**: For HTTP-related rules (status, headers, etc.)
 
-### Best Practice Rules
-- Reference [`BEST-PRACTICE-RULES.md`](../BEST-PRACTICE-RULES.md) for the current badge list and requirements.
-- These rules must set `bestPractice: true`, provide selectors/snippets, and include documentation URLs so the copy-to-markdown export stays actionable.
-- Side panel auto-expands best practice cards and keeps DOM highlighting active even when the check passes.
-
 ## Code Standards
 
 ### File Size Limit

@@ -1,6 +1,6 @@
 import { registry } from './registry'
 
-export type RuleSummary = { id: string; name: string; enabledByDefault: boolean; what?: string; bestPractice?: boolean }
+export type RuleSummary = { id: string; name: string; enabledByDefault: boolean; what?: string }
 
 export const rulesInventory: RuleSummary[] = registry
   .map((rule) => ({
@@ -8,6 +8,5 @@ export const rulesInventory: RuleSummary[] = registry
     name: rule.name,
     enabledByDefault: rule.enabled,
     what: rule.what,
-    ...(rule.bestPractice ? { bestPractice: true } : {}),
   }))
   .sort((a, b) => a.name.localeCompare(b.name))

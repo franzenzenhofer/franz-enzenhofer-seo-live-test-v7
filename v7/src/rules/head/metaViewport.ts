@@ -27,7 +27,6 @@ export const metaViewportRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'static',
-  bestPractice: true,
   async run(page) {
     const el = page.doc.querySelector(SELECTOR)
     if (!el) return { name: NAME, label: LABEL, message: 'Missing meta viewport', type: 'warn' }

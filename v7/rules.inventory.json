@@ -153,15 +153,13 @@
     "id": "http:gzip",
     "name": "Gzip/Brotli",
     "enabledByDefault": true,
-    "what": "http",
-    "bestPractice": true
+    "what": "http"
   },
   {
     "id": "body:h1",
     "name": "H1 Present",
     "enabledByDefault": true,
-    "what": "static",
-    "bestPractice": true
+    "what": "static"
   },
   {
     "id": "discover:headline-length",
@@ -299,8 +297,7 @@
     "id": "head-meta-description",
     "name": "Meta Description",
     "enabledByDefault": true,
-    "what": "static",
-    "bestPractice": true
+    "what": "static"
   },
   {
     "id": "head:meta-googlebot",
@@ -324,8 +321,7 @@
     "id": "head:meta-viewport",
     "name": "Meta Viewport",
     "enabledByDefault": true,
-    "what": "static",
-    "bestPractice": true
+    "what": "static"
   },
   {
     "id": "body:nofollow",
@@ -523,8 +519,7 @@
     "id": "head-title",
     "name": "SEO Title Present",
     "enabledByDefault": true,
-    "what": "static",
-    "bestPractice": true
+    "what": "static"
   },
   {
     "id": "head:shortlink",

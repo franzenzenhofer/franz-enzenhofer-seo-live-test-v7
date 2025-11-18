@@ -19,7 +19,6 @@ export const toResultCopyPayload = (result: Result | null | undefined): string =
   lines.push(`- Type: \`${result.type}\``)
   if (result.ruleId) lines.push(`- Rule ID: \`${result.ruleId}\``)
   if (typeof result.priority === 'number') lines.push(`- Priority: ${result.priority}`)
-  if (result.bestPractice) lines.push('- Best Practice: ✅')
   lines.push('')
   lines.push(`**Message:** ${result.message}`)
   const details = result.details || {}

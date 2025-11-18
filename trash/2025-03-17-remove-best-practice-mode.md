@@ -1,4 +1,6 @@
-# Best Practice Rules
+# (Deprecated) Best Practice Rules
+
+> Archived on 2025-03-17 when the `bestPractice` flag and UI treatment were removed from the live test extension. Keeping the original notes here for historical context only.
 
 Best practice rules surface high-signal checks that remain useful even when they succeed. They focus on sharing the raw HTML/HTTP context so reviewers can confirm implementation quality without digging through DevTools.
 

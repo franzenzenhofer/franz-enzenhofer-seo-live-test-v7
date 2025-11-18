@@ -16,7 +16,6 @@ export const metaDescriptionRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'static',
-  bestPractice: true,
   run: async (page) => {
     const nodes = Array.from(page.doc.querySelectorAll(SELECTOR)) as HTMLMetaElement[]
     const count = nodes.length

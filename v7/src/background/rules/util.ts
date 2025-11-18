@@ -48,7 +48,7 @@ export const summarizeEvents = (ev: Array<{ t: string; u?: string }>) => {
 const withoutPending = <T extends { type?: string }>(list: T[] | undefined) =>
   Array.isArray(list) ? list.filter((item) => item?.type !== 'pending') : list
 
-type MinimalResult = { name?: string; message?: string; type?: string; bestPractice?: boolean }
+type MinimalResult = { name?: string; message?: string; type?: string }
 
 export const persistResults = async (tabId: number, key: string, prev: MinimalResult[] | undefined, add: MinimalResult[]) => {
   const set = async (arr: MinimalResult[]) => { await chrome.storage.local.set({ [key]: arr }); return arr.length }

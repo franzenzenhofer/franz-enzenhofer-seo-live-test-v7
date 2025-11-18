@@ -4,7 +4,6 @@ import { ResultDetails } from './ResultDetails'
 import { ResultHeader } from './ResultHeader'
 import { useResultHighlight } from './useResultHighlight'
 import { toResultCopyPayload } from './resultCopy'
-import { BestPracticeCallout } from './BestPracticeCallout'
 import { ResultDomPath } from './ResultDomPath'
 
 import { getResultColor } from '@/shared/colors'
@@ -22,7 +21,7 @@ type Props = {
 }
 export const ResultCard = ({ result, index, isPinned, onTogglePin, collapsible, defaultExpanded, tabId, logUi }: Props) => {
   const color = getResultColor(result.type)
-  const [open, setOpen] = useState(!collapsible || Boolean(defaultExpanded) || Boolean(result.bestPractice))
+  const [open, setOpen] = useState(!collapsible || Boolean(defaultExpanded))
   const showDetails = open && Boolean(result.details)
   const snippet = typeof result.details?.snippet === 'string' ? result.details?.snippet : null
   const selectors = useMemo(() => {
@@ -59,7 +58,6 @@ export const ResultCard = ({ result, index, isPinned, onTogglePin, collapsible, 
         copyContent={copyPayload}
       />
       <p className="text-sm text-slate-900 break-words">{result.message}</p>
-      {result.bestPractice && <BestPracticeCallout />}
       {snippet && (
         <pre className="text-xs bg-white/70 border rounded p-2 whitespace-pre-wrap break-words text-slate-700">
           {snippet}

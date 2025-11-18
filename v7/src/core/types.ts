@@ -16,7 +16,6 @@ export type Result = {
   ruleId?: string|null
   runIdentifier?: string
   details?: ResultDetails
-  bestPractice?: boolean
 }
 export type Page = {
   html: string
@@ -39,7 +38,6 @@ export type Rule = {
   name: string
   enabled: boolean
   what?: string
-  bestPractice?: boolean
   timeout?: { mode?: 'fast' | 'api' | 'multipage'; timeoutMs?: number }
   run: (page: Page, ctx: Ctx) => Promise<Result>
 }
