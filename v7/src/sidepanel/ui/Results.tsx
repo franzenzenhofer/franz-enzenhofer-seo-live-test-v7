@@ -62,7 +62,7 @@ export const Results = ({
             isPinned={Boolean(key && pinned[key])}
             onTogglePin={key ? () => togglePin(key) : undefined}
             collapsible
-            defaultExpanded={Boolean(r.bestPractice)}
+            defaultExpanded={Boolean(r.priority && r.priority >= 1000)}
             tabId={tabId}
             logUi={logUi}
           />

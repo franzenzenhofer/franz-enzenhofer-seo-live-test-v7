@@ -19,7 +19,6 @@ export const titleRule: Rule = {
   name: 'SEO Title Present',
   enabled: true,
   what: 'static',
-  bestPractice: true,
   run: async (page) => {
     const el = page.doc.querySelector('head > title')
     const title = (el?.textContent || '').trim()

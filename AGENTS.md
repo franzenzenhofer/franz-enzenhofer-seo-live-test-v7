@@ -47,13 +47,6 @@ Coding Standards
 - No `eval`/`new Function` in SW; confine dynamic code to the offscreen sandbox.
 - Import hygiene: consistent order/grouping; keep public imports stable.
 
-Best Practice Rules
-
-- Certain HTTP/DOM rules are tagged as “Best Practice” (see `BEST-PRACTICE-RULES.md` for the canonical list).
-- These rules must set `bestPractice: true`, emit `snippet`, `sourceHtml`, and `domPath`/`domPaths`, and include a `reference` URL.
-- UI guarantees (auto-expand, DOM highlight) depend on selectors, so never strip them before storing results.
-- Update the documentation + run `npm run -w v7 rules:json` whenever you add or remove a best practice rule.
-
 Dependencies
 
 - Use established libraries that add clear value; avoid gratuitous dependencies.

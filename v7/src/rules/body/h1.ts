@@ -8,7 +8,6 @@ export const h1Rule: Rule = {
   name: NAME,
   enabled: true,
   what: 'static',
-  bestPractice: true,
   async run(page) {
     const nodes = Array.from(page.doc.querySelectorAll('h1'))
     const count = nodes.length

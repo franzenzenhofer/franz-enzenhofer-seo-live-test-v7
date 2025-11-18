@@ -17,7 +17,6 @@ export const gzipRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'http',
-  bestPractice: true,
   async run(page) {
     const encoding = page.headers?.['content-encoding'] || page.headers?.['Content-Encoding'] || ''
     const compressed = compressible(encoding)

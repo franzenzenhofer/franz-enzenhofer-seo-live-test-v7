@@ -7,7 +7,6 @@ export const enrichResult = (res: Result, rule: Rule, runId: string | undefined)
   what: rule.what,
   ruleId: res.ruleId ?? rule.id,
   runIdentifier: runId,
-  bestPractice: typeof res.bestPractice === 'boolean' ? res.bestPractice : Boolean(rule.bestPractice),
 })
 
 export const emitChunk = async (emit: ((chunk: Result[]) => Promise<void> | void) | undefined, chunk: Result[]) => {
@@ -28,7 +27,6 @@ export const createDisabledResult = (rule: Rule, runId: string | undefined): Res
   ruleId: rule.id,
   runIdentifier: runId,
   priority: -3000,
-  bestPractice: Boolean(rule.bestPractice),
 })
 
 export const createRuntimeError = (rule: Rule, message: string, runId: string | undefined): Result => ({
@@ -40,7 +38,6 @@ export const createRuntimeError = (rule: Rule, message: string, runId: string | 
   ruleId: rule.id,
   runIdentifier: runId,
   priority: -1000,
-  bestPractice: Boolean(rule.bestPractice),
 })
 
 export const logRuleResults = (tabId: number, rule: Rule, ruleId: string, results: Result[]) => {

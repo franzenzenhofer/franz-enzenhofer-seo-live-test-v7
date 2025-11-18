@@ -12,7 +12,6 @@ describe('result copy payload', () => {
       priority: 1000,
       ruleId: 'body:h1',
       what: 'static',
-      bestPractice: true,
       details: {
         snippet: '<h1>Example</h1>',
         reference: 'https://example.com',
@@ -24,17 +23,6 @@ describe('result copy payload', () => {
     expect(payload).toMatch(/```html\n<h1>Example<\/h1>\n```/)
     expect(payload).toMatch(/Reference/)
     expect(payload).toMatch(/<https:\/\/example\.com>/)
-    expect(payload).toMatch(/Best Practice/)
-  })
-
-  it('omits best practice line when not set', () => {
-    const payload = toResultCopyPayload({
-      name: 'Meta Viewport',
-      label: 'HEAD',
-      message: 'Viewport OK',
-      type: 'ok',
-      ruleId: 'head:meta-viewport',
-    } as any)
     expect(payload).not.toMatch(/Best Practice/)
   })
 

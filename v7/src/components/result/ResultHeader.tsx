@@ -35,11 +35,6 @@ export const ResultHeader = ({
             {result.what}
           </span>
         )}
-        {result.bestPractice && (
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase bg-amber-100 text-amber-800">
-            Best Practice
-          </span>
-        )}
       </span>
       {typeof index === 'number' && (
         <span className="text-[10px] text-slate-500">#{index + 1}</span>

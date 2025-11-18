@@ -12,7 +12,6 @@ export const buildPendingResults = (rules: Rule[], runId: string): Result[] =>
     ruleId: rule.id,
     runIdentifier: runId,
     priority: 5000,
-    bestPractice: Boolean(rule.bestPractice),
   }))
 
 export const buildRuleOverrides = (rules: Rule[]) =>
