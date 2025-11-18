@@ -8,6 +8,7 @@ import { PanelHeader } from './PanelHeader'
 
 import type { Result } from '@/shared/results'
 import type { RunMeta } from '@/shared/runMeta'
+import { createDefaultTypeVisibility } from '@/shared/resultFilterState'
 
 export const AppBody = ({
   meta,
@@ -39,6 +40,10 @@ export const AppBody = ({
   logUi?: (action: string, data?: Record<string, unknown>) => void
 }) => {
   const parsed = useFilterParser(query)
+  const resetFilters = () => {
+    setShow(() => createDefaultTypeVisibility())
+    setQuery('')
+  }
 
   return (
     <div className="dt-panel w-[360px]">
@@ -59,6 +64,7 @@ export const AppBody = ({
           types={parsed.hasTypeFilter ? parsed.types : Object.entries(show).filter(([, v]) => v).map(([k]) => k)}
           q={parsed.text}
           debugEnabled={debugEnabled}
+          onResetFilters={resetFilters}
           tabId={tabId}
           logUi={logUi}
         />

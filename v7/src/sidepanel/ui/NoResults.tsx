@@ -5,9 +5,9 @@ import { getLogs } from '@/shared/logs'
 
 type DebugSnapshot = { pageUrl?: string; evCount?: number; tail?: unknown[] }
 
-type Props = { items: unknown[]; types?: string[]; q?: string; debugEnabled: boolean }
+type Props = { items: unknown[]; types?: string[]; q?: string; debugEnabled: boolean; onResetFilters?: () => void }
 
-export const NoResults = ({ items, types, q, debugEnabled }: Props) => {
+export const NoResults = ({ items, types, q, debugEnabled, onResetFilters }: Props) => {
   const [dbg, setDbg] = useState<DebugSnapshot | null>(null)
   const [last, setLast] = useState<string[]>([])
 
@@ -39,6 +39,7 @@ export const NoResults = ({ items, types, q, debugEnabled }: Props) => {
 
   const filteredOut = items.length > 0
   const info = filteredOut ? 'All results are filtered out.' : 'No results have been saved yet.'
+  const canReset = filteredOut && Boolean(onResetFilters)
   const filters = (types || []).join(',') || 'all'
   const dump = () => {
     if (!debugEnabled) return
@@ -52,7 +53,14 @@ export const NoResults = ({ items, types, q, debugEnabled }: Props) => {
 
   return (
     <div className="text-sm text-slate-600 space-y-1.5">
-      <div>{info}</div>
+      <div className="flex items-center gap-2">
+        <span>{info}</span>
+        {canReset && (
+          <button onClick={onResetFilters} className="text-xs text-blue-600 underline" type="button">
+            Show all
+          </button>
+        )}
+      </div>
       <div>
         Filters: {filters}; Query: {q?.length ? 'yes' : 'no'}
       </div>

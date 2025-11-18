@@ -13,6 +13,7 @@ export const Results = ({
   types,
   q,
   debugEnabled,
+  onResetFilters,
   tabId,
   logUi,
 }: {
@@ -20,6 +21,7 @@ export const Results = ({
   types?: string[]
   q?: string
   debugEnabled: boolean
+  onResetFilters?: () => void
   tabId?: number | null
   logUi?: LogFn
 }) => {
@@ -36,20 +38,17 @@ export const Results = ({
     if (q && !`${i.label} ${i.message}`.toLowerCase().includes(q.toLowerCase())) return false
     return true
   }), [items, types, q])
-
-  const sorted = useMemo(() => {
-    return [...filtered].sort((a, b) => {
-      const keyA = ruleKeyOf(a)
-      const keyB = ruleKeyOf(b)
-      const pinA = keyA ? pinned[keyA] : false
-      const pinB = keyB ? pinned[keyB] : false
-      if (pinA !== pinB) return pinA ? -1 : 1
-      const orderA = resultSortOrder[a.type as keyof typeof resultSortOrder] ?? 999
-      const orderB = resultSortOrder[b.type as keyof typeof resultSortOrder] ?? 999
-      if (orderA !== orderB) return orderA - orderB
-      return (keyA || a.label).localeCompare(keyB || b.label)
-    })
-  }, [filtered, pinned])
+  const sorted = useMemo(() => [...filtered].sort((a, b) => {
+    const keyA = ruleKeyOf(a)
+    const keyB = ruleKeyOf(b)
+    const pinA = keyA ? pinned[keyA] : false
+    const pinB = keyB ? pinned[keyB] : false
+    if (pinA !== pinB) return pinA ? -1 : 1
+    const orderA = resultSortOrder[a.type as keyof typeof resultSortOrder] ?? 999
+    const orderB = resultSortOrder[b.type as keyof typeof resultSortOrder] ?? 999
+    if (orderA !== orderB) return orderA - orderB
+    return (keyA || a.label).localeCompare(keyB || b.label)
+  }), [filtered, pinned])
 
   return (
     <div className="space-y-2">
@@ -69,7 +68,7 @@ export const Results = ({
           />
         )
       })}
-      {!filtered.length && <NoResults items={items} types={types} q={q} debugEnabled={debugEnabled} />}
+      {!filtered.length && <NoResults items={items} types={types} q={q} debugEnabled={debugEnabled} onResetFilters={onResetFilters} />}
     </div>
   )
 }
