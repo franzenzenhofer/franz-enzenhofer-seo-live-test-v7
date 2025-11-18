@@ -1,18 +1,7 @@
 import { logAuthEvent as logAuth } from './authLog'
-export const TOKEN_KEY = 'googleApiAccessToken'
+import { getStoredToken, setStoredToken, TOKEN_KEY } from './tokenStorage'
 
-export const getStoredToken = async (): Promise<string | null> =>
-  ((await chrome.storage.local.get(TOKEN_KEY))[TOKEN_KEY] as string) || null
-
-export const setStoredToken = async (token: string | null) => {
-  if (token) {
-    await chrome.storage.local.set({ [TOKEN_KEY]: token })
-    logAuth('token:stored', { masked: `${token.slice(0, 4)}…` })
-  } else {
-    await chrome.storage.local.remove(TOKEN_KEY)
-    logAuth('token:cleared')
-  }
-}
+export { TOKEN_KEY, getStoredToken, setStoredToken }
 
 export const refreshIfPresent = async (): Promise<string | null> => {
   const t = await getStoredToken()
@@ -38,17 +27,26 @@ export const refreshIfPresent = async (): Promise<string | null> => {
 
 export const interactiveLogin = async (): Promise<string | null> => new Promise((res) => {
   logAuth('login:start')
-  chrome.identity.getAuthToken({ interactive: true }, (token) => {
-    const err = chrome.runtime?.lastError?.message
-    if (err) logAuth('login:error', { error: err })
-    if (token) {
-      logAuth('login:success')
-      setStoredToken(token).then(() => res(token)).catch(() => res(token))
-    } else {
-      logAuth('login:cancelled')
-      res(null)
+  chrome.identity.getAuthToken(
+    {
+      interactive: true,
+      scopes: [
+        'https://www.googleapis.com/auth/webmasters.readonly',
+        'https://www.googleapis.com/auth/analytics.readonly',
+      ],
+    },
+    (token) => {
+      const err = chrome.runtime?.lastError?.message
+      if (err) logAuth('login:error', { error: err })
+      if (token) {
+        logAuth('login:success')
+        setStoredToken(token).then(() => res(token)).catch(() => res(token))
+      } else {
+        logAuth('login:cancelled')
+        res(null)
+      }
     }
-  })
+  )
 })
 
 export const revoke = async (): Promise<void> => {
