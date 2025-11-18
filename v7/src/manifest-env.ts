@@ -1,24 +1,10 @@
-import fs from 'node:fs'
-import path from 'node:path'
+import { OAUTH_CLIENT_ID } from '../config.js'
 
-const DEFAULT_DEV_CLIENT_ID = '335346275770-6d6s9ja0h7brn24ghf3vqa9kv7ko5vfv.apps.googleusercontent.com'
-
-export const detectLegacyClientId = (): string | undefined => {
+export const detectLegacyClientId = (): string => {
+  // Check for environment variable override (used in CI/CD)
   const env = process.env['GOOGLE_OAUTH_CLIENT_ID'] || process.env['GOOGLE_APP_CLIENT_ID']
-  if (env && env.trim()) return env.trim()
-  const base = process.cwd()
-  const cand = [
-    path.resolve(base, '../f19n-obtrusive-livetest/build/manifest.json'),
-    path.resolve(base, '../f19n-obtrusive-livetest/dist/manifest.json'),
-    path.resolve(base, '../f19n-obtrusive-livetest/src/public/manifest.json'),
-  ]
-  for (const p of cand) {
-    try {
-      if (!fs.existsSync(p)) continue
-      const json = JSON.parse(fs.readFileSync(p, 'utf8'))
-      const id = json?.oauth2?.client_id as string | undefined
-      if (id && !id.includes('will be set')) return id
-    } catch {/* ignore */}
-  }
-  return DEFAULT_DEV_CLIENT_ID
+  if (env?.trim()) return env.trim()
+
+  // Use SINGLE SOURCE OF TRUTH from config.js
+  return OAUTH_CLIENT_ID
 }

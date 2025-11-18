@@ -1,14 +1,14 @@
 {
   "name": "f19n-obtrusive-livetest-v7",
-  "version": "0.1.595",
+  "version": "0.1.596",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "prebuild": "node scripts/bump-version.mjs && npm run rules:json && npm run typecheck && npm run lint && npm test",
-    "build": "GOOGLE_OAUTH_CLIENT_ID=335346275770-6d6s9ja0h7brn24ghf3vqa9kv7ko5vfv.apps.googleusercontent.com NODE_OPTIONS=\"--require ./scripts/fix-undici.cjs\" vite build && npm run dev:reload-token && npm run test:e2e:quick",
-    "build:dev": "cross-env GOOGLE_OAUTH_CLIENT_ID=335346275770-6d6s9ja0h7brn24ghf3vqa9kv7ko5vfv.apps.googleusercontent.com EXT_ENV=dev vite build && npm run dev:reload-token",
-    "fastbuild": "npm run rules:json && npm run typecheck && npm run lint && GOOGLE_OAUTH_CLIENT_ID=335346275770-6d6s9ja0h7brn24ghf3vqa9kv7ko5vfv.apps.googleusercontent.com NODE_OPTIONS=\"--require ./scripts/fix-undici.cjs\" vite build && npm run dev:reload-token",
+    "build": "cross-env GOOGLE_OAUTH_CLIENT_ID=$(node scripts/set-oauth-env.mjs) NODE_OPTIONS=\"--require ./scripts/fix-undici.cjs\" vite build && npm run dev:reload-token && npm run test:e2e:quick",
+    "build:dev": "cross-env GOOGLE_OAUTH_CLIENT_ID=$(node scripts/set-oauth-env.mjs) EXT_ENV=dev vite build && npm run dev:reload-token",
+    "fastbuild": "npm run rules:json && npm run typecheck && npm run lint && cross-env GOOGLE_OAUTH_CLIENT_ID=$(node scripts/set-oauth-env.mjs) NODE_OPTIONS=\"--require ./scripts/fix-undici.cjs\" vite build && npm run dev:reload-token",
     "dist": "npm run build && tsx scripts/dist.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
