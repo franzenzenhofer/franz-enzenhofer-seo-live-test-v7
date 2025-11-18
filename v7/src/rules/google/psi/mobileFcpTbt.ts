@@ -3,7 +3,7 @@ import { extractPSIKey } from '../google-utils'
 import { runPSI, getPSIKey } from '@/shared/psi'
 import type { Rule } from '@/core/types'
 
-const NAME = 'v5 Mobile FCP/TBT'
+const NAME = 'V5 Mobile FCP/TBT'
 
 export const psiMobileFcpTbtRule: Rule = {
   id: 'psi:mobile-fcp-tbt',

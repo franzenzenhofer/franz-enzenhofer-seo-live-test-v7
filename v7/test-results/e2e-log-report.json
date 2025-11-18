@@ -1,12 +1,26 @@
 {
   "summary": {
-    "totalLogs": 0,
-    "errors": 0,
+    "totalLogs": 2,
+    "errors": 2,
     "warnings": 0,
     "testPassed": true,
-    "timestamp": "2025-11-18T13:33:43.867Z"
+    "timestamp": "2025-11-18T22:05:53.715Z"
   },
-  "logs": [],
-  "errors": [],
+  "logs": [
+    {
+      "type": "error",
+      "message": "Failed to load resource: the server responded with a status of 404 ()",
+      "timestamp": 1763503548423
+    },
+    {
+      "type": "error",
+      "message": "Failed to load resource: the server responded with a status of 404 ()",
+      "timestamp": 1763503548423
+    }
+  ],
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 ()"
+  ],
   "warnings": []
 }

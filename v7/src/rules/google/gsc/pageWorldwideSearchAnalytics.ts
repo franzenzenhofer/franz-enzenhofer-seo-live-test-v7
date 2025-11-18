@@ -3,7 +3,7 @@ import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../g
 
 import type { Rule } from '@/core/types'
 
-const NAME = 'page worldwide analytics'
+const NAME = 'Page worldwide analytics'
 
 export const gscPageWorldwideRule: Rule = {
   id: 'gsc:page-worldwide',

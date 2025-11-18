@@ -14,20 +14,29 @@ import { createDefaultTypeVisibility } from '@/shared/resultFilterState'
 export const App = () => {
   const [show, setShow] = useState<Record<string, boolean>>(() => createDefaultTypeVisibility())
   const [query, setQuery] = useState('')
-  const resultsSource = useResultsSource()
+  const { items, meta, loading } = useResultsSource()
   const [debugEnabled] = useDebugFlag()
-  const runMeta = resultsSource.meta
-  const logUi = usePanelLogger(resultsSource.tabId)
+  const logUi = usePanelLogger(items.length)
   usePanelBootstrap(logUi)
-  useResultsLogger(logUi, resultsSource.items.length)
+  useResultsLogger(logUi, items.length)
   const { runNow, clean, openSettings, openReport, openLogs } = usePanelActions(logUi)
-  if (!runMeta && !resultsSource.items.length) return <p className="p-3">Loading…</p>
 
+  if (loading) {
+    return <p className="p-3">Loading…</p>
+  }
+  if (!meta && !items.length) {
+    return (
+      <>
+        <Shortcuts runNow={runNow} clean={clean} openLogs={openLogs} openSettings={openSettings} logsEnabled={debugEnabled} />
+        <p className="p-3">No results yet. Click "Run" to start.</p>
+      </>
+    )
+  }
   return (
     <>
       <Shortcuts runNow={runNow} clean={clean} openLogs={openLogs} openSettings={openSettings} logsEnabled={debugEnabled} />
       <AppBody
-        meta={runMeta}
+        meta={meta}
         show={show}
         setShow={setShow}
         query={query}
@@ -37,8 +46,8 @@ export const App = () => {
         onClean={clean}
         onOpenLogs={openLogs}
         onOpenReport={openReport}
-        results={resultsSource.items}
-        tabId={resultsSource.tabId}
+        results={items}
+        tabId={-1}
         logUi={logUi}
       />
     </>

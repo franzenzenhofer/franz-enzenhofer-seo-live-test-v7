@@ -1,8 +1,18 @@
 import type { Rule } from '@/core/types'
 
-const depth = (e: Element): number => {
+const depth = (root: Element): number => {
+  if (!root) return 0
   let max = 1
-  for (let i = 0; i < e.children.length; i++) max = Math.max(max, 1 + depth(e.children[i]!))
+  const stack: { node: Element; d: number }[] = [{ node: root, d: 1 }]
+
+  while (stack.length > 0) {
+    const { node, d } = stack.pop()!
+    if (d > max) max = d
+
+    for (let i = node.children.length - 1; i >= 0; i--) {
+      stack.push({ node: node.children[i]!, d: d + 1 })
+    }
+  }
   return max
 }
 

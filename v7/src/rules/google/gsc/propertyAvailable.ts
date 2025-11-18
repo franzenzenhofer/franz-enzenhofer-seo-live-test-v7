@@ -3,7 +3,7 @@ import { deriveGscProperty } from '../google-gsc-utils'
 
 import type { Rule } from '@/core/types'
 
-const NAME = 'webproperty available'
+const NAME = 'Webproperty available'
 
 export const gscPropertyAvailableRule: Rule = {
   id: 'gsc:property-available',

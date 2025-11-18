@@ -1,7 +1,20 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { runPSI } from '@/shared/psi'
 
 describe('PSI caching', () => {
+  beforeEach(() => {
+    const storage: Record<string, unknown> = {}
+    // @ts-expect-error test shim
+    globalThis.chrome = {
+      storage: {
+        session: {
+          get: async (key: string) => ({ [key]: storage[key] }),
+          set: async (obj: Record<string, unknown>) => { Object.assign(storage, obj) },
+        },
+      },
+    }
+  })
+
   it('caches within 5 minutes per url+strategy', async () => {
     vi.useFakeTimers()
     const fetchSpy = vi.spyOn(globalThis, 'fetch' as any).mockResolvedValue({ ok: true, json: async ()=> ({ lighthouseResult: { categories: { performance: { score: 0.9 } } } }) })

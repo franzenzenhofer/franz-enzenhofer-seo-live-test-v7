@@ -3,7 +3,7 @@ import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../g
 
 import type { Rule } from '@/core/types'
 
-const NAME = 'is indexed (via impressions)'
+const NAME = 'Is indexed (via impressions)'
 
 export const gscIsIndexedRule: Rule = {
   id: 'gsc:is-indexed',

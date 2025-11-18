@@ -97,7 +97,7 @@
   },
   {
     "id": "gsc:directory-worldwide",
-    "name": "directory worldwide analytics",
+    "name": "Directory worldwide analytics",
     "enabledByDefault": true,
     "what": "gsc"
   },
@@ -223,7 +223,7 @@
   },
   {
     "id": "gsc:is-indexed",
-    "name": "is indexed (via impressions)",
+    "name": "Is indexed (via impressions)",
     "enabledByDefault": true,
     "what": "gsc"
   },
@@ -343,7 +343,7 @@
   },
   {
     "id": "gsc:page-worldwide",
-    "name": "page worldwide analytics",
+    "name": "Page worldwide analytics",
     "enabledByDefault": true,
     "what": "gsc"
   },
@@ -553,19 +553,19 @@
   },
   {
     "id": "psi:desktop",
-    "name": "v5 Desktop score",
+    "name": "V5 Desktop score",
     "enabledByDefault": true,
     "what": "psi"
   },
   {
     "id": "psi:mobile-fcp-tbt",
-    "name": "v5 Mobile FCP/TBT",
+    "name": "V5 Mobile FCP/TBT",
     "enabledByDefault": true,
     "what": "psi"
   },
   {
     "id": "psi:mobile",
-    "name": "v5 Mobile score",
+    "name": "V5 Mobile score",
     "enabledByDefault": true,
     "what": "psi"
   },
@@ -577,7 +577,7 @@
   },
   {
     "id": "gsc:property-available",
-    "name": "webproperty available",
+    "name": "Webproperty available",
     "enabledByDefault": true,
     "what": "gsc"
   },

@@ -3,6 +3,8 @@
  * Stores metadata for all test runs across all tabs
  */
 
+import { withLock } from './storage-helpers'
+
 import type { RunState } from '@/background/rules/runState'
 
 const HISTORY_KEY = 'run-history'
@@ -20,13 +22,15 @@ export const readRunHistory = async (): Promise<RunState[]> => {
  * Append run to history (auto-trim to max size)
  */
 export const appendRunHistory = async (run: RunState): Promise<void> => {
-  const history = await readRunHistory()
-  const updated = [...history, run]
+  await withLock('run-history:lock', async () => {
+    const history = await readRunHistory()
+    const updated = [...history, run]
 
-  // Keep only the most recent MAX_HISTORY_SIZE runs
-  const trimmed = updated.slice(-MAX_HISTORY_SIZE)
+    // Keep only the most recent MAX_HISTORY_SIZE runs
+    const trimmed = updated.slice(-MAX_HISTORY_SIZE)
 
-  await chrome.storage.local.set({ [HISTORY_KEY]: trimmed })
+    await chrome.storage.local.set({ [HISTORY_KEY]: trimmed })
+  })
 }
 
 /**
