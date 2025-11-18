@@ -6,13 +6,10 @@ import { createChunkSync } from './chunking'
 import { getEnabledRules } from './index'
 
 import type { Rule } from '@/core/types'
+import { getRunTimeoutMs } from '@/core/ruleTimeouts'
 import { cleanupOldResults } from '@/shared/results'
 import { log } from '@/shared/logs'
 
-
-const FAST_TIMEOUT_MS = 15000
-const SLOW_TIMEOUT_MS = 60000
-const SLOW_RULE_TYPES = new Set(['psi', 'gsc'])
 
 export const buildRunGlobals = async (
   run: import('../pipeline/types').Run,
@@ -36,11 +33,10 @@ export const buildRunGlobals = async (
 
 export const prepareRulesForRun = (rules: Rule[]) => {
   const enabled = rules.filter((rule) => rule.enabled)
-  const hasSlow = enabled.some((rule) => rule.what && SLOW_RULE_TYPES.has(rule.what))
   return {
     enabled,
     ruleOverrides: buildRuleOverrides(rules),
-    timeoutMs: hasSlow ? SLOW_TIMEOUT_MS : FAST_TIMEOUT_MS,
+    timeoutMs: getRunTimeoutMs(enabled.length ? enabled : rules),
   }
 }
 

@@ -17,6 +17,7 @@ export const handleRun = async (
   pageUrl?: string,
   ruleOverrides?: Record<string, boolean>,
   messageId?: string,
+  signal?: AbortSignal,
 ) => {
   Logger.logDirectSend(tabId, 'offscreen', 'handle run start', {
     runId: run.id,
@@ -42,7 +43,7 @@ export const handleRun = async (
     await chrome.runtime.sendMessage({ channel: 'offscreen', replyTo: messageId, chunk: true, data: chunk })
   }
 
-  const results = await runAll(tabId, applyRuleOverrides(ruleOverrides), page, { globals: globals || {} }, emitChunk)
+  const results = await runAll(tabId, applyRuleOverrides(ruleOverrides), page, { globals: globals || {} }, emitChunk, { signal })
 
   Logger.logDirectSend(tabId, 'offscreen', 'handle run done', {
     runId: run.id,

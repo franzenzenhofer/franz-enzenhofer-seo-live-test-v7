@@ -3,10 +3,10 @@ import { describe, it, expect, vi } from 'vitest'
 // @ts-expect-error test shim
 globalThis.chrome = {
   storage: {
-    local: { get: vi.fn(async ()=> ({ })), set: vi.fn(async ()=>{}) },
-    session: { get: vi.fn(async ()=> ({ })), set: vi.fn(async ()=>{}) },
+    local: { get: vi.fn(async () => ({})), set: vi.fn(async () => {}) },
+    session: { get: vi.fn(async () => ({})), set: vi.fn(async () => {}), remove: vi.fn(async () => {}) },
   },
-  runtime: { getURL: (p: string)=> p },
+  runtime: { getURL: (p: string) => p },
 }
 
 import { runRulesOn } from '@/background/rules/runner'
@@ -29,4 +29,3 @@ describe('runner: restricted schemes', () => {
     expect(String(arr[0].message)).toContain('Restricted page scheme')
   })
 })
-

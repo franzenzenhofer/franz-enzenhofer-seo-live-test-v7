@@ -4,6 +4,7 @@ Scope
 
 - Applies to the entire repository, all directories and files.
 - Agents and contributors must follow this guide for all changes.
+- Global operating policies live in `~/.claude/CLAUDE.md`; read and follow them in addition to this document.
 
 Golden Rules
 

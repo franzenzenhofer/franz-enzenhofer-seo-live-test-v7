@@ -40,5 +40,6 @@ export type Rule = {
   enabled: boolean
   what?: string
   bestPractice?: boolean
+  timeout?: { mode?: 'fast' | 'api' | 'multipage'; timeoutMs?: number }
   run: (page: Page, ctx: Ctx) => Promise<Result>
 }

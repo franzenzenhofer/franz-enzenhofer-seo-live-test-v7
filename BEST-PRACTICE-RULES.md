@@ -28,6 +28,15 @@ Best practice rules surface high-signal checks that remain useful even when they
 4. Add the rule to the table above in this file to keep humans aligned.
 5. Run `npm run -w v7 rules:json` so `rules.inventory.json` exports the updated metadata.
 
+## Rule Timeouts & Async Execution
+
+- **Default:** Each rule now runs asynchronously with a baseline `15s` timeout so fast DOM checks never wait for API calls.
+- **API-heavy rules:** Annotate long-lived checks with `timeout: { mode: 'api' }` (or set `timeoutMs`) to grant `60s` while other rules continue streaming results.
+- **Multi-page crawls:** Use `timeout: { mode: 'multipage' }` for workflows that chase multiple URLs; these get up to `10 min` before the scheduler aborts them.
+- **Custom duration:** When a rule needs a bespoke ceiling, set `timeout: { timeoutMs: 30000 }` (values are clamped between `1s` and `10 min`).
+- **Documentation:** Mention the timeout rationale in the rule’s README/comment so reviewers know why it diverges from the default.
+- **Behavior:** Background runner cancels the entire run if the active tab reloads, guaranteeing the side panel only shows results from the current `{tabId, runId}` pair.
+
 ## UI Guarantees
 
 - **Auto-expansion:** best practice cards open by default so snippet + DOM path + highlight show immediately.
