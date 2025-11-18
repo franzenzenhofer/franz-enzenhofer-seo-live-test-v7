@@ -2,12 +2,14 @@ import { useState } from 'react'
 
 import { useReportData } from './useReportData'
 import { ReportExportButtons } from './ExportButtons'
+import { ResultSummary } from './ResultSummary'
 
 import { LiveTestHeader } from '@/components/LiveTestHeader'
 import { openUrlInCurrentTab } from '@/shared/openUrlInCurrentTab'
 import { TypeFilters } from '@/sidepanel/ui/TypeFilters'
 import { Results } from '@/sidepanel/ui/Results'
 import { useFilterParser } from '@/sidepanel/ui/useFilterParser'
+import { computeResultCoverage } from '@/shared/resultCoverage'
 
 export const ReportApp = () => {
   const { results, runMeta, loading, error } = useReportData()
@@ -37,6 +39,8 @@ export const ReportApp = () => {
     )
   }
 
+  const coverage = computeResultCoverage(results)
+
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-6xl mx-auto">
@@ -59,6 +63,7 @@ export const ReportApp = () => {
             />
           </div>
           <TypeFilters show={show} setShow={setShow} results={results} />
+          <ResultSummary totalRules={coverage.totalRules} resultsCount={coverage.coveredRules} missing={coverage.missingRules} />
           <Results
             items={results}
             types={parsed.hasTypeFilter ? parsed.types : Object.entries(show).filter(([, v]) => v).map(([k]) => k)}

@@ -1,6 +1,6 @@
 import type { Result } from '@/shared/results'
 import { getResultColor, getResultLabel, resultTypeOrder } from '@/shared/colors'
-import { rulesInventory } from '@/rules/inventory'
+import { computeResultCoverage } from '@/shared/resultCoverage'
 
 type Props = {
   show: Record<string, boolean>
@@ -13,9 +13,8 @@ export const TypeFilters = ({ show, setShow, results }: Props) => {
     acc[r.type] = (acc[r.type] || 0) + 1
     return acc
   }, {} as Record<string, number>)
-  const totalRules = rulesInventory.length
-  const uniqueRulesWithResults = new Set(results.map(r => r.name)).size
-  const missing = totalRules - uniqueRulesWithResults
+  const { totalRules, missingRules } = computeResultCoverage(results)
+  const missing = missingRules.length
   const showMissing = missing > 0
 
   return (
@@ -61,6 +60,18 @@ export const TypeFilters = ({ show, setShow, results }: Props) => {
           )
         })}
       </div>
+      {showMissing && (
+        <details className="mt-2 w-full rounded border border-red-100 bg-red-50 p-2 text-xs text-red-700">
+          <summary className="cursor-pointer select-none font-semibold">Show missing rules</summary>
+          <ul className="list-disc pl-4 mt-1 space-y-0.5">
+            {missingRules.map((rule) => (
+              <li key={rule.id}>
+                {rule.name} <span className="text-red-500">({rule.id})</span>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </>
   )
 }
