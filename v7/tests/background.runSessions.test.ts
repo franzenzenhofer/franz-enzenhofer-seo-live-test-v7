@@ -31,6 +31,15 @@ describe('run sessions', () => {
     expect(isSessionActive(4, 'run-4')).toBe(false)
   })
 
+  it('auto-aborts previous run when a new session starts', async () => {
+    const signal = await startSession(6, 'run-6')
+    expect(signal.aborted).toBe(false)
+    await startSession(6, 'run-7')
+    expect(signal.aborted).toBe(true)
+    expect(isSessionActive(6, 'run-6')).toBe(false)
+    expect(isSessionActive(6, 'run-7')).toBe(true)
+  })
+
   it('finishes session as completed', async () => {
     await startSession(5, 'run-5')
     await finishSession(5, 'completed')
