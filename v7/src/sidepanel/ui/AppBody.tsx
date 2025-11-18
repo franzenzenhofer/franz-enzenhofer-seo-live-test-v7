@@ -68,6 +68,7 @@ export const AppBody = ({
           onResetFilters={resetFilters}
           tabId={tabId}
           logUi={logUi}
+          defaultExpanded={false}
         />
       </div>
     </div>

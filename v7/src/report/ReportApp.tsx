@@ -66,6 +66,7 @@ export const ReportApp = () => {
             onResetFilters={resetFilters}
             tabId={null}
             logUi={undefined}
+            defaultExpanded
           />
         </div>
       </div>

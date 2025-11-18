@@ -1,6 +1,6 @@
 {
   "name": "f19n-obtrusive-livetest-v7",
-  "version": "0.1.585",
+  "version": "0.1.587",
   "private": true,
   "type": "module",
   "scripts": {
