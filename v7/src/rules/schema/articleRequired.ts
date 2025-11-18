@@ -1,46 +1,30 @@
-import type { Rule } from '@/core/types'
-import { parseLd, findType, get, docs } from '@/shared/structured'
-import { missingPaths } from '@/shared/schema'
-import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
+import { createSchemaRule } from './createSchemaRule'
 
-export const schemaArticleRequiredRule: Rule = {
+import { get } from '@/shared/structured'
+import { missingPaths } from '@/shared/schema'
+
+export const schemaArticleRequiredRule = createSchemaRule({
   id: 'schema:article:required',
   name: 'Schema Article required fields',
-  enabled: true,
-  what: 'static',
-  async run(page) {
-    const scripts = page.doc.querySelectorAll('script[type="application/ld+json"]')
-    const nodes = parseLd(page.doc)
-    const items = [...findType(nodes, 'article'), ...findType(nodes, 'newsarticle'), ...findType(nodes, 'blogposting')]
-    if (!items.length)
-      return { label: 'SCHEMA', message: 'No Article JSON‑LD', type: 'info', name: 'Schema Article (required fields)' }
-    const n = items[0]
+  types: ['Article', 'NewsArticle', 'BlogPosting'],
+  searchStrings: ['Article', 'BlogPosting'],
+  validator: (n) => {
     const req = ['headline']
-    const altOk = !!get(n, 'datePublished') || !!get(n, 'dateModified')
     const miss = missingPaths(n, req)
+
+    // Check datePublished OR dateModified (either is acceptable)
+    const altOk = !!get(n, 'datePublished') || !!get(n, 'dateModified')
     if (!altOk) miss.push('datePublished|dateModified')
+
+    // Check image
     if (!get(n, 'image')) miss.push('image')
+
+    // Check author.name (handle both string and object)
     const author = get(n, 'author')
     const an = typeof author === 'string' ? author : get(author, 'name')
     if (!an) miss.push('author.name')
-    const script =
-      Array.from(scripts).find((s) => s.textContent?.includes('Article') || s.textContent?.includes('BlogPosting')) || null
-    const sourceHtml = extractHtml(script)
-    return {
-      label: 'SCHEMA',
-      message: miss.length
-        ? `Article missing: ${miss.join(', ')} · Docs: ${docs('article')}`
-        : `Article required OK · Docs: ${docs('article')}`,
-      type: miss.length ? 'warn' : 'ok',
-      name: 'Schema Article required fields',
-      details: script
-        ? {
-            sourceHtml,
-            snippet: extractSnippet(sourceHtml),
-            domPath: getDomPath(script),
-          }
-        : undefined,
-    }
+
+    return { ok: miss.length === 0, missing: miss }
   },
-}
+})
 
