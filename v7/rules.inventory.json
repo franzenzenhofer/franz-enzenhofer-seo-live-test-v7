@@ -1,7 +1,7 @@
 [
   {
     "id": "http:alt-svc-other",
-    "name": "Alt-Svc other protocols",
+    "name": "Alt-Svc Alternative Protocols",
     "enabledByDefault": true,
     "what": "http"
   },
@@ -42,8 +42,14 @@
     "what": "static"
   },
   {
+    "id": "http:cache-delivery",
+    "name": "Cache Delivery (Age Header)",
+    "enabledByDefault": true,
+    "what": "http"
+  },
+  {
     "id": "head:canonical-absolute",
-    "name": "Canonical absolute URL",
+    "name": "Canonical Absolute URL",
     "enabledByDefault": true,
     "what": "static"
   },
@@ -61,7 +67,7 @@
   },
   {
     "id": "head:canonical-chain",
-    "name": "Canonical redirect chain",
+    "name": "Canonical Redirect Chain",
     "enabledByDefault": true,
     "what": "static"
   },
@@ -73,7 +79,7 @@
   },
   {
     "id": "head:canonical-self",
-    "name": "Canonical self-referential",
+    "name": "Canonical Self-Referential",
     "enabledByDefault": true,
     "what": "static"
   },
@@ -85,13 +91,7 @@
   },
   {
     "id": "http:common-mobile-setup",
-    "name": "Common mobile setup",
-    "enabledByDefault": true,
-    "what": "http"
-  },
-  {
-    "id": "http:cache-delivery",
-    "name": "Delivered from cache (Age)",
+    "name": "Common Mobile Setup",
     "enabledByDefault": true,
     "what": "http"
   },
@@ -127,7 +127,7 @@
   },
   {
     "id": "http:gzip",
-    "name": "Gzip/Brotli",
+    "name": "Gzip/Brotli Compression",
     "enabledByDefault": true,
     "what": "http"
   },
@@ -157,7 +157,7 @@
   },
   {
     "id": "head:hreflang-multipage",
-    "name": "Hreflang multipage sanity",
+    "name": "Hreflang Multipage Validation",
     "enabledByDefault": true,
     "what": "static"
   },
@@ -169,7 +169,7 @@
   },
   {
     "id": "http:has-header",
-    "name": "HTTP has header (configurable)",
+    "name": "HTTP Header Presence (Configurable)",
     "enabledByDefault": true,
     "what": "http"
   },
@@ -271,7 +271,7 @@
   },
   {
     "id": "head:meta-charset",
-    "name": "Meta charset",
+    "name": "Meta Charset",
     "enabledByDefault": true,
     "what": "static"
   },
@@ -289,13 +289,13 @@
   },
   {
     "id": "head:meta-keywords",
-    "name": "Meta Keywords",
+    "name": "Meta Keywords (Deprecated)",
     "enabledByDefault": true,
     "what": "static"
   },
   {
     "id": "head:robots-noindex",
-    "name": "Meta robots noindex",
+    "name": "Meta Robots Noindex",
     "enabledByDefault": true,
     "what": "static"
   },
@@ -361,7 +361,7 @@
   },
   {
     "id": "head:rel-alternate-media",
-    "name": "rel=alternate media",
+    "name": "Rel Alternate Media",
     "enabledByDefault": true,
     "what": "static"
   },
@@ -391,13 +391,13 @@
   },
   {
     "id": "robots:blocked-resources",
-    "name": "robots.txt blocked resources",
+    "name": "robots.txt Blocked Resources",
     "enabledByDefault": true,
     "what": "http"
   },
   {
     "id": "robots:complexity",
-    "name": "robots.txt complexity",
+    "name": "robots.txt Complexity",
     "enabledByDefault": true,
     "what": "http"
   },
@@ -481,9 +481,15 @@
   },
   {
     "id": "http:security-headers",
-    "name": "Security headers presence",
+    "name": "Security Headers",
     "enabledByDefault": true,
     "what": "http"
+  },
+  {
+    "id": "head:title",
+    "name": "SEO Title",
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "head-title",
@@ -493,27 +499,21 @@
   },
   {
     "id": "head:shortlink",
-    "name": "Shortlink Header",
+    "name": "Shortlink",
     "enabledByDefault": true,
     "what": "static"
   },
   {
     "id": "http:soft-404",
-    "name": "Soft 404 check",
+    "name": "Soft 404 Detection",
     "enabledByDefault": true,
     "what": "http"
   },
   {
     "id": "http:hsts",
-    "name": "Strict-Transport-Security",
+    "name": "Strict-Transport-Security (HSTS)",
     "enabledByDefault": true,
     "what": "http"
-  },
-  {
-    "id": "head:title-length",
-    "name": "Title Length",
-    "enabledByDefault": true,
-    "what": "static"
   },
   {
     "id": "gsc:top-queries-of-page",
@@ -583,7 +583,7 @@
   },
   {
     "id": "http:x-cache",
-    "name": "X-Cache hit/miss",
+    "name": "X-Cache Hit/Miss",
     "enabledByDefault": true,
     "what": "http"
   },
