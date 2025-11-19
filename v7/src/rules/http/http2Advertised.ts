@@ -1,18 +1,38 @@
 import type { Rule } from '@/core/types'
+import { extractSnippet } from '@/shared/html-utils'
+
+const LABEL = 'HTTP'
+const NAME = 'HTTP/2 Advertised (Alt-Svc)'
+const RULE_ID = 'http:h2-advertised'
+const SPEC = 'https://datatracker.ietf.org/doc/html/rfc7838'
 
 export const http2AdvertisedRule: Rule = {
-  id: 'http:h2-advertised',
-  name: 'HTTP/2 Advertised (Alt-Svc)',
+  id: RULE_ID,
+  name: NAME,
   enabled: true,
   what: 'http',
   async run(page) {
-    const alt = (page.headers?.['alt-svc'] || '').toLowerCase()
+    const altSvcHeader = page.headers?.['alt-svc']?.trim() || ''
+    const altSvcLower = altSvcHeader.toLowerCase()
+    const advertisesHttp2 = /\bh2\b|h2=/.test(altSvcLower)
+    const message = advertisesHttp2
+      ? `Alt-Svc advertises HTTP/2: ${altSvcHeader}`
+      : altSvcHeader
+        ? `Alt-Svc present but no HTTP/2: ${altSvcHeader}`
+        : 'No Alt-Svc header. HTTP/2 not advertised.'
     return {
-      label: 'HTTP',
-      message: /\bh2\b|h2=/.test(alt) ? 'Alt-Svc advertises HTTP/2' : 'HTTP/2 not advertised',
+      label: LABEL,
+      name: NAME,
+      message,
       type: 'info',
-      name: 'HTTP/2 Advertised (Alt-Svc)',
-      details: { httpHeaders: page.headers || {} },
+      priority: advertisesHttp2 ? 750 : 850,
+      details: {
+        httpHeaders: page.headers || {},
+        snippet: extractSnippet(altSvcHeader || '(not present)'),
+        altSvcHeader,
+        advertisesHttp2,
+        reference: SPEC,
+      },
     }
   },
 }
