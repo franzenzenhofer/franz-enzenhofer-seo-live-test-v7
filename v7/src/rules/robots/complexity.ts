@@ -1,9 +1,15 @@
 import type { Rule } from '@/core/types'
 import { fetchTextOnce } from '@/shared/fetchOnce'
+import { extractSnippet } from '@/shared/html-utils'
+
+const LABEL = 'ROBOTS'
+const NAME = 'robots.txt Complexity'
+const RULE_ID = 'robots:complexity'
+const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots/intro'
 
 export const robotsComplexityRule: Rule = {
-  id: 'robots:complexity',
-  name: 'robots.txt complexity',
+  id: RULE_ID,
+  name: NAME,
   enabled: true,
   what: 'http',
   async run(page) {
@@ -11,21 +17,50 @@ export const robotsComplexityRule: Rule = {
     try {
       origin = new URL(page.url).origin
     } catch {
-      return { label: 'ROBOTS', message: 'Invalid URL', type: 'info', name: 'robots.txt complexity' }
+      return {
+        label: LABEL,
+        name: NAME,
+        message: 'Invalid URL. Cannot fetch robots.txt.',
+        type: 'info',
+        priority: 900,
+        details: { reference: SPEC },
+      }
     }
-    const txt = await fetchTextOnce(`${origin}/robots.txt`)
-    if (!txt)
-      return { label: 'ROBOTS', message: 'robots.txt not reachable', type: 'info', name: 'robots.txt complexity' }
-    const lines = txt.split(/\r?\n/)
-    const dis = lines.filter((l) => /^\s*disallow\s*:/i.test(l)).length
-    const al = lines.filter((l) => /^\s*allow\s*:/i.test(l)).length
-    const sa = lines.filter((l) => /^\s*sitemap\s*:/i.test(l)).length
+    const robotsTxt = await fetchTextOnce(`${origin}/robots.txt`)
+    if (!robotsTxt) {
+      return {
+        label: LABEL,
+        name: NAME,
+        message: 'robots.txt not reachable.',
+        type: 'info',
+        priority: 850,
+        details: {
+          snippet: extractSnippet('(not reachable)'),
+          reference: SPEC,
+        },
+      }
+    }
+    const lines = robotsTxt.split(/\r?\n/)
+    const disallowCount = lines.filter((l) => /^\s*disallow\s*:/i.test(l)).length
+    const allowCount = lines.filter((l) => /^\s*allow\s*:/i.test(l)).length
+    const sitemapCount = lines.filter((l) => /^\s*sitemap\s*:/i.test(l)).length
+    const totalRules = disallowCount + allowCount
+    const message = `robots.txt: ${disallowCount} Disallow, ${allowCount} Allow, ${sitemapCount} Sitemap${sitemapCount !== 1 ? 's' : ''} (${totalRules} total rules)`
     return {
-      label: 'ROBOTS',
-      message: `Rules: Disallow ${dis}, Allow ${al}, Sitemaps ${sa}`,
+      label: LABEL,
+      name: NAME,
+      message,
       type: 'info',
-      name: 'robots.txt complexity',
-      details: { robotsTxt: txt },
+      priority: 800,
+      details: {
+        snippet: extractSnippet(robotsTxt, 150),
+        robotsTxt,
+        disallowCount,
+        allowCount,
+        sitemapCount,
+        totalRules,
+        reference: SPEC,
+      },
     }
   },
 }
