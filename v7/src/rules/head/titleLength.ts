@@ -1,18 +1,20 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, getDomPath } from '@/shared/html-utils'
+import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
 const LABEL = 'HEAD'
 const NAME = 'SEO Title'
+const RULE_ID = 'head:title'
+const SELECTOR = 'head > title'
 const SPEC = 'https://developers.google.com/search/docs/appearance/title-link'
 
 export const titleLengthRule: Rule = {
-  id: 'head:title',
+  id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'static',
   run: async (page) => {
     // 1. Query
-    const element = page.doc.querySelector('head > title')
+    const element = page.doc.querySelector(SELECTOR)
     const title = (element?.textContent ?? '').trim()
     const len = title.length
 
@@ -31,7 +33,7 @@ export const titleLengthRule: Rule = {
 
     // 3. Build Evidence (The Data Layer)
     const sourceHtml = extractHtml(element)
-    
+
     return {
       label: LABEL,
       name: NAME,
@@ -40,11 +42,11 @@ export const titleLengthRule: Rule = {
       priority: isMissing ? 100 : isShort ? 50 : 10,
       details: {
         sourceHtml,
-        snippet: title || undefined,
+        snippet: extractSnippet(title),
         domPath: getDomPath(element),
         length: len,
-        reference: SPEC
-      }
+        reference: SPEC,
+      },
     }
   },
 }
