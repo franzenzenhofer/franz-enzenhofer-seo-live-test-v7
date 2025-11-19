@@ -1,29 +1,61 @@
 import type { Rule } from '@/core/types'
+import { extractSnippet } from '@/shared/html-utils'
 
-const v = (h: Record<string,string>|undefined, k: string) => (h?.[k] || h?.[k.toLowerCase()] || '').toLowerCase()
+const LABEL = 'HTTP'
+const NAME = 'X-Cache Hit/Miss'
+const RULE_ID = 'http:x-cache'
+const SPEC = 'https://developer.fastly.com/reference/http/http-headers/X-Cache'
+
+const getCaseInsensitiveHeader = (headers: Record<string, string> | undefined, key: string): string => {
+  if (!headers) return ''
+  return (headers[key] || headers[key.toLowerCase()] || '').trim()
+}
 
 export const xCacheRule: Rule = {
-  id: 'http:x-cache',
-  name: 'X-Cache hit/miss',
+  id: RULE_ID,
+  name: NAME,
   enabled: true,
   what: 'http',
   async run(page) {
-    const x = v(page.headers, 'x-cache')
-    if (!x)
+    const xCacheHeader = getCaseInsensitiveHeader(page.headers, 'x-cache')
+    const xCacheLower = xCacheHeader.toLowerCase()
+    const hasXCache = Boolean(xCacheHeader)
+    if (!hasXCache) {
       return {
-        label: 'HTTP',
-        message: 'No X-Cache header',
+        label: LABEL,
+        name: NAME,
+        message: 'No X-Cache header found.',
         type: 'info',
-        name: 'X-Cache hit/miss',
-        details: { httpHeaders: page.headers || {} },
+        priority: 900,
+        details: {
+          httpHeaders: page.headers || {},
+          snippet: extractSnippet('(not present)'),
+          xCacheHeader: '',
+          hasXCache: false,
+          reference: SPEC,
+        },
       }
-    const t = x.includes('hit') ? 'HIT' : x.includes('miss') ? 'MISS' : x
+    }
+    const isHit = xCacheLower.includes('hit')
+    const isMiss = xCacheLower.includes('miss')
+    const status = isHit ? 'HIT' : isMiss ? 'MISS' : xCacheHeader
+    const message = `X-Cache: ${status}`
     return {
-      label: 'HTTP',
-      message: `X-Cache: ${t}`,
+      label: LABEL,
+      name: NAME,
+      message,
       type: 'info',
-      name: 'X-Cache hit/miss',
-      details: { httpHeaders: page.headers || {} },
+      priority: 800,
+      details: {
+        httpHeaders: page.headers || {},
+        snippet: extractSnippet(xCacheHeader),
+        xCacheHeader,
+        hasXCache: true,
+        isHit,
+        isMiss,
+        status,
+        reference: SPEC,
+      },
     }
   },
 }
