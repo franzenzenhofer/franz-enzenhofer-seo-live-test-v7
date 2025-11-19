@@ -2,47 +2,73 @@ import { HTTP_STATUS } from '@/shared/http-constants'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 import type { Rule } from '@/core/types'
 
+const LABEL = 'HEAD'
+const NAME = 'Canonical Redirects'
+const RULE_ID = 'head:canonical-redirects'
+const SELECTOR = 'head > link[rel="canonical"]'
+const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
+
 export const canonicalRedirectsRule: Rule = {
-  id: 'head:canonical-redirects',
-  name: 'Canonical Redirects',
+  id: RULE_ID,
+  name: NAME,
   enabled: true,
   what: 'static',
   async run(page) {
-    const linkEl = page.doc.querySelector('link[rel="canonical"]')
-    const href = linkEl?.getAttribute('href')
-    if (!href)
-      return { name: 'Canonical Redirects', label: 'HEAD', message: 'No canonical link found.', type: 'error' }
-    const sourceHtml = linkEl ? extractHtml(linkEl) : ''
+    const linkEl = page.doc.querySelector(SELECTOR)
+    const href = linkEl?.getAttribute('href')?.trim() || ''
+    const hasCanonical = Boolean(linkEl)
+    const hasHref = Boolean(href)
+    if (!hasCanonical || !hasHref) {
+      return {
+        name: NAME,
+        label: LABEL,
+        message: 'No canonical link found.',
+        type: 'info',
+        priority: 900,
+        details: { reference: SPEC },
+      }
+    }
+    const sourceHtml = extractHtml(linkEl)
     try {
       const r = await fetch(href, { method: 'HEAD', redirect: 'manual' })
-      const loc = r.headers.get('location')
-      const is3xx = r.status >= HTTP_STATUS.REDIRECT_MIN && r.status < HTTP_STATUS.REDIRECT_MAX
+      const status = r.status
+      const location = r.headers.get('location')?.trim() || ''
+      const isRedirect = status >= HTTP_STATUS.REDIRECT_MIN && status < HTTP_STATUS.REDIRECT_MAX
+      const message = isRedirect
+        ? `Canonical returns HTTP ${status} redirecting to: ${location || '(no location header)'}`
+        : `Canonical returns HTTP ${status}, no redirect.`
       return {
-        name: 'Canonical Redirects',
-        label: 'HEAD',
-        message: is3xx ? `Canonical redirects to ${loc || '(no location)'}` : 'Canonical does not redirect',
-        type: is3xx ? 'warn' : 'ok',
-        details: linkEl
-          ? {
-              sourceHtml,
-              snippet: extractSnippet(sourceHtml),
-              domPath: getDomPath(linkEl),
-            }
-          : undefined,
+        name: NAME,
+        label: LABEL,
+        message,
+        type: isRedirect ? 'warn' : 'ok',
+        priority: isRedirect ? 150 : 800,
+        details: {
+          sourceHtml,
+          snippet: extractSnippet(href),
+          domPath: getDomPath(linkEl),
+          href,
+          status,
+          location,
+          isRedirect,
+          reference: SPEC,
+        },
       }
     } catch (e) {
       return {
-        name: 'Canonical Redirects',
-        label: 'HEAD',
-        message: `Canonical check failed: ${String(e)}`,
+        name: NAME,
+        label: LABEL,
+        message: `Canonical URL fetch failed: ${String(e)}`,
         type: 'warn',
-        details: linkEl
-          ? {
-              sourceHtml,
-              snippet: extractSnippet(sourceHtml),
-              domPath: getDomPath(linkEl),
-            }
-          : undefined,
+        priority: 200,
+        details: {
+          sourceHtml,
+          snippet: extractSnippet(href),
+          domPath: getDomPath(linkEl),
+          href,
+          error: String(e),
+          reference: SPEC,
+        },
       }
     }
   },
