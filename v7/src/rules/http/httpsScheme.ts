@@ -1,29 +1,43 @@
 import type { Rule } from '@/core/types'
+import { extractSnippet } from '@/shared/html-utils'
+
+const LABEL = 'HTTP'
+const NAME = 'HTTPS Scheme'
+const RULE_ID = 'http:https-scheme'
+const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/https'
 
 export const httpsSchemeRule: Rule = {
-  id: 'http:https-scheme',
-  name: 'HTTPS Scheme',
+  id: RULE_ID,
+  name: NAME,
   enabled: true,
   what: 'http',
   async run(page) {
+    let protocol = ''
+    let isHttps = false
     try {
-      if (new URL(page.url).protocol === 'https:')
-        return {
-          label: 'HTTP',
-          message: 'HTTPS in use',
-          type: 'ok',
-          name: 'HTTPS Scheme',
-          details: { httpHeaders: page.headers || {} },
-        }
+      protocol = new URL(page.url).protocol
+      isHttps = protocol === 'https:'
     } catch {
-      /* ignore */
+      protocol = 'invalid-url'
+      isHttps = false
     }
+    const message = isHttps
+      ? `HTTPS in use: ${page.url}`
+      : `Not using HTTPS (${protocol}): ${page.url}`
     return {
-      label: 'HTTP',
-      message: 'Not using HTTPS',
-      type: 'warn',
-      name: 'HTTPS Scheme',
-      details: { httpHeaders: page.headers || {} },
+      label: LABEL,
+      name: NAME,
+      message,
+      type: isHttps ? 'ok' : 'warn',
+      priority: isHttps ? 800 : 100,
+      details: {
+        httpHeaders: page.headers || {},
+        snippet: extractSnippet(page.url),
+        url: page.url,
+        protocol,
+        isHttps,
+        reference: SPEC,
+      },
     }
   },
 }
