@@ -1,10 +1,17 @@
 import { NavigationLedgerSchema } from '@/background/history/types'
-import type { Rule } from '@/core/types'
+import type { Rule, Result } from '@/core/types'
 
 const LABEL = 'HTTP'
 const NAME = 'Navigation Path Analysis'
 const RULE_ID = 'http:navigation-path'
 const SPEC = 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections'
+
+const buildResult = (
+  message: string,
+  type: Result['type'],
+  priority: number,
+  details: Record<string, unknown>,
+): Result => ({ label: LABEL, name: NAME, message, type, priority, details: { ...details, reference: SPEC } })
 
 export const navigationPathRule: Rule = {
   id: RULE_ID,
@@ -12,37 +19,13 @@ export const navigationPathRule: Rule = {
   enabled: true,
   what: 'http',
 
-  async run(page, ctx): Promise<import('@/core/types').Result> {
+  async run(page, ctx): Promise<Result> {
     const raw = (ctx.globals as { navigationLedger?: unknown }).navigationLedger
     const ledgerResult = NavigationLedgerSchema.safeParse(raw)
-
-    if (!ledgerResult.success) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'Navigation path data unavailable.',
-        type: 'info',
-        priority: 900,
-        details: {
-          reference: SPEC,
-        },
-      }
-    }
+    if (!ledgerResult.success) return buildResult('Navigation path data unavailable.', 'info', 900, {})
 
     const { trace } = ledgerResult.data
-
-    if (trace.length === 0) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'No navigation events recorded.',
-        type: 'info',
-        priority: 900,
-        details: {
-          reference: SPEC,
-        },
-      }
-    }
+    if (trace.length === 0) return buildResult('No navigation events recorded.', 'info', 900, {})
 
     const steps = trace.map((hop, i) => {
       let label = 'Unknown'
@@ -61,103 +44,64 @@ export const navigationPathRule: Rule = {
     const chainDesc = steps.join('\n')
     const redirectCount = Math.max(0, trace.length - 1)
 
-    const has302 = trace.some((t) => t.statusCode === 302)
+    const hasTemporaryRedirect = trace.some(
+      (t) => t.statusCode === 302 || t.statusCode === 303 || t.statusCode === 307,
+    )
     const hasClientRedirect = trace.some((t) => t.type === 'client_redirect')
     const lastHop = trace[trace.length - 1]
     const hasMixedHttp =
-      trace.some((t) => t.url.startsWith('http:')) &&
-      lastHop?.url.startsWith('https:') === true
+      trace.some((t) => t.url.startsWith('http:')) && lastHop?.url.startsWith('https:') === true
+    const tempRedirectCodes = trace
+      .filter((t) => t.statusCode === 302 || t.statusCode === 303 || t.statusCode === 307)
+      .map((t) => t.statusCode)
+    const uniqueTempCodes = [...new Set(tempRedirectCodes)]
 
     if (redirectCount === 0) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: `Direct load (no redirects).\n\n${chainDesc}`,
-        type: 'ok',
-        priority: 800,
-        details: {
-          trace,
-          redirectCount,
-          reference: SPEC,
-        },
-      }
+      return buildResult(`Direct load (no redirects).\n\n${chainDesc}`, 'ok', 800, { trace, redirectCount })
     }
 
     if (hasClientRedirect) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: `Client-side redirect detected (${redirectCount} hop${redirectCount > 1 ? 's' : ''}).\nClient redirects are slow and bad for SEO.\n\n${chainDesc}`,
-        type: 'error',
-        priority: 100,
-        details: {
-          trace,
-          redirectCount,
-          issue: 'client_redirect',
-          reference: SPEC,
-        },
-      }
+      return buildResult(
+        `Client-side redirect detected (${redirectCount} hop${redirectCount > 1 ? 's' : ''}).\nClient redirects are slow and bad for SEO.\n\n${chainDesc}`,
+        'error',
+        100,
+        { trace, redirectCount, issue: 'client_redirect' },
+      )
     }
 
     if (redirectCount > 1) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: `Redirect chain (${redirectCount} hops) - Performance impact.\n\n${chainDesc}`,
-        type: 'error',
-        priority: 150,
-        details: {
-          trace,
-          redirectCount,
-          issue: 'long_chain',
-          reference: SPEC,
-        },
-      }
+      return buildResult(
+        `Redirect chain (${redirectCount} hops) - Performance impact.\n\n${chainDesc}`,
+        'error',
+        150,
+        { trace, redirectCount, issue: 'long_chain' },
+      )
     }
 
-    if (has302) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: `Temporary redirect (302) detected.\nUse 301 for permanent redirects.\n\n${chainDesc}`,
-        type: 'warn',
-        priority: 200,
-        details: {
-          trace,
-          redirectCount,
-          issue: 'temp_redirect',
-          reference: SPEC,
-        },
-      }
+    if (hasTemporaryRedirect) {
+      const codesStr = uniqueTempCodes.join(', ')
+      return buildResult(
+        `Temporary redirect (${codesStr}) detected.\nUse 301/308 for permanent redirects.\n\n${chainDesc}`,
+        'warn',
+        200,
+        { trace, redirectCount, issue: 'temp_redirect', tempRedirectCodes: uniqueTempCodes },
+      )
     }
 
     if (hasMixedHttp) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: `HTTP → HTTPS redirect (${redirectCount} hop${redirectCount > 1 ? 's' : ''}).\n\n${chainDesc}`,
-        type: 'warn',
-        priority: 250,
-        details: {
-          trace,
-          redirectCount,
-          issue: 'mixed_content',
-          reference: SPEC,
-        },
-      }
+      return buildResult(
+        `HTTP → HTTPS redirect (${redirectCount} hop${redirectCount > 1 ? 's' : ''}).\n\n${chainDesc}`,
+        'warn',
+        250,
+        { trace, redirectCount, issue: 'mixed_content' },
+      )
     }
 
-    return {
-      label: LABEL,
-      name: NAME,
-      message: `Single redirect (${redirectCount} hop).\n\n${chainDesc}`,
-      type: 'warn',
-      priority: 300,
-      details: {
-        trace,
-        redirectCount,
-        reference: SPEC,
-      },
-    }
+    return buildResult(
+      `Single redirect (${redirectCount} hop).\n\n${chainDesc}`,
+      'warn',
+      300,
+      { trace, redirectCount },
+    )
   },
 }

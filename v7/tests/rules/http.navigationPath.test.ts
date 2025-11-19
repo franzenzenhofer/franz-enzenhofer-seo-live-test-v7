@@ -99,6 +99,87 @@ describe('http:navigation-path rule', () => {
     expect(result.details?.issue).toBe('temp_redirect')
   })
 
+  it('returns warn for temporary redirect (303 See Other)', async () => {
+    const ledger: NavigationLedger = {
+      tabId: 1,
+      currentUrl: 'https://example.com/new',
+      trace: [
+        {
+          url: 'https://example.com/old',
+          timestamp: Date.now(),
+          type: 'http_redirect',
+          statusCode: 303,
+        },
+        {
+          url: 'https://example.com/new',
+          timestamp: Date.now(),
+          type: 'load',
+          statusCode: 200,
+        },
+      ],
+    }
+    const result = await run(ledger)
+    expect(result.type).toBe('warn')
+    expect(result.message).toContain('303')
+    expect(result.details?.issue).toBe('temp_redirect')
+  })
+
+  it('returns warn for temporary redirect (307 Temporary Redirect)', async () => {
+    const ledger: NavigationLedger = {
+      tabId: 1,
+      currentUrl: 'https://example.com/new',
+      trace: [
+        {
+          url: 'https://example.com/old',
+          timestamp: Date.now(),
+          type: 'http_redirect',
+          statusCode: 307,
+        },
+        {
+          url: 'https://example.com/new',
+          timestamp: Date.now(),
+          type: 'load',
+          statusCode: 200,
+        },
+      ],
+    }
+    const result = await run(ledger)
+    expect(result.type).toBe('warn')
+    expect(result.message).toContain('307')
+    expect(result.details?.issue).toBe('temp_redirect')
+  })
+
+  it('handles multiple temporary redirect types', async () => {
+    const ledger: NavigationLedger = {
+      tabId: 1,
+      currentUrl: 'https://example.com/final',
+      trace: [
+        {
+          url: 'https://example.com/start',
+          timestamp: Date.now(),
+          type: 'http_redirect',
+          statusCode: 302,
+        },
+        {
+          url: 'https://example.com/middle',
+          timestamp: Date.now(),
+          type: 'http_redirect',
+          statusCode: 307,
+        },
+        {
+          url: 'https://example.com/final',
+          timestamp: Date.now(),
+          type: 'load',
+          statusCode: 200,
+        },
+      ],
+    }
+    const result = await run(ledger)
+    expect(result.type).toBe('error')
+    expect(result.details?.issue).toBe('long_chain')
+    expect(result.details?.redirectCount).toBe(2)
+  })
+
   it('returns error for client-side redirect', async () => {
     const ledger: NavigationLedger = {
       tabId: 1,
