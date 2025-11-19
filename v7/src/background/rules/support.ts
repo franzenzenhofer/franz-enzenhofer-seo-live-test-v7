@@ -1,3 +1,5 @@
+import { getLedger } from '../history/listeners'
+
 import { buildPendingResults, buildRuleOverrides } from './pending'
 import { allowedScheme, hasDomSnapshot, derivePageUrl, getPageUrl, checkUrlChange, summarizeEvents, persistResults } from './util'
 import type { RuleResult } from './types'
@@ -23,6 +25,7 @@ export const buildRunGlobals = async (
   ])
   const authStatus = googleApiAccessToken ? 'present' : 'missing'
   await log(tabId, `auth:token status=${authStatus} runId=${runId}`)
+  const navigationLedger = await getLedger(tabId)
   return {
     variables: globalRuleVariables || {},
     googleApiAccessToken: googleApiAccessToken || null,
@@ -31,6 +34,7 @@ export const buildRunGlobals = async (
     codeviewUrl: chrome.runtime.getURL('src/sidepanel.html#codeview'),
     runId,
     runTimestamp: runTimestamp.toISOString(),
+    navigationLedger,
   }
 }
 
