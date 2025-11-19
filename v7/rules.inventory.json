@@ -306,6 +306,12 @@
     "what": "static"
   },
   {
+    "id": "http:navigation-path",
+    "name": "Navigation Path Analysis",
+    "enabledByDefault": true,
+    "what": "http"
+  },
+  {
     "id": "body:nofollow",
     "name": "Nofollow Links",
     "enabledByDefault": true,
