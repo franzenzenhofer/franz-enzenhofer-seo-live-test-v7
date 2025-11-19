@@ -75,6 +75,7 @@ import { httpsSchemeRule } from './http/httpsScheme'
 import { http2AdvertisedRule } from './http/http2Advertised'
 import { http3AdvertisedRule } from './http/http3Advertised'
 import { altSvcOtherProtocolsRule } from './http/altSvcOtherProtocols'
+import { navigationPathRule } from './http/navigationPath'
 import { topWordsRule } from './dom/topWords'
 import { canonicalChainRule } from './head/canonicalChain'
 import { schemaArticlePresentRule } from './schema/articlePresent'
@@ -163,6 +164,7 @@ export const registry: Rule[] = [
   http2AdvertisedRule,
   http3AdvertisedRule,
   altSvcOtherProtocolsRule,
+  navigationPathRule,
   cacheDeliveryRule,
   securityHeadersRule,
   topWordsRule,
