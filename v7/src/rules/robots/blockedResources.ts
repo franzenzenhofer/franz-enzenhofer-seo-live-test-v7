@@ -1,47 +1,87 @@
 import parse from '@/vendor/robots'
 import type { Rule } from '@/core/types'
+import { extractSnippet } from '@/shared/html-utils'
 
-const sameHost = (a: string, b: string) => { try { return new URL(a).host === new URL(b).host } catch { return false } }
+const LABEL = 'ROBOTS'
+const NAME = 'robots.txt Blocked Resources'
+const RULE_ID = 'robots:blocked-resources'
+const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots/intro'
+
+const sameHost = (a: string, b: string) => {
+  try {
+    return new URL(a).host === new URL(b).host
+  } catch {
+    return false
+  }
+}
 
 export const robotsBlockedResourcesRule: Rule = {
-  id: 'robots:blocked-resources',
-  name: 'robots.txt blocked resources',
+  id: RULE_ID,
+  name: NAME,
   enabled: true,
   what: 'http',
   async run(page) {
     const list = page.resources || []
-    if (!list.length)
+    const resourceCount = list.length
+    if (!resourceCount) {
       return {
-        label: 'ROBOTS',
-        message: 'No resource requests captured',
+        label: LABEL,
+        name: NAME,
+        message: 'No resource requests captured for analysis.',
         type: 'info',
-        name: 'robots.txt blocked resources',
+        priority: 900,
+        details: {
+          snippet: extractSnippet('(no resources)'),
+          resourceCount: 0,
+          reference: SPEC,
+        },
       }
+    }
     const base = new URL(page.url)
     const r = (await fetch(`${base.origin}/robots.txt`).catch(() => null)) as Response | null
-    if (!r || !r.ok)
+    if (!r || !r.ok) {
       return {
-        label: 'ROBOTS',
-        message: 'robots.txt not reachable for blocked check',
+        label: LABEL,
+        name: NAME,
+        message: 'robots.txt not reachable. Cannot check for blocked resources.',
         type: 'info',
-        name: 'robots.txt blocked resources',
+        priority: 850,
+        details: {
+          snippet: extractSnippet('(robots.txt not reachable)'),
+          resourceCount,
+          reference: SPEC,
+        },
       }
-    const txt = await r.text()
-    const ua = 'Googlebot'
-    let blocked = 0
-    for (const u of list) {
-      if (!sameHost(page.url, u)) continue
-      const res = parse(txt, u, ua) as Record<string, unknown>
-      const allowed = Boolean(res['allowed'])
-      const disallowed = Boolean(res['disallowed'])
-      if (!allowed || disallowed) blocked++
     }
+    const robotsTxt = await r.text()
+    const userAgent = 'Googlebot'
+    let blockedCount = 0
+    for (const resourceUrl of list) {
+      if (!sameHost(page.url, resourceUrl)) continue
+      const result = parse(robotsTxt, resourceUrl, userAgent) as Record<string, unknown>
+      const allowed = Boolean(result['allowed'])
+      const disallowed = Boolean(result['disallowed'])
+      if (!allowed || disallowed) blockedCount++
+    }
+    const hasBlockedResources = blockedCount > 0
+    const message = hasBlockedResources
+      ? `${blockedCount} resource${blockedCount > 1 ? 's' : ''} disallowed by robots.txt for ${userAgent}`
+      : `No blocked resources. All ${resourceCount} resources allowed for ${userAgent}.`
     return {
-      label: 'ROBOTS',
-      message: blocked ? `${blocked} resources disallowed by robots.txt` : 'No blocked resources',
-      type: blocked ? 'warn' : 'ok',
-      name: 'robots.txt blocked resources',
-      details: { robotsTxt: txt },
+      label: LABEL,
+      name: NAME,
+      message,
+      type: hasBlockedResources ? 'warn' : 'ok',
+      priority: hasBlockedResources ? 200 : 800,
+      details: {
+        snippet: extractSnippet(robotsTxt, 150),
+        robotsTxt,
+        resourceCount,
+        blockedCount,
+        hasBlockedResources,
+        userAgent,
+        reference: SPEC,
+      },
     }
   },
 }
