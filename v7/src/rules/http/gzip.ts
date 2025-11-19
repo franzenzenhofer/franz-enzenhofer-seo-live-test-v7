@@ -1,11 +1,13 @@
 import type { Rule } from '@/core/types'
+import { extractSnippet } from '@/shared/html-utils'
 
 const LABEL = 'HTTP'
-const NAME = 'Gzip/Brotli'
+const NAME = 'Gzip/Brotli Compression'
 const RULE_ID = 'http:gzip'
 const SPEC = 'https://developer.chrome.com/docs/lighthouse/performance/uses-text-compression'
-const compressible = (encoding: string | null | undefined) => {
-  const lower = (encoding || '').toLowerCase()
+
+const detectCompression = (encoding: string | null | undefined) => {
+  const lower = (encoding || '').toLowerCase().trim()
   if (!lower) return null
   if (lower.includes('br')) return 'Brotli'
   if (lower.includes('gzip')) return 'gzip'
@@ -19,44 +21,57 @@ export const gzipRule: Rule = {
   what: 'http',
   async run(page) {
     const encoding = page.headers?.['content-encoding'] || page.headers?.['Content-Encoding'] || ''
-    const compressed = compressible(encoding)
-    if (!compressed) {
+    const compressionType = detectCompression(encoding)
+    const isCompressed = Boolean(compressionType)
+    const isStandardCompression = compressionType === 'gzip' || compressionType === 'Brotli'
+    if (!isCompressed) {
       return {
         label: LABEL,
-        message: 'No content-encoding header (gzip or Brotli).',
+        name: NAME,
+        message: 'No content-encoding header. Consider enabling gzip or Brotli compression.',
         type: 'warn',
         priority: 200,
-        name: NAME,
-        details: { httpHeaders: page.headers || {}, reference: SPEC },
+        details: {
+          httpHeaders: page.headers || {},
+          snippet: extractSnippet('(not present)'),
+          encoding,
+          compressionType: null,
+          isCompressed: false,
+          reference: SPEC,
+        },
       }
     }
-    if (compressed === 'gzip' || compressed === 'Brotli') {
+    if (isStandardCompression) {
       return {
         label: LABEL,
-        message: `Compressed with ${compressed}.`,
+        name: NAME,
+        message: `Content compressed with ${compressionType}.`,
         type: 'ok',
-        priority: 900,
-        name: NAME,
-        details: { httpHeaders: page.headers || {}, reference: SPEC },
-      }
-    }
-    if (compressed === encoding.toLowerCase()) {
-      return {
-        label: LABEL,
-        message: `Unsupported content encoding (${encoding}).`,
-        type: 'warn',
-        priority: 100,
-        name: NAME,
-        details: { httpHeaders: page.headers || {}, reference: SPEC },
+        priority: 800,
+        details: {
+          httpHeaders: page.headers || {},
+          snippet: extractSnippet(encoding),
+          encoding,
+          compressionType,
+          isCompressed: true,
+          reference: SPEC,
+        },
       }
     }
     return {
       label: LABEL,
-      message: `Compressed with ${compressed}.`,
-      type: 'ok',
-      priority: 900,
       name: NAME,
-      details: { httpHeaders: page.headers || {}, reference: SPEC },
+      message: `Unsupported content-encoding: ${encoding}. Use gzip or Brotli.`,
+      type: 'warn',
+      priority: 150,
+      details: {
+        httpHeaders: page.headers || {},
+        snippet: extractSnippet(encoding),
+        encoding,
+        compressionType,
+        isCompressed: true,
+        reference: SPEC,
+      },
     }
   },
 }
