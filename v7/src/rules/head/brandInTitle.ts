@@ -1,31 +1,76 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
+// Constants
+const LABEL = 'HEAD'
+const NAME = 'Brand in Title'
+const RULE_ID = 'head:brand-in-title'
+const SELECTOR = 'head > title'
+const SPEC = 'https://developers.google.com/search/docs/appearance/title-link'
+
 export const brandInTitleRule: Rule = {
-  id: 'head:brand-in-title',
-  name: 'Brand in Title',
+  id: RULE_ID,
+  name: NAME,
   enabled: true,
   what: 'static',
   async run(page, ctx) {
-    const v = (ctx.globals as { variables?: Record<string, unknown> }).variables || {}
-    const brand = String((v as Record<string, unknown>)['brand'] || '').trim()
-    if (!brand) return { name: 'Brand in Title', label: 'HEAD', message: 'Brand not configured', type: 'info' }
-    const titleEl = page.doc.querySelector('head > title')
-    const t = titleEl?.textContent || ''
-    const sourceHtml = titleEl ? extractHtml(titleEl) : ''
-    const hasBrand = t.toLowerCase().includes(brand.toLowerCase())
+    // 1. Extract brand from configuration (user-defined variable)
+    const variables = (ctx.globals as { variables?: Record<string, unknown> }).variables || {}
+    const brand = String((variables as Record<string, unknown>)['brand'] || '').trim()
+
+    // 2. Check if brand is configured
+    if (!brand) {
+      return {
+        label: LABEL,
+        name: NAME,
+        message: 'Brand not configured. Set "brand" variable in settings to check if brand appears in title.',
+        type: 'info',
+        priority: 900,
+        details: { reference: SPEC },
+      }
+    }
+
+    // 3. Query title element
+    const element = page.doc.querySelector(SELECTOR)
+    const titleText = (element?.textContent || '').trim()
+
+    // 4. Determine states (Binary Logic)
+    const isTitleMissing = !element || titleText.length === 0
+    const hasBrand = titleText.toLowerCase().includes(brand.toLowerCase())
+
+    // 5. Build message (Quantified, showing the value)
+    let message = ''
+    if (isTitleMissing) {
+      message = `Missing <title> tag. Cannot check brand "${extractSnippet(brand, 20)}".`
+    } else if (hasBrand) {
+      message = `Title contains brand "${extractSnippet(brand, 20)}".`
+    } else {
+      message = `Title missing brand "${extractSnippet(brand, 20)}".`
+    }
+
+    // 6. Determine type
+    const type = isTitleMissing ? 'info' : hasBrand ? 'ok' : 'warn'
+
+    // 7. Build evidence (Chain of Evidence)
+    const details = element
+      ? {
+          sourceHtml: extractHtml(element),
+          snippet: extractSnippet(titleText || '(empty)'),
+          domPath: getDomPath(element),
+          title: titleText,
+          brand,
+          hasBrand,
+          reference: SPEC,
+        }
+      : { brand, reference: SPEC }
+
     return {
-      name: 'Brand in Title',
-      label: 'HEAD',
-      message: hasBrand ? 'Title contains brand' : 'Title missing brand',
-      type: hasBrand ? 'ok' : 'warn',
-      details: titleEl
-        ? {
-            sourceHtml,
-            snippet: extractSnippet(sourceHtml),
-            domPath: getDomPath(titleEl),
-          }
-        : undefined,
+      label: LABEL,
+      name: NAME,
+      message,
+      type,
+      priority: hasBrand ? 700 : isTitleMissing ? 900 : 400,
+      details,
     }
   },
 }
