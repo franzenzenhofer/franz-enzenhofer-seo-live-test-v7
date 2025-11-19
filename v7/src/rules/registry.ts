@@ -77,6 +77,7 @@ import { http3AdvertisedRule } from './http/http3Advertised'
 import { altSvcOtherProtocolsRule } from './http/altSvcOtherProtocols'
 import { navigationPathRule } from './http/navigationPath'
 import { redirectLoopRule } from './http/redirectLoop'
+import { redirectEfficiencyRule } from './http/redirectEfficiency'
 import { topWordsRule } from './dom/topWords'
 import { canonicalChainRule } from './head/canonicalChain'
 import { schemaArticlePresentRule } from './schema/articlePresent'
@@ -167,6 +168,7 @@ export const registry: Rule[] = [
   altSvcOtherProtocolsRule,
   navigationPathRule,
   redirectLoopRule,
+  redirectEfficiencyRule,
   cacheDeliveryRule,
   securityHeadersRule,
   topWordsRule,
