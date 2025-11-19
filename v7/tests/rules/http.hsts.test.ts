@@ -10,7 +10,7 @@ describe('rule: http hsts', () => {
   })
   it('info on present', async () => {
     const r = await hstsRule.run(P({ 'strict-transport-security': 'max-age=31536000' }), { globals: {} })
-    expect((r as any).type).toBe('info')
+    expect((r as any).type).toBe('ok')
   })
 })
 
