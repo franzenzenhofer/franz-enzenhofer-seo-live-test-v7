@@ -1,36 +1,50 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
+import { extractHtml, getDomPath } from '@/shared/html-utils'
 
-const len = (s: string) => s.trim().length
+const LABEL = 'HEAD'
+const NAME = 'SEO Title'
+const SPEC = 'https://developers.google.com/search/docs/appearance/title-link'
 
 export const titleLengthRule: Rule = {
-  id: 'head:title-length',
-  name: 'Title Length',
+  id: 'head:title',
+  name: NAME,
   enabled: true,
   what: 'static',
-  async run(page) {
-    const titleEl = page.doc.querySelector('head > title')
-    const t = titleEl?.textContent || ''
-    const n = len(t)
-    const sourceHtml = extractHtml(titleEl)
+  run: async (page) => {
+    // 1. Query
+    const element = page.doc.querySelector('head > title')
+    const title = (element?.textContent ?? '').trim()
+    const len = title.length
 
-    if (!n) {
-      return { label: 'HEAD', message: 'Missing <title>', type: 'error', name: 'titleLength' }
-    }
+    // 2. Determine State (The Logic Layer)
+    // Thresholds: 0 = Error, <50 = Warn, 50+ = OK
+    const isMissing = len === 0
+    const isShort = len < 50
+    
+    const type = isMissing ? 'error' : isShort ? 'warn' : 'ok'
+    
+    const message = isMissing
+      ? 'Missing <title> tag or empty.'
+      : isShort
+        ? `Title too short (${len} chars). Recommend 50+.`
+        : `Title length OK (${len} chars).`
 
+    // 3. Build Evidence (The Data Layer)
+    const sourceHtml = extractHtml(element)
+    
     return {
-      label: 'HEAD',
-      message: n < 10 ? 'Title too short' : n > 70 ? 'Title too long' : `Title length OK (${n})`,
-      type: n < 10 || n > 70 ? 'warn' : 'ok',
-      name: 'Title Length',
-      details: titleEl
-        ? {
-            sourceHtml,
-            snippet: extractSnippet(sourceHtml),
-            domPath: getDomPath(titleEl),
-          }
-        : undefined,
+      label: LABEL,
+      name: NAME,
+      message,
+      type,
+      priority: isMissing ? 100 : isShort ? 50 : 10,
+      details: {
+        sourceHtml,
+        snippet: title || undefined,
+        domPath: getDomPath(element),
+        length: len,
+        reference: SPEC
+      }
     }
   },
 }
-
