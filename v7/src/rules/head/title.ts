@@ -1,35 +1,59 @@
 import type { Rule } from '@/core/types'
+import { extractHtml, extractHtmlFromList, extractSnippet, getDomPath } from '@/shared/html-utils'
 
 const LABEL = 'HEAD'
-const NAME = 'Title Present'
-const RULE_ID = 'head-title'
+const NAME = 'SEO Title Present'
 const SPEC = 'https://developers.google.com/search/docs/appearance/title-link'
-const MIN_CHARS = 30
-const MAX_CHARS = 65
-
-const titleStatus = (len: number) => {
-  if (!len) return { message: 'No title tag found.', type: 'error' as const, priority: 0 }
-  if (len < MIN_CHARS) return { message: `Title too short (${len}/${MIN_CHARS}-${MAX_CHARS} chars).`, type: 'warn' as const, priority: 200 }
-  if (len > MAX_CHARS) return { message: `Title too long (${len}/${MIN_CHARS}-${MAX_CHARS} chars).`, type: 'warn' as const, priority: 200 }
-  return { message: `Title length OK (${len}/${MIN_CHARS}-${MAX_CHARS} chars).`, type: 'ok' as const, priority: 900 }
-}
 
 export const titleRule: Rule = {
-  id: RULE_ID,
-  name: 'SEO Title Present',
+  id: 'head-title',
+  name: NAME,
   enabled: true,
   what: 'static',
   run: async (page) => {
-    const el = page.doc.querySelector('head > title')
-    const title = (el?.textContent || '').trim()
-    const { message, type, priority } = titleStatus(title.length)
+    // 1. Query
+    const nodes = Array.from(page.doc.querySelectorAll('head > title'))
+    const count = nodes.length
+    const firstNode = nodes[0]
+
+    // 2. Content Analysis (Trimmed)
+    const rawContent = firstNode?.textContent ?? ''
+    const titleContent = rawContent.trim()
+    const hasContent = titleContent.length > 0
+
+    // 3. Logic States
+    const isMultiple = count > 1
+    const isMissing = count === 0
+    const isEmpty = count === 1 && !hasContent
+    const isOk = count === 1 && hasContent
+
+    // 4. Determine Result Properties
+    // We define the state, then map to the message. DRY.
+    const type = isOk ? 'ok' : 'error'
+    
+    let message = ''
+    if (isOk) message = `1 <title> tag found ("${extractSnippet(titleContent, 20)}").`
+    else if (isMultiple) message = `${count} <title> tags found (Must be exactly 1).`
+    else if (isMissing) message = 'Missing <title> tag.'
+    else if (isEmpty) message = '<title> tag exists but is empty.'
+
+    // 5. Evidence Construction
+    // If multiple, show the list. If one (even empty), show that one.
+    const sourceHtml = isMultiple ? extractHtmlFromList(nodes) : extractHtml(firstNode ?? null)
+    
     return {
       label: LABEL,
+      name: NAME,
       message,
       type,
-      priority,
-      name: NAME,
-      details: { title, snippet: title, sourceHtml: el?.outerHTML || '', domPath: 'head > title', reference: SPEC },
+      priority: isOk ? 100 : 0, // Error = 0 (High priority fix)
+      details: {
+        title: titleContent,
+        length: titleContent.length,
+        sourceHtml,
+        domPath: getDomPath(firstNode ?? null),
+        reference: SPEC,
+      },
     }
   },
 }

@@ -9,7 +9,7 @@ describe('rule: title length', () => {
     expect((r as any).type).toBe('warn')
   })
   it('accepts good titles', async () => {
-    const r = await titleLengthRule.run({ html:'', url:'', doc: doc('<title>0123456789 ok</title>') }, { globals: {} })
+    const r = await titleLengthRule.run({ html:'', url:'', doc: doc('<title>This is a good title with more than fifty characters total</title>') }, { globals: {} })
     expect((r as any).type).toBe('ok')
   })
 })

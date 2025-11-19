@@ -8,24 +8,24 @@ describe('title rule', () => {
   it('detects missing title', async () => {
     const result = await run('<html><head></head></html>')
     expect(result.type).toBe('error')
+    expect(result.message).toContain('Missing <title> tag')
   })
 
-  it('flags too short title', async () => {
-    const result = await run('<html><head><title>Short</title></head></html>')
-    expect(result.message).toContain('Title too short')
-    expect(result.type).toBe('warn')
+  it('detects empty title', async () => {
+    const result = await run('<html><head><title></title></head></html>')
+    expect(result.type).toBe('error')
+    expect(result.message).toContain('empty')
   })
 
-  it('flags too long title', async () => {
-    const title = 'T'.repeat(80)
-    const result = await run(`<html><head><title>${title}</title></head></html>`)
-    expect(result.message).toContain('Title too long')
-    expect(result.type).toBe('warn')
+  it('detects multiple title tags', async () => {
+    const result = await run('<html><head><title>First</title><title>Second</title></head></html>')
+    expect(result.type).toBe('error')
+    expect(result.message).toContain('2 <title> tags found')
   })
 
-  it('passes acceptable length', async () => {
-    const title = 'This is a reasonably sized title'
-    const result = await run(`<html><head><title>${title}</title></head></html>`)
+  it('passes single non-empty title', async () => {
+    const result = await run('<html><head><title>Valid Title</title></head></html>')
     expect(result.type).toBe('ok')
+    expect(result.message).toContain('1 <title> tag found')
   })
 })
