@@ -2,31 +2,56 @@ import { normalizeUrl } from '@/shared/url-utils'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 import type { Rule } from '@/core/types'
 
+const LABEL = 'HEAD'
+const NAME = 'Canonical Self-Referential'
+const RULE_ID = 'head:canonical-self'
+const SELECTOR = 'head > link[rel="canonical"]'
+const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
+
 export const canonicalSelfRule: Rule = {
-  id: 'head:canonical-self',
-  name: 'Canonical self-referential',
+  id: RULE_ID,
+  name: NAME,
   enabled: true,
   what: 'static',
   async run(page) {
-    const linkEl = page.doc.querySelector('link[rel="canonical"]')
-    const href = linkEl?.getAttribute('href') || ''
-    if (!href) return { name: 'Canonical self-referential', label: 'HEAD', message: 'No canonical', type: 'info' }
-    const sourceHtml = linkEl ? extractHtml(linkEl) : ''
-    const a = normalizeUrl(page.url)
-    const b = normalizeUrl(new URL(href, page.url).toString())
-    const isSelf = a === b
+    const linkEl = page.doc.querySelector(SELECTOR)
+    const href = linkEl?.getAttribute('href')?.trim() || ''
+    const hasCanonical = Boolean(linkEl)
+    const hasHref = Boolean(href)
+    if (!hasCanonical || !hasHref) {
+      return {
+        name: NAME,
+        label: LABEL,
+        message: 'No canonical link found.',
+        type: 'info',
+        priority: 900,
+        details: { reference: SPEC },
+      }
+    }
+    const sourceHtml = extractHtml(linkEl)
+    const pageUrlNormalized = normalizeUrl(page.url)
+    const canonicalUrlNormalized = normalizeUrl(new URL(href, page.url).toString())
+    const isSelfReferential = pageUrlNormalized === canonicalUrlNormalized
+    const message = isSelfReferential
+      ? `Canonical is self-referential: ${canonicalUrlNormalized}`
+      : `Canonical differs from page URL: ${canonicalUrlNormalized} (page: ${pageUrlNormalized})`
     return {
-      name: 'Canonical self-referential',
-      label: 'HEAD',
-      message: isSelf ? 'Canonical matches URL' : `Canonical differs (${b})`,
-      type: isSelf ? 'ok' : 'info',
-      details: linkEl
-        ? {
-            sourceHtml,
-            snippet: extractSnippet(sourceHtml),
-            domPath: getDomPath(linkEl),
-          }
-        : undefined,
+      name: NAME,
+      label: LABEL,
+      message,
+      type: isSelfReferential ? 'ok' : 'info',
+      priority: isSelfReferential ? 800 : 700,
+      details: {
+        sourceHtml,
+        snippet: extractSnippet(href),
+        domPath: getDomPath(linkEl),
+        href,
+        pageUrl: page.url,
+        pageUrlNormalized,
+        canonicalUrlNormalized,
+        isSelfReferential,
+        reference: SPEC,
+      },
     }
   },
 }
