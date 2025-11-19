@@ -1,19 +1,13 @@
 import { NavigationHop, NavigationLedger } from './types'
+import { STORAGE_KEY, enforceMaxLength, persist } from './helpers'
 
 const traces = new Map<number, NavigationHop[]>()
-const STORAGE_KEY = (tabId: number) => `nav:ledger:${tabId}`
-
-const persist = async (tabId: number, trace: NavigationHop[]): Promise<void> => {
-  const currentUrl = trace[trace.length - 1]?.url || ''
-  const ledger: NavigationLedger = { tabId, currentUrl, trace }
-  await chrome.storage.session.set({ [STORAGE_KEY(tabId)]: ledger })
-}
 
 export const registerHistoryListeners = (): void => {
   chrome.webRequest.onBeforeRedirect.addListener(
     (d) => {
       if (d.type !== 'main_frame') return
-      const trace = traces.get(d.tabId) || []
+      let trace = traces.get(d.tabId) || []
 
       trace.push({
         url: d.url,
@@ -23,6 +17,7 @@ export const registerHistoryListeners = (): void => {
         statusText: d.statusLine,
       })
 
+      trace = enforceMaxLength(trace)
       traces.set(d.tabId, trace)
     },
     { urls: ['<all_urls>'] },
@@ -56,13 +51,14 @@ export const registerHistoryListeners = (): void => {
       transitionQualifiers: d.transitionQualifiers,
     })
 
+    trace = enforceMaxLength(trace)
     traces.set(d.tabId, trace)
     await persist(d.tabId, trace)
   })
 
   chrome.webNavigation.onHistoryStateUpdated.addListener(async (d) => {
     if (d.frameId !== 0) return
-    const trace = traces.get(d.tabId) || []
+    let trace = traces.get(d.tabId) || []
 
     trace.push({
       url: d.url,
@@ -72,6 +68,7 @@ export const registerHistoryListeners = (): void => {
       transitionType: d.transitionType,
     })
 
+    trace = enforceMaxLength(trace)
     traces.set(d.tabId, trace)
     await persist(d.tabId, trace)
   })

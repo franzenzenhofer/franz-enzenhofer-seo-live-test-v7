@@ -366,6 +366,18 @@
     "what": "static"
   },
   {
+    "id": "http:redirect-efficiency",
+    "name": "Redirect Efficiency Score",
+    "enabledByDefault": true,
+    "what": "http"
+  },
+  {
+    "id": "http:redirect-loop",
+    "name": "Redirect Loop Detection",
+    "enabledByDefault": true,
+    "what": "http"
+  },
+  {
     "id": "head:rel-alternate-media",
     "name": "Rel Alternate Media",
     "enabledByDefault": true,
