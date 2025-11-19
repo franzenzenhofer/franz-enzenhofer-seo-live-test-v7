@@ -21,6 +21,6 @@ describe('http:gzip rule', () => {
   it('passes when gzip present', async () => {
     const result = await run({ 'content-encoding': 'gzip' })
     expect(result.type).toBe('ok')
-    expect(result.message).toContain('Compressed')
+    expect(result.message).toContain('compressed')
   })
 })

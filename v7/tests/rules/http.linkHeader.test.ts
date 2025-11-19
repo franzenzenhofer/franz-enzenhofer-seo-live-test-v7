@@ -6,7 +6,7 @@ const P = (h: Record<string,string>) => ({ html:'', url:'', doc: new DOMParser()
 describe('rule: http link header', () => {
   it('reports presence', async () => {
     const r = await linkHeaderRule.run(P({ link: '<https://ex.com>; rel=preload' }), { globals: {} })
-    expect((r as any).message.includes('Link:')).toBe(true)
+    expect((r as any).message.includes('Link header')).toBe(true)
   })
 })
 
