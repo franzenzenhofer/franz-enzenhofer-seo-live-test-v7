@@ -1,30 +1,55 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
+const LABEL = 'HEAD'
+const NAME = 'Common Mobile Setup'
+const RULE_ID = 'http:common-mobile-setup'
+const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/mobile/mobile-sites-mobile-first-indexing'
+
 export const commonMobileSetupRule: Rule = {
-  id: 'http:common-mobile-setup',
-  name: 'Common mobile setup',
+  id: RULE_ID,
+  name: NAME,
   enabled: true,
   what: 'http',
   async run(page) {
-    const viewportEl = page.doc.querySelector('meta[name="viewport"]')
-    const touchEl = page.doc.querySelector('link[rel~="apple-touch-icon"]')
-    const viewport = !!viewportEl
-    const touch = !!touchEl
-    const ok = viewport
-    const sourceHtml = extractHtml(viewportEl)
+    const viewportEl = page.doc.querySelector('head > meta[name="viewport"]')
+    const touchEl = page.doc.querySelector('head > link[rel~="apple-touch-icon"]')
+    const hasViewport = Boolean(viewportEl)
+    const hasTouchIcon = Boolean(touchEl)
+    const viewportContent = viewportEl?.getAttribute('content')?.trim() || ''
+    let message = ''
+    let type: 'ok' | 'warn' | 'info' = 'info'
+    let priority = 500
+    if (!hasViewport) {
+      message = 'Missing meta viewport tag. (Required for mobile-first indexing)'
+      type = 'warn'
+      priority = 200
+    } else if (hasTouchIcon) {
+      message = 'Mobile-friendly: viewport + apple-touch-icon present'
+      type = 'ok'
+      priority = 750
+    } else {
+      message = 'Viewport present (apple-touch-icon missing)'
+      type = 'info'
+      priority = 700
+    }
+    const details = hasViewport
+      ? {
+          sourceHtml: extractHtml(viewportEl),
+          snippet: extractSnippet(viewportContent || '(empty)'),
+          domPath: getDomPath(viewportEl),
+          viewportContent,
+          hasTouchIcon,
+          reference: SPEC,
+        }
+      : { reference: SPEC }
     return {
-      label: 'HEAD',
-      message: ok ? `Viewport present${touch ? ', apple-touch-icon present' : ''}` : 'Missing meta viewport',
-      type: ok ? 'info' : 'warn',
-      name: 'Common mobile setup',
-      details: viewportEl
-        ? {
-            sourceHtml,
-            snippet: extractSnippet(sourceHtml),
-            domPath: getDomPath(viewportEl),
-          }
-        : undefined,
+      label: LABEL,
+      name: NAME,
+      message,
+      type,
+      priority,
+      details,
     }
   },
 }
