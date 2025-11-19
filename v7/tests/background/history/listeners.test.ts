@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { NavigationLedgerSchema } from '@/background/history/types'
+import { enforceMaxLength, MAX_TRACE_LENGTH } from '@/background/history/helpers'
 
 describe('Navigation Ledger Listeners', () => {
   beforeEach(() => {
@@ -246,6 +247,77 @@ describe('Navigation Ledger Listeners', () => {
       }
 
       expect(hop.type).toBe('history_api')
+    })
+  })
+
+  describe('enforceMaxLength', () => {
+    it('returns trace unchanged when under limit', () => {
+      const trace = Array.from({ length: 10 }, (_, i) => ({
+        url: `https://example.com/${i}`,
+        timestamp: Date.now(),
+        type: 'load' as const,
+        statusCode: 200,
+      }))
+
+      const result = enforceMaxLength(trace)
+      expect(result).toHaveLength(10)
+      expect(result[0].url).toBe('https://example.com/0')
+      expect(result[9].url).toBe('https://example.com/9')
+    })
+
+    it('returns trace unchanged when exactly at limit', () => {
+      const trace = Array.from({ length: MAX_TRACE_LENGTH }, (_, i) => ({
+        url: `https://example.com/${i}`,
+        timestamp: Date.now(),
+        type: 'load' as const,
+        statusCode: 200,
+      }))
+
+      const result = enforceMaxLength(trace)
+      expect(result).toHaveLength(MAX_TRACE_LENGTH)
+      expect(result[0].url).toBe('https://example.com/0')
+    })
+
+    it('truncates trace when over limit', () => {
+      const trace = Array.from({ length: 60 }, (_, i) => ({
+        url: `https://example.com/${i}`,
+        timestamp: Date.now(),
+        type: 'load' as const,
+        statusCode: 200,
+      }))
+
+      const result = enforceMaxLength(trace)
+      expect(result).toHaveLength(MAX_TRACE_LENGTH)
+      expect(result[0].url).toBe('https://example.com/10')
+      expect(result[result.length - 1].url).toBe('https://example.com/59')
+    })
+
+    it('preserves most recent hops when truncating', () => {
+      const trace = Array.from({ length: 100 }, (_, i) => ({
+        url: `https://example.com/page-${i}`,
+        timestamp: Date.now() + i * 1000,
+        type: 'load' as const,
+        statusCode: 200,
+      }))
+
+      const result = enforceMaxLength(trace)
+      expect(result).toHaveLength(MAX_TRACE_LENGTH)
+      expect(result[0].url).toBe('https://example.com/page-50')
+      expect(result[result.length - 1].url).toBe('https://example.com/page-99')
+    })
+
+    it('handles edge case of MAX_TRACE_LENGTH + 1', () => {
+      const trace = Array.from({ length: MAX_TRACE_LENGTH + 1 }, (_, i) => ({
+        url: `https://example.com/${i}`,
+        timestamp: Date.now(),
+        type: 'load' as const,
+        statusCode: 200,
+      }))
+
+      const result = enforceMaxLength(trace)
+      expect(result).toHaveLength(MAX_TRACE_LENGTH)
+      expect(result[0].url).toBe('https://example.com/1')
+      expect(result[result.length - 1].url).toBe(`https://example.com/${MAX_TRACE_LENGTH}`)
     })
   })
 })

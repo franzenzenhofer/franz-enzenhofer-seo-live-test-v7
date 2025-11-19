@@ -54,6 +54,7 @@ chrome.tabs.onUpdated.addListener(async (tabId) => {
 
 chrome.tabs.onRemoved.addListener((tabId) => {
   abortSession(tabId, 'tab-closed').catch(() => {})
+  chrome.storage.session.remove(`nav:ledger:${tabId}`).catch(() => {})
 })
 
 registerNavListeners()
