@@ -1,6 +1,7 @@
 import { registerNavListeners } from './listeners/nav'
 import { registerRequestListeners } from './listeners/requests'
 import { registerMessageListeners } from './listeners/messages'
+import { registerHistoryListeners } from './history/listeners'
 import { seedDefaults } from './rules/index'
 import { enableAndOpenSidePanel } from './panel'
 import { registerCommandAndMenu } from './commands'
@@ -58,6 +59,7 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 registerNavListeners()
 registerRequestListeners()
 registerMessageListeners()
+registerHistoryListeners()
 registerCommandAndMenu()
 initDevAutoReload()
 
