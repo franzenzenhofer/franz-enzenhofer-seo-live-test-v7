@@ -2,45 +2,67 @@ import { isAbsoluteUrl } from '@/shared/url-utils'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 import type { Rule } from '@/core/types'
 
+const LABEL = 'HEAD'
+const NAME = 'Canonical Absolute URL'
+const RULE_ID = 'head:canonical-absolute'
+const SELECTOR = 'head > link[rel="canonical"]'
+const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
+
 export const canonicalAbsoluteRule: Rule = {
-  id: 'head:canonical-absolute',
-  name: 'Canonical absolute URL',
+  id: RULE_ID,
+  name: NAME,
   enabled: true,
   what: 'static',
   async run(page) {
-    const linkEl = page.doc.querySelector('link[rel="canonical"]')
-    const href = linkEl?.getAttribute('href') || ''
-    if (!href) return { name: 'Canonical absolute URL', label: 'HEAD', message: 'No canonical link', type: 'info' }
-    const sourceHtml = linkEl ? extractHtml(linkEl) : ''
+    const linkEl = page.doc.querySelector(SELECTOR)
+    const href = linkEl?.getAttribute('href')?.trim() || ''
+    const hasCanonical = Boolean(linkEl)
+    const hasHref = Boolean(href)
+    if (!hasCanonical || !hasHref) {
+      return {
+        name: NAME,
+        label: LABEL,
+        message: 'No canonical link found.',
+        type: 'info',
+        priority: 900,
+        details: { reference: SPEC },
+      }
+    }
+    const sourceHtml = extractHtml(linkEl)
     try {
       new URL(href, page.url)
       const isAbsolute = isAbsoluteUrl(href)
+      const message = isAbsolute ? `Canonical URL is absolute: ${href}` : `Canonical URL is relative: ${href}`
       return {
-        name: 'Canonical absolute URL',
-        label: 'HEAD',
-        message: isAbsolute ? 'Canonical absolute' : 'Canonical is relative',
+        name: NAME,
+        label: LABEL,
+        message,
         type: isAbsolute ? 'ok' : 'warn',
-        details: linkEl
-          ? {
-              sourceHtml,
-              snippet: extractSnippet(sourceHtml),
-              domPath: getDomPath(linkEl),
-            }
-          : undefined,
+        priority: isAbsolute ? 800 : 200,
+        details: {
+          sourceHtml,
+          snippet: extractSnippet(href),
+          domPath: getDomPath(linkEl),
+          href,
+          isAbsolute,
+          reference: SPEC,
+        },
       }
     } catch {
       return {
-        name: 'Canonical absolute URL',
-        label: 'HEAD',
-        message: 'Invalid canonical URL',
+        name: NAME,
+        label: LABEL,
+        message: `Invalid canonical URL: ${href}`,
         type: 'warn',
-        details: linkEl
-          ? {
-              sourceHtml,
-              snippet: extractSnippet(sourceHtml),
-              domPath: getDomPath(linkEl),
-            }
-          : undefined,
+        priority: 100,
+        details: {
+          sourceHtml,
+          snippet: extractSnippet(href),
+          domPath: getDomPath(linkEl),
+          href,
+          isAbsolute: false,
+          reference: SPEC,
+        },
       }
     }
   },
