@@ -69,8 +69,10 @@ export const persistResults = async (tabId: number, key: string, prev: MinimalRe
   } catch {
     // Quota exceeded or similar. Fallbacks: latest only, then last <=100
     const cleanAdd = withoutPending(add) || []
-    try { return await set(cleanAdd) } catch {
-      const keep = cleanAdd.slice(-Math.max(10, Math.min(100, cleanAdd.length)))
+    const cleanPrev = withoutPending(prev) || []
+    const combined = dedupRunner([...cleanPrev, ...cleanAdd])
+    try { return await set(combined) } catch {
+      const keep = combined.slice(-Math.max(10, Math.min(100, combined.length || cleanAdd.length)))
       return await set(keep)
     }
   }
