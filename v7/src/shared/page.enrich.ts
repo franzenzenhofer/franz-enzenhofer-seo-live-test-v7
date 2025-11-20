@@ -13,7 +13,7 @@ export const enrichFromEvents = (
   const nav = ev.filter((e) => !!e.u && e.t.startsWith('nav:'))
   const firstUrl = (nav[0]?.u as string | undefined) || ''
   const lastUrl = ((nav.length ? nav[nav.length - 1] : undefined)?.u as string | undefined) || ''
-  const url = firstUrl || getHref() || 'about:blank'
+  const url = lastUrl || firstUrl || getHref() || 'about:blank'
 
   const reqHeaders = ev.filter((e) => e.t === 'req:headers')
   const strip = (u?: string) => (u || '').replace(/[?#].*$/, '')

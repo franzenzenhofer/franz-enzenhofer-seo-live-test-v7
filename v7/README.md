@@ -84,6 +84,7 @@ Async, decoupled architecture
 - Runner (offscreen): rules execute in an offscreen document using a JS interpreter (no eval in SW). Fully isolated from collection and UI.
 - Results store: rule outputs append to `chrome.storage.local` under `results:<tabId>`.
 - UI (side panel): subscribes to storage changes and renders results. No direct coupling to collection or rule execution.
+- Navigation safety: if a navigation occurs after DOM capture (e.g., hard refresh or SPA transition), the pending run is cancelled so results never mix DOM from a previous page with a newer URL.
 
 Load in Chrome
 

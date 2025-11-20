@@ -31,4 +31,17 @@ describe('pageFromEvents enrich', () => {
     expect(p.firstUrl).toBe('https://a.example/x')
     expect(p.lastUrl).toBe('https://a.example/x')
   })
+
+  it('prefers the last navigation URL when present', async () => {
+    const events = [
+      { t: 'nav:before', u: 'https://a.example/start' },
+      { t: 'nav:history', u: 'https://a.example/spa' },
+      { t: 'dom:document_idle', d: { html: '<!doctype html><title>Idle</title>' } },
+    ] as unknown as import('@/background/pipeline/types').EventRec[]
+
+    const p = await pageFromEvents(events, makeDoc, ()=>'about:blank')
+    expect(p.url).toBe('https://a.example/spa')
+    expect(p.firstUrl).toBe('https://a.example/start')
+    expect(p.lastUrl).toBe('https://a.example/spa')
+  })
 })

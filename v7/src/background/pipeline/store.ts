@@ -11,6 +11,10 @@ const set = async (tabId: number, run: Run) => {
   await chrome.storage.session.set({ [k(tabId)]: run })
 }
 
+export const resetRun = async (tabId: number) => {
+  await chrome.storage.session.remove(k(tabId))
+}
+
 export const addEvent = async (tabId: number, ev: EventRec) => {
   const r = (await get(tabId)) || { id: Date.now(), ev: [] }
   r.ev.push(ev)
@@ -28,4 +32,3 @@ export const popRun = async (tabId: number): Promise<Run | null> => {
   await chrome.storage.session.remove(k(tabId))
   return r
 }
-
