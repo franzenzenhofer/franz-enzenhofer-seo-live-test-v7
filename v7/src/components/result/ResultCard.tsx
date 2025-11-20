@@ -63,9 +63,11 @@ export const ResultCard = ({ result, index, isPinned, onTogglePin, defaultExpand
           {snippet}
         </pre>
       )}
-      {domPathPreview && <ResultDomPath selector={domPathPreview} extraCount={additionalTargets} />}
       {showDetails && (
-        <ResultDetails details={detailPayload} />
+        <>
+          {domPathPreview && <ResultDomPath selector={domPathPreview} extraCount={additionalTargets} />}
+          <ResultDetails details={detailPayload} />
+        </>
       )}
     </article>
   )
