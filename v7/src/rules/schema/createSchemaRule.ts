@@ -34,6 +34,7 @@ export function createSchemaRule(config: SchemaRuleConfig): Rule {
   const types = Array.isArray(config.types) ? config.types : [config.types]
   const typesLower = types.map(t => t.toLowerCase())
   const searchStrings = config.searchStrings || types
+  const tested = `Parsed LD+JSON scripts, matched type(s): ${types.join(', ')}, and validated required fields.`
 
   return {
     id: config.id,
@@ -60,6 +61,7 @@ export function createSchemaRule(config: SchemaRuleConfig): Rule {
           message: `No ${types[0]} JSON‑LD`,
           type: 'info',
           name: config.name,
+          details: { tested, types, reference: docs(typesLower[0]!) },
         }
       }
 
@@ -96,8 +98,12 @@ export function createSchemaRule(config: SchemaRuleConfig): Rule {
               sourceHtml,
               snippet: extractSnippet(sourceHtml),
               domPath: getDomPath(script),
+              tested,
+              reference: docsUrl,
+              types,
+              missing: validation.missing,
             }
-          : undefined,
+          : { tested, reference: docsUrl, types, missing: validation.missing },
       }
     },
   }
