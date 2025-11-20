@@ -10,12 +10,12 @@ Golden Rules
 
 - THINK FIRST: understand existing code, plan solution, check patterns BEFORE coding
 - UI FRAMEWORK: use TAILWIND CSS only - no custom CSS, no inline styles
-- ATOMIC COMMITS: commit after EVERY file change with typecheck + lint passing
-- DRY: do not repeat logic; extract utilities and share types.
-- CLEAN CODE: readable, small, single‑purpose modules; name things precisely.
-- WORKING AND TESTED: never leave the repo in a broken state; every change typechecked, linted, tested, and built.
-- NO ROOT CLUTTER: never place unnecessary files in repo root; keep only top‑level docs and main directories.
-- NO ORPHANS: do not keep old or unused files around — move them to `trash/` with a brief reason/date.
+- LOGICAL COMMITS: commit when a logical unit of work is complete with typecheck + lint passing
+- DRY: minimize repeated logic; extract utilities and share types pragmatically
+- CLEAN CODE: readable, focused modules; name things precisely
+- WORKING CODE: keep repo functional; changes must pass typecheck and lint before commits
+- NO ROOT CLUTTER: never place unnecessary files in repo root; keep only top‑level docs and main directories
+- NO ORPHANS: do not keep old or unused files around — move them to `trash/` with a brief reason/date
 
 Repository Structure
 
@@ -30,22 +30,22 @@ Architecture (v7)
 - Offscreen Document (Sandbox): runs rule strings using a JS interpreter; communicates with SW via `chrome.runtime` messages. No `eval` in SW.
 - Storage Contract: results are appended under `results:<tabId>` in `chrome.storage.local`. Do not block collection while computing.
 
-Quality Gates (must pass)
+Quality Gates (run before commits)
 
-- Typecheck: `npm run typecheck` with strict TS (no implicit any, strict nulls).
-- Lint: `npm run lint` (ESLint flat config, import order, no unused, promise handling).
-- Tests: `npm test` (Vitest + jsdom). Add tests for new logic.
-- Build: `npm run build` yields a working extension in `v7/dist/`.
+- Typecheck: `npm run typecheck` — must pass with 0 errors
+- Lint: `npm run lint` — must pass with 0 errors (warnings acceptable if justified)
+- Tests: `npm test` — must pass all tests (add tests for critical new logic)
+- Build: `npm run build` — must produce working extension in `v7/dist/`
 
 Coding Standards
 
-- File size: ≤ 75 lines per file in `v7/src` (configs exempt). Rule modules under `v7/src/rules/**` may extend to ≤ 150 lines to keep result details readable. Split aggressively elsewhere.
-- Single responsibility: separate collection, aggregation, rule execution, and display.
-- Types first: define shared types near boundaries; avoid `any` (or use minimal `unknown` + narrow).
-- Async discipline: await with try/catch or `.catch()`; no unhandled promises.
-- No dead code or commented blocks; remove or move to `trash/` with a note.
-- No `eval`/`new Function` in SW; confine dynamic code to the offscreen sandbox.
-- Import hygiene: consistent order/grouping; keep public imports stable.
+- File size: Target ≤75 lines in `v7/src`; ≤150 for `v7/src/rules/**`. Split when practical, not obsessively.
+- Single responsibility: separate collection, aggregation, rule execution, and display
+- Types first: define shared types near boundaries; minimize `any` (document exceptions)
+- Async discipline: await with try/catch or `.catch()`; no unhandled promises
+- No dead code or commented blocks; remove or move to `trash/` with a note
+- No `eval`/`new Function` in SW; confine dynamic code to the offscreen sandbox
+- Import hygiene: consistent order/grouping; keep public imports stable
 
 Dependencies
 
@@ -81,7 +81,7 @@ Root Hygiene
 - Keep the repository root minimal: AGENTS.md, README.md, and top‑level directories only.
 - Put all new code inside appropriate subdirectories (e.g., `v7/`).
 
-Mandatory Workflow for ALL Changes
+Pragmatic Workflow for Changes
 
 1. UNDERSTAND the challenge
    - Read existing code in the area
@@ -89,31 +89,33 @@ Mandatory Workflow for ALL Changes
    - Review similar components/patterns
    - Search for existing utilities
 
-2. THINK before coding
-   - Plan the complete solution
+2. PLAN the solution
+   - Design the complete approach
    - Consider edge cases
-   - Design component hierarchy
-   - Check for code reuse opportunities
+   - Identify component structure
+   - Find code reuse opportunities
 
-3. CODE with discipline
-   - Make ONE file change at a time
-   - Run `npm run typecheck` after each change
-   - Run `npm run lint` after each change
-   - Commit atomically with descriptive message
-   - ONLY proceed if tests pass
+3. IMPLEMENT efficiently
+   - Make logical groups of related changes
+   - Run quality gates before committing:
+     ```bash
+     npm run typecheck && npm run lint && npm test && npm run build
+     ```
+   - Commit when a logical unit is complete
+   - Write clear, descriptive commit messages
 
 4. NEVER
    - Create custom CSS files (use Tailwind!)
-   - Make multiple file changes without commits
-   - Skip typecheck or lint
+   - Commit broken code
+   - Skip quality gates before commits
    - Leave unused code
 
 Commit & PR Checklist
 
-- Update docs when behavior or config changes.
-- Run locally: `npm run typecheck && npm run lint && npm test && npm run build`.
-- Verify side panel loads and reacts to a live tab.
-- Ensure files in `v7/src` respect the ≤ 75‑line rule (≤150 for files inside `v7/src/rules/**`).
+- Update docs when behavior or config changes
+- Run quality gates: `npm run typecheck && npm run lint && npm test && npm run build`
+- Verify side panel loads and reacts to a live tab
+- Target ≤75 lines in `v7/src` (≤150 for `v7/src/rules/**`); split when practical
 
 Do / Don’t
 
