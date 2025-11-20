@@ -9,8 +9,8 @@ globalThis.chrome = {
   }
 }
 
-vi.mock('@/background/pipeline/store', () => ({ addEvent: vi.fn().mockResolvedValue(undefined), popRun: vi.fn(), setDomDone: vi.fn() }))
-vi.mock('@/background/pipeline/alarms', () => ({ scheduleFinalize: vi.fn().mockResolvedValue(undefined), onAlarm: (_cb: (tabId: number)=>void)=>{} }))
+vi.mock('@/background/pipeline/store', () => ({ addEvent: vi.fn().mockResolvedValue(undefined), popRun: vi.fn(), setDomDone: vi.fn(), resetRun: vi.fn().mockResolvedValue(undefined) }))
+vi.mock('@/background/pipeline/alarms', () => ({ scheduleFinalize: vi.fn().mockResolvedValue(undefined), clearFinalize: vi.fn().mockResolvedValue(undefined), onAlarm: (_cb: (tabId: number)=>void)=>{} }))
 
 import { pushEvent } from '@/background/pipeline/collector'
 
@@ -26,5 +26,12 @@ describe('collector: autoClear on nav:before', () => {
     rm.mockClear()
     await pushEvent(6, { t: 'nav:before', u: 'https://b.example' } as any)
     expect(rm).not.toHaveBeenCalled()
+  })
+  it('clears finalize alarm and resets run buffer on nav:before', async () => {
+    const clear = (await import('@/background/pipeline/alarms')).clearFinalize as unknown as ReturnType<typeof vi.fn>
+    const reset = (await import('@/background/pipeline/store')).resetRun as unknown as ReturnType<typeof vi.fn>
+    await pushEvent(7, { t: 'nav:before', u: 'https://c.example' } as any)
+    expect(clear).toHaveBeenCalledWith(7)
+    expect(reset).toHaveBeenCalledWith(7)
   })
 })

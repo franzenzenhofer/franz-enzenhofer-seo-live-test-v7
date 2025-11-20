@@ -27,7 +27,7 @@ describe('Page shape completeness', () => {
     const p = await pageFromEvents(events, makeDoc, ()=>'about:blank', probe)
 
     // Core
-    expect(p.url).toBe('https://a.example/x')
+    expect(p.url).toBe(url)
     expect(p.html.includes('Idle')).toBe(true)
     expect(p.doc.title).toBe('Idle')
     expect(p.status).toBe(200)
@@ -43,4 +43,3 @@ describe('Page shape completeness', () => {
     expect(p.domIdleDoc?.title).toBe('Idle')
   })
 })
-
