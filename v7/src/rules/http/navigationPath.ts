@@ -27,6 +27,10 @@ export const navigationPathRule: Rule = {
     const { trace } = ledgerResult.data
     if (trace.length === 0) return buildResult('No navigation events recorded.', 'info', 900, {})
 
+    // Filter to only actual redirects (not 'load' or 'history_api')
+    const redirects = trace.filter((hop) => hop.type === 'http_redirect' || hop.type === 'client_redirect')
+    const redirectCount = redirects.length
+
     const steps = trace.map((hop, i) => {
       let label = 'Unknown'
       if (hop.type === 'http_redirect') {
@@ -42,16 +46,15 @@ export const navigationPathRule: Rule = {
     })
 
     const chainDesc = steps.join('\n')
-    const redirectCount = Math.max(0, trace.length - 1)
 
-    const hasTemporaryRedirect = trace.some(
+    const hasTemporaryRedirect = redirects.some(
       (t) => t.statusCode === 302 || t.statusCode === 303 || t.statusCode === 307,
     )
-    const hasClientRedirect = trace.some((t) => t.type === 'client_redirect')
+    const hasClientRedirect = redirects.some((t) => t.type === 'client_redirect')
     const lastHop = trace[trace.length - 1]
     const hasMixedHttp =
       trace.some((t) => t.url.startsWith('http:')) && lastHop?.url.startsWith('https:') === true
-    const tempRedirectCodes = trace
+    const tempRedirectCodes = redirects
       .filter((t) => t.statusCode === 302 || t.statusCode === 303 || t.statusCode === 307)
       .map((t) => t.statusCode)
     const uniqueTempCodes = [...new Set(tempRedirectCodes)]
