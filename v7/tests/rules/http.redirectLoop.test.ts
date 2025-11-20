@@ -41,7 +41,8 @@ describe('http:redirect-loop rule', () => {
     const result = await run(ledger)
     expect(result.type).toBe('ok')
     expect(result.message).toContain('No redirect loops')
-    expect(result.details?.uniqueUrlCount).toBe(2)
+    expect(result.details?.redirectCount).toBe(1)
+    expect(result.details?.uniqueUrlCount).toBe(1)
   })
 
   it('detects simple redirect loop', async () => {
@@ -69,6 +70,12 @@ describe('http:redirect-loop rule', () => {
         },
         {
           url: 'https://example.com/b',
+          timestamp: Date.now(),
+          type: 'http_redirect',
+          statusCode: 301,
+        },
+        {
+          url: 'https://example.com/c',
           timestamp: Date.now(),
           type: 'load',
           statusCode: 200,
@@ -118,7 +125,7 @@ describe('http:redirect-loop rule', () => {
     expect(result.details?.loopUrls).toHaveLength(1)
     expect(result.details?.loopUrls[0]).toEqual({
       url: 'https://example.com',
-      count: 3,
+      count: 2,
     })
   })
 

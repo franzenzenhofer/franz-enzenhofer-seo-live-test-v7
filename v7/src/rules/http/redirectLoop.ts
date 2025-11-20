@@ -28,7 +28,26 @@ export const redirectLoopRule: Rule = {
     }
 
     const { trace } = ledgerResult.data
-    const urls = trace.map((hop) => hop.url)
+
+    // Filter to only actual redirects (not 'load' or 'history_api')
+    const redirectTrace = trace.filter((hop) => hop.type === 'http_redirect' || hop.type === 'client_redirect')
+
+    if (redirectTrace.length === 0) {
+      return {
+        label: LABEL,
+        name: NAME,
+        message: 'No redirects detected (direct load).',
+        type: 'ok',
+        priority: 800,
+        details: {
+          trace,
+          redirectCount: 0,
+          reference: SPEC,
+        },
+      }
+    }
+
+    const urls = redirectTrace.map((hop) => hop.url)
     const urlCounts = new Map<string, number>()
 
     for (const url of urls) {
@@ -43,11 +62,12 @@ export const redirectLoopRule: Rule = {
       return {
         label: LABEL,
         name: NAME,
-        message: `No redirect loops detected (${trace.length} unique URLs).`,
+        message: `No redirect loops detected (${redirectTrace.length} redirect${redirectTrace.length > 1 ? 's' : ''} checked).`,
         type: 'ok',
         priority: 800,
         details: {
           trace,
+          redirectCount: redirectTrace.length,
           uniqueUrlCount: urlCounts.size,
           reference: SPEC,
         },
