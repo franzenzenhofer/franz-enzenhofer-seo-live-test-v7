@@ -1,40 +1,55 @@
 const HIGHLIGHT_CLASS = 'lt-highlight-target'
+const DEFAULT_COLORS = ['#f97316', '#2563eb', '#22c55e', '#f43f5e']
 
-let highlightedEl: Element | null = null
+let highlightedEls: Element[] = []
 
 const ensureHighlightStyle = () => {
   if (document.getElementById('lt-highlight-style')) return
   const style = document.createElement('style')
   style.id = 'lt-highlight-style'
-  style.textContent = `.${HIGHLIGHT_CLASS}{outline:2px solid #f43f5e!important;outline-offset:2px!important;transition:outline .15s ease}`
+  style.textContent = `.${HIGHLIGHT_CLASS}{outline:2px solid var(--lt-highlight-color, #f97316)!important;outline-offset:2px!important;transition:outline .15s ease}`
   document.head.appendChild(style)
 }
 
-const highlightSelector = (selector: string) => {
+const highlightSelectors = (selectors: string[], colors?: string[]) => {
   ensureHighlightStyle()
-  const el = document.querySelector(selector)
-  if (!el) return false
-  if (highlightedEl) highlightedEl.classList.remove(HIGHLIGHT_CLASS)
-  highlightedEl = el
-  el.classList.add(HIGHLIGHT_CLASS)
-  return true
+  const palette: string[] = colors && colors.length ? colors : DEFAULT_COLORS
+  clearHighlight()
+  selectors.forEach((selector, idx) => {
+    const el = document.querySelector(selector)
+    if (!el) return
+    const colorIndex = palette.length ? idx % palette.length : 0
+    const color = (palette[colorIndex] ?? DEFAULT_COLORS[0]) as string
+    el.classList.add(HIGHLIGHT_CLASS)
+    el.setAttribute('data-highlight-idx', String(idx))
+    el.setAttribute('data-highlight-color', color)
+    ;(el as HTMLElement).style.setProperty('--lt-highlight-color', color)
+    highlightedEls.push(el)
+  })
+  return highlightedEls.length > 0
 }
 
 const clearHighlight = () => {
-  if (highlightedEl) highlightedEl.classList.remove(HIGHLIGHT_CLASS)
-  highlightedEl = null
+  highlightedEls.forEach((el) => {
+    el.classList.remove(HIGHLIGHT_CLASS)
+    el.removeAttribute('data-highlight-idx')
+    el.removeAttribute('data-highlight-color')
+    ;(el as HTMLElement).style.removeProperty('--lt-highlight-color')
+  })
+  highlightedEls = []
 }
 
-export const handleHighlightMessage = (msg: unknown, reply?: (response: { ok: boolean }) => void) => {
-  const payload = msg as { type?: string; selector?: string }
+export const handleHighlightMessage = (msg: unknown, reply?: (response: { ok: boolean; matched?: number; first?: string }) => void) => {
+  const payload = msg as { type?: string; selector?: string; selectors?: string[]; colors?: string[] }
   if (payload?.type === 'highlight-selector') {
-    const ok = typeof payload.selector === 'string' && payload.selector.length > 0 && highlightSelector(payload.selector)
-    reply?.({ ok })
+    const selectors = Array.isArray(payload.selectors) ? payload.selectors : payload.selector ? [payload.selector] : []
+    const ok = selectors.length > 0 && highlightSelectors(selectors, payload.colors)
+    reply?.({ ok, matched: highlightedEls.length, first: selectors[0] })
     return true
   }
   if (payload?.type === 'clear-highlight') {
     clearHighlight()
-    reply?.({ ok: true })
+    reply?.({ ok: true, matched: 0 })
     return true
   }
   return false
