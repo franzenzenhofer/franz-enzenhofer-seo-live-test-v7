@@ -3,6 +3,9 @@ import { OG_SELECTORS } from './og-constants'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 import type { Rule } from '@/core/types'
 
+const SPEC = 'https://ogp.me/#metadata'
+const TESTED = 'Checked <meta property="og:title"> content presence and length.'
+
 export const ogTitleRule: Rule = {
   id: 'og-title',
   name: 'Open Graph Title',
@@ -11,7 +14,7 @@ export const ogTitleRule: Rule = {
   run: async (page) => {
     const el = page.doc.querySelector(OG_SELECTORS.TITLE) as HTMLMetaElement|null
     if (!el || !el.content) {
-      return { label: 'HEAD', message: 'No og:title meta.', type: 'info', name: 'Open Graph Title' }
+      return { label: 'HEAD', message: 'No og:title meta.', type: 'info', name: 'Open Graph Title', details: { tested: TESTED, reference: SPEC } }
     }
     const sourceHtml = extractHtml(el)
     return {
@@ -19,8 +22,7 @@ export const ogTitleRule: Rule = {
       message: `og:title present (${el.content.length} chars)`,
       type: 'info',
       name: 'Open Graph Title',
-      details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), ogTitle: el.content },
+      details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), ogTitle: el.content, tested: TESTED, reference: SPEC },
     }
   },
 }
-

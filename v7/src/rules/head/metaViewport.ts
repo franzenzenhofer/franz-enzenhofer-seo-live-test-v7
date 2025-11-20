@@ -6,6 +6,8 @@ const REQUIRED_WIDTH = 'width=device-width'
 const INITIAL_SCALE = /initial-scale=1(\.0)?/
 const LABEL = 'HEAD'
 const NAME = 'Meta Viewport'
+const SPEC = 'https://developer.mozilla.org/docs/Web/HTML/Viewport_meta_tag'
+const TESTED = 'Checked for <meta name="viewport"> and validated width=device-width and initial-scale=1.'
 
 const isValidContent = (raw: string | null) => {
   if (!raw) return false
@@ -19,6 +21,9 @@ const buildDetails = (el: Element) => {
     sourceHtml,
     snippet: extractSnippet(sourceHtml),
     domPath: getDomPath(el),
+    content: el.getAttribute('content') || '',
+    tested: TESTED,
+    reference: SPEC,
   }
 }
 
@@ -29,7 +34,7 @@ export const metaViewportRule: Rule = {
   what: 'static',
   async run(page) {
     const el = page.doc.querySelector(SELECTOR)
-    if (!el) return { name: NAME, label: LABEL, message: 'Missing meta viewport', type: 'warn' }
+    if (!el) return { name: NAME, label: LABEL, message: 'Missing meta viewport', type: 'warn', details: { tested: TESTED, reference: SPEC } }
     const details = buildDetails(el)
     return isValidContent(el.getAttribute('content'))
       ? { name: NAME, label: LABEL, message: 'Viewport OK', type: 'ok', details }
