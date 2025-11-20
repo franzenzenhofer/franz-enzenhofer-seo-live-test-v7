@@ -1,7 +1,9 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
-const parse = (v: string) => v.toLowerCase().split(',').map(s=>s.trim())
+const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag'
+const TESTED = 'Read <meta name="robots"> content and evaluated noindex/nofollow directives.'
+const parse = (v: string) => v.toLowerCase().split(',').map((s) => s.trim())
 
 export const robotsMetaRule: Rule = {
   id: 'head-robots-meta',
@@ -34,8 +36,10 @@ export const robotsMetaRule: Rule = {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),
         domPath: getDomPath(el),
+        tested: TESTED,
+        reference: SPEC,
+        tokens,
       },
     }
   },
 }
-

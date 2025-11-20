@@ -1,6 +1,9 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
+const SPEC = 'https://json-ld.org/spec/latest/json-ld/'
+const TESTED = 'Searched for <script type="application/ld+json"> nodes and counted all instances.'
+
 export const ldjsonRule: Rule = {
   id: 'dom:ldjson',
   name: 'LD+JSON presence',
@@ -17,9 +20,8 @@ export const ldjsonRule: Rule = {
           message: `ld+json blocks: ${n}`,
           type: 'info',
           name: 'LD+JSON presence',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml) },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), count: n, tested: TESTED, reference: SPEC },
         }
-      : { label: 'DOM', message: 'No ld+json', type: 'info', name: 'ldjson' }
+      : { label: 'DOM', message: 'No ld+json', type: 'info', name: 'ldjson', details: { tested: TESTED, reference: SPEC } }
   },
 }
-
