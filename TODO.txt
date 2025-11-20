@@ -1,0 +1,4 @@
+TODO (remaining rule work)
+- Add tested/reference details to rules: imagesLayout, imagesLazy, nofollow, parameterizedLinks, unsecureInput, ampCacheUrl, nodeCount, nodeDepth, clientSideRendering, htmlLang, linkPreload, blockingScripts, preconnect, dnsPrefetch, pageSummary, googlebotUrlCheck, PSI: mobile/desktop/mobileFcpTbt, GSC: propertyAvailable/isIndexed/topQueriesOfPage/pageWorldwideSearchAnalytics/pageDirectoryWorldwideSearchAnalytics, topWords, Discover: maxImagePreviewLarge/twitterLargeCard/articleStructuredData/publishedTime/authorPresent/headlineLength/indexable/canonicalOk/ogImageLarge/primaryLanguage.
+- Add validation guard to fail missing tested/reference/details for any rule (registry test).
+- Add HTTP headers display smoke suite; rerun full pipeline; commit changes.
