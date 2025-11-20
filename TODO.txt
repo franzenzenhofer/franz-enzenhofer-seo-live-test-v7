@@ -1,38 +1,38 @@
-TODO (remaining rule work)
-- [ ] Add tested/reference: body/imagesLayout
-- [ ] Add tested/reference: body/imagesLazy
-- [ ] Add tested/reference: body/nofollow
-- [ ] Add tested/reference: body/parameterizedLinks
-- [ ] Add tested/reference: body/unsecureInput
-- [ ] Add tested/reference: google/ampCacheUrl
-- [ ] Add tested/reference: dom/nodeCount
-- [ ] Add tested/reference: dom/nodeDepth
-- [ ] Add tested/reference: dom/clientSideRendering
-- [ ] Add tested/reference: dom/htmlLang
-- [ ] Add tested/reference: speed/linkPreload
-- [ ] Add tested/reference: speed/blockingScripts
-- [ ] Add tested/reference: speed/preconnect
-- [ ] Add tested/reference: speed/dnsPrefetch
-- [ ] Add tested/reference: debug/pageSummary
-- [ ] Add tested/reference: robots/googlebotUrlCheck
-- [ ] Add tested/reference: psi/mobile
-- [ ] Add tested/reference: psi/desktop
-- [ ] Add tested/reference: psi/mobileFcpTbt
-- [ ] Add tested/reference: gsc/propertyAvailable
-- [ ] Add tested/reference: gsc/isIndexed
-- [ ] Add tested/reference: gsc/topQueriesOfPage
-- [ ] Add tested/reference: gsc/pageWorldwideSearchAnalytics
-- [ ] Add tested/reference: gsc/pageDirectoryWorldwideSearchAnalytics
-- [ ] Add tested/reference: dom/topWords
-- [ ] Add tested/reference: discover/maxImagePreviewLarge
-- [ ] Add tested/reference: discover/twitterLargeCard
-- [ ] Add tested/reference: discover/articleStructuredData
-- [ ] Add tested/reference: discover/publishedTime
-- [ ] Add tested/reference: discover/authorPresent
-- [ ] Add tested/reference: discover/headlineLength
-- [ ] Add tested/reference: discover/indexable
-- [ ] Add tested/reference: discover/canonicalOk
-- [ ] Add tested/reference: discover/ogImageLarge
-- [ ] Add tested/reference: discover/primaryLanguage
-- [ ] Add validation guard: fail missing tested/reference/details; registry test
-- [ ] Add HTTP headers display smoke suite; rerun full pipeline and commit
+ TODO (remaining rule work)
+ - [ ] Add tested/reference: body/imagesLayout
+ - [ ] Add tested/reference: body/imagesLazy
+ - [ ] Add tested/reference: body/nofollow
+ - [ ] Add tested/reference: body/parameterizedLinks
+ - [ ] Add tested/reference: body/unsecureInput
+ - [ ] Add tested/reference: google/ampCacheUrl
+ - [ ] Add tested/reference: dom/nodeCount
+ - [ ] Add tested/reference: dom/nodeDepth
+ - [ ] Add tested/reference: dom/clientSideRendering
+ - [ ] Add tested/reference: dom/htmlLang
+ - [ ] Add tested/reference: speed/linkPreload
+ - [ ] Add tested/reference: speed/blockingScripts
+ - [ ] Add tested/reference: speed/preconnect
+ - [ ] Add tested/reference: speed/dnsPrefetch
+ - [ ] Add tested/reference: debug/pageSummary
+ - [ ] Add tested/reference: robots/googlebotUrlCheck
+ - [ ] Add tested/reference: psi/mobile
+ - [ ] Add tested/reference: psi/desktop
+ - [ ] Add tested/reference: psi/mobileFcpTbt
+ - [ ] Add tested/reference: gsc/propertyAvailable
+ - [ ] Add tested/reference: gsc/isIndexed
+ - [ ] Add tested/reference: gsc/topQueriesOfPage
+ - [ ] Add tested/reference: gsc/pageWorldwideSearchAnalytics
+ - [ ] Add tested/reference: gsc/pageDirectoryWorldwideSearchAnalytics
+ - [ ] Add tested/reference: dom/topWords
+ - [ ] Add tested/reference: discover/maxImagePreviewLarge
+ - [ ] Add tested/reference: discover/twitterLargeCard
+ - [ ] Add tested/reference: discover/articleStructuredData
+ - [ ] Add tested/reference: discover/publishedTime
+ - [ ] Add tested/reference: discover/authorPresent
+ - [ ] Add tested/reference: discover/headlineLength
+ - [ ] Add tested/reference: discover/indexable
+ - [ ] Add tested/reference: discover/canonicalOk
+ - [ ] Add tested/reference: discover/ogImageLarge
+ - [ ] Add tested/reference: discover/primaryLanguage
+ - [ ] Add validation guard: fail missing tested/reference/details; registry test
+ - [ ] Add HTTP headers display smoke suite; rerun full pipeline and commit
