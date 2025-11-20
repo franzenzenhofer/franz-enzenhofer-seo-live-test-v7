@@ -1,6 +1,9 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
+const SPEC = 'https://web.dev/uses-rel-preconnect/'
+const TESTED = 'Counted <link rel="preconnect"> hints declaring early connections.'
+
 export const preconnectRule: Rule = {
   id: 'speed:preconnect',
   name: 'rel=preconnect',
@@ -19,9 +22,11 @@ export const preconnectRule: Rule = {
         ? {
             sourceHtml,
             snippet: extractSnippet(sourceHtml),
+            preconnectCount: n,
+            tested: TESTED,
+            reference: SPEC,
           }
-        : undefined,
+        : { tested: TESTED, reference: SPEC, preconnectCount: 0 },
     }
   },
 }
-

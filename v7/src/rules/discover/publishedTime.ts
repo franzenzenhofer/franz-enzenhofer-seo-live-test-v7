@@ -1,6 +1,9 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
+const SPEC = 'https://developers.google.com/search/docs/appearance/structured-data/article'
+const TESTED = 'Searched for article:published_time, pubdate, <time datetime>, or JSON-LD datePublished.'
+
 const findPublished = (d: Document) => {
   const el =
     d.querySelector('meta[property="article:published_time"]') ||
@@ -51,6 +54,9 @@ export const discoverPublishedTimeRule: Rule = {
             sourceHtml,
             snippet: extractSnippet(sourceHtml),
             domPath: getDomPath(result.element),
+            tested: TESTED,
+            reference: SPEC,
+            published: result.value,
           },
         }
       : {
@@ -58,7 +64,7 @@ export const discoverPublishedTimeRule: Rule = {
           message: 'No published time (meta or LD+JSON)',
           type: 'warn',
           name: 'Published time',
+          details: { tested: TESTED, reference: SPEC },
         }
   },
 }
-

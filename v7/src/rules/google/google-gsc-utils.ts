@@ -5,6 +5,8 @@
 
 // Session cache for GSC property derivation (per hostname)
 const propertyCache = new Map<string, { property: string; type: 'url-prefix' | 'domain' }>()
+const SPEC = 'https://developers.google.com/webmaster-tools/search-console-api-original/v3/'
+const TESTED = 'Attempted URL-prefix and domain property lookups via the Search Console API.'
 
 /**
  * Auto-derives GSC property from test URL
@@ -87,7 +89,9 @@ export const createGscPropertyDerivationFailedResult = (url: string) => {
       url,
       hostname: parsedUrl.hostname,
       triedUrlPrefix: `${parsedUrl.origin}/`,
-      triedDomain: `sc-domain:${domain}`
+      triedDomain: `sc-domain:${domain}`,
+      tested: TESTED,
+      reference: SPEC,
     }
   }
 }

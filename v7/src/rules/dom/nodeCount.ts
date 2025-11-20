@@ -1,5 +1,8 @@
 import type { Rule } from '@/core/types'
 
+const SPEC = 'https://web.dev/dom-size/'
+const TESTED = 'Traversed documentElement depth-first to count total DOM nodes.'
+
 const count = (root: Node): number => {
   let c = 0
   const stack: Node[] = [root]
@@ -27,8 +30,7 @@ export const nodeCountRule: Rule = {
       message: `Node count: ${n}`,
       type: 'info',
       name: 'DOM node count',
-      details: { nodeCount: n },
+      details: { nodeCount: n, tested: TESTED, reference: SPEC },
     }
   },
 }
-

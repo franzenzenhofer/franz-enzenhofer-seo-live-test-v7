@@ -2,6 +2,8 @@ import type { Result, Rule } from './types'
 
 import { Logger } from '@/shared/logger'
 
+const DEFAULT_TESTED = (rule: Rule) => `Ran ${rule.name} (${rule.id}) and captured evidence.`
+
 export const enrichResult = (res: Result, rule: Rule, runId: string | undefined): Result => ({
   ...res,
   what: rule.what,
@@ -38,6 +40,7 @@ export const createRuntimeError = (rule: Rule, message: string, runId: string | 
   ruleId: rule.id,
   runIdentifier: runId,
   priority: -1000,
+  details: { tested: `Rule errored before returning a result: ${message}`, reference: 'https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error' },
 })
 
 export const logRuleResults = (tabId: number, rule: Rule, ruleId: string, results: Result[]) => {
@@ -51,4 +54,20 @@ export const logRuleResults = (tabId: number, rule: Rule, ruleId: string, result
       label: result.label,
     })
   })
+}
+
+export const ensureResultDetails = (result: Result, rule: Rule): Result => {
+  const details = result.details
+  if (!details) throw new Error(`Rule ${rule.id} returned no details payload`)
+
+  const reference = (details as Record<string, unknown>)['reference']
+  if (typeof reference !== 'string' || reference.trim().length === 0) throw new Error(`Rule ${rule.id} missing details.reference`)
+
+  const testedRaw = (details as Record<string, unknown>)['tested']
+  const tested =
+    typeof testedRaw === 'string' && testedRaw.trim().length > 0
+      ? testedRaw
+      : DEFAULT_TESTED(rule)
+
+  return { ...result, details: { ...details, reference, tested } }
 }

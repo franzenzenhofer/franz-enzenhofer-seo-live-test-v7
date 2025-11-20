@@ -1,6 +1,9 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
+const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/javascript'
+const TESTED = 'Measured body text length and script usage to flag likely client-side rendering.'
+
 const textLen = (d: Document) => (d.body?.innerText || '').replace(/\s+/g, ' ').trim().length
 
 export const clientSideRenderingRule: Rule = {
@@ -28,6 +31,8 @@ export const clientSideRenderingRule: Rule = {
             textLength: len,
             scriptCount: scripts,
             heavyScriptCount: heavyScripts,
+            tested: TESTED,
+            reference: SPEC,
           },
         }
       : {
@@ -35,7 +40,13 @@ export const clientSideRenderingRule: Rule = {
           message: 'Server-rendered content likely present',
           type: 'info',
           name: 'Client-side rendering heuristic',
+          details: {
+            textLength: len,
+            scriptCount: scripts,
+            heavyScriptCount: heavyScripts,
+            tested: TESTED,
+            reference: SPEC,
+          },
         }
   },
 }
-

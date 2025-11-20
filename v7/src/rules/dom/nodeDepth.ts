@@ -1,5 +1,8 @@
 import type { Rule } from '@/core/types'
 
+const SPEC = 'https://web.dev/dom-size/'
+const TESTED = 'Computed maximum DOM tree depth starting at documentElement.'
+
 const depth = (root: Element): number => {
   if (!root) return 0
   let max = 1
@@ -28,8 +31,7 @@ export const nodeDepthRule: Rule = {
       message: `Max depth: ${d}`,
       type: 'info',
       name: 'DOM node depth',
-      details: { maxDepth: d },
+      details: { maxDepth: d, tested: TESTED, reference: SPEC },
     }
   },
 }
-

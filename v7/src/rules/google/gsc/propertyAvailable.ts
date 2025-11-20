@@ -4,6 +4,8 @@ import { deriveGscProperty } from '../google-gsc-utils'
 import type { Rule } from '@/core/types'
 
 const NAME = 'Webproperty available'
+const SPEC = 'https://developers.google.com/webmaster-tools/search-console-api-original/v3/'
+const TESTED = 'Derived URL-prefix and domain properties and verified access via the Search Console API.'
 
 export const gscPropertyAvailableRule: Rule = {
   id: 'gsc:property-available',
@@ -31,6 +33,8 @@ export const gscPropertyAvailableRule: Rule = {
           hostname: parsedUrl.hostname,
           triedUrlPrefix: `${parsedUrl.origin}/`,
           triedDomain: `sc-domain:${domain}`,
+          tested: TESTED,
+          reference: SPEC,
         },
       }
     }
@@ -44,6 +48,8 @@ export const gscPropertyAvailableRule: Rule = {
         url: page.url,
         property,
         propertyType,
+        tested: TESTED,
+        reference: SPEC,
       },
     }
   },

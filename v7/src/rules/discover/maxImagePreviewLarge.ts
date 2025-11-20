@@ -1,6 +1,9 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
+const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#directives'
+const TESTED = 'Checked meta robots and X-Robots-Tag for max-image-preview:large directives.'
+
 const hasDirective = (s: string, dir: string) => new RegExp(`\\b${dir.replace(/[-]/g, '[-]')}\\b`, 'i').test(s)
 
 export const discoverMaxImagePreviewLargeRule: Rule = {
@@ -26,6 +29,8 @@ export const discoverMaxImagePreviewLargeRule: Rule = {
             snippet: extractSnippet(sourceHtml),
             domPath: getDomPath(metaEl),
             xRobotsTag: xr,
+            tested: TESTED,
+            reference: SPEC,
           },
         }
       : {
@@ -33,8 +38,7 @@ export const discoverMaxImagePreviewLargeRule: Rule = {
           message: 'max-image-preview:large not present',
           type: 'warn',
           name: 'max-image-preview:large',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(metaEl) },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(metaEl), tested: TESTED, reference: SPEC },
         }
   },
 }
-

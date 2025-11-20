@@ -1,6 +1,9 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
+const SPEC = 'https://web.dev/render-blocking-resources/'
+const TESTED = 'Found <script src> tags in <head> without async/defer that block rendering.'
+
 export const blockingScriptsRule: Rule = {
   id: 'speed:blocking-scripts',
   name: 'Blocking scripts in head',
@@ -19,9 +22,11 @@ export const blockingScriptsRule: Rule = {
         ? {
             sourceHtml,
             snippet: extractSnippet(sourceHtml),
+            blockingScriptCount: s,
+            tested: TESTED,
+            reference: SPEC,
           }
-        : undefined,
+        : { tested: TESTED, reference: SPEC, blockingScriptCount: 0 },
     }
   },
 }
-

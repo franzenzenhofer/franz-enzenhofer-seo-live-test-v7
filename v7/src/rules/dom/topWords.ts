@@ -1,5 +1,8 @@
 import type { Rule } from '@/core/types'
 
+const SPEC = 'https://developers.google.com/search/docs/fundamentals/creating-helpful-content'
+const TESTED = 'Normalized visible body text and tallied the five most frequent words (length ≥ 4).'
+
 const text = (d: Document) =>
   (d.body?.innerText || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
 
@@ -16,7 +19,9 @@ export const topWordsRule: Rule = {
   what: 'static',
   async run(page) {
     const t = text(page.doc)
-    if (!t) return { label: 'DOM', message: 'No text', type: 'info', name: 'Top words' }
+    if (!t) {
+      return { label: 'DOM', message: 'No text', type: 'info', name: 'Top words', details: { tested: TESTED, reference: SPEC } }
+    }
 
     const topFreq = freq(t)
     const f = topFreq.map(([w, c]) => `${w}(${c})`).join(', ')
@@ -26,8 +31,7 @@ export const topWordsRule: Rule = {
       message: `Top words: ${f}`,
       type: 'info',
       name: 'Top words',
-      details: { topWords: Object.fromEntries(topFreq) },
+      details: { topWords: Object.fromEntries(topFreq), tested: TESTED, reference: SPEC },
     }
   },
 }
-

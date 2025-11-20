@@ -1,6 +1,9 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
+const SPEC = 'https://developer.chrome.com/docs/devtools/network/reference/'
+const TESTED = 'Summarized page title, header count, and collected resource total for quick debugging.'
+
 export const pageSummaryRule: Rule = {
   id: 'debug:page-summary',
   name: 'Page summary (debug)',
@@ -24,8 +27,9 @@ export const pageSummaryRule: Rule = {
         domPath: getDomPath(titleEl),
         headers: page.headers,
         resourceCount: res,
+        tested: TESTED,
+        reference: SPEC,
       },
     }
   },
 }
-

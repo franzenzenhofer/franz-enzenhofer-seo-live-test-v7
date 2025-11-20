@@ -20,5 +20,12 @@ describe('CLI: all rules on simple page', () => {
     const out = await runAllCli(registry, { events, html, globals: { variables: {}, events } } as any)
     expect(Array.isArray(out)).toBe(true)
     expect((out as any[]).length).toBeGreaterThan(0)
+    out.forEach((res: any) => {
+      expect(res.details).toBeDefined()
+      expect(typeof res.details.reference).toBe('string')
+      expect(res.details.reference.length).toBeGreaterThan(0)
+      expect(typeof res.details.tested).toBe('string')
+      expect(res.details.tested.length).toBeGreaterThan(0)
+    })
   }, 15000)
 })

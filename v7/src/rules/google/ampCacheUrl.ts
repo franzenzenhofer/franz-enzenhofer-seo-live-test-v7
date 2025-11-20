@@ -1,6 +1,9 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
+const SPEC = 'https://developers.google.com/amp/cache/overview'
+const TESTED = 'Looked for <link rel="amphtml"> and derived the corresponding AMP Cache URL.'
+
 const findAmp = (d: Document) => {
   const el = d.querySelector('link[rel="amphtml"]')
   return { element: el, href: el?.getAttribute('href') || '' }
@@ -25,7 +28,15 @@ export const ampCacheUrlRule: Rule = {
   what: 'static',
   async run(page) {
     const amp = findAmp(page.doc)
-    if (!amp.href) return { label: 'HEAD', message: 'No amphtml link', type: 'info', name: 'AMP Cache URL' }
+    if (!amp.href) {
+      return {
+        label: 'HEAD',
+        message: 'No amphtml link',
+        type: 'info',
+        name: 'AMP Cache URL',
+        details: { tested: TESTED, reference: SPEC },
+      }
+    }
 
     const url = ampCache(amp.href)
     const sourceHtml = extractHtml(amp.element)
@@ -36,15 +47,27 @@ export const ampCacheUrlRule: Rule = {
           message: `AMP Cache: ${url}`,
           type: 'info',
           name: 'AMP Cache URL',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(amp.element) },
+          details: {
+            sourceHtml,
+            snippet: extractSnippet(sourceHtml),
+            domPath: getDomPath(amp.element),
+            ampCacheUrl: url,
+            tested: TESTED,
+            reference: SPEC,
+          },
         }
       : {
           label: 'HEAD',
           message: 'AMP Cache not derivable',
           type: 'info',
           name: 'AMP Cache URL',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(amp.element) },
+          details: {
+            sourceHtml,
+            snippet: extractSnippet(sourceHtml),
+            domPath: getDomPath(amp.element),
+            tested: TESTED,
+            reference: SPEC,
+          },
         }
   },
 }
-

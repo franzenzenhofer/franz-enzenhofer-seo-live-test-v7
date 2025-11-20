@@ -1,6 +1,9 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
+const SPEC = 'https://developer.mozilla.org/docs/Web/Performance/dns-prefetch'
+const TESTED = 'Counted <link rel=\"dns-prefetch\"> hints used to pre-resolve hostnames.'
+
 export const dnsPrefetchRule: Rule = {
   id: 'speed:dns-prefetch',
   name: 'rel=dns-prefetch',
@@ -19,9 +22,11 @@ export const dnsPrefetchRule: Rule = {
         ? {
             sourceHtml,
             snippet: extractSnippet(sourceHtml),
+            dnsPrefetchCount: n,
+            tested: TESTED,
+            reference: SPEC,
           }
-        : undefined,
+        : { tested: TESTED, reference: SPEC, dnsPrefetchCount: 0 },
     }
   },
 }
-

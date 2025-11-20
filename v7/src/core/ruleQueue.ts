@@ -1,5 +1,5 @@
 import type { Ctx, Page, Result, Rule } from './types'
-import { createRuntimeError, emitChunk, enrichResult, logRuleResults } from './runHelpers'
+import { createRuntimeError, emitChunk, enrichResult, ensureResultDetails, logRuleResults } from './runHelpers'
 import { getRuleTimeoutMs } from './ruleTimeouts'
 
 import { Logger } from '@/shared/logger'
@@ -39,10 +39,11 @@ const runTask = async (task: Task, opts: ExecOpts, total: number) => {
   const timeoutMs = getRuleTimeoutMs(rule)
   try {
     const result = await withTimeout(rule.run(page, ctx), timeoutMs, signal)
+    const validated = ensureResultDetails(result, rule)
     const duration = (performance.now() - started).toFixed(2)
-    logRuleResults(tabId, rule, ruleId, [result])
+    logRuleResults(tabId, rule, ruleId, [validated])
     Logger.logDirectSend(tabId, 'rule', 'done', { id: rule.id, name: rule.name, ruleId, duration: `${duration}ms`, results: 1 })
-    const enriched = enrichResult(result, rule, runId)
+    const enriched = enrichResult(validated, rule, runId)
     assign(slot, enriched)
     await emitChunk(emit, [enriched])
   } catch (error) {

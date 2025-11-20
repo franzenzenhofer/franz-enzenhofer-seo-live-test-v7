@@ -1,6 +1,9 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
+const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/faceted-navigation'
+const TESTED = 'Scanned all <a href> URLs and counted those containing query parameters.'
+
 export const parameterizedLinksRule: Rule = {
   id: 'body:parameterized-links',
   name: 'Links with query params',
@@ -22,8 +25,10 @@ export const parameterizedLinksRule: Rule = {
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),
+        parameterizedCount: paramLinks.length,
+        tested: TESTED,
+        reference: SPEC,
       },
     }
   },
 }
-

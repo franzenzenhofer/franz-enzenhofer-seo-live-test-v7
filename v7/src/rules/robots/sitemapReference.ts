@@ -1,6 +1,9 @@
 import type { Rule } from '@/core/types'
 import { fetchTextOnce } from '@/shared/fetchOnce'
 
+const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt'
+const TESTED = 'Fetched robots.txt for the origin and scanned for Sitemap directives.'
+
 export const robotsSitemapReferenceRule: Rule = {
   id: 'robots:sitemap-reference',
   name: 'robots.txt Sitemap reference',
@@ -16,11 +19,18 @@ export const robotsSitemapReferenceRule: Rule = {
           message: `Skipped: ${url.protocol} URL`,
           type: 'info',
           name: 'robots.txt Sitemap reference',
+          details: { tested: TESTED, reference: SPEC },
         }
       }
       origin = url.origin
     } catch {
-      return { label: 'ROBOTS', message: 'Invalid URL', type: 'info', name: 'robotsSitemapReference' }
+      return {
+        label: 'ROBOTS',
+        message: 'Invalid URL',
+        type: 'info',
+        name: 'robotsSitemapReference',
+        details: { tested: TESTED, reference: SPEC },
+      }
     }
     const txt = await fetchTextOnce(`${origin}/robots.txt`)
     if (!txt)
@@ -29,6 +39,7 @@ export const robotsSitemapReferenceRule: Rule = {
         message: 'robots.txt not reachable',
         type: 'info',
         name: 'robots.txt Sitemap reference',
+        details: { tested: TESTED, reference: SPEC },
       }
     const has = /\n\s*sitemap\s*:\s*\S+/i.test(`\n${txt}`)
     return {
@@ -36,8 +47,7 @@ export const robotsSitemapReferenceRule: Rule = {
       message: has ? 'Sitemap reference present' : 'No Sitemap reference',
       type: has ? 'ok' : 'warn',
       name: 'robots.txt Sitemap reference',
-      details: { robotsTxt: txt },
+      details: { robotsTxt: txt, tested: TESTED, reference: SPEC },
     }
   },
 }
-

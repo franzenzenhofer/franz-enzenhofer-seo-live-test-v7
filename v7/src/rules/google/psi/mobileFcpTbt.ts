@@ -3,6 +3,9 @@ import { extractPSIKey } from '../google-utils'
 import { runPSI, getPSIKey } from '@/shared/psi'
 import type { Rule } from '@/core/types'
 
+const SPEC = 'https://developers.google.com/speed/docs/insights/v5/about'
+const TESTED = 'Requested PageSpeed Insights (v5) mobile analysis and extracted FCP and TBT metrics.'
+
 const NAME = 'V5 Mobile FCP/TBT'
 
 export const psiMobileFcpTbtRule: Rule = {
@@ -23,7 +26,7 @@ export const psiMobileFcpTbtRule: Rule = {
       message: parts.join(', ') || 'Metrics unavailable',
       type: 'info',
       name: NAME,
-      details: { url: page.url, strategy: 'mobile', fcp, tbt, apiResponse: j }
+      details: { url: page.url, strategy: 'mobile', fcp, tbt, apiResponse: j, tested: TESTED, reference: SPEC }
     }
   },
 }

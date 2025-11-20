@@ -1,6 +1,9 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
+const SPEC = 'https://web.dev/uses-rel-preload/'
+const TESTED = 'Counted <link rel="preload"> entries to verify resource preloading hints.'
+
 export const linkPreloadRule: Rule = {
   id: 'speed:link-preload',
   name: 'rel=preload links',
@@ -19,9 +22,11 @@ export const linkPreloadRule: Rule = {
         ? {
             sourceHtml,
             snippet: extractSnippet(sourceHtml),
+            preloadCount: n,
+            tested: TESTED,
+            reference: SPEC,
           }
-        : undefined,
+        : { tested: TESTED, reference: SPEC, preloadCount: 0 },
     }
   },
 }
-

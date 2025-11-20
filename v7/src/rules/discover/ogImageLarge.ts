@@ -1,6 +1,9 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
+const SPEC = 'https://developers.google.com/search/docs/appearance/google-discover/'
+const TESTED = 'Checked og:image metadata and width/height tags to confirm large image availability (>=1200px).'
+
 export const discoverOgImageLargeRule: Rule = {
   id: 'discover:og-image-large',
   name: 'Large OG image (metadata)',
@@ -16,7 +19,13 @@ export const discoverOgImageLargeRule: Rule = {
     const has = !!imgEl
 
     if (!has) {
-      return { label: 'DISCOVER', message: 'Missing og:image meta tag', type: 'warn', name: 'Large OG image (metadata)' }
+      return {
+        label: 'DISCOVER',
+        message: 'Missing og:image meta tag',
+        type: 'warn',
+        name: 'Large OG image (metadata)',
+        details: { tested: TESTED, reference: SPEC },
+      }
     }
 
     const ok = w >= 1200 || h >= 1200
@@ -29,15 +38,14 @@ export const discoverOgImageLargeRule: Rule = {
           message: `OG image large: ${w}x${h}px`,
           type: 'ok',
           name: 'Large OG image (metadata)',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), width: w, height: h },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), width: w, height: h, tested: TESTED, reference: SPEC },
         }
       : {
           label: 'DISCOVER',
           message: w && h ? `OG image ${w}x${h}px (<1200px)` : 'OG image size metadata missing',
           type: 'info',
           name: 'Large OG image (metadata)',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), width: w || undefined, height: h || undefined },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), width: w || undefined, height: h || undefined, tested: TESTED, reference: SPEC },
         }
   },
 }
-

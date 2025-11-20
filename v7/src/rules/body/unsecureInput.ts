@@ -1,6 +1,9 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
+const SPEC = 'https://web.dev/why-https-matters/'
+const TESTED = 'Checked page scheme and flagged password inputs served over plain HTTP.'
+
 export const unsecureInputRule: Rule = {
   id: 'body:unsecure-input',
   name: 'Unsecure input over HTTP',
@@ -15,7 +18,13 @@ export const unsecureInputRule: Rule = {
     }
 
     if (proto !== 'http:') {
-      return { label: 'BODY', message: 'Page not HTTP', type: 'info', name: 'Unsecure input over HTTP' }
+      return {
+        label: 'BODY',
+        message: 'Page not HTTP',
+        type: 'info',
+        name: 'Unsecure input over HTTP',
+        details: { tested: TESTED, reference: SPEC, protocol: proto || 'unknown' },
+      }
     }
 
     const pwdInputs = Array.from(page.doc.querySelectorAll('input[type="password"]'))
@@ -29,6 +38,9 @@ export const unsecureInputRule: Rule = {
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),
+          tested: TESTED,
+          reference: SPEC,
+          protocol: proto,
         },
       }
     }
@@ -38,7 +50,7 @@ export const unsecureInputRule: Rule = {
       message: 'No password inputs over HTTP',
       type: 'ok',
       name: 'Unsecure input over HTTP',
+      details: { tested: TESTED, reference: SPEC, protocol: proto },
     }
   },
 }
-

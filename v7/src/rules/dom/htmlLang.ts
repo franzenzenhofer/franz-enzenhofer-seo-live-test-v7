@@ -1,6 +1,11 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet, getDomPath } from '@/shared/html-utils'
 
+const LABEL = 'DOM'
+const NAME = 'HTML lang attribute'
+const SPEC = 'https://developer.mozilla.org/docs/Web/HTML/Global_attributes/lang'
+const TESTED = 'Read the <html> lang attribute and reported the configured locale value.'
+
 export const htmlLangRule: Rule = {
   id: 'dom:html-lang',
   name: 'HTML lang attribute',
@@ -13,13 +18,25 @@ export const htmlLangRule: Rule = {
 
     return lang
       ? {
-          label: 'DOM',
+          label: LABEL,
           message: `lang=${lang}`,
           type: 'info',
-          name: 'HTML lang attribute',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el) },
+          name: NAME,
+          details: {
+            sourceHtml,
+            snippet: extractSnippet(sourceHtml),
+            domPath: getDomPath(el),
+            tested: TESTED,
+            reference: SPEC,
+            lang,
+          },
         }
-      : { label: 'DOM', message: 'Missing html[lang]', type: 'warn', name: 'htmlLang' }
+      : {
+          label: LABEL,
+          message: 'Missing html[lang]',
+          type: 'warn',
+          name: NAME,
+          details: { tested: TESTED, reference: SPEC },
+        }
   },
 }
-

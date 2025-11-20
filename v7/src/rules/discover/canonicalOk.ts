@@ -1,6 +1,9 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
+const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
+const TESTED = 'Confirmed <link rel=\"canonical\"> exists in <head> and resolves to an absolute URL.'
+
 export const discoverCanonicalOkRule: Rule = {
   id: 'discover:canonical-ok',
   name: 'Canonical present + absolute',
@@ -9,7 +12,13 @@ export const discoverCanonicalOkRule: Rule = {
   async run(page) {
     const el = page.doc.querySelector('link[rel="canonical"]')
     if (!el) {
-      return { label: 'DISCOVER', message: 'Missing canonical link in <head>', type: 'warn', name: 'canonicalOk' }
+      return {
+        label: 'DISCOVER',
+        message: 'Missing canonical link in <head>',
+        type: 'warn',
+        name: 'canonicalOk',
+        details: { tested: TESTED, reference: SPEC },
+      }
     }
 
     const href = el.getAttribute('href') || ''
@@ -25,14 +34,28 @@ export const discoverCanonicalOkRule: Rule = {
             message: 'Canonical link present (absolute URL)',
             type: 'ok',
             name: 'Canonical present + absolute',
-            details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), canonicalUrl: abs },
+            details: {
+              sourceHtml,
+              snippet: extractSnippet(sourceHtml),
+              domPath: getDomPath(el),
+              canonicalUrl: abs,
+              tested: TESTED,
+              reference: SPEC,
+            },
           }
         : {
             label: 'DISCOVER',
             message: 'Canonical URL not absolute (relative)',
             type: 'warn',
             name: 'Canonical present + absolute',
-            details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), canonicalUrl: href },
+            details: {
+              sourceHtml,
+              snippet: extractSnippet(sourceHtml),
+              domPath: getDomPath(el),
+              canonicalUrl: href,
+              tested: TESTED,
+              reference: SPEC,
+            },
           }
     } catch {
       return {
@@ -40,9 +63,8 @@ export const discoverCanonicalOkRule: Rule = {
         message: 'Invalid canonical URL',
         type: 'warn',
         name: 'Canonical present + absolute',
-        details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el) },
+        details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), tested: TESTED, reference: SPEC },
       }
     }
   },
 }
-

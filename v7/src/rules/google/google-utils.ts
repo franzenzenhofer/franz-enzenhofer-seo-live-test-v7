@@ -5,6 +5,11 @@
 
 import type { Ctx } from '@/core/types'
 
+const OAUTH_SPEC = 'https://developers.google.com/identity/protocols/oauth2'
+const PSI_SPEC = 'https://developers.google.com/speed/docs/insights/v5/get-started'
+const NO_TOKEN_TESTED = 'Checked session globals for googleApiAccessToken before invoking Google APIs.'
+const PSI_KEY_TESTED = 'Checked globals.variables.google_page_speed_insights_key before sending PSI request.'
+
 export interface GoogleCredentials {
   token: string | null
   vars: Record<string, unknown>
@@ -23,6 +28,7 @@ export const createNoTokenResult = (label = 'GSC', name = 'googleRule') => {
     type: 'runtime_error' as const,
     name,
     priority: -1000,
+    details: { tested: NO_TOKEN_TESTED, reference: OAUTH_SPEC },
   }
 }
 
@@ -39,5 +45,6 @@ export const createPSIKeyMissingResult = () => {
     type: 'runtime_error' as const,
     name: 'googleRule',
     priority: -1000,
+    details: { tested: PSI_KEY_TESTED, reference: PSI_SPEC },
   }
 }
