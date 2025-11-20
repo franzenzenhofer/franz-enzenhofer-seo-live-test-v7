@@ -2,7 +2,7 @@ import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
 const SPEC = 'https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/summary-card-with-large-image'
-const TESTED = 'Checked <meta name=\"twitter:card\"> content for summary_large_image.'
+const TESTED = 'Checked <meta name="twitter:card"> content for summary_large_image.'
 
 export const discoverTwitterLargeCardRule: Rule = {
   id: 'discover:twitter-large-card',

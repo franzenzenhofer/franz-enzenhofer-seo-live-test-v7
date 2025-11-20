@@ -2,7 +2,7 @@ import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/qualify-outbound-links'
-const TESTED = 'Counted anchor tags using rel=\"nofollow\" to flag links excluded from passing signals.'
+const TESTED = 'Counted anchor tags using rel="nofollow" to flag links excluded from passing signals.'
 
 export const nofollowRule: Rule = {
   id: 'body:nofollow',

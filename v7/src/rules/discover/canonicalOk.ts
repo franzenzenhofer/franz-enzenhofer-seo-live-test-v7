@@ -2,7 +2,7 @@ import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
-const TESTED = 'Confirmed <link rel=\"canonical\"> exists in <head> and resolves to an absolute URL.'
+const TESTED = 'Confirmed <link rel="canonical"> exists in <head> and resolves to an absolute URL.'
 
 export const discoverCanonicalOkRule: Rule = {
   id: 'discover:canonical-ok',
