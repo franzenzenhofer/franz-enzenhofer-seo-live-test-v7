@@ -1,5 +1,10 @@
 import type { Rule } from '@/core/types'
-import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
+import { extractHtmlFromList, extractSnippet, getDomPath } from '@/shared/html-utils'
+
+const LABEL = 'BODY'
+const NAME = 'Internal links count'
+const SPEC = 'https://developers.google.com/search/docs/fundamentals/seo-starter-guide#site-hierarchy'
+const TESTED = 'Counted all <a href> elements and categorized them by same-host vs cross-host destinations.'
 
 const sameHost = (base: string, href: string) => {
   try {
@@ -30,14 +35,27 @@ export const internalLinksRule: Rule = {
     }
 
     const sourceHtml = extractHtmlFromList(a)
+    const internalPaths = internalLinks.map((el) => getDomPath(el)).filter(Boolean)
+    const externalPaths = externalLinks.map((el) => getDomPath(el)).filter(Boolean)
+    const domPaths = [...internalPaths, ...externalPaths]
+    const domPathColors = [
+      ...internalPaths.map(() => '#22c55e'),
+      ...externalPaths.map(() => '#2563eb'),
+    ]
     return {
-      label: 'BODY',
+      label: LABEL,
       message: `Links: internal ${internalLinks.length}, external ${externalLinks.length}`,
       type: 'info',
-      name: 'Internal links count',
+      name: NAME,
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),
+        tested: TESTED,
+        reference: SPEC,
+        internalCount: internalLinks.length,
+        externalCount: externalLinks.length,
+        domPaths,
+        domPathColors,
       },
     }
   },

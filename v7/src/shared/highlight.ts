@@ -9,12 +9,17 @@ const send = <T = unknown>(tabId: number, msg: unknown): Promise<T | null> =>
     })
   })
 
-export const highlightSelector = async (tabId: number, selectors: string[]): Promise<{ ok: boolean; selector?: string }> => {
-  for (const selector of selectors) {
-    const res = await send<{ ok?: boolean }>(tabId, { type: 'highlight-selector', selector })
-    if (res?.ok) return { ok: true, selector }
-  }
-  return { ok: false }
+export const highlightSelectors = async (
+  tabId: number,
+  selectors: string[],
+  colors?: string[],
+): Promise<{ ok: boolean; matched: number; first?: string }> => {
+  const res = await send<{ ok?: boolean; matched?: number; first?: string }>(tabId, {
+    type: 'highlight-selector',
+    selectors,
+    colors,
+  })
+  return { ok: Boolean(res?.ok), matched: res?.matched ?? 0, first: res?.first }
 }
 
 export const clearHighlight = (tabId: number) => send(tabId, { type: 'clear-highlight' }).then(() => {}).catch(() => {})

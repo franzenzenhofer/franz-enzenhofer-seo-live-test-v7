@@ -1,6 +1,11 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
+const LABEL = 'HEAD'
+const NAME = 'Canonical Link'
+const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
+const TESTED = 'Checked for a <link rel="canonical"> tag in <head> and extracted its resolved href.'
+
 export const canonicalRule: Rule = {
   id: 'head-canonical',
   name: 'Canonical Link',
@@ -10,25 +15,27 @@ export const canonicalRule: Rule = {
     const el = page.doc.querySelector('link[rel="canonical"]') as HTMLLinkElement|null
     if (!el || !el.href) {
       return {
-        label: 'HEAD',
+        label: LABEL,
         message: 'No canonical link found.',
         type: 'error',
-        name: 'Canonical Link',
+        name: NAME,
+        details: { tested: TESTED, reference: SPEC, canonicalUrl: null },
       }
     }
     const sourceHtml = extractHtml(el)
     return {
-      label: 'HEAD',
+      label: LABEL,
       message: 'Canonical link present',
       type: 'info',
-      name: 'Canonical Link',
+      name: NAME,
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),
         domPath: getDomPath(el),
         canonicalUrl: el.href,
+        tested: TESTED,
+        reference: SPEC,
       },
     }
   },
 }
-

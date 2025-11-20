@@ -24,13 +24,17 @@ export const ResultCard = ({ result, index, isPinned, onTogglePin, defaultExpand
   const [open, setOpen] = useState(hasDetails && defaultExpanded)
   const showDetails = open && hasDetails
   const snippet = typeof result.details?.snippet === 'string' ? result.details?.snippet : null
-  const selectors = useMemo(() => {
-    if (!result.details) return []
-    const list = result.details['domPaths']
-    if (Array.isArray(list)) return list.filter(Boolean) as string[]
-    const single = result.details['domPath']
-    if (typeof single === 'string') return [single]
-    return []
+  const { selectors, colors } = useMemo(() => {
+    if (!result.details) return { selectors: [], colors: undefined as string[] | undefined }
+    const domPaths = Array.isArray(result.details['domPaths'])
+      ? (result.details['domPaths'].filter(Boolean) as string[])
+      : typeof result.details['domPath'] === 'string'
+        ? [result.details['domPath']]
+        : []
+    const domPathColors = Array.isArray(result.details['domPathColors'])
+      ? result.details['domPathColors'].filter((c): c is string => typeof c === 'string' && Boolean(c.trim()))
+      : undefined
+    return { selectors: domPaths, colors: domPathColors }
   }, [result.details])
   const detailPayload = useMemo(() => {
     if (!result.details) return undefined
@@ -38,25 +42,16 @@ export const ResultCard = ({ result, index, isPinned, onTogglePin, defaultExpand
     delete (clean as Record<string, unknown>)['snippet']
     delete (clean as Record<string, unknown>)['domPath']
     delete (clean as Record<string, unknown>)['domPaths']
+    delete (clean as Record<string, unknown>)['domPathColors']
     return clean
   }, [result.details, snippet])
-  useResultHighlight({ tabId, selectors, open, ruleId: result.ruleId, logUi })
+  useResultHighlight({ tabId, selectors, colors, open, ruleId: result.ruleId, logUi })
   const copyPayload = useMemo(() => toResultCopyPayload(result), [result])
   const domPathPreview = selectors[0]
   const additionalTargets = selectors.length > 1 ? selectors.length - 1 : 0
   return (
     <article className={`${color.full} border rounded p-3 space-y-2`} data-testid="result-card">
-      <ResultHeader
-        result={result}
-        index={index}
-        isPinned={isPinned}
-        onTogglePin={onTogglePin}
-        canToggleDetails={hasDetails}
-        open={hasDetails ? open : false}
-        onToggleDetails={hasDetails ? () => setOpen((v) => !v) : undefined}
-        dotClass={color.dot}
-        copyContent={copyPayload}
-      />
+      <ResultHeader result={result} index={index} isPinned={isPinned} onTogglePin={onTogglePin} canToggleDetails={hasDetails} open={hasDetails ? open : false} onToggleDetails={hasDetails ? () => setOpen((v) => !v) : undefined} dotClass={color.dot} copyContent={copyPayload} />
       <p className="text-sm text-slate-900 break-words">{result.message}</p>
       {snippet && (
         <pre className="text-xs bg-white/70 border rounded p-2 whitespace-pre-wrap break-words text-slate-700">
