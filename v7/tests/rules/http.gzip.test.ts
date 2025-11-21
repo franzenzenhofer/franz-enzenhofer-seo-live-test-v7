@@ -13,7 +13,7 @@ describe('http:gzip rule', () => {
   })
 
   it('warns when encoding unsupported', async () => {
-    const result = await run({ 'content-encoding': 'deflate' })
+    const result = await run({ 'content-encoding': 'zstd' })
     expect(result.message).toContain('Unsupported')
     expect(result.type).toBe('warn')
   })
@@ -22,5 +22,16 @@ describe('http:gzip rule', () => {
     const result = await run({ 'content-encoding': 'gzip' })
     expect(result.type).toBe('ok')
     expect(result.message).toContain('compressed')
+  })
+
+  it('passes when br present even with other encodings', async () => {
+    const result = await run({ 'content-encoding': 'br, zstd' })
+    expect(result.type).toBe('ok')
+    expect(result.message).toContain('br')
+  })
+
+  it('warns when no header present', async () => {
+    const result = await run({})
+    expect(result.type).toBe('warn')
   })
 })
