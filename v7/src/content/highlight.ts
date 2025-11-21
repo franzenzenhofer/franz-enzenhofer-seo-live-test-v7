@@ -13,13 +13,17 @@ const ensureHighlightStyle = () => {
 
 const highlightSelectors = (selectors: string[], colors?: string[]) => {
   ensureHighlightStyle()
-  const palette: string[] = colors && colors.length ? colors : DEFAULT_COLORS
+  const palette: string[] = (colors && colors.length ? colors : DEFAULT_COLORS) as string[]
   clearHighlight()
   selectors.forEach((selector, idx) => {
     const el = document.querySelector(selector)
     if (!el) return
-    const colorIndex = palette.length ? idx % palette.length : 0
-    const color = (palette[colorIndex] ?? DEFAULT_COLORS[0]) as string
+    const colorCandidate = colors ? colors[idx] : undefined
+    const fallbackPaletteColor = ((palette.length ? palette[idx % palette.length] : DEFAULT_COLORS[0]) ?? DEFAULT_COLORS[0]) as string
+    const color: string =
+      typeof colorCandidate === 'string' && colorCandidate.trim()
+        ? colorCandidate
+        : fallbackPaletteColor
     el.classList.add(HIGHLIGHT_CLASS)
     el.setAttribute('data-highlight-idx', String(idx))
     el.setAttribute('data-highlight-color', color)
