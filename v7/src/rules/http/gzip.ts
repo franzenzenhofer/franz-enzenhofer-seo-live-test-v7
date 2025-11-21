@@ -36,9 +36,9 @@ export const gzipRule: Rule = {
       return {
         label: LABEL,
         name: NAME,
-        message: 'No content-encoding header. Consider enabling gzip or Brotli compression.',
-        type: 'warn',
-        priority: 200,
+        message: 'No content-encoding header. Enable gzip or Brotli compression.',
+        type: 'error',
+        priority: 50,
         details: {
           httpHeaders: page.headers || {},
           snippet: extractSnippet('(not present)'),

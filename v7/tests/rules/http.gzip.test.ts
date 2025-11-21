@@ -6,9 +6,9 @@ const run = (headers?: Record<string, string>) =>
   gzipRule.run({ html: '', url: 'https://example.com', doc: new DOMParser().parseFromString('<html></html>', 'text/html'), headers } as any, { globals: {} })
 
 describe('http:gzip rule', () => {
-  it('warns when no encoding header', async () => {
+  it('fails when no encoding header', async () => {
     const result = await run({})
-    expect(result.type).toBe('warn')
+    expect(result.type).toBe('error')
     expect(result.message).toContain('No content-encoding header')
   })
 
@@ -30,8 +30,8 @@ describe('http:gzip rule', () => {
     expect(result.message).toContain('br')
   })
 
-  it('warns when no header present', async () => {
+  it('fails when no header present', async () => {
     const result = await run({})
-    expect(result.type).toBe('warn')
+    expect(result.type).toBe('error')
   })
 })
