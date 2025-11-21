@@ -35,7 +35,7 @@ describe('persistResults', () => {
 
   it('throws when payload exceeds byte guard and leaves storage untouched', async () => {
     const key = 'results:1'
-    const hugeMessage = 'x'.repeat(4_200_000)
+    const hugeMessage = 'x'.repeat(17_000_000) // >16MB guard
     await expect(persistResults(1, key, [], [{ name: 'too big', type: 'info', message: hugeMessage }])).rejects.toThrow(/too large/)
     expect(storageState[key]).toBeUndefined()
   })
