@@ -4,7 +4,6 @@ import { ResultDetails } from './ResultDetails'
 import { ResultHeader } from './ResultHeader'
 import { useResultHighlight } from './useResultHighlight'
 import { toResultCopyPayload } from './resultCopy'
-import { ResultDomPath } from './ResultDomPath'
 
 import { getResultColor } from '@/shared/colors'
 import type { Result } from '@/shared/results'
@@ -47,8 +46,6 @@ export const ResultCard = ({ result, index, isPinned, onTogglePin, defaultExpand
   }, [result.details, snippet])
   useResultHighlight({ tabId, selectors, colors, open, ruleId: result.ruleId, logUi })
   const copyPayload = useMemo(() => toResultCopyPayload(result), [result])
-  const domPathPreview = selectors[0]
-  const additionalTargets = selectors.length > 1 ? selectors.length - 1 : 0
   return (
     <article className={`${color.full} border rounded p-3 space-y-2`} data-testid="result-card">
       <ResultHeader result={result} index={index} isPinned={isPinned} onTogglePin={onTogglePin} canToggleDetails={hasDetails} open={hasDetails ? open : false} onToggleDetails={hasDetails ? () => setOpen((v) => !v) : undefined} dotClass={color.dot} copyContent={copyPayload} />
@@ -60,7 +57,7 @@ export const ResultCard = ({ result, index, isPinned, onTogglePin, defaultExpand
       )}
       {showDetails && (
         <>
-          {domPathPreview && <ResultDomPath selector={domPathPreview} extraCount={additionalTargets} />}
+          {/* domPaths are used only for on-page highlighting; we intentionally do not render them in the card */}
           <ResultDetails details={detailPayload} />
         </>
       )}
