@@ -19,6 +19,7 @@ export const robotsMetaRule: Rule = {
         type: 'info',
         priority: 610,
         name: 'Robots Meta',
+        details: { tested: TESTED, reference: SPEC, sourceHtml: '', snippet: '', domPath: '' },
       }
     }
     const tokens = parse(el.content)

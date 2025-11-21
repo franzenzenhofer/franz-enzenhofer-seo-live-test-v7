@@ -15,7 +15,13 @@ export const unsecureInputRule: Rule = {
     }
 
     if (proto !== 'http:') {
-      return { label: 'BODY', message: 'Page not HTTP', type: 'info', name: 'Unsecure input over HTTP' }
+      return {
+        label: 'BODY',
+        message: 'Page not HTTP',
+        type: 'info',
+        name: 'Unsecure input over HTTP',
+        details: { protocol: proto || 'unknown', tested: 'Only flags password inputs on HTTP pages' },
+      }
     }
 
     const pwdInputs = Array.from(page.doc.querySelectorAll('input[type="password"]'))
@@ -38,7 +44,7 @@ export const unsecureInputRule: Rule = {
       message: 'No password inputs over HTTP',
       type: 'ok',
       name: 'Unsecure input over HTTP',
+      details: { protocol: proto || 'http:', count: pwdInputs.length, tested: 'Searched for <input type="password"> over HTTP' },
     }
   },
 }
-

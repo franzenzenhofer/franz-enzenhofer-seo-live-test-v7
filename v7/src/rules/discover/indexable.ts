@@ -37,7 +37,12 @@ export const discoverIndexableRule: Rule = {
           message: 'Indexable',
           type: 'ok',
           name: 'Indexable',
+          details: {
+            sourceHtml,
+            snippet: extractSnippet(sourceHtml),
+            domPath: getDomPath(result.element),
+            xRobotsTag: result.xRobots,
+          },
         }
   },
 }
-

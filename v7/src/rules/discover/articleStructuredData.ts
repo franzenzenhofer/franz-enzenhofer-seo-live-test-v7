@@ -45,7 +45,12 @@ export const discoverArticleStructuredDataRule: Rule = {
           message: 'No Article structured data',
           type: 'warn',
           name: 'Article structured data',
+          details: {
+            sourceHtml,
+            snippet: extractSnippet(sourceHtml),
+            scriptsFound: result.scripts.length,
+            tested: 'Searched for Article/NewsArticle JSON-LD scripts',
+          },
         }
   },
 }
-

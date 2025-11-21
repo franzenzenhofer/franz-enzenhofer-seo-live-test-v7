@@ -24,7 +24,7 @@ export const discoverPrimaryLanguageRule: Rule = {
           message: 'Missing lang attribute on <html> tag',
           type: 'warn',
           name: 'Primary language set',
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), language: null },
         }
   },
 }
-

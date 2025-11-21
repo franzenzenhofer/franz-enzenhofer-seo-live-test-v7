@@ -58,7 +58,11 @@ export const discoverPublishedTimeRule: Rule = {
           message: 'No published time (meta or LD+JSON)',
           type: 'warn',
           name: 'Published time',
+          details: {
+            sourceHtml,
+            snippet: extractSnippet(sourceHtml),
+            domPath: getDomPath(result.element),
+          },
         }
   },
 }
-

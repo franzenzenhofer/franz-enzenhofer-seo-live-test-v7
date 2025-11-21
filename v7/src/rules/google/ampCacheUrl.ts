@@ -25,7 +25,15 @@ export const ampCacheUrlRule: Rule = {
   what: 'static',
   async run(page) {
     const amp = findAmp(page.doc)
-    if (!amp.href) return { label: 'HEAD', message: 'No amphtml link', type: 'info', name: 'AMP Cache URL' }
+    if (!amp.href) {
+      return {
+        label: 'HEAD',
+        message: 'No amphtml link',
+        type: 'info',
+        name: 'AMP Cache URL',
+        details: { sourceHtml: '', snippet: '', tested: 'Checked for <link rel="amphtml">' },
+      }
+    }
 
     const url = ampCache(amp.href)
     const sourceHtml = extractHtml(amp.element)
@@ -47,4 +55,3 @@ export const ampCacheUrlRule: Rule = {
         }
   },
 }
-

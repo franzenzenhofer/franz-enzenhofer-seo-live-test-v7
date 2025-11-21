@@ -15,13 +15,12 @@ export const blockingScriptsRule: Rule = {
       message: s ? `Blocking scripts in head: ${s}` : 'No blocking head scripts',
       type: s ? 'warn' : 'ok',
       name: 'Blocking scripts in head',
-      details: s
-        ? {
-            sourceHtml,
-            snippet: extractSnippet(sourceHtml),
-          }
-        : undefined,
+      details: {
+        sourceHtml,
+        snippet: extractSnippet(sourceHtml),
+        count: s,
+        tested: 'Scanned <head> for sync external scripts',
+      },
     }
   },
 }
-

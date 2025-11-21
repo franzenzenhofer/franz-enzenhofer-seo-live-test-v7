@@ -23,11 +23,17 @@ export const nofollowRule: Rule = {
       }
     }
 
+    const sourceHtml = extractHtmlFromList(a)
     return {
       label: 'BODY',
       message: 'No rel=nofollow links',
       type: 'ok',
       name: 'Nofollow Links',
+      details: {
+        sourceHtml,
+        snippet: extractSnippet(sourceHtml),
+        tested: 'Checked <a> rel values for nofollow',
+      },
     }
   },
 }

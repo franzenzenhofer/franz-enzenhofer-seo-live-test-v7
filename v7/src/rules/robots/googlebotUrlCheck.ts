@@ -12,7 +12,7 @@ export const googlebotUrlCheckRule: Rule = {
     try {
       origin = new URL(page.url).origin
     } catch {
-      return { label: 'ROBOTS', message: 'Invalid URL', type: 'info', name: 'googlebotUrlCheck' }
+      return { label: 'ROBOTS', message: 'Invalid URL', type: 'info', name: 'googlebotUrlCheck', details: { url: page.url } }
     }
     const txt = await fetchTextOnce(`${origin}/robots.txt`)
     if (!txt)
@@ -21,6 +21,7 @@ export const googlebotUrlCheckRule: Rule = {
         message: 'robots.txt not reachable',
         type: 'info',
         name: 'Googlebot URL allowed',
+        details: { origin, robotsTxt: '' },
       }
     const res = parse(txt, page.url, 'Googlebot') as Record<string, unknown>
     const allowed = Boolean(res['allowed'])

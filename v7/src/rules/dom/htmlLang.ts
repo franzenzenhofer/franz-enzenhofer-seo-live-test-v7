@@ -19,7 +19,12 @@ export const htmlLangRule: Rule = {
           name: 'HTML lang attribute',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el) },
         }
-      : { label: 'DOM', message: 'Missing html[lang]', type: 'warn', name: 'htmlLang' }
+      : {
+          label: 'DOM',
+          message: 'Missing html[lang]',
+          type: 'warn',
+          name: 'htmlLang',
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el) },
+        }
   },
 }
-
