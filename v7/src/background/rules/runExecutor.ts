@@ -48,7 +48,13 @@ export const executeRuleBatch = async ({ tabId, run, runState, key, pageUrl, sig
       await chunkSync.append(res)
     }
   }
-  await chunkSync.flush()
+  try {
+    await chunkSync.flush()
+  } catch (err) {
+    hadError = true
+    const reason = err instanceof Error ? err.message : String(err)
+    await log(tabId, `runner:persist-error tab=${tabId} runId=${runState.runId} reason=${reason}`)
+  }
   const stored = ((await chrome.storage.local.get(key))[key] as RuleResult[]) || []
   return { stored, hadError, aborted }
 }
