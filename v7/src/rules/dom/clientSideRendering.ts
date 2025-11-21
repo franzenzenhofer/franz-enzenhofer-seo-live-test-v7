@@ -35,7 +35,13 @@ export const clientSideRenderingRule: Rule = {
           message: 'Server-rendered content likely present',
           type: 'info',
           name: 'Client-side rendering heuristic',
+          details: {
+            sourceHtml,
+            snippet: extractSnippet(sourceHtml),
+            textLength: len,
+            scriptCount: scripts,
+            heavyScriptCount: heavyScripts,
+          },
         }
   },
 }
-

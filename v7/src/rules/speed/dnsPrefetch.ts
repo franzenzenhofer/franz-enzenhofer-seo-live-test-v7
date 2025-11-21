@@ -15,13 +15,12 @@ export const dnsPrefetchRule: Rule = {
       message: n ? `dns-prefetch links: ${n}` : 'No dns-prefetch links',
       type: 'info',
       name: 'rel=dns-prefetch',
-      details: n
-        ? {
-            sourceHtml,
-            snippet: extractSnippet(sourceHtml),
-          }
-        : undefined,
+      details: {
+        sourceHtml,
+        snippet: extractSnippet(sourceHtml),
+        count: n,
+        tested: 'Queried <link rel="dns-prefetch">',
+      },
     }
   },
 }
-

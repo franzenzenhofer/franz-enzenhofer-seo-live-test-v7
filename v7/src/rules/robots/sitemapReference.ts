@@ -16,11 +16,12 @@ export const robotsSitemapReferenceRule: Rule = {
           message: `Skipped: ${url.protocol} URL`,
           type: 'info',
           name: 'robots.txt Sitemap reference',
+          details: { protocol: url.protocol, origin: url.origin || '' },
         }
       }
       origin = url.origin
     } catch {
-      return { label: 'ROBOTS', message: 'Invalid URL', type: 'info', name: 'robotsSitemapReference' }
+      return { label: 'ROBOTS', message: 'Invalid URL', type: 'info', name: 'robotsSitemapReference', details: { url: page.url } }
     }
     const txt = await fetchTextOnce(`${origin}/robots.txt`)
     if (!txt)
@@ -29,6 +30,7 @@ export const robotsSitemapReferenceRule: Rule = {
         message: 'robots.txt not reachable',
         type: 'info',
         name: 'robots.txt Sitemap reference',
+        details: { origin, robotsTxt: '' },
       }
     const has = /\n\s*sitemap\s*:\s*\S+/i.test(`\n${txt}`)
     return {
@@ -40,4 +42,3 @@ export const robotsSitemapReferenceRule: Rule = {
     }
   },
 }
-

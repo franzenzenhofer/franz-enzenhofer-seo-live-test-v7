@@ -52,7 +52,11 @@ export const discoverAuthorPresentRule: Rule = {
           message: 'No author (meta or LD+JSON)',
           type: 'warn',
           name: 'Author present',
+          details: {
+            sourceHtml,
+            snippet: extractSnippet(sourceHtml),
+            domPath: getDomPath(result.element),
+          },
         }
   },
 }
-

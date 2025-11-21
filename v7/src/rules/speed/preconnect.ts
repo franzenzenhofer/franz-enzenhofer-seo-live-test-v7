@@ -15,13 +15,12 @@ export const preconnectRule: Rule = {
       message: n ? `preconnect links: ${n}` : 'No preconnect links',
       type: 'info',
       name: 'rel=preconnect',
-      details: n
-        ? {
-            sourceHtml,
-            snippet: extractSnippet(sourceHtml),
-          }
-        : undefined,
+      details: {
+        sourceHtml,
+        snippet: extractSnippet(sourceHtml),
+        count: n,
+        tested: 'Queried <link rel="preconnect">',
+      },
     }
   },
 }
-

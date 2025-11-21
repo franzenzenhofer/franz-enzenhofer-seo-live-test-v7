@@ -27,12 +27,17 @@ export const imagesLayoutRule: Rule = {
       }
     }
 
+    const allHtml = extractHtmlFromList(imgs)
     return {
       label: 'BODY',
       message: 'All images have dimensions',
       type: 'ok',
       name: 'Images missing dimensions',
+      details: {
+        sourceHtml: allHtml,
+        snippet: extractSnippet(allHtml),
+        tested: 'Checked <img> width/height attributes',
+      },
     }
   },
 }
-

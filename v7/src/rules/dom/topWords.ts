@@ -16,7 +16,7 @@ export const topWordsRule: Rule = {
   what: 'static',
   async run(page) {
     const t = text(page.doc)
-    if (!t) return { label: 'DOM', message: 'No text', type: 'info', name: 'Top words' }
+    if (!t) return { label: 'DOM', message: 'No text', type: 'info', name: 'Top words', details: { textLength: 0 } }
 
     const topFreq = freq(t)
     const f = topFreq.map(([w, c]) => `${w}(${c})`).join(', ')
@@ -30,4 +30,3 @@ export const topWordsRule: Rule = {
     }
   },
 }
-

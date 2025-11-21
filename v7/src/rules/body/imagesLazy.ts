@@ -27,12 +27,17 @@ export const imagesLazyRule: Rule = {
       }
     }
 
+    const allHtml = extractHtmlFromList(imgs)
     return {
       label: 'BODY',
       message: 'Images have loading attribute',
       type: 'ok',
       name: 'Images lazy-loading',
+      details: {
+        sourceHtml: allHtml,
+        snippet: extractSnippet(allHtml),
+        tested: 'Validated <img> elements have loading attribute',
+      },
     }
   },
 }
-

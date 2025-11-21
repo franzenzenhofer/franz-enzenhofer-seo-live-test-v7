@@ -15,13 +15,12 @@ export const linkPreloadRule: Rule = {
       message: n ? `preload links: ${n}` : 'No preload links',
       type: 'info',
       name: 'rel=preload links',
-      details: n
-        ? {
-            sourceHtml,
-            snippet: extractSnippet(sourceHtml),
-          }
-        : undefined,
+      details: {
+        sourceHtml,
+        snippet: extractSnippet(sourceHtml),
+        count: n,
+        tested: 'Queried <link rel="preload">',
+      },
     }
   },
 }
-
