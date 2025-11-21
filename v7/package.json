@@ -1,6 +1,6 @@
 {
   "name": "f19n-obtrusive-livetest-v7",
-  "version": "0.1.717",
+  "version": "0.1.718",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,7 +14,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "test": "vitest run",
+    "test": "node scripts/vitest-runner.mjs",
     "test:watch": "vitest --watch --reporter=dot",
     "test:changed": "vitest --changed --watch --reporter=dot --passWithNoTests",
     "test:e2e": "npm run build:dev && npx playwright test",

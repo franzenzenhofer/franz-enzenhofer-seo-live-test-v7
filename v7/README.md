@@ -70,7 +70,7 @@ Scripts
 
 - `npm run dev` – Vite dev server for hot-reload assets
 - `npm run build` – Build the extension to `dist/`
-- `npm run test` – Run unit tests
+- `npm run test` – Run unit tests (accepts `--filter <pattern>` → `--testNamePattern` and `--runInBand` → single worker)
 - `npm run test:e2e` – Build + run Playwright MV3 tests using headed Chromium (set `PW_EXT_HEADLESS=1` to force headless)
 - `npm run test:e2e:dev` – Run Playwright tests in headed mode (no implicit build)
 - `npm run lint` – ESLint
