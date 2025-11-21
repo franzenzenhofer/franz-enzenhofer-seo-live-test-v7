@@ -1,4 +1,14 @@
-type PSIResult = { lighthouseResult?: { audits?: Record<string, { numericValue?: number }>; categories?: { performance?: { score?: number } } } }
+export type PSIResult = {
+  lighthouseResult?: {
+    audits?: Record<string, { numericValue?: number }>
+    categories?: { performance?: { score?: number } }
+    fetchTime?: string
+    finalDisplayedUrl?: string
+    finalUrl?: string
+    runWarnings?: string[]
+    userAgent?: string
+  }
+}
 
 // Default PSI API key (user can override in settings)
 export const DEFAULT_PSI_KEY = '***REMOVED***' as const
@@ -42,4 +52,3 @@ export const getPSIKey = (userKey: string | null | undefined): string => {
 export const isUsingDefaultPSIKey = (userKey: string | undefined): boolean => {
   return !userKey || userKey.trim() === ''
 }
-

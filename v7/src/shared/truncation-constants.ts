@@ -1,12 +1,6 @@
-/**
- * Truncation limits calculated to prevent Chrome Storage Quota Exceeded errors.
- * Hard limit per item in local storage is ~10MB.
- * 10MB / 100 rules = ~100KB safe limit per rule.
- * We set strict bounds to 64KB to be safe.
- */
 export const TRUNCATION_LIMITS = {
-  // 64KB - Enough for massive JSON-LD or huge HTML blocks, but stops binary blobs
-  HTML_CONTENT: 64000,
+  // 12KB cap keeps per-result payloads lean so two runs fit under storage quotas while still giving inspection context
+  HTML_CONTENT: 12000,
 
   // 2KB - Plenty for debug logs, prevents log flooding attacks
   LOG_MESSAGE: 2000,

@@ -1,5 +1,4 @@
 import { dedupRunner } from './dedup'
-
 export const allowedScheme = (url: string) => {
   const s = (url.split(':', 1)[0] || '').toLowerCase()
   return s === 'http' || s === 'https' || s === 'file'
@@ -44,34 +43,32 @@ export const summarizeEvents = (ev: Array<{ t: string; u?: string }>) => {
   const reqs = ev.filter((e) => e.t === 'req:headers').length
   return { top, navs, reqs }
 }
-
-const withoutPending = <T extends { type?: string }>(list: T[] | undefined) =>
-  Array.isArray(list) ? list.filter((item) => item?.type !== 'pending') : list
-
 type MinimalResult = { name?: string; message?: string; type?: string }
+const RESULTS_BYTE_LIMIT = 4 * 1024 * 1024 // keep well under chrome.storage.local default quotas (~5MB)
+const toBytes = (payload: unknown) => new TextEncoder().encode(JSON.stringify(payload)).length
 
 export const persistResults = async (tabId: number, key: string, prev: MinimalResult[] | undefined, add: MinimalResult[]) => {
   const set = async (arr: MinimalResult[]) => { await chrome.storage.local.set({ [key]: arr }); return arr.length }
+  const replacingIds = new Set(add.map((r) => (r as { ruleId?: string }).ruleId).filter(Boolean))
+  const replacingNames = new Set(add.map((r) => r.name).filter(Boolean))
+
+  // Only remove pending results for rules being replaced, keep all others
+  const prevFiltered = prev?.filter(item => {
+    if (item.type !== 'pending') return true
+    const ruleId = (item as { ruleId?: string }).ruleId
+    if (ruleId && replacingIds.has(ruleId)) return false
+    return !replacingNames.has(item.name)
+  }) || []
+  const merged = dedupRunner([...prevFiltered, ...add])
+  const mergedBytes = toBytes(merged)
+  if (mergedBytes > RESULTS_BYTE_LIMIT) {
+    throw new Error(`Persisted results too large (${mergedBytes} bytes) for ${key}; refusing to overwrite existing runs`)
+  }
+
   try {
-    const replacingIds = new Set(add.map((r) => (r as { ruleId?: string }).ruleId).filter(Boolean))
-    const replacingNames = new Set(add.map((r) => r.name).filter(Boolean))
-
-    // Only remove pending results for rules being replaced, keep all others
-    const prevFiltered = prev?.filter(item => {
-      if (item.type !== 'pending') return true
-      const ruleId = (item as { ruleId?: string }).ruleId
-      if (ruleId && replacingIds.has(ruleId)) return false
-      return !replacingNames.has(item.name)
-    }) || []
-
-    const merged = dedupRunner([...prevFiltered, ...add])
     return await set(merged)
-  } catch {
-    // Quota exceeded or similar. Fallbacks: latest only, then last <=100
-    const cleanAdd = withoutPending(add) || []
-    try { return await set(cleanAdd) } catch {
-      const keep = cleanAdd.slice(-Math.max(10, Math.min(100, cleanAdd.length)))
-      return await set(keep)
-    }
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err)
+    throw new Error(`Failed to persist results for ${key}: ${reason}`)
   }
 }

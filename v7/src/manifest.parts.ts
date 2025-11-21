@@ -4,6 +4,7 @@ export const PERMISSIONS: string[] = [
   'sidePanel',
   'offscreen',
   'storage',
+  'unlimitedStorage',
   'tabs',
   'scripting',
   'activeTab',
