@@ -97,6 +97,7 @@ Notes
 
 - Default rules are seeded on install (see `src/background/rules/index.ts`). Add more via storage or extend the importer.
 - Offscreen document is created on demand to run rules and stays entirely separate from the SW.
+- DOM paths from rule results are used only for on-page highlighting; they are not rendered in the side panel.
 
 Real-data rule coverage
 -----------------------
