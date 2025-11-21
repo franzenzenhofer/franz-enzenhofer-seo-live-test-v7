@@ -64,16 +64,14 @@ test('runtime filtering: multiple runs show only current run results', async () 
     await panel.goto(sidePanelUrl)
 
     console.log('[DEBUG] First run - waiting for results...')
-    await panel.waitForSelector('article.border.rounded', { timeout: 15_000 })
+    await panel.waitForSelector('text=Franz Enzenhofer SEO Live Test', { timeout: 10_000 })
+    await panel.waitForSelector('[data-testid="result-card"]', { timeout: 25_000 })
 
-    const firstRunId = await panel.evaluate(() => {
-      const runIdEl = document.querySelector('[title^="run-"]')
-      return runIdEl?.getAttribute('title') || null
-    })
+    const firstRunId = await panel.evaluate(() => document.querySelector('[title^="run-"]')?.getAttribute('title') || null)
     console.log('[DEBUG] First run ID:', firstRunId)
     expect(firstRunId).not.toBeNull()
 
-    const firstRunResults = await panel.locator('article.border.rounded').count()
+    const firstRunResults = await panel.locator('[data-testid="result-card"]').count()
     console.log('[DEBUG] First run results count:', firstRunResults)
     expect(firstRunResults).toBeGreaterThan(0)
 
@@ -100,7 +98,7 @@ test('runtime filtering: multiple runs show only current run results', async () 
     let secondRunResults = 0
     for (let i = 0; i < 30; i++) {
       await panel.waitForTimeout(500)
-      secondRunResults = await panel.locator('article.border.rounded').count()
+      secondRunResults = await panel.locator('[data-testid="result-card"]').count()
       console.log(`[DEBUG] Second run results after ${(i + 1) * 500}ms:`, secondRunResults)
       if (secondRunResults >= firstRunResults * 0.9) break
     }
