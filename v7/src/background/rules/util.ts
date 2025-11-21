@@ -44,7 +44,7 @@ export const summarizeEvents = (ev: Array<{ t: string; u?: string }>) => {
   return { top, navs, reqs }
 }
 type MinimalResult = { name?: string; message?: string; type?: string }
-const RESULTS_BYTE_LIMIT = 4 * 1024 * 1024 // keep well under chrome.storage.local default quotas (~5MB)
+const RESULTS_BYTE_LIMIT = 16 * 1024 * 1024 // generous headroom with unlimitedStorage while preventing runaway payloads
 const toBytes = (payload: unknown) => new TextEncoder().encode(JSON.stringify(payload)).length
 
 export const persistResults = async (tabId: number, key: string, prev: MinimalResult[] | undefined, add: MinimalResult[]) => {
