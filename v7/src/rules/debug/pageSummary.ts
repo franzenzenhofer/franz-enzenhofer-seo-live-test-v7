@@ -1,6 +1,8 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
+const SPEC = 'https://html.spec.whatwg.org/multipage/semantics.html#the-title-element'
+
 export const pageSummaryRule: Rule = {
   id: 'debug:page-summary',
   name: 'Page summary (debug)',
@@ -24,8 +26,8 @@ export const pageSummaryRule: Rule = {
         domPath: getDomPath(titleEl),
         headers: page.headers,
         resourceCount: res,
+        reference: SPEC,
       },
     }
   },
 }
-

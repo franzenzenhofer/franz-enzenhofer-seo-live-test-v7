@@ -2,6 +2,8 @@ import parse from '@/vendor/robots'
 import type { Rule } from '@/core/types'
 import { fetchTextOnce } from '@/shared/fetchOnce'
 
+const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt'
+
 export const googlebotUrlCheckRule: Rule = {
   id: 'robots:googlebot-url-check',
   name: 'Googlebot URL allowed',
@@ -12,7 +14,7 @@ export const googlebotUrlCheckRule: Rule = {
     try {
       origin = new URL(page.url).origin
     } catch {
-      return { label: 'ROBOTS', message: 'Invalid URL', type: 'info', name: 'googlebotUrlCheck', details: { url: page.url } }
+      return { label: 'ROBOTS', message: 'Invalid URL', type: 'info', name: 'googlebotUrlCheck', details: { url: page.url, reference: SPEC } }
     }
     const txt = await fetchTextOnce(`${origin}/robots.txt`)
     if (!txt)
@@ -21,7 +23,7 @@ export const googlebotUrlCheckRule: Rule = {
         message: 'robots.txt not reachable',
         type: 'info',
         name: 'Googlebot URL allowed',
-        details: { origin, robotsTxt: '' },
+        details: { origin, robotsTxt: '', reference: SPEC },
       }
     const res = parse(txt, page.url, 'Googlebot') as Record<string, unknown>
     const allowed = Boolean(res['allowed'])
@@ -30,7 +32,7 @@ export const googlebotUrlCheckRule: Rule = {
       message: allowed ? 'Googlebot is allowed' : 'Googlebot is disallowed',
       type: allowed ? 'ok' : 'warn',
       name: 'Googlebot URL allowed',
-      details: { robotsTxt: txt },
+      details: { robotsTxt: txt, reference: SPEC },
     }
   },
 }

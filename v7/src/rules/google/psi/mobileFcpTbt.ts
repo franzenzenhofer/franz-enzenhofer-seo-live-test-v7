@@ -1,4 +1,4 @@
-import { extractPSIKey } from '../google-utils'
+import { extractPSIKey, PSI_API_REFERENCE } from '../google-utils'
 
 import { summarizePSI } from './summary'
 
@@ -26,7 +26,7 @@ export const psiMobileFcpTbtRule: Rule = {
       message: parts.join(', ') || 'Metrics unavailable',
       type: 'info',
       name: NAME,
-      details: summary,
+      details: { ...summary, reference: PSI_API_REFERENCE },
     }
   },
 }

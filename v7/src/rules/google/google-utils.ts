@@ -10,6 +10,9 @@ export interface GoogleCredentials {
   vars: Record<string, unknown>
 }
 
+export const GSC_API_REFERENCE = 'https://developers.google.com/webmaster-tools/search-console-api-original/v3/how-tos/search_analytics'
+export const PSI_API_REFERENCE = 'https://developers.google.com/speed/docs/insights/v5/about'
+
 export const extractGoogleCredentials = (ctx: Ctx): GoogleCredentials => {
   const token = (ctx.globals as { googleApiAccessToken?: string | null }).googleApiAccessToken || null
   const vars = (ctx.globals as { variables?: Record<string, unknown> }).variables || {}
@@ -23,6 +26,7 @@ export const createNoTokenResult = (label = 'GSC', name = 'googleRule') => {
     type: 'runtime_error' as const,
     name,
     priority: -1000,
+    details: { reference: GSC_API_REFERENCE },
   }
 }
 
@@ -39,5 +43,6 @@ export const createPSIKeyMissingResult = () => {
     type: 'runtime_error' as const,
     name: 'googleRule',
     priority: -1000,
+    details: { reference: PSI_API_REFERENCE },
   }
 }

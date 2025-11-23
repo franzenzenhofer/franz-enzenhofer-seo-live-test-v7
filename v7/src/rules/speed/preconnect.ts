@@ -1,6 +1,8 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
+const SPEC = 'https://web.dev/uses-rel-preconnect/'
+
 export const preconnectRule: Rule = {
   id: 'speed:preconnect',
   name: 'rel=preconnect',
@@ -20,6 +22,7 @@ export const preconnectRule: Rule = {
         snippet: extractSnippet(sourceHtml),
         count: n,
         tested: 'Queried <link rel="preconnect">',
+        reference: SPEC,
       },
     }
   },

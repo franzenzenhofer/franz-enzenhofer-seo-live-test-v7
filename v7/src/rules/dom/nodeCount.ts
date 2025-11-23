@@ -1,5 +1,7 @@
 import type { Rule } from '@/core/types'
 
+const SPEC = 'https://developer.chrome.com/docs/lighthouse/performance/dom-size'
+
 const count = (root: Node): number => {
   let c = 0
   const stack: Node[] = [root]
@@ -27,8 +29,7 @@ export const nodeCountRule: Rule = {
       message: `Node count: ${n}`,
       type: 'info',
       name: 'DOM node count',
-      details: { nodeCount: n },
+      details: { nodeCount: n, reference: SPEC },
     }
   },
 }
-

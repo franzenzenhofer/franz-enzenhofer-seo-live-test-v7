@@ -1,4 +1,4 @@
-import { extractPSIKey } from '../google-utils'
+import { extractPSIKey, PSI_API_REFERENCE } from '../google-utils'
 
 import { summarizePSI } from './summary'
 
@@ -17,6 +17,6 @@ export const psiDesktopRule: Rule = {
     const key = getPSIKey(userKey)
     const j = await runPSI(page.url, 'desktop', key)
     const summary = summarizePSI(j, page.url, 'desktop')
-    return { label: 'PSI', message: `Desktop performance: ${summary.score}`, type: 'info', name: NAME, details: summary }
+    return { label: 'PSI', message: `Desktop performance: ${summary.score}`, type: 'info', name: NAME, details: { ...summary, reference: PSI_API_REFERENCE } }
   },
 }

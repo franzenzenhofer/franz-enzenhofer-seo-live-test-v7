@@ -1,6 +1,8 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
+const SPEC = 'https://developers.google.com/search/docs/appearance/google-discover/appearance#page-content'
+
 export const discoverHeadlineLengthRule: Rule = {
   id: 'discover:headline-length',
   name: 'Headline length',
@@ -12,7 +14,13 @@ export const discoverHeadlineLengthRule: Rule = {
     const n = h.length
 
     if (!n) {
-      return { label: 'DISCOVER', message: 'No <h1> tag found', type: 'warn', name: 'Headline length' }
+      return {
+        label: 'DISCOVER',
+        message: 'No <h1> tag found',
+        type: 'warn',
+        name: 'Headline length',
+        details: { reference: SPEC },
+      }
     }
 
     const sourceHtml = extractHtml(el)
@@ -24,15 +32,14 @@ export const discoverHeadlineLengthRule: Rule = {
           message: `Headline length ${n} chars (>=20)`,
           type: 'ok',
           name: 'Headline length',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), headline: h },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), headline: h, reference: SPEC },
         }
       : {
           label: 'DISCOVER',
           message: `Headline short: ${n} chars (<20)`,
           type: 'info',
           name: 'Headline length',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), headline: h },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), headline: h, reference: SPEC },
         }
   },
 }
-

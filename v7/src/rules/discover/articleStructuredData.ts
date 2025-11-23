@@ -1,6 +1,8 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
+const SPEC = 'https://developers.google.com/search/docs/appearance/structured-data/article'
+
 const findArticle = (doc: Document) => {
   const scripts = Array.from(doc.querySelectorAll('script[type="application/ld+json"]'))
   const articleScripts: Element[] = []
@@ -38,7 +40,7 @@ export const discoverArticleStructuredDataRule: Rule = {
           message: 'Article/NewsArticle structured data present',
           type: 'ok',
           name: 'Article structured data',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml) },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), reference: SPEC },
         }
       : {
           label: 'DISCOVER',
@@ -50,6 +52,7 @@ export const discoverArticleStructuredDataRule: Rule = {
             snippet: extractSnippet(sourceHtml),
             scriptsFound: result.scripts.length,
             tested: 'Searched for Article/NewsArticle JSON-LD scripts',
+            reference: SPEC,
           },
         }
   },

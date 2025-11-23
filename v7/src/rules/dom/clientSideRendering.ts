@@ -1,6 +1,8 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
+const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics'
+
 const textLen = (d: Document) => (d.body?.innerText || '').replace(/\s+/g, ' ').trim().length
 
 export const clientSideRenderingRule: Rule = {
@@ -28,6 +30,7 @@ export const clientSideRenderingRule: Rule = {
             textLength: len,
             scriptCount: scripts,
             heavyScriptCount: heavyScripts,
+            reference: SPEC,
           },
         }
       : {
@@ -41,6 +44,7 @@ export const clientSideRenderingRule: Rule = {
             textLength: len,
             scriptCount: scripts,
             heavyScriptCount: heavyScripts,
+            reference: SPEC,
           },
         }
   },

@@ -1,6 +1,8 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
+const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag'
+
 const checkNoindex = (doc: Document, headers?: Record<string, string>) => {
   const metaEl = doc.querySelector('meta[name="robots"]')
   const robots = (metaEl?.getAttribute('content') || '').toLowerCase()
@@ -30,6 +32,7 @@ export const discoverIndexableRule: Rule = {
             snippet: extractSnippet(sourceHtml),
             domPath: getDomPath(result.element),
             xRobotsTag: result.xRobots,
+            reference: SPEC,
           },
         }
       : {
@@ -42,6 +45,7 @@ export const discoverIndexableRule: Rule = {
             snippet: extractSnippet(sourceHtml),
             domPath: getDomPath(result.element),
             xRobotsTag: result.xRobots,
+            reference: SPEC,
           },
         }
   },

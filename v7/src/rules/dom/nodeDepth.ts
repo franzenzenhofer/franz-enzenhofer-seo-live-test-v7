@@ -1,5 +1,7 @@
 import type { Rule } from '@/core/types'
 
+const SPEC = 'https://developer.chrome.com/docs/lighthouse/performance/dom-size'
+
 const depth = (root: Element): number => {
   if (!root) return 0
   let max = 1
@@ -28,8 +30,7 @@ export const nodeDepthRule: Rule = {
       message: `Max depth: ${d}`,
       type: 'info',
       name: 'DOM node depth',
-      details: { maxDepth: d },
+      details: { maxDepth: d, reference: SPEC },
     }
   },
 }
-
