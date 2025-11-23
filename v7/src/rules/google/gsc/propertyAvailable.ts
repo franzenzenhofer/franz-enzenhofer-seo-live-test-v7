@@ -1,4 +1,4 @@
-import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
+import { extractGoogleCredentials, createNoTokenResult, GSC_API_REFERENCE } from '../google-utils'
 import { deriveGscProperty } from '../google-gsc-utils'
 
 import type { Rule } from '@/core/types'
@@ -31,6 +31,7 @@ export const gscPropertyAvailableRule: Rule = {
           hostname: parsedUrl.hostname,
           triedUrlPrefix: `${parsedUrl.origin}/`,
           triedDomain: `sc-domain:${domain}`,
+          reference: GSC_API_REFERENCE,
         },
       }
     }
@@ -44,6 +45,7 @@ export const gscPropertyAvailableRule: Rule = {
         url: page.url,
         property,
         propertyType,
+        reference: GSC_API_REFERENCE,
       },
     }
   },

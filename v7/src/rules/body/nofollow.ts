@@ -1,6 +1,8 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
+const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/qualify-outbound-links'
+
 export const nofollowRule: Rule = {
   id: 'body:nofollow',
   name: 'Nofollow Links',
@@ -19,6 +21,7 @@ export const nofollowRule: Rule = {
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),
+          reference: SPEC,
         },
       }
     }
@@ -33,6 +36,7 @@ export const nofollowRule: Rule = {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),
         tested: 'Checked <a> rel values for nofollow',
+        reference: SPEC,
       },
     }
   },

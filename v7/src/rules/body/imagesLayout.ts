@@ -1,6 +1,8 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
+const SPEC = 'https://web.dev/cls/#images-without-dimensions'
+
 export const imagesLayoutRule: Rule = {
   id: 'body:images-layout',
   name: 'Images missing dimensions',
@@ -23,6 +25,7 @@ export const imagesLayoutRule: Rule = {
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),
+          reference: SPEC,
         },
       }
     }
@@ -37,6 +40,7 @@ export const imagesLayoutRule: Rule = {
         sourceHtml: allHtml,
         snippet: extractSnippet(allHtml),
         tested: 'Checked <img> width/height attributes',
+        reference: SPEC,
       },
     }
   },

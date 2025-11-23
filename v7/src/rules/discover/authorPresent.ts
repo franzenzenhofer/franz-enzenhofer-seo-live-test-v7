@@ -1,6 +1,8 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 
+const SPEC = 'https://developers.google.com/search/docs/appearance/structured-data/article#author'
+
 const findAuthor = (d: Document) => {
   const metaEl = d.querySelector('meta[name="author"]')
   const metaContent = (metaEl?.getAttribute('content') || '').trim()
@@ -45,6 +47,7 @@ export const discoverAuthorPresentRule: Rule = {
             sourceHtml,
             snippet: extractSnippet(sourceHtml),
             domPath: getDomPath(result.element),
+            reference: SPEC,
           },
         }
       : {
@@ -56,6 +59,7 @@ export const discoverAuthorPresentRule: Rule = {
             sourceHtml,
             snippet: extractSnippet(sourceHtml),
             domPath: getDomPath(result.element),
+            reference: SPEC,
           },
         }
   },

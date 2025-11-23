@@ -1,6 +1,8 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet, getDomPath } from '@/shared/html-utils'
 
+const SPEC = 'https://web.dev/html-has-lang/'
+
 export const discoverPrimaryLanguageRule: Rule = {
   id: 'discover:primary-language',
   name: 'Primary language set',
@@ -17,14 +19,14 @@ export const discoverPrimaryLanguageRule: Rule = {
           message: `html[lang] set to '${lang}'`,
           type: 'info',
           name: 'Primary language set',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), language: lang },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), language: lang, reference: SPEC },
         }
       : {
           label: 'DISCOVER',
           message: 'Missing lang attribute on <html> tag',
           type: 'warn',
           name: 'Primary language set',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), language: null },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), language: null, reference: SPEC },
         }
   },
 }

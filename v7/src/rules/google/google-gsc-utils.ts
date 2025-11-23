@@ -3,6 +3,8 @@
  * Auto-derives GSC property from test URL
  */
 
+import { GSC_API_REFERENCE } from './google-utils'
+
 // Session cache for GSC property derivation (per hostname)
 const propertyCache = new Map<string, { property: string; type: 'url-prefix' | 'domain' }>()
 
@@ -87,7 +89,8 @@ export const createGscPropertyDerivationFailedResult = (url: string) => {
       url,
       hostname: parsedUrl.hostname,
       triedUrlPrefix: `${parsedUrl.origin}/`,
-      triedDomain: `sc-domain:${domain}`
+      triedDomain: `sc-domain:${domain}`,
+      reference: GSC_API_REFERENCE
     }
   }
 }

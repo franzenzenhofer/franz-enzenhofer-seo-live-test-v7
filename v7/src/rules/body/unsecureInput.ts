@@ -1,6 +1,8 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
+const SPEC = 'https://developer.mozilla.org/en-US/docs/Web/Security/Insecure_passwords'
+
 export const unsecureInputRule: Rule = {
   id: 'body:unsecure-input',
   name: 'Unsecure input over HTTP',
@@ -20,7 +22,7 @@ export const unsecureInputRule: Rule = {
         message: 'Page not HTTP',
         type: 'info',
         name: 'Unsecure input over HTTP',
-        details: { protocol: proto || 'unknown', tested: 'Only flags password inputs on HTTP pages' },
+        details: { protocol: proto || 'unknown', tested: 'Only flags password inputs on HTTP pages', reference: SPEC },
       }
     }
 
@@ -35,6 +37,7 @@ export const unsecureInputRule: Rule = {
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),
+          reference: SPEC,
         },
       }
     }
@@ -44,7 +47,7 @@ export const unsecureInputRule: Rule = {
       message: 'No password inputs over HTTP',
       type: 'ok',
       name: 'Unsecure input over HTTP',
-      details: { protocol: proto || 'http:', count: pwdInputs.length, tested: 'Searched for <input type="password"> over HTTP' },
+      details: { protocol: proto || 'http:', count: pwdInputs.length, tested: 'Searched for <input type="password"> over HTTP', reference: SPEC },
     }
   },
 }

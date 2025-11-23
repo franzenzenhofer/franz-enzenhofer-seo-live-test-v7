@@ -1,6 +1,8 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet, getDomPath } from '@/shared/html-utils'
 
+const SPEC = 'https://web.dev/html-has-lang/'
+
 export const htmlLangRule: Rule = {
   id: 'dom:html-lang',
   name: 'HTML lang attribute',
@@ -17,14 +19,14 @@ export const htmlLangRule: Rule = {
           message: `lang=${lang}`,
           type: 'info',
           name: 'HTML lang attribute',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el) },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), reference: SPEC },
         }
       : {
           label: 'DOM',
           message: 'Missing html[lang]',
           type: 'warn',
           name: 'htmlLang',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el) },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), reference: SPEC },
         }
   },
 }

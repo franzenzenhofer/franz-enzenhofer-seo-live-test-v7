@@ -1,6 +1,8 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
+const SPEC = 'https://web.dev/browser-level-image-lazy-loading/'
+
 export const imagesLazyRule: Rule = {
   id: 'body:images-lazy',
   name: 'Images lazy-loading',
@@ -23,6 +25,7 @@ export const imagesLazyRule: Rule = {
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),
+          reference: SPEC,
         },
       }
     }
@@ -37,6 +40,7 @@ export const imagesLazyRule: Rule = {
         sourceHtml: allHtml,
         snippet: extractSnippet(allHtml),
         tested: 'Validated <img> elements have loading attribute',
+        reference: SPEC,
       },
     }
   },

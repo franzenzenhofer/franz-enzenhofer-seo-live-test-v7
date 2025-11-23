@@ -1,6 +1,8 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
+const SPEC = 'https://developer.chrome.com/docs/lighthouse/performance/render-blocking-resources'
+
 export const blockingScriptsRule: Rule = {
   id: 'speed:blocking-scripts',
   name: 'Blocking scripts in head',
@@ -20,6 +22,7 @@ export const blockingScriptsRule: Rule = {
         snippet: extractSnippet(sourceHtml),
         count: s,
         tested: 'Scanned <head> for sync external scripts',
+        reference: SPEC,
       },
     }
   },
