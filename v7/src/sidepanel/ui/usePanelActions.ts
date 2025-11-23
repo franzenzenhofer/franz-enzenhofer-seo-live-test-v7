@@ -7,7 +7,7 @@ import { getActiveTabId } from '@/shared/chrome'
 
 type LogFn = (action: string, data?: Record<string, unknown>) => void
 
-export const usePanelActions = (logUi: LogFn) => {
+export const usePanelActions = (logUi: LogFn, activeRunId?: string | null) => {
   const runNow = () => {
     logUi('action:run-now')
     executeRunNow().catch((err) => {
@@ -37,7 +37,7 @@ export const usePanelActions = (logUi: LogFn) => {
       return
     }
     const meta = await import('@/shared/runMeta').then((m) => m.readRunMeta(tabId))
-    const runId = meta?.runId
+    const runId = meta?.runId || activeRunId || null
     logUi('action:open-report', { tabId, runId: runId || 'none' })
     const base = chrome.runtime.getURL('src/report.html')
     const url = runId ? `${base}?runid=${runId}` : base

@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 
 import { NoResults } from './NoResults'
 import { usePinnedRules, ruleKeyOf } from './usePinnedRules'
+import { useRuleFlags } from './useRuleFlags'
 import type { LogFn } from './usePanelLogger'
 
 import { ResultCard } from '@/components/result/ResultCard'
@@ -28,15 +29,10 @@ export const Results = ({
   defaultExpanded?: boolean
 }) => {
   const { pinned, togglePin } = usePinnedRules()
+  const { flags, toggleFlag } = useRuleFlags()
   const filtered = useMemo(() => items.filter((i) => {
-    // Handle "unconfigured" type filter
-    if (types && types.includes('unconfigured')) {
-      if (!isResultUnconfigured(i)) return false
-    } else if (types) {
-      // Regular type filter (exclude unconfigured check)
-      if (!types.includes(i.type)) return false
-    }
-
+    if (types?.includes('unconfigured')) return isResultUnconfigured(i)
+    if (types && !types.includes(i.type)) return false
     if (q && !`${i.label} ${i.message}`.toLowerCase().includes(q.toLowerCase())) return false
     return true
   }), [items, types, q])
@@ -56,6 +52,7 @@ export const Results = ({
     <div className="space-y-2">
       {sorted.map((r, i) => {
         const key = ruleKeyOf(r)
+        const disabled = r.ruleId ? flags[r.ruleId] === false : false
         return (
           <ResultCard
             key={`${key || r.label}-${i}`}
@@ -63,6 +60,8 @@ export const Results = ({
             index={items.indexOf(r)}
             isPinned={Boolean(key && pinned[key])}
             onTogglePin={key ? () => togglePin(key) : undefined}
+            isDisabled={disabled}
+            onToggleDisable={r.ruleId ? () => toggleFlag(r.ruleId!) : undefined}
             defaultExpanded={defaultExpanded}
             tabId={tabId}
             logUi={logUi}

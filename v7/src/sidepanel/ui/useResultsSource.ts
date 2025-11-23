@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 
 import { getActiveTabId } from '@/shared/chrome'
-import { readResults, watchResults, filterResultsByRunId, type Result } from '@/shared/results'
+import { readResults, watchResults, filterResultsByRunId, latestRunId, type Result } from '@/shared/results'
 import { readRunMeta, watchRunMeta, type RunMeta } from '@/shared/runMeta'
 import { Logger } from '@/shared/logger'
 
 export const useResultsSource = () => {
   const [tabId, setTabId] = useState<number | null>(null)
-  const [items, setItems] = useState<Result[]>([])
+  const [rawItems, setRawItems] = useState<Result[]>([])
   const [meta, setMeta] = useState<RunMeta | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -33,11 +33,11 @@ export const useResultsSource = () => {
     }
   }, [])
   useEffect(() => {
-    if (!tabId) { setItems([]); return }
+    if (!tabId) { setRawItems([]); return }
     Logger.setTabId(tabId)
     let unsub: (() => void) | null = null
-    void readResults(tabId).then(setItems).catch(() => { setItems([]) }).finally(() => { setLoading(false) })
-    unsub = watchResults(tabId, setItems)
+    void readResults(tabId).then(setRawItems).catch(() => { setRawItems([]) }).finally(() => { setLoading(false) })
+    unsub = watchResults(tabId, setRawItems)
     return () => { unsub?.() }
   }, [tabId, refreshKey])
   useEffect(() => {
@@ -52,5 +52,19 @@ export const useResultsSource = () => {
     void boot()
     return () => { cancelled = true; unsub?.() }
   }, [tabId, refreshKey])
-  return { tabId, items: filterResultsByRunId(items, meta?.runId), meta, loading }
+  const activeRunId = meta?.runId || latestRunId(rawItems) || undefined
+  const filtered = filterResultsByRunId(rawItems, activeRunId)
+  useEffect(() => {
+    if (!tabId || meta?.runId || !activeRunId) return
+    Logger.logDirectSend(tabId, 'ui', 'results:derived-runid', { runId: activeRunId, source: 'results-only' })
+  }, [tabId, meta?.runId, activeRunId])
+  useEffect(() => {
+    if (!tabId) return
+    Logger.logDirectSend(tabId, 'ui', 'results:filter', {
+      runId: activeRunId || 'none',
+      raw: rawItems.length,
+      filtered: filtered.length,
+    })
+  }, [tabId, activeRunId, rawItems.length, filtered.length])
+  return { tabId, items: filtered, meta, loading, rawCount: rawItems.length, activeRunId }
 }

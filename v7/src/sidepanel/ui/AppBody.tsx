@@ -9,9 +9,9 @@ import { PanelHeader } from './PanelHeader'
 import type { Result } from '@/shared/results'
 import type { RunMeta } from '@/shared/runMeta'
 import { createDefaultTypeVisibility } from '@/shared/resultFilterState'
-
 export const AppBody = ({
   meta,
+  runId,
   show,
   setShow,
   query,
@@ -26,6 +26,7 @@ export const AppBody = ({
   logUi,
 }: {
   meta: RunMeta | null
+  runId?: string | null
   show: Record<string, boolean>
   setShow: Dispatch<SetStateAction<Record<string, boolean>>>
   query: string
@@ -40,16 +41,12 @@ export const AppBody = ({
   logUi?: (action: string, data?: Record<string, unknown>) => void
 }) => {
   const parsed = useFilterParser(query)
-  const resetFilters = () => {
-    setShow(() => createDefaultTypeVisibility())
-    setQuery('')
-  }
-
+  const resetFilters = () => { setShow(() => createDefaultTypeVisibility()); setQuery('') }
   return (
     <div className="dt-panel w-[360px]">
       <PanelHeader
         url={meta?.url || ''}
-        runId={meta?.runId}
+        runId={runId || meta?.runId}
         ranAt={meta?.ranAt}
         onOpenReport={onOpenReport}
         onClean={onClean}

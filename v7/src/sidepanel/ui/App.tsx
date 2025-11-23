@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { Shortcuts } from './Shortcuts'
 import { AppBody } from './AppBody'
@@ -14,12 +14,13 @@ import { createDefaultTypeVisibility } from '@/shared/resultFilterState'
 export const App = () => {
   const [show, setShow] = useState<Record<string, boolean>>(() => createDefaultTypeVisibility())
   const [query, setQuery] = useState('')
-  const { items, meta, loading } = useResultsSource()
+  const { items, meta, loading, tabId, rawCount, activeRunId } = useResultsSource()
   const [debugEnabled] = useDebugFlag()
-  const logUi = usePanelLogger(items.length)
+  const logUi = usePanelLogger(tabId)
   usePanelBootstrap(logUi)
-  useResultsLogger(logUi, items.length)
-  const { runNow, clean, openSettings, openReport, openLogs } = usePanelActions(logUi)
+  const resultsLogData = useMemo(() => ({ filtered: items.length, raw: rawCount, runId: activeRunId || 'none' }), [items.length, rawCount, activeRunId])
+  useResultsLogger(logUi, resultsLogData)
+  const { runNow, clean, openSettings, openReport, openLogs } = usePanelActions(logUi, activeRunId)
 
   if (loading) {
     return <p className="p-3">Loading…</p>
@@ -37,6 +38,7 @@ export const App = () => {
       <Shortcuts runNow={runNow} clean={clean} openLogs={openLogs} openSettings={openSettings} logsEnabled={debugEnabled} />
       <AppBody
         meta={meta}
+        runId={activeRunId}
         show={show}
         setShow={setShow}
         query={query}
@@ -47,7 +49,7 @@ export const App = () => {
         onOpenLogs={openLogs}
         onOpenReport={openReport}
         results={items}
-        tabId={-1}
+        tabId={tabId}
         logUi={logUi}
       />
     </>
