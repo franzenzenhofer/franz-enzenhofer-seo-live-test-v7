@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="280" viewBox="0 0 440 280">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a73e8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#34a853;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.05" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="440" height="280" fill="url(#bgGrad)"/>
+
+  <!-- Icon on the left -->
+  <g transform="translate(40, 90)">
+    <rect width="100" height="100" rx="20" fill="#ffffff" opacity="0.95"/>
+    <!-- Magnifying glass handle -->
+    <rect x="71" y="71" width="6" height="24" rx="3" fill="#1a73e8" transform="rotate(45 74 83)"/>
+    <!-- Magnifying glass circle -->
+    <circle cx="55" cy="55" r="21" fill="none" stroke="#1a73e8" stroke-width="4.5"/>
+    <!-- Code brackets -->
+    <g transform="translate(55, 55)">
+      <path d="M -7.5,-9 L -12,-9 L -12,9 L -7.5,9" fill="none" stroke="#1a73e8" stroke-width="2.25" stroke-linecap="round"/>
+      <path d="M 7.5,-9 L 12,-9 L 12,9 L 7.5,9" fill="none" stroke="#1a73e8" stroke-width="2.25" stroke-linecap="round"/>
+      <circle cx="0" cy="-4.5" r="1.125" fill="#1a73e8"/>
+      <circle cx="0" cy="0" r="1.125" fill="#1a73e8"/>
+      <circle cx="0" cy="4.5" r="1.125" fill="#1a73e8"/>
+    </g>
+    <!-- Checkmark -->
+    <circle cx="84" cy="36" r="10.5" fill="#34a853"/>
+    <path d="M 79.5,36 L 82.5,39 L 88.5,33" fill="none" stroke="#ffffff" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Text content -->
+  <g>
+    <!-- Title -->
+    <text x="170" y="110" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#ffffff">
+      F19N SEO Live Test
+    </text>
+
+    <!-- Subtitle -->
+    <text x="170" y="145" font-family="Arial, sans-serif" font-size="18" fill="#ffffff" opacity="0.95">
+      Professional SEO Testing &amp; Analysis
+    </text>
+
+    <!-- Features -->
+    <g font-family="Arial, sans-serif" font-size="14" fill="#ffffff" opacity="0.9">
+      <text x="170" y="180">✓ 100+ Real-time SEO Checks</text>
+      <text x="170" y="205">✓ PageSpeed Insights Integration</text>
+      <text x="170" y="230">✓ Search Console Analytics</text>
+    </g>
+  </g>
+
+  <!-- Decorative elements -->
+  <circle cx="400" cy="40" r="30" fill="#ffffff" opacity="0.1"/>
+  <circle cx="420" cy="250" r="20" fill="#ffffff" opacity="0.08"/>
+</svg>
