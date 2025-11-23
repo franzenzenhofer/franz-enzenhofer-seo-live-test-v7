@@ -1,4 +1,5 @@
 import { CopyButton } from './CopyButton'
+import { ResultActionsMenu } from './ResultActionsMenu'
 
 import type { Result } from '@/shared/results'
 
@@ -7,11 +8,14 @@ type Props = {
   index?: number
   isPinned?: boolean
   onTogglePin?: () => void
+  onToggleDisable?: () => void
   canToggleDetails: boolean
   open: boolean
   onToggleDetails?: () => void
   dotClass: string
   copyContent: string
+  disabled?: boolean
+  onOpenReport?: () => void
 }
 
 export const ResultHeader = ({
@@ -19,11 +23,14 @@ export const ResultHeader = ({
   index,
   isPinned,
   onTogglePin,
+  onToggleDisable,
   canToggleDetails,
   open,
   onToggleDetails,
   dotClass,
   copyContent,
+  disabled,
+  onOpenReport,
 }: Props) => {
   return (
     <header className="flex items-center gap-2 text-xs">
@@ -39,16 +46,6 @@ export const ResultHeader = ({
       {typeof index === 'number' && (
         <span className="text-[10px] text-slate-500">#{index + 1}</span>
       )}
-      {onTogglePin && (
-        <button
-          type="button"
-          className={`text-sm ${isPinned ? 'text-yellow-500' : 'text-slate-400'} hover:text-yellow-500`}
-          onClick={onTogglePin}
-          title={isPinned ? 'Unpin rule' : 'Pin rule'}
-        >
-          {isPinned ? '★' : '☆'}
-        </button>
-      )}
       <div className="flex items-center gap-1">
         {canToggleDetails && (
         <button
@@ -60,6 +57,13 @@ export const ResultHeader = ({
         </button>
         )}
         <CopyButton content={copyContent} />
+        <ResultActionsMenu
+          isPinned={isPinned}
+          disabled={disabled}
+          onTogglePin={onTogglePin}
+          onToggleDisable={onToggleDisable}
+          onOpenReport={onOpenReport}
+        />
       </div>
     </header>
   )
