@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="680" viewBox="0 0 920 680">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a73e8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#34a853;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="920" height="680" fill="url(#bgGrad)"/>
+
+  <!-- Large icon at top -->
+  <g transform="translate(360, 60)">
+    <rect width="200" height="200" rx="40" fill="#ffffff" opacity="0.95" filter="url(#shadow)"/>
+    <!-- Magnifying glass handle -->
+    <rect x="142" y="142" width="12" height="48" rx="6" fill="#1a73e8" transform="rotate(45 148 166)"/>
+    <!-- Magnifying glass circle -->
+    <circle cx="110" cy="110" r="42" fill="none" stroke="#1a73e8" stroke-width="9"/>
+    <!-- Code brackets -->
+    <g transform="translate(110, 110)">
+      <path d="M -15,-18 L -24,-18 L -24,18 L -15,18" fill="none" stroke="#1a73e8" stroke-width="4.5" stroke-linecap="round"/>
+      <path d="M 15,-18 L 24,-18 L 24,18 L 15,18" fill="none" stroke="#1a73e8" stroke-width="4.5" stroke-linecap="round"/>
+      <circle cx="0" cy="-9" r="2.25" fill="#1a73e8"/>
+      <circle cx="0" cy="0" r="2.25" fill="#1a73e8"/>
+      <circle cx="0" cy="9" r="2.25" fill="#1a73e8"/>
+    </g>
+    <!-- Checkmark -->
+    <circle cx="168" cy="72" r="21" fill="#34a853"/>
+    <path d="M 159,72 L 165,78 L 177,66" fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Title -->
+  <text x="460" y="320" font-family="Arial, sans-serif" font-size="56" font-weight="bold" fill="#ffffff" text-anchor="middle">
+    F19N SEO Live Test
+  </text>
+
+  <!-- Subtitle -->
+  <text x="460" y="370" font-family="Arial, sans-serif" font-size="24" fill="#ffffff" opacity="0.95" text-anchor="middle">
+    Professional SEO Testing &amp; Analysis for Chrome
+  </text>
+
+  <!-- Features grid -->
+  <g transform="translate(160, 420)">
+    <!-- Row 1 -->
+    <g>
+      <circle cx="15" cy="15" r="8" fill="#ffffff" opacity="0.3"/>
+      <text x="15" y="21" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#ffffff" text-anchor="middle">✓</text>
+      <text x="40" y="22" font-family="Arial, sans-serif" font-size="18" fill="#ffffff">
+        100+ Real-time SEO Checks
+      </text>
+    </g>
+
+    <g transform="translate(0, 50)">
+      <circle cx="15" cy="15" r="8" fill="#ffffff" opacity="0.3"/>
+      <text x="15" y="21" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#ffffff" text-anchor="middle">✓</text>
+      <text x="40" y="22" font-family="Arial, sans-serif" font-size="18" fill="#ffffff">
+        PageSpeed Insights Integration
+      </text>
+    </g>
+
+    <g transform="translate(0, 100)">
+      <circle cx="15" cy="15" r="8" fill="#ffffff" opacity="0.3"/>
+      <text x="15" y="21" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#ffffff" text-anchor="middle">✓</text>
+      <text x="40" y="22" font-family="Arial, sans-serif" font-size="18" fill="#ffffff">
+        Search Console Analytics
+      </text>
+    </g>
+
+    <g transform="translate(0, 150)">
+      <circle cx="15" cy="15" r="8" fill="#ffffff" opacity="0.3"/>
+      <text x="15" y="21" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#ffffff" text-anchor="middle">✓</text>
+      <text x="40" y="22" font-family="Arial, sans-serif" font-size="18" fill="#ffffff">
+        Chrome Side Panel Interface
+      </text>
+    </g>
+  </g>
+
+  <!-- Decorative elements -->
+  <circle cx="100" cy="100" r="60" fill="#ffffff" opacity="0.08"/>
+  <circle cx="820" cy="580" r="80" fill="#ffffff" opacity="0.06"/>
+  <circle cx="850" cy="120" r="40" fill="#ffffff" opacity="0.08"/>
+</svg>
