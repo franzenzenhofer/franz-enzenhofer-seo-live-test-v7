@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1e293b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#334155;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="800" fill="url(#bgGrad)"/>
+
+  <!-- Decorative elements -->
+  <circle cx="200" cy="150" r="100" fill="#1a73e8" opacity="0.1"/>
+  <circle cx="1100" cy="650" r="120" fill="#34a853" opacity="0.1"/>
+
+  <!-- Main content -->
+  <g transform="translate(140, 100)">
+    <!-- Title -->
+    <text x="500" y="60" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#ffffff" text-anchor="middle">
+      Google Integration
+    </text>
+    <text x="500" y="100" font-family="Arial, sans-serif" font-size="20" fill="#94a3b8" text-anchor="middle">
+      Connect with Search Console &amp; PageSpeed Insights
+    </text>
+
+    <!-- Integration cards -->
+    <g transform="translate(50, 150)" filter="url(#shadow)">
+      <!-- Search Console card -->
+      <rect width="420" height="420" rx="16" fill="#1e293b"/>
+      <rect x="0" y="0" width="420" height="120" rx="16" fill="#1a73e8" opacity="0.2"/>
+
+      <!-- Icon -->
+      <g transform="translate(180, 40)">
+        <circle cx="30" cy="30" r="30" fill="#1a73e8" filter="url(#glow)"/>
+        <text x="30" y="42" font-family="Arial, sans-serif" font-size="28" fill="#ffffff" text-anchor="middle" font-weight="bold">
+          G
+        </text>
+      </g>
+
+      <text x="210" y="170" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">
+        Search Console
+      </text>
+
+      <!-- Features list -->
+      <g transform="translate(40, 210)" font-family="Arial, sans-serif" font-size="15" fill="#cbd5e1">
+        <text x="0" y="0">✓ Index status monitoring</text>
+        <text x="0" y="35">✓ Top performing queries</text>
+        <text x="0" y="70">✓ Click-through rates</text>
+        <text x="0" y="105">✓ Page performance data</text>
+        <text x="0" y="140">✓ Mobile usability</text>
+      </g>
+
+      <!-- Connect button -->
+      <g transform="translate(110, 380)">
+        <rect width="200" height="40" rx="20" fill="#1a73e8"/>
+        <text x="100" y="26" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#ffffff" text-anchor="middle">
+          Connect Account
+        </text>
+      </g>
+    </g>
+
+    <!-- PageSpeed card -->
+    <g transform="translate(530, 150)" filter="url(#shadow)">
+      <rect width="420" height="420" rx="16" fill="#1e293b"/>
+      <rect x="0" y="0" width="420" height="120" rx="16" fill="#34a853" opacity="0.2"/>
+
+      <!-- Icon -->
+      <g transform="translate(180, 40)">
+        <circle cx="30" cy="30" r="30" fill="#34a853" filter="url(#glow)"/>
+        <text x="30" y="42" font-family="Arial, sans-serif" font-size="28" fill="#ffffff" text-anchor="middle">
+          ⚡
+        </text>
+      </g>
+
+      <text x="210" y="170" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">
+        PageSpeed Insights
+      </text>
+
+      <!-- Features list -->
+      <g transform="translate(40, 210)" font-family="Arial, sans-serif" font-size="15" fill="#cbd5e1">
+        <text x="0" y="0">✓ Performance scores</text>
+        <text x="0" y="35">✓ Core Web Vitals</text>
+        <text x="0" y="70">✓ Mobile &amp; Desktop analysis</text>
+        <text x="0" y="105">✓ Optimization tips</text>
+        <text x="0" y="140">✓ Real user metrics</text>
+      </g>
+
+      <!-- Status -->
+      <g transform="translate(110, 380)">
+        <rect width="200" height="40" rx="20" fill="none" stroke="#34a853" stroke-width="2"/>
+        <circle cx="50" cy="20" r="6" fill="#34a853"/>
+        <text x="100" y="26" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#34a853" text-anchor="middle">
+          Always Active
+        </text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Bottom info banner -->
+  <g transform="translate(240, 680)">
+    <rect width="800" height="80" rx="12" fill="#ffffff" opacity="0.1"/>
+    <text x="400" y="35" font-family="Arial, sans-serif" font-size="16" fill="#ffffff" text-anchor="middle">
+      🔒 Secure OAuth authentication • Your data stays private
+    </text>
+    <text x="400" y="60" font-family="Arial, sans-serif" font-size="14" fill="#94a3b8" text-anchor="middle">
+      Optional integration - All basic SEO checks work without authentication
+    </text>
+  </g>
+</svg>

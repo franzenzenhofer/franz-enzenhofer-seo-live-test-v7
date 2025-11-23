@@ -19,6 +19,12 @@ export default defineManifest({
   version_name,
   description: 'Modern MV3 side-panel extension for live tests.',
   action: { default_title: 'Open Live Test' },
+  icons: {
+    '16': 'src/icons/icon-16.png',
+    '32': 'src/icons/icon-32.png',
+    '48': 'src/icons/icon-48.png',
+    '128': 'src/icons/icon-128.png',
+  },
   permissions: [...PERMISSIONS],
   host_permissions: [...HOST_PERMISSIONS],
   background: { service_worker: 'src/background/index.ts', type: 'module' },
