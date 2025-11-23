@@ -156,15 +156,15 @@ English (United States)
 
 ### Promotional Images ✅
 - ✅ **Small Tile (Required):** `small-tile-440x280.png` - 440x280 pixels
-- ⬜ Large Tile (Optional): 920x680 pixels
-- ⬜ Marquee (Optional): 1400x560 pixels
+- ✅ **Large Tile (Optional):** `large-tile-920x680.png` - 920x680 pixels
+- ✅ **Marquee (Optional):** `marquee-1400x560.png` - 1400x560 pixels
 
 **Location:** `/marketing/promo/`
 
 ### Screenshots ✅ (At least 1, max 5)
-- ✅ `screenshot-1-overview.png` - 1280x800 pixels (Main interface)
-- ✅ `screenshot-2-results.png` - 1280x800 pixels (Feature overview)
-- ✅ `screenshot-3-integration.png` - 1280x800 pixels (Google integration)
+- ✅ `screenshot-1-overview.png` - 1280x800 pixels (Main interface with side panel)
+- ✅ `screenshot-2-features.png` - 1280x800 pixels (Feature categories overview)
+- ✅ `screenshot-3-integration.png` - 1280x800 pixels (Google integration capabilities)
 
 **Location:** `/marketing/screenshots/`
 

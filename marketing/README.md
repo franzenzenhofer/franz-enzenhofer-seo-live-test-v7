@@ -17,15 +17,19 @@ marketing/
 │
 ├── promo/                      # Promotional images
 │   ├── small-tile.svg         # Source SVG
-│   └── small-tile-440x280.png # 440x280 small tile (REQUIRED)
+│   ├── small-tile-440x280.png # 440x280 small tile (REQUIRED)
+│   ├── large-tile.svg         # Source SVG
+│   ├── large-tile-920x680.png # 920x680 large tile (OPTIONAL)
+│   ├── marquee.svg            # Source SVG
+│   └── marquee-1400x560.png   # 1400x560 marquee (OPTIONAL)
 │
 ├── screenshots/                # Store listing screenshots
-│   ├── screenshot-1-overview.svg        # Source SVG
-│   ├── screenshot-1-overview.png        # 1280x800 main interface
-│   ├── screenshot-2-results.svg         # Source SVG
-│   ├── screenshot-2-results.png         # 1280x800 features
-│   ├── screenshot-3-integration.svg     # Source SVG
-│   └── screenshot-3-integration.png     # 1280x800 Google integration
+│   ├── screenshot-1-overview-v2.svg        # Source SVG
+│   ├── screenshot-1-overview.png           # 1280x800 main interface
+│   ├── screenshot-2-features-v2.svg        # Source SVG
+│   ├── screenshot-2-features.png           # 1280x800 features
+│   ├── screenshot-3-integration-v2.svg     # Source SVG
+│   └── screenshot-3-integration.png        # 1280x800 Google integration
 │
 ├── CHROME-WEB-STORE-SUBMISSION.md  # Complete submission guide
 └── README.md                        # This file
@@ -50,16 +54,16 @@ marketing/
 | File | Size | Format | Purpose | Required | Status |
 |------|------|--------|---------|----------|--------|
 | `small-tile-440x280.png` | 440x280 | PNG | Small tile | YES | ✅ |
-| Large tile | 920x680 | PNG | Large tile | Optional | ⬜ |
-| Marquee | 1400x560 | PNG | Featured | Optional | ⬜ |
+| `large-tile-920x680.png` | 920x680 | PNG | Large tile | Optional | ✅ |
+| `marquee-1400x560.png` | 1400x560 | PNG | Marquee featured | Optional | ✅ |
 
 ### Screenshots (1-5 required)
 
 | File | Size | Format | Description | Status |
 |------|------|--------|-------------|--------|
 | `screenshot-1-overview.png` | 1280x800 | PNG | Main interface with side panel | ✅ |
-| `screenshot-2-results.png` | 1280x800 | PNG | Feature categories overview | ✅ |
-| `screenshot-3-integration.png` | 1280x800 | PNG | Google integration | ✅ |
+| `screenshot-2-features.png` | 1280x800 | PNG | Feature categories overview | ✅ |
+| `screenshot-3-integration.png` | 1280x800 | PNG | Google integration capabilities | ✅ |
 
 **Upload Order:** 1 → 2 → 3 (this is the order they appear in the store)
 
@@ -112,6 +116,8 @@ rsvg-convert -w 128 -h 128 store-icon.svg -o store-icon-128.png
 cd /Users/franzenzenhofer/dev/franz-enzenhofer-seo-live-test-v7/marketing/promo
 
 rsvg-convert -w 440 -h 280 small-tile.svg -o small-tile-440x280.png
+rsvg-convert -w 920 -h 680 large-tile.svg -o large-tile-920x680.png
+rsvg-convert -w 1400 -h 560 marquee.svg -o marquee-1400x560.png
 ```
 
 ### To Regenerate Screenshots
@@ -119,9 +125,9 @@ rsvg-convert -w 440 -h 280 small-tile.svg -o small-tile-440x280.png
 ```bash
 cd /Users/franzenzenhofer/dev/franz-enzenhofer-seo-live-test-v7/marketing/screenshots
 
-rsvg-convert -w 1280 -h 800 screenshot-1-overview.svg -o screenshot-1-overview.png
-rsvg-convert -w 1280 -h 800 screenshot-2-results.svg -o screenshot-2-results.png
-rsvg-convert -w 1280 -h 800 screenshot-3-integration.svg -o screenshot-3-integration.png
+rsvg-convert -w 1280 -h 800 screenshot-1-overview-v2.svg -o screenshot-1-overview.png
+rsvg-convert -w 1280 -h 800 screenshot-2-features-v2.svg -o screenshot-2-features.png
+rsvg-convert -w 1280 -h 800 screenshot-3-integration-v2.svg -o screenshot-3-integration.png
 ```
 
 ## Chrome Web Store Requirements
@@ -160,17 +166,19 @@ Current asset file sizes:
 
 ### Promotional
 - `small-tile-440x280.png`: ~42 KB
+- `large-tile-920x680.png`: ~113 KB
+- `marquee-1400x560.png`: ~85 KB
 
-**Total promo:** ~42 KB
+**Total promo:** ~240 KB
 
 ### Screenshots
-- `screenshot-1-overview.png`: ~77 KB
-- `screenshot-2-results.png`: ~94 KB
-- `screenshot-3-integration.png`: ~147 KB
+- `screenshot-1-overview.png`: ~75 KB
+- `screenshot-2-features.png`: ~118 KB
+- `screenshot-3-integration.png`: ~155 KB
 
-**Total screenshots:** ~318 KB
+**Total screenshots:** ~348 KB
 
-**Total all assets:** ~375 KB (well under 2MB limit per file ✅)
+**Total all assets:** ~603 KB (well under 2MB limit per file ✅)
 
 ## Next Steps
 
