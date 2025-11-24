@@ -40,18 +40,23 @@ export const buildRunGlobals = async (
 
 export const prepareRulesForRun = (rules: Rule[]) => {
   const enabled = rules.filter((rule) => rule.enabled)
+  const runIndexByRuleId = enabled.reduce<Record<string, number>>((acc, rule, idx) => {
+    acc[rule.id] = idx + 1
+    return acc
+  }, {})
   return {
     enabled,
     ruleOverrides: buildRuleOverrides(rules),
     timeoutMs: getRunTimeoutMs(enabled.length ? enabled : rules),
+    runIndexByRuleId,
   }
 }
 
-export const prepareResultsStorage = async (tabId: number, key: string, enabledRules: Rule[], runId: string) => {
+export const prepareResultsStorage = async (tabId: number, key: string, enabledRules: Rule[], runId: string, runIndexByRuleId: Record<string, number>) => {
   const { [key]: existingResults } = await chrome.storage.local.get(key)
   const cleaned = cleanupOldResults((existingResults as RuleResult[]) || [], 2)
   await log(tabId, `runner:cleanup tab=${tabId} runId=${runId} kept=${cleaned.length} from previous runs`)
-  const pending = buildPendingResults(enabledRules, runId)
+  const pending = buildPendingResults(enabledRules, runId, runIndexByRuleId)
   const combined = [...cleaned, ...pending]
   if (combined.length) {
     await chrome.storage.local.set({ [key]: combined })

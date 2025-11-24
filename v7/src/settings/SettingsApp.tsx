@@ -5,20 +5,26 @@ import { GoogleAccount } from './GoogleAccount'
 import { ApiKeys } from './ApiKeys'
 import { RuleToggles } from './RuleToggles'
 import { FavoritesManagement } from './FavoritesManagement'
+import { BlocklistSettings } from './BlocklistSettings'
+import { FactoryReset } from './FactoryReset'
 import { useAuthHandlers } from './useAuthHandlers'
 import { ImportExport } from './ImportExport'
 import { StorageDebug } from './StorageDebug'
+import { DebugTools } from './DebugTools'
 
 import { TOKEN_KEY } from '@/shared/auth'
 import { Toast } from '@/shared/components/Toast'
+import { useDebugFlag } from '@/shared/hooks/useDebugFlag'
 import { useStorageSetting } from '@/shared/hooks/useStorageSetting'
+import { STORAGE_KEYS } from '@/shared/storage-keys'
 
 type Flags = Record<string, boolean>
 
 export const SettingsApp = () => {
-  const [storedFlags, setStoredFlags] = useStorageSetting<Flags | null>('rule-flags', null)
-  const [storedVars, setStoredVars] = useStorageSetting<Record<string, string> | null>('globalRuleVariables', null)
+  const [storedFlags, setStoredFlags] = useStorageSetting<Flags | null>(STORAGE_KEYS.RULES.FLAGS, null)
+  const [storedVars, setStoredVars] = useStorageSetting<Record<string, string> | null>(STORAGE_KEYS.RULES.VARIABLES, null)
   const [token] = useStorageSetting<string | null>(TOKEN_KEY, null)
+  const [debugMode] = useDebugFlag()
   const flags = storedFlags || {}
   const vars = storedVars || {}
   const hasToken = useMemo(() => Boolean(token), [token])
@@ -46,12 +52,15 @@ export const SettingsApp = () => {
         </div>
         <div className="space-y-6">
           <GeneralSettings />
+          {debugMode && <DebugTools />}
+          <BlocklistSettings />
           <FavoritesManagement />
           <GoogleAccount hasToken={hasToken} signIn={signIn} signOut={signOut} />
           <ApiKeys vars={vars} updateVar={updateVar} />
           <RuleToggles flags={flags} updateFlags={updateFlags} />
           <ImportExport />
-          <StorageDebug />
+          <FactoryReset />
+          {debugMode && <StorageDebug />}
         </div>
       </div>
 

@@ -16,6 +16,7 @@ export type Result = {
   ruleId?: string|null
   runIdentifier?: string
   details?: ResultDetails
+  runIndex?: number
 }
 export type Page = {
   html: string

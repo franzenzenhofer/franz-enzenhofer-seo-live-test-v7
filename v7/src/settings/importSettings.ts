@@ -1,13 +1,6 @@
-import { showToast } from '@/shared/components/Toast'
+import { SETTINGS_KEYS } from './exportSettings'
 
-const VALID_SETTINGS_KEYS = [
-  'rule-flags',
-  'globalRuleVariables',
-  'ui:autoClear',
-  'ui:autoRun',
-  'ui:debug',
-  'ui:pinnedRules'
-] as const
+import { showToast } from '@/shared/components/Toast'
 
 export const importSettings = async (file: File): Promise<void> => {
   try {
@@ -16,7 +9,7 @@ export const importSettings = async (file: File): Promise<void> => {
 
     // Validate and filter to only known keys
     const importData: Record<string, unknown> = {}
-    for (const key of VALID_SETTINGS_KEYS) {
+    for (const key of SETTINGS_KEYS) {
       if (key in data) {
         importData[key] = data[key]
       }

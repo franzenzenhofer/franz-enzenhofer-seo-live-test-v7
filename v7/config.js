@@ -15,8 +15,8 @@ export const OAUTH_SCOPES = [
   'https://www.googleapis.com/auth/analytics.readonly',
 ]
 
-export const EXTENSION_NAME = 'F19N Obtrusive Live Test v7'
-export const EXTENSION_NAME_DEV = 'F19N Obtrusive Live Test v7 (Dev)'
+export const EXTENSION_NAME = 'Franz Enzenhofer SEO Live Test'
+export const EXTENSION_NAME_DEV = 'Franz Enzenhofer SEO Live Test (Dev)'
 
 // Using OLD extension's public key so NEW extension gets SAME extension ID!
 export const DEV_EXTENSION_KEY = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsWxGAo8gbhOgcRRk5BK+T2GTm+BwZEoLpCbf+1cCDVe0SgM7z69xW8o82TgqPtMO5GIqz0039fcWp88bCcLQHyhv/l9pf8+zp28PRp34Rhc1RwDp/EcSAf2D/QfAqTCImOH5Z9yEbuWRwkVEuJuKdYtYK/QqTd/iqmvlfXJ1Smhsb0Ulqdk2PlAOS0l8N8/03JJNto7mQ70HO3bqU0A1bL96Peo70wlBLL1OPWh9XxnOlw4MVet9nL3SevCjp9iZUFMgncYlm6oMnUSRnVbuhCwVqw1AF1QB8uOv814NU4SIu++YdUtzzb3ATK6eXAoZ/cPCrYG/J7cZLcKObxyWNwIDAQAB'

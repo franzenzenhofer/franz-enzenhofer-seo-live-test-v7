@@ -13,6 +13,29 @@ export const useReportData = () => {
     const params = new URLSearchParams(window.location.search)
     const runId = params.get('runid')
     const resultIndex = params.get('index')
+    const hash = window.location.hash || ''
+
+    const scrollToResult = (targetHash: string, queryIndex: string | null) => {
+      const candidates: string[] = []
+      if (targetHash.startsWith('#rule-index=')) {
+        const ix = Number.parseInt(targetHash.replace('#rule-index=', ''), 10)
+        if (Number.isFinite(ix)) candidates.push(`result-${ix}`)
+      }
+      if (queryIndex) {
+        const legacy = Number.parseInt(queryIndex, 10)
+        if (Number.isFinite(legacy)) {
+          candidates.push(`result-${legacy}`)
+          candidates.push(`result-${legacy + 1}`)
+        }
+      }
+      if (!candidates.length) return
+      setTimeout(() => {
+        const target = candidates
+          .map((id) => document.getElementById(id))
+          .find((el): el is HTMLElement => Boolean(el))
+        target?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 120)
+    }
 
     if (!runId) {
       setError('No runid parameter provided')
@@ -33,13 +56,7 @@ export const useReportData = () => {
         setResults(found.results)
         setRunMeta(meta)
 
-        // If specific index, scroll to it
-        if (resultIndex) {
-          setTimeout(() => {
-            const element = document.getElementById(`result-${resultIndex}`)
-            element?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          }, 100)
-        }
+        scrollToResult(hash, resultIndex)
       } catch (err) {
         console.error('Failed to load report data:', err)
         setError(err instanceof Error ? err.message : String(err))

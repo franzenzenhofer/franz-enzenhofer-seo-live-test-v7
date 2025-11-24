@@ -8,6 +8,8 @@ export const STORAGE_KEYS = {
     AUTO_RUN: 'ui:autoRun',
     AUTO_CLEAR: 'ui:autoClear',
     DEBUG: 'ui:debug',
+    PINNED_RULES: 'ui:pinnedRules',
+    BLOCKLIST: 'ui:blocklist',
   },
   RULES: {
     FLAGS: 'rule-flags',

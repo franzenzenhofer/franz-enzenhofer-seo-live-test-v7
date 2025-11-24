@@ -1,19 +1,11 @@
 import { registry } from '@/rules/registry'
+import { DEFAULT_FAVORITES, PINNED_RULE_STORAGE_KEY, toPinnedRecord } from '@/shared/favorites'
+import { STORAGE_KEYS } from '@/shared/storage-keys'
 
-const FLAGS_KEY = 'rule-flags'
-const PIN_KEY = 'ui:pinnedRules'
-
-// Default favorited rules (shown on fresh install)
-export const DEFAULT_FAVORITES = [
-  'head-title',           // Title Present
-  'head:title',           // Title Length
-  'head-canonical',       // Canonical Link
-  'body:h1',              // H1 Present
-  'head-meta-description' // Meta Description
-] as const
+export { DEFAULT_FAVORITES } from '@/shared/favorites'
 
 const readFlags = async (): Promise<Record<string, boolean>> => {
-  const { [FLAGS_KEY]: v } = await chrome.storage.local.get(FLAGS_KEY)
+  const { [STORAGE_KEYS.RULES.FLAGS]: v } = await chrome.storage.local.get(STORAGE_KEYS.RULES.FLAGS)
   return (v as Record<string, boolean>) || {}
 }
 
@@ -30,12 +22,8 @@ export const getEnabledRules = async () => {
 }
 
 export const seedDefaults = async (): Promise<void> => {
-  const { [PIN_KEY]: existing } = await chrome.storage.local.get(PIN_KEY)
+  const { [PINNED_RULE_STORAGE_KEY]: existing } = await chrome.storage.local.get(PINNED_RULE_STORAGE_KEY)
   if (existing) return // Already initialized
 
-  const defaultPinned: Record<string, boolean> = {}
-  DEFAULT_FAVORITES.forEach((ruleId) => {
-    defaultPinned[ruleId] = true
-  })
-  await chrome.storage.local.set({ [PIN_KEY]: defaultPinned })
+  await chrome.storage.local.set({ [PINNED_RULE_STORAGE_KEY]: toPinnedRecord([...DEFAULT_FAVORITES]) })
 }

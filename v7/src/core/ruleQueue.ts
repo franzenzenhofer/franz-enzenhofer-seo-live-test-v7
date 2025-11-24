@@ -4,7 +4,7 @@ import { getRuleTimeoutMs } from './ruleTimeouts'
 
 import { Logger } from '@/shared/logger'
 
-type Task = { rule: Rule; slot: number; ordinal: number }
+type Task = { rule: Rule; slot: number; runIndex: number }
 type ExecOpts = {
   tabId: number
   page: Page
@@ -31,18 +31,18 @@ const withTimeout = <T>(promise: Promise<T>, ms: number, signal?: AbortSignal) =
   })
 
 const runTask = async (task: Task, opts: ExecOpts, total: number) => {
-  const { rule, slot, ordinal } = task
+  const { rule, slot, runIndex } = task
   const { tabId, page, ctx, runId, emit, assign, signal } = opts
   const ruleId = `${rule.id}-${Math.random().toString(36).slice(2, 7)}`
-  Logger.logDirectSend(tabId, 'rule', 'start', { id: rule.id, name: rule.name, index: ordinal, total, ruleId })
+  Logger.logDirectSend(tabId, 'rule', 'start', { id: rule.id, name: rule.name, index: runIndex, total, ruleId })
   const started = performance.now()
   const timeoutMs = getRuleTimeoutMs(rule)
   try {
     const result = await withTimeout(rule.run(page, ctx), timeoutMs, signal)
     const duration = (performance.now() - started).toFixed(2)
-    logRuleResults(tabId, rule, ruleId, [result])
+    logRuleResults(tabId, rule, ruleId, [result], runIndex)
     Logger.logDirectSend(tabId, 'rule', 'done', { id: rule.id, name: rule.name, ruleId, duration: `${duration}ms`, results: 1 })
-    const enriched = enrichResult(result, rule, runId)
+    const enriched = enrichResult(result, rule, runId, runIndex)
     assign(slot, enriched)
     await emitChunk(emit, [enriched])
   } catch (error) {
@@ -51,7 +51,7 @@ const runTask = async (task: Task, opts: ExecOpts, total: number) => {
     const isTimeout = error instanceof Error && error.message === TIMEOUT_ERROR
     const message = isTimeout ? `Rule timed out after ${timeoutMs}ms` : error instanceof Error ? error.message : String(error)
     Logger.logDirectSend(tabId, 'rule', 'error', { id: rule.id, name: rule.name, ruleId, error: message, duration: `${duration}ms` })
-    const runtimeError = createRuntimeError(rule, message, runId)
+    const runtimeError = createRuntimeError(rule, message, runId, runIndex)
     assign(slot, runtimeError)
     await emitChunk(emit, [runtimeError])
   }

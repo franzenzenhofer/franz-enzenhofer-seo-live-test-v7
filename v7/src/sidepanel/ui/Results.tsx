@@ -53,11 +53,14 @@ export const Results = ({
       {sorted.map((r, i) => {
         const key = ruleKeyOf(r)
         const disabled = r.ruleId ? flags[r.ruleId] === false : false
+        const originalIndex = items.indexOf(r)
+        const displayIndex = typeof r.runIndex === 'number' ? r.runIndex : originalIndex + 1
         return (
           <ResultCard
             key={`${key || r.label}-${i}`}
             result={r}
-            index={items.indexOf(r)}
+            index={typeof r.runIndex === 'number' ? undefined : originalIndex}
+            displayIndex={displayIndex}
             isPinned={Boolean(key && pinned[key])}
             onTogglePin={key ? () => togglePin(key) : undefined}
             isDisabled={disabled}

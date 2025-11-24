@@ -15,7 +15,7 @@ export const ReportSection = ({
     </h2>
     <div className="space-y-2">
       {items.map((item) => (
-        <ResultCard key={item.index} result={item} index={item.index} defaultExpanded />
+        <ResultCard key={item.index} result={item} displayIndex={item.index} defaultExpanded />
       ))}
     </div>
   </div>

@@ -18,8 +18,8 @@ export const runAll = async (
   const enabled = rules.filter((rule) => rule.enabled)
   Logger.logDirectSend(tabId, 'rules', 'start', { total: rules.length, enabled: enabled.length, disabled: rules.length - enabled.length, url: page.url || 'unknown' })
   const slots: Array<Result | null> = []
-  const tasks: Array<{ rule: Rule; slot: number; ordinal: number }> = []
-  let ordinal = 0
+  const tasks: Array<{ rule: Rule; slot: number; runIndex: number }> = []
+  let runIndex = 0
   for (const rule of rules) {
     const slot = slots.length
     slots.push(null)
@@ -30,8 +30,8 @@ export const runAll = async (
       Logger.logDirectSend(tabId, 'rule', 'skip', { id: rule.id, name: rule.name, reason: 'disabled', state: 'disabled' })
       continue
     }
-    ordinal++
-    tasks.push({ rule, slot, ordinal })
+    runIndex++
+    tasks.push({ rule, slot, runIndex })
   }
   try {
     await runRuleQueue({

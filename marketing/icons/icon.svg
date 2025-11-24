@@ -1,38 +1,42 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <!-- Background circle with gradient -->
+  <!-- Background with modern gradient -->
   <defs>
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#4285f4;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#34a853;stop-opacity:1" />
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
     </linearGradient>
-    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.9" />
-      <stop offset="100%" style="stop-color:#e8f0fe;stop-opacity:0.8" />
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e0e7ff;stop-opacity:1" />
     </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
 
   <!-- Background -->
-  <rect width="128" height="128" rx="24" fill="url(#bgGrad)"/>
+  <rect width="128" height="128" rx="28" fill="url(#bgGrad)"/>
 
-  <!-- Magnifying glass handle -->
-  <rect x="72" y="72" width="8" height="32" rx="4" fill="#ffffff" transform="rotate(45 76 88)"/>
+  <!-- Subtle accent line -->
+  <rect x="16" y="108" width="96" height="4" rx="2" fill="#ffffff" opacity="0.2"/>
 
-  <!-- Magnifying glass circle -->
-  <circle cx="54" cy="54" r="28" fill="none" stroke="url(#glassGrad)" stroke-width="6"/>
+  <!-- FE Text - Bold and prominent -->
+  <text
+    x="64"
+    y="78"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="64"
+    font-weight="900"
+    text-anchor="middle"
+    fill="url(#textGrad)"
+    filter="url(#glow)"
+    letter-spacing="2">FE</text>
 
-  <!-- Code brackets inside magnifying glass -->
-  <g transform="translate(54, 54)">
-    <!-- Left bracket -->
-    <path d="M -10,-12 L -16,-12 L -16,12 L -10,12" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
-    <!-- Right bracket -->
-    <path d="M 10,-12 L 16,-12 L 16,12 L 10,12" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
-    <!-- SEO text hint - small dots representing code -->
-    <circle cx="0" cy="-6" r="1.5" fill="#ffffff"/>
-    <circle cx="0" cy="0" r="1.5" fill="#ffffff"/>
-    <circle cx="0" cy="6" r="1.5" fill="#ffffff"/>
-  </g>
-
-  <!-- Checkmark badge -->
-  <circle cx="92" cy="36" r="14" fill="#34a853"/>
-  <path d="M 86,36 L 90,40 L 98,32" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Subtle SEO indicator dot -->
+  <circle cx="96" cy="32" r="8" fill="#10b981" opacity="0.9"/>
+  <circle cx="96" cy="32" r="4" fill="#ffffff"/>
 </svg>

@@ -1,36 +1,51 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="440" height="280" viewBox="0 0 440 280">
   <defs>
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1a73e8;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#34a853;stop-opacity:1" />
+      <stop offset="0%" style="stop-color:#1e40af;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
     </linearGradient>
-    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.15" />
-      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.05" />
+    <linearGradient id="iconBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
     </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e0e7ff;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
 
   <!-- Background -->
   <rect width="440" height="280" fill="url(#bgGrad)"/>
 
-  <!-- Icon on the left -->
+  <!-- Icon on the left with new FE design -->
   <g transform="translate(40, 90)">
-    <rect width="100" height="100" rx="20" fill="#ffffff" opacity="0.95"/>
-    <!-- Magnifying glass handle -->
-    <rect x="71" y="71" width="6" height="24" rx="3" fill="#1a73e8" transform="rotate(45 74 83)"/>
-    <!-- Magnifying glass circle -->
-    <circle cx="55" cy="55" r="21" fill="none" stroke="#1a73e8" stroke-width="4.5"/>
-    <!-- Code brackets -->
-    <g transform="translate(55, 55)">
-      <path d="M -7.5,-9 L -12,-9 L -12,9 L -7.5,9" fill="none" stroke="#1a73e8" stroke-width="2.25" stroke-linecap="round"/>
-      <path d="M 7.5,-9 L 12,-9 L 12,9 L 7.5,9" fill="none" stroke="#1a73e8" stroke-width="2.25" stroke-linecap="round"/>
-      <circle cx="0" cy="-4.5" r="1.125" fill="#1a73e8"/>
-      <circle cx="0" cy="0" r="1.125" fill="#1a73e8"/>
-      <circle cx="0" cy="4.5" r="1.125" fill="#1a73e8"/>
-    </g>
-    <!-- Checkmark -->
-    <circle cx="84" cy="36" r="10.5" fill="#34a853"/>
-    <path d="M 79.5,36 L 82.5,39 L 88.5,33" fill="none" stroke="#ffffff" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect width="100" height="100" rx="22" fill="url(#iconBgGrad)"/>
+
+    <!-- Subtle accent line -->
+    <rect x="16" y="85" width="68" height="2.5" rx="1.25" fill="#ffffff" opacity="0.2"/>
+
+    <!-- FE Text -->
+    <text
+      x="50"
+      y="62"
+      font-family="Arial, Helvetica, sans-serif"
+      font-size="42"
+      font-weight="900"
+      text-anchor="middle"
+      fill="url(#textGrad)"
+      filter="url(#glow)"
+      letter-spacing="1.5">FE</text>
+
+    <!-- SEO indicator dot -->
+    <circle cx="78" cy="28" r="7" fill="#10b981" opacity="0.9"/>
+    <circle cx="78" cy="28" r="3.5" fill="#ffffff"/>
   </g>
 
   <!-- Text content -->

@@ -24,7 +24,7 @@ export const shortlinkRule: Rule = {
         message: 'No shortlink found.',
         type: 'info',
         priority: 900,
-        details: { reference: SPEC },
+        details: { reference: SPEC, hasShortlink: false },
       }
     }
     const sourceHtml = extractHtml(linkEl)
@@ -33,8 +33,8 @@ export const shortlinkRule: Rule = {
       label: LABEL,
       name: NAME,
       message,
-      type: 'info',
-      priority: 850,
+      type: hasHref ? 'info' : 'warn',
+      priority: hasHref ? 850 : 800,
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),
@@ -46,4 +46,3 @@ export const shortlinkRule: Rule = {
     }
   },
 }
-

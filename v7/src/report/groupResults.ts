@@ -6,7 +6,8 @@ export const groupResults = (results: Result[]) => {
     (acc, result, index) => {
       const type = result.type || 'info'
       if (!acc[type]) acc[type] = []
-      acc[type].push({ ...result, index })
+      const runIndex = typeof result.runIndex === 'number' ? result.runIndex : index + 1
+      acc[type].push({ ...result, index: runIndex })
       return acc
     },
     {} as Record<string, (Result & { index: number })[]>,

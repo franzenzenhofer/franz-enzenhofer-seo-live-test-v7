@@ -1,12 +1,14 @@
 import { showToast } from '@/shared/components/Toast'
+import { STORAGE_KEYS } from '@/shared/storage-keys'
 
-const SETTINGS_KEYS = [
-  'rule-flags',
-  'globalRuleVariables',
-  'ui:autoClear',
-  'ui:autoRun',
-  'ui:debug',
-  'ui:pinnedRules'
+export const SETTINGS_KEYS = [
+  STORAGE_KEYS.RULES.FLAGS,
+  STORAGE_KEYS.RULES.VARIABLES,
+  STORAGE_KEYS.UI.AUTO_CLEAR,
+  STORAGE_KEYS.UI.AUTO_RUN,
+  STORAGE_KEYS.UI.DEBUG,
+  STORAGE_KEYS.UI.PINNED_RULES,
+  STORAGE_KEYS.UI.BLOCKLIST,
 ] as const
 
 export const exportSettings = async (): Promise<void> => {

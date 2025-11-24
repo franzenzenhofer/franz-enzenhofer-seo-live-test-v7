@@ -1,13 +1,14 @@
 import { ToggleRow } from './ToggleRow'
 
 import { useStorageSetting } from '@/shared/hooks/useStorageSetting'
+import { STORAGE_KEYS } from '@/shared/storage-keys'
 
 export const GeneralSettings = () => {
   // Direct hook usage - NO props needed!
   // Real-time sync across all contexts (settings page, sidepanel, etc.)
-  const [autoRun, setAutoRun] = useStorageSetting('ui:autoRun', true)
-  const [autoClear, setAutoClear] = useStorageSetting('ui:autoClear', true)
-  const [debugMode, setDebugMode] = useStorageSetting('ui:debug', true)
+  const [autoRun, setAutoRun] = useStorageSetting(STORAGE_KEYS.UI.AUTO_RUN, true)
+  const [autoClear, setAutoClear] = useStorageSetting(STORAGE_KEYS.UI.AUTO_CLEAR, true)
+  const [debugMode, setDebugMode] = useStorageSetting(STORAGE_KEYS.UI.DEBUG, true)
 
   return (
     <div className="bg-gray-50 rounded-lg p-4">
@@ -35,6 +36,11 @@ export const GeneralSettings = () => {
           onChange={setDebugMode}
         />
       </div>
+      {debugMode && (
+        <p className="text-[11px] text-gray-600 mt-3">
+          Debug tools (logs, run history, storage inspector) are available below.
+        </p>
+      )}
     </div>
   )
 }
