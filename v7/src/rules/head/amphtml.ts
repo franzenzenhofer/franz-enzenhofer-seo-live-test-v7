@@ -26,13 +26,13 @@ export const amphtmlRule: Rule = {
 
     // 4. Build message (Quantified, showing the value)
     const message = !isPresent
-      ? 'No AMP HTML link found.'
+      ? 'No AMP HTML link found (recommended).'
       : !hasHref
-        ? 'AMP HTML link present but href is empty.'
-        : `AMP HTML link: "${extractSnippet(href, 50)}"`
+        ? 'AMP HTML link present but href is empty (discouraged).'
+        : `AMP HTML link present (discouraged): "${extractSnippet(href, 50)}"`
 
-    // 5. Determine type (AMP is informational - Google no longer requires it)
-    const type = 'info'
+    // 5. Determine type (AMP is deprecated/optional; flag if present)
+    const type = isPresent ? 'warn' : 'info'
 
     // 6. Build evidence (Chain of Evidence)
     const details = isPresent
@@ -50,9 +50,8 @@ export const amphtmlRule: Rule = {
       name: NAME,
       message,
       type,
-      priority: isPresent ? 500 : 800, // Lower priority if present (informational)
+      priority: isPresent ? 800 : 950,
       details,
     }
   },
 }
-

@@ -21,19 +21,19 @@ export const shortlinkRule: Rule = {
       return {
         label: LABEL,
         name: NAME,
-        message: 'No shortlink found.',
+        message: 'No shortlink found (recommended).',
         type: 'info',
         priority: 900,
         details: { reference: SPEC, hasShortlink: false },
       }
     }
     const sourceHtml = extractHtml(linkEl)
-    const message = hasHref ? `Shortlink: ${href}` : 'Shortlink present but no href attribute.'
+    const message = hasHref ? `Shortlink present (discouraged): ${href}` : 'Shortlink present but no href attribute (discouraged).'
     return {
       label: LABEL,
       name: NAME,
       message,
-      type: hasHref ? 'info' : 'warn',
+      type: 'warn',
       priority: hasHref ? 850 : 800,
       details: {
         sourceHtml,

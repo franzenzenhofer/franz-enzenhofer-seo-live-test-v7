@@ -29,25 +29,25 @@ export const metaKeywordsRule: Rule = {
 
     // 5. Build message (Quantified, showing deprecation warning)
     let message = ''
-    let type: 'ok' | 'info' = 'ok'
+    let type: 'info' | 'warn' = 'info'
     let priority = 900
 
     if (!isPresent) {
       message = 'No meta keywords tag. (Google ignores this tag since 2009)'
-      type = 'ok'
+      type = 'info'
       priority = 950
     } else if (!hasContent) {
-      message = 'Meta keywords tag present but empty. (Google ignores this tag)'
-      type = 'info'
-      priority = 800
+      message = 'Meta keywords tag present but empty. (Deprecated/ignored; remove it)'
+      type = 'warn'
+      priority = 700
     } else if (keywords.length === 1) {
-      message = `Meta keywords present with 1 keyword. (Deprecated - Google ignores this tag)`
-      type = 'info'
-      priority = 700
+      message = `Meta keywords present with 1 keyword. (Deprecated/ignored; remove it)`
+      type = 'warn'
+      priority = 650
     } else {
-      message = `Meta keywords present with ${keywords.length} keywords. (Deprecated - Google ignores this tag)`
-      type = 'info'
-      priority = 700
+      message = `Meta keywords present with ${keywords.length} keywords. (Deprecated/ignored; remove it)`
+      type = 'warn'
+      priority = 650
     }
 
     // 6. Build evidence (Chain of Evidence)
@@ -73,4 +73,3 @@ export const metaKeywordsRule: Rule = {
     }
   },
 }
-

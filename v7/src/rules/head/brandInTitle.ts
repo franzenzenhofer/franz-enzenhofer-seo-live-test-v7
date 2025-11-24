@@ -24,8 +24,8 @@ export const brandInTitleRule: Rule = {
         label: LABEL,
         name: NAME,
         message: 'Brand not configured. Set "brand" variable in settings to check if brand appears in title.',
-        type: 'info',
-        priority: 900,
+        type: 'warn',
+        priority: 850,
         details: { reference: SPEC },
       }
     }

@@ -35,11 +35,11 @@ export const relAlternateMediaRule: Rule = {
     if (!isPresent) {
       message = 'No rel=alternate media links found.'
     } else if (count === 1) {
-      message = `1 rel=alternate media link (${mediaQueries[0]})`
+      message = `1 rel=alternate media link (${mediaQueries[0] || 'missing media query'})`
     } else if (mediaQueries.length <= 2) {
-      message = `${count} rel=alternate media links (${mediaQueries.join(', ')})`
+      message = `${count} rel=alternate media links (${mediaQueries.join(', ') || 'missing media queries'})`
     } else {
-      message = `${count} rel=alternate media links (${mediaQueries.slice(0, 2).join(', ')}, +${mediaQueries.length - 2} more)`
+      message = `${count} rel=alternate media links (${mediaQueries.slice(0, 2).join(', ') || 'missing media queries'}, +${mediaQueries.length - 2} more)`
     }
 
     // 6. Build evidence (Chain of Evidence)
@@ -62,10 +62,9 @@ export const relAlternateMediaRule: Rule = {
       label: LABEL,
       name: NAME,
       message,
-      type: 'info',
+      type: isPresent ? 'warn' : 'info',
       priority: isPresent ? 750 : 900,
       details,
     }
   },
 }
-
