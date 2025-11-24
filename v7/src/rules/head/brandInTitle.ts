@@ -8,25 +8,39 @@ const RULE_ID = 'head:brand-in-title'
 const SELECTOR = 'head > title'
 const SPEC = 'https://developers.google.com/search/docs/appearance/title-link'
 
+const inferBrandFromUrl = (url: string): { brand: string; host: string } => {
+  try {
+    const { hostname } = new URL(url || '')
+    const host = hostname.replace(/^www\./, '')
+    const parts = host.split('.').filter(Boolean)
+    const brand = parts.length >= 2 ? parts[parts.length - 2] ?? '' : parts[0] ?? ''
+    return { brand, host }
+  } catch {
+    return { brand: '', host: '' }
+  }
+}
+
 export const brandInTitleRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'static',
   async run(page, ctx) {
-    // 1. Extract brand from configuration (user-defined variable)
+    // 1. Extract brand from configuration (user-defined variable) or infer from hostname
     const variables = (ctx.globals as { variables?: Record<string, unknown> }).variables || {}
-    const brand = String((variables as Record<string, unknown>)['brand'] || '').trim()
+    const configuredBrand = String((variables as Record<string, unknown>)['brand'] || '').trim()
+    const { brand: inferredBrand, host } = inferBrandFromUrl(page.url || '')
+    const brand = configuredBrand || inferredBrand
+    const brandSource = configuredBrand ? 'configured' : inferredBrand ? 'hostname' : 'unknown'
 
-    // 2. Check if brand is configured
     if (!brand) {
       return {
         label: LABEL,
         name: NAME,
-        message: 'Brand not configured. Set "brand" variable in settings to check if brand appears in title.',
+        message: 'Could not determine brand (no config and hostname missing). Set "brand" in settings.',
         type: 'warn',
         priority: 850,
-        details: { reference: SPEC },
+        details: { reference: SPEC, brandSource, host },
       }
     }
 
@@ -60,9 +74,11 @@ export const brandInTitleRule: Rule = {
           title: titleText,
           brand,
           hasBrand,
+          brandSource,
+          host,
           reference: SPEC,
         }
-      : { brand, reference: SPEC }
+      : { brand, brandSource, host, reference: SPEC }
 
     return {
       label: LABEL,

@@ -29,13 +29,13 @@ export const metaKeywordsRule: Rule = {
 
     // 5. Build message (Quantified, showing deprecation warning)
     let message = ''
-    let type: 'info' | 'warn' = 'info'
+    let type: 'ok' | 'warn' = 'ok'
     let priority = 900
 
     if (!isPresent) {
-      message = 'No meta keywords tag. (Google ignores this tag since 2009)'
-      type = 'info'
-      priority = 950
+      message = 'No meta keywords tag. (Preferred: this tag is ignored since 2009)'
+      type = 'ok'
+      priority = 980
     } else if (!hasContent) {
       message = 'Meta keywords tag present but empty. (Deprecated/ignored; remove it)'
       type = 'warn'
