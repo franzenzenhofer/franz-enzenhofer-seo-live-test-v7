@@ -16,6 +16,7 @@ import { brandInTitleRule } from './head/brandInTitle'
 import { shortlinkRule } from './head/shortlink'
 import { amphtmlRule } from './head/amphtml'
 import { ldjsonRule } from './dom/ldjson'
+import { parameterizedLinksDiffRule } from './dom/parameterizedLinksDiff'
 import { metaKeywordsRule } from './head/metaKeywords'
 import { metaCharsetRule } from './head/metaCharset'
 import { metaUnavailableAfterRule } from './head/metaUnavailableAfter'
@@ -39,6 +40,7 @@ import { imagesLazyRule } from './body/imagesLazy'
 import { nofollowRule } from './body/nofollow'
 import { linkedImagesAltRule } from './a11y/linkedImagesAlt'
 import { internalLinksRule } from './body/internalLinks'
+import { internalLinkStatusRule } from './body/internalLinkStatus'
 import { parameterizedLinksRule } from './body/parameterizedLinks'
 import { unsecureInputRule } from './body/unsecureInput'
 import { relAlternateMediaRule } from './head/relAlternateMedia'
@@ -55,6 +57,7 @@ import { preconnectRule } from './speed/preconnect'
 import { dnsPrefetchRule } from './speed/dnsPrefetch'
 import { googleIsConnectedRule } from './google/isConnected'
 import { pageSummaryRule } from './debug/pageSummary'
+import { pageObjectRule } from './debug/pageObject'
 import { googlebotMetaRule } from './head/googlebotMeta'
 import { googlebotUrlCheckRule } from './robots/googlebotUrlCheck'
 import { robotsSitemapReferenceRule } from './robots/sitemapReference'
@@ -65,6 +68,7 @@ import { psiDesktopRule } from './google/psi/desktop'
 import { psiMobileFcpTbtRule } from './google/psi/mobileFcpTbt'
 import { gscPropertyAvailableRule } from './google/gsc/propertyAvailable'
 import { gscIsIndexedRule } from './google/gsc/isIndexed'
+import { mobileFriendlyRule } from './google/mobileFriendly'
 import { gscUrlInspectionRule } from './google/gsc/urlInspection'
 import { gscTopQueriesOfPageRule } from './google/gsc/topQueriesOfPage'
 import { gscPageWorldwideRule } from './google/gsc/pageWorldwideSearchAnalytics'
@@ -129,6 +133,7 @@ export const registry: Rule[] = [
   shortlinkRule,
   amphtmlRule,
   ldjsonRule,
+  parameterizedLinksDiffRule,
   metaKeywordsRule,
   metaCharsetRule,
   metaUnavailableAfterRule,
@@ -152,6 +157,7 @@ export const registry: Rule[] = [
   nofollowRule,
   linkedImagesAltRule,
   internalLinksRule,
+  internalLinkStatusRule,
   parameterizedLinksRule,
   unsecureInputRule,
   relAlternateMediaRule,
@@ -167,6 +173,7 @@ export const registry: Rule[] = [
   preconnectRule,
   dnsPrefetchRule,
   googleIsConnectedRule,
+  pageObjectRule,
   historyStateUpdateRule,
   unavailableAfterRule,
   commonMobileSetupRule,
@@ -195,6 +202,7 @@ export const registry: Rule[] = [
   psiMobileFcpTbtRule,
   gscPropertyAvailableRule,
   gscIsIndexedRule,
+  mobileFriendlyRule,
   gscUrlInspectionRule,
   gscTopQueriesOfPageRule,
   gscPageWorldwideRule,

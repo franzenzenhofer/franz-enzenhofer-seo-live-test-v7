@@ -271,6 +271,18 @@ Default rules audited from `f19n-obtrusive-livetest/src/public/default-rules/*.j
 - Mobile Friendly Test rule added.
 - Documentation updated as rules ship; mark checklist items DONE.
 
+## Remaining legacy gaps now covered (new in this branch)
+- `static-internal-links-check.js` → new `body:internal-link-status` (live fetch limited set of internal links).
+- `dom-static-idle-parameterized-href.js` → new `dom:parameterized-links-diff` (static vs idle param links).
+- `mobile-friendly-test-async.js` → new `gsc:mobile-friendly` (URL Testing Tools API, API key variable).
+- `debug-stringify-page-object.js` → new `debug:page-object` (safe summary, no HTML in message).
+
+## Still missing vs legacy (to decide/implement)
+- `speed-first-paint.js` (paint timing metric).
+- Promo rule (`a-promotion-for-reviews.js`) intentionally omitted.
+- Internal link status across full site (legacy only did limited live fetch; current rule limits to 5).
+- Parameterized links diff could expand to more granular DOM path highlighting if needed.
+
 ## Rule coverage comparison
 ### Legacy-only (no direct v7 rule)
 - `a-promotion-for-reviews.js` — promo banner absent from v7.

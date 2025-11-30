@@ -228,6 +228,12 @@
     "what": "static"
   },
   {
+    "id": "body:internal-link-status",
+    "name": "Internal link HTTP status",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
     "id": "body:internal-links",
     "name": "Internal links count",
     "enabledByDefault": true,
@@ -324,6 +330,12 @@
     "what": "static"
   },
   {
+    "id": "gsc:mobile-friendly",
+    "name": "Mobile Friendly Test",
+    "enabledByDefault": true,
+    "what": "gsc"
+  },
+  {
     "id": "http:navigation-path",
     "name": "Navigation Path Analysis",
     "enabledByDefault": true,
@@ -366,6 +378,12 @@
     "what": "static"
   },
   {
+    "id": "debug:page-object",
+    "name": "Page object snapshot",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
     "id": "debug:page-summary",
     "name": "Page summary (debug)",
     "enabledByDefault": true,
@@ -376,6 +394,12 @@
     "name": "Page worldwide analytics",
     "enabledByDefault": true,
     "what": "gsc"
+  },
+  {
+    "id": "dom:parameterized-links-diff",
+    "name": "Parameterized links (static vs idle)",
+    "enabledByDefault": true,
+    "what": "static"
   },
   {
     "id": "discover:primary-language",
