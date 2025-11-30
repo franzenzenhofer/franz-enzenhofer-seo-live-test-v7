@@ -19,11 +19,18 @@ export type Result = {
   runIndex?: number
 }
 export type Page = {
-  html: string
+  html: string                 // static HTML snapshot (alias: staticHtml)
+  staticHtml?: string          // alias of html for clarity
   url: string
-  doc: Document
+  doc: Document                // static DOM snapshot (alias: staticDoc)
+  staticDoc?: Document         // alias of doc for clarity
   status?: number
+  statusLine?: string
   headers?: Record<string, string>
+  headerChain?: Array<{ url: string; status?: number; statusLine?: string; location?: string; redirectUrl?: string; fromCache?: boolean }>
+  fromCache?: boolean
+  ip?: string
+  navigationTiming?: { nextHopProtocol?: string | null; transferSize?: number; encodedBodySize?: number; decodedBodySize?: number; type?: string | null }
   resources?: string[]
   // Enriched fields (optional, derived from events)
   firstUrl?: string

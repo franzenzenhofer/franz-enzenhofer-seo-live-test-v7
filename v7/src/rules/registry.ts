@@ -29,6 +29,7 @@ import { linkHeaderRule } from './http/linkHeader'
 import { xRobotsRule } from './http/xRobots'
 import { xCacheRule } from './http/xCache'
 import { varyUserAgentRule } from './http/varyUserAgent'
+import { headersPresentRule } from './http/headersPresent'
 import { hasHeaderRule } from './http/hasHeader'
 import { soft404Rule } from './http/soft404'
 import { canonicalRedirectsRule } from './head/canonicalRedirects'
@@ -64,6 +65,7 @@ import { psiDesktopRule } from './google/psi/desktop'
 import { psiMobileFcpTbtRule } from './google/psi/mobileFcpTbt'
 import { gscPropertyAvailableRule } from './google/gsc/propertyAvailable'
 import { gscIsIndexedRule } from './google/gsc/isIndexed'
+import { gscUrlInspectionRule } from './google/gsc/urlInspection'
 import { gscTopQueriesOfPageRule } from './google/gsc/topQueriesOfPage'
 import { gscPageWorldwideRule } from './google/gsc/pageWorldwideSearchAnalytics'
 import { gscDirectoryWorldwideRule } from './google/gsc/pageDirectoryWorldwideSearchAnalytics'
@@ -71,6 +73,7 @@ import { historyStateUpdateRule } from './url/historyStateUpdate'
 import { unavailableAfterRule } from './http/unavailableAfter'
 import { commonMobileSetupRule } from './http/commonMobileSetup'
 import { cacheDeliveryRule } from './http/cacheDelivery'
+import { fromCacheRule } from './http/fromCache'
 import { securityHeadersRule } from './http/securityHeaders'
 import { httpsSchemeRule } from './http/httpsScheme'
 import { http2AdvertisedRule } from './http/http2Advertised'
@@ -79,6 +82,8 @@ import { altSvcOtherProtocolsRule } from './http/altSvcOtherProtocols'
 import { navigationPathRule } from './http/navigationPath'
 import { redirectLoopRule } from './http/redirectLoop'
 import { redirectEfficiencyRule } from './http/redirectEfficiency'
+import { negotiatedProtocolRule } from './http/negotiatedProtocol'
+import { redirectCanonicalChainRule } from './http/redirectCanonicalChain'
 import { topWordsRule } from './dom/topWords'
 import { canonicalChainRule } from './head/canonicalChain'
 import { schemaArticlePresentRule } from './schema/articlePresent'
@@ -137,6 +142,7 @@ export const registry: Rule[] = [
   xRobotsRule,
   xCacheRule,
   varyUserAgentRule,
+  headersPresentRule,
   hasHeaderRule,
   soft404Rule,
   canonicalRedirectsRule,
@@ -171,7 +177,10 @@ export const registry: Rule[] = [
   navigationPathRule,
   redirectLoopRule,
   redirectEfficiencyRule,
+  negotiatedProtocolRule,
+  redirectCanonicalChainRule,
   cacheDeliveryRule,
+  fromCacheRule,
   securityHeadersRule,
   topWordsRule,
   canonicalChainRule,
@@ -186,6 +195,7 @@ export const registry: Rule[] = [
   psiMobileFcpTbtRule,
   gscPropertyAvailableRule,
   gscIsIndexedRule,
+  gscUrlInspectionRule,
   gscTopQueriesOfPageRule,
   gscPageWorldwideRule,
   gscDirectoryWorldwideRule,

@@ -1,3 +1,5 @@
+import { findMainHeaders } from './page.headers'
+
 import type { EventRec } from '@/background/pipeline/types'
 
 export const enrichFromEvents = (
@@ -5,42 +7,37 @@ export const enrichFromEvents = (
   makeDoc: (html: string) => Document,
   getHref: () => string,
 ) => {
-  const lastDom = [...ev].reverse().find((e) => e.t === 'dom:document_idle' || e.t === 'dom:document_end')
-  const endDom = [...ev].reverse().find((e) => e.t === 'dom:document_end')
-  const dclDom = [...ev].reverse().find((e) => e.t === 'dom:DOMContentLoaded')
-  const html = ((lastDom?.d as { html?: string } | undefined)?.html || '').toString()
+  // Prefer static snapshot (document_end), then DOMContentLoaded, then idle as fallback
+  const idleDomEvent = [...ev].reverse().find((e) => e.t === 'dom:document_idle')
+  const endDomEvent = [...ev].reverse().find((e) => e.t === 'dom:document_end')
+  const dclDomEvent = [...ev].reverse().find((e) => e.t === 'dom:DOMContentLoaded')
+  const staticDomEvent = endDomEvent || dclDomEvent || idleDomEvent
+
+  const staticHtml = ((staticDomEvent?.d as { html?: string } | undefined)?.html || '').toString()
+  const idleHtml = ((idleDomEvent?.d as { html?: string } | undefined)?.html || '').toString()
 
   const nav = ev.filter((e) => !!e.u && e.t.startsWith('nav:'))
   const firstUrl = (nav[0]?.u as string | undefined) || ''
   const lastUrl = ((nav.length ? nav[nav.length - 1] : undefined)?.u as string | undefined) || ''
   const url = lastUrl || firstUrl || getHref() || 'about:blank'
 
-  const reqHeaders = ev.filter((e) => e.t === 'req:headers')
-  const strip = (u?: string) => (u || '').replace(/[?#].*$/, '')
-  const pageHeaderEv =
-    [...reqHeaders].reverse().find((e) => strip(e.u) === strip(lastUrl) || strip(e.u) === strip(firstUrl)) ||
-    reqHeaders.find((e) => !!e.h) ||
-    reqHeaders[reqHeaders.length - 1]
-  const statusFromDone = ([...ev].reverse().find((e) => (e.t === 'req:done') && (e.u === lastUrl || e.u === firstUrl))?.s as number | undefined) || ([...ev].reverse().find((e)=> e.t==='req:done')?.s as number | undefined) || undefined
-  const rawHeaders = (pageHeaderEv?.h as Record<string, string | undefined> | undefined) || undefined
-  const headers: Record<string, string> | undefined = rawHeaders
-    ? Object.fromEntries(Object.entries(rawHeaders).map(([k, v]) => [k.toLowerCase(), String(v ?? '')]))
-    : undefined
-  const status = headers?.['status'] ? parseInt(headers['status']!, 10) : statusFromDone
-
-  const resources = reqHeaders.map((e) => e.u!).filter(Boolean)
+  const { headers, rawHeaders, status, resources, hops, statusLine, fromCache, ip } = findMainHeaders(ev, firstUrl, lastUrl)
+  const staticDoc = makeDoc(staticHtml)
+  const domIdleDoc = idleHtml ? makeDoc(idleHtml) : undefined
+  const domEndDoc = endDomEvent?.d ? makeDoc(String((endDomEvent.d as { html?: string })?.html || '')) : undefined
+  const dclDoc = dclDomEvent?.d ? makeDoc(String((dclDomEvent.d as { html?: string })?.html || '')) : undefined
+  const navigationTiming =
+    (idleDomEvent?.d as { navTiming?: unknown } | undefined)?.navTiming ||
+    (staticDomEvent?.d as { navTiming?: unknown } | undefined)?.navTiming ||
+    null
 
   const extra: Record<string, unknown> = {
-    firstUrl,
-    lastUrl,
-    rawHeaders,
-    domIdleDoc: lastDom?.d ? makeDoc(String((lastDom.d as { html?: string })?.html || '')) : undefined,
-    domEndDoc: endDom?.d ? makeDoc(String((endDom.d as { html?: string })?.html || '')) : undefined,
-    domContentLoadedDoc: dclDom?.d ? makeDoc(String((dclDom.d as { html?: string })?.html || '')) : undefined,
-    resources,
-    status,
-    headers,
+    firstUrl, lastUrl, rawHeaders,
+    domIdleDoc, domEndDoc, domContentLoadedDoc: dclDoc,
+    staticDoc, staticHtml,
+    resources, status, headers, statusLine, fromCache, ip,
+    headerChain: hops,
+    navigationTiming,
   }
-
-  return { html, url, extra }
+  return { html: staticHtml, url, extra }
 }

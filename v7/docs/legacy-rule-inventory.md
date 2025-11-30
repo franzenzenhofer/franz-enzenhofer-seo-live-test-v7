@@ -250,6 +250,20 @@ Default rules audited from `f19n-obtrusive-livetest/src/public/default-rules/*.j
 - Open Graph rules match legacy output: og:title/description info only; og:url now compares against canonical and page location before marking OK.
 - Shortlink and amphtml mirror legacy (info when present, warn only on mismatch/empty href); brand-in-title warns only when brand missing; new `head:unavailable-after` scans static + idle DOM and errors if date is past.
 
+## HTTP & redirect parity status (updated)
+- Legacy HTTP rules:
+  - `http-status-code` (v7 `http-status`), `http-has-http-header` (no-header warning), `http-detect-classic-deliver-from-cache` (uses `fromCache`), `http-dom-check-common-mobile-setup`, `http-dom-detect-redirect-canonical-chains` (reconstructs redirects + history + canonical), `http-gzip`, `http-hsts`, `http-http2-detection` (nextHopProtocol), `http-vary-user-agent`, `http-has-link-header`, `http-check-for-unavailable-after`, `http-x-cache-hit-miss`, `http-x-robots`, `http-sofft-404-check` (random 404 probe).
+  - Redirect/URL rules: `url-with-without-trailing-slash` (live probe + canonical alignment), navigation/canonical/history chain check (above), plus v7 ledger rules: `http:navigation-path`, `http:redirect-loop`, `http:redirect-efficiency`.
+- Current v7 coverage (after this branch):
+  - DONE: header presence warning `http:headers-present`; browser cache detection `http:from-cache`; negotiated protocol via `nextHopProtocol` (`http:negotiated-protocol`); random soft-404 probe (`http:soft-404` now probes fake URL); trailing-slash live probe with canonical/redirect handling; redirect+canonical+history chain (`http:redirect-canonical-chain` uses ledger, history, cache + canonical); `http-status`, `http:gzip`, `http:hsts`, `http:link-header`, `http:x-robots`, `http:x-cache`, `http:vary-user-agent`, `http:unavailable-after` (header), `http:common-mobile-setup`, ledger redirect rules (`navigation-path`, `redirect-loop`, `redirect-efficiency`), alt-svc advertised H2/H3.
+  - Enhanced capture: request listeners now store statusLine/fromCache/ip/statusCode/redirectUrl; `page.headerChain` retains main-frame response hops; DOM capture sends Navigation Timing (nextHopProtocol).
+  - Remaining gaps: internal link live status checker; parameterized links static vs idle diff; Mobile Friendly Test API; debug full page dump (optional); PSI FID variant decision; robots blocked-resources DOM fetch (legacy `static-idle-robotstxt-blocked-ressources` re-check); promo rule decision.
+
+## GSC parity status (updated)
+- Legacy GSC rules: `google-search-console-webproperty-available`, `google-search-console-is-indexed` (URL Inspection API verdicts, last crawl, referring URLs), plus search analytics queries per page/directory/top queries.
+- Current v7 rules (after this branch): `gsc:property-available`; impressions-based `gsc:is-indexed`; new `gsc:url-inspection` calling URL Inspection API (verdict, coverage state, referrers, last crawl); search analytics rules (`page-worldwide`, `directory-worldwide`, `top-queries-of-page`).
+- Remaining considerations: keep impressions heuristic as supplemental signal; still need Mobile Friendly Test API if parity desired; ensure OAuth token flow stable and surfaced errors stay `runtime_error` when missing tokens/property access.
+
 ## Acceptance for “100% parity” milestone
 - All TODO rules implemented with tests covering static vs idle behavior where applicable.
 - OG/Canonical/Redirect chain rule mirrors legacy logic (canonical vs final URL with redirect/history context).
@@ -263,13 +277,9 @@ Default rules audited from `f19n-obtrusive-livetest/src/public/default-rules/*.j
 - `debug-stringify-page-object.js` — no v7 rule emits full page object dump (debug only).
 - `mobile-friendly-test-async.js` — Google Mobile Friendly Test API not present in v7.
 - `speed-first-paint.js` — paint timing metric not computed in v7.
-- `http-detect-classic-deliver-from-cache.js` — cache-delivery detection via onCompleted/fromCache not replicated (v7 only reads headers/Age).
-- `http-sofft-404-check.js` — fetches random 404 candidate URL; v7 soft-404 rule inspects current page content only.
 - `static-internal-links-check.js` — status-checks internal links via live HTTP requests; v7 only counts internal/external links.
 - `dom-static-idle-parameterized-href.js` — compares parameterized internal links between static vs idle DOM; v7 only counts parameterized links overall.
-- `http-dom-detect-redirect-canonical-chains.js` — combines redirect chain, cache redirect, history-state updates, and canonical comparison; v7 splits redirect scoring/loop detection and canonical checks but does not cross-check canonical vs redirect path.
-- `url-with-without-trailing-slash.js` — live fetch of slash/no-slash variant with canonical comparison; v7 trailing-slash rule only compares current path vs canonical.
-- `http-http2-detection.js` — reports actual nextHopProtocol; v7 inspects Alt-Svc advertising but not negotiated protocol.
+- `static-idle-robotstxt-blocked-ressources.js` — DOM-based blocked resource reporting still missing; robots rules only parse robots.txt.
 
 ### V7-only (no legacy analog)
 - **Schema.org validation** — Article present/required, BreadcrumbList, Event, FAQPage, HowTo, JobPosting, Organization/LocalBusiness, Product, Recipe, VideoObject.

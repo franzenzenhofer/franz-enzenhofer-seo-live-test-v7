@@ -2,6 +2,22 @@ import { Logger, type LogCategory, type LogData } from '@/shared/logger'
 
 const q = (sel: string) => document.querySelector(sel)
 
+const collectNavTiming = () => {
+  try {
+    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined
+    if (!nav) return null
+    return {
+      nextHopProtocol: nav.nextHopProtocol || '',
+      transferSize: nav.transferSize,
+      encodedBodySize: nav.encodedBodySize,
+      decodedBodySize: nav.decodedBodySize,
+      type: nav.type,
+    }
+  } catch {
+    return null
+  }
+}
+
 const logLater = (tabIdPromise: Promise<number>, getTabId: () => number | null, category: LogCategory, action: string, data?: LogData) => {
   tabIdPromise.then(() => {
     const tabId = getTabId()
@@ -15,6 +31,7 @@ const captureAndSend = async (tabIdPromise: Promise<number>, getTabId: () => num
   Logger.logDirectSend(tabId, 'dom', 'capture start', { event, url: location.href })
   const html = q('html')?.innerHTML || ''
   const htmlSize = html.length
+  const navTiming = collectNavTiming()
   Logger.logDirectSend(tabId, 'dom', 'capture done', {
     event,
     htmlSize,
@@ -22,8 +39,9 @@ const captureAndSend = async (tabIdPromise: Promise<number>, getTabId: () => num
     htmlFull: html,
     url: location.href,
     readyState: document.readyState,
+    navTiming: navTiming || undefined,
   })
-  const data = { html, location }
+  const data = { html, location, navTiming }
   chrome.runtime.sendMessage({ event, data })
   Logger.logDirectSend(tabId, 'dom', 'send', { event, to: 'background', size: htmlSize })
 }

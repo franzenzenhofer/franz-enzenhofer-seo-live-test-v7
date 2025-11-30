@@ -126,6 +126,12 @@
     "what": "http"
   },
   {
+    "id": "gsc:url-inspection",
+    "name": "GSC URL Inspection",
+    "enabledByDefault": true,
+    "what": "gsc"
+  },
+  {
     "id": "http:gzip",
     "name": "Gzip/Brotli Compression",
     "enabledByDefault": true,
@@ -166,6 +172,12 @@
     "name": "HTML lang attribute",
     "enabledByDefault": true,
     "what": "static"
+  },
+  {
+    "id": "http:headers-present",
+    "name": "HTTP Header Captured",
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "http:has-header",
@@ -318,6 +330,12 @@
     "what": "http"
   },
   {
+    "id": "http:negotiated-protocol",
+    "name": "Negotiated Network Protocol",
+    "enabledByDefault": true,
+    "what": "http"
+  },
+  {
     "id": "body:nofollow",
     "name": "Nofollow Links",
     "enabledByDefault": true,
@@ -380,6 +398,12 @@
   {
     "id": "http:redirect-loop",
     "name": "Redirect Loop Detection",
+    "enabledByDefault": true,
+    "what": "http"
+  },
+  {
+    "id": "http:redirect-canonical-chain",
+    "name": "Redirect/Canonical chain",
     "enabledByDefault": true,
     "what": "http"
   },
@@ -522,6 +546,12 @@
     "what": "static"
   },
   {
+    "id": "http:from-cache",
+    "name": "Served from Browser Cache",
+    "enabledByDefault": true,
+    "what": "http"
+  },
+  {
     "id": "head:shortlink",
     "name": "Shortlink",
     "enabledByDefault": true,
@@ -529,7 +559,7 @@
   },
   {
     "id": "http:soft-404",
-    "name": "Soft 404 Detection",
+    "name": "Soft 404 Probe",
     "enabledByDefault": true,
     "what": "http"
   },
