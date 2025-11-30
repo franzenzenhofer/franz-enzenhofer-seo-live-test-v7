@@ -1,5 +1,5 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
+import { extractHtml, extractHtmlFromList, extractSnippet, getDomPath } from '@/shared/html-utils'
 
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag'
 const TESTED = 'Read <meta name="robots"> content and evaluated noindex/nofollow directives.'
@@ -11,35 +11,52 @@ export const robotsMetaRule: Rule = {
   enabled: true,
   what: 'static',
   run: async (page) => {
-    const el = page.doc.querySelector('meta[name="robots"]') as HTMLMetaElement|null
-    if (!el || !el.content) {
+    const elements = Array.from(page.doc.querySelectorAll('head > meta[name="robots"]')) as HTMLMetaElement[]
+    if (elements.length === 0) {
       return {
         label: 'HEAD',
         message: 'No robots meta tag.',
         type: 'info',
         priority: 610,
         name: 'Robots Meta',
-        details: { tested: TESTED, reference: SPEC, sourceHtml: '', snippet: '', domPath: '' },
+        details: { tested: TESTED, reference: SPEC },
       }
     }
-    const tokens = parse(el.content)
-    const ni = tokens.includes('noindex'); const nf = tokens.includes('nofollow')
-    const msg = 'robots: ' + el.content
-    const t: 'info'|'warn' = (ni || nf) ? 'warn' : 'info'
+    if (elements.length > 1) {
+      const snippet = extractHtmlFromList(elements)
+      return {
+        label: 'HEAD',
+        message: 'Multiple robots meta tags found.',
+        type: 'warn',
+        priority: 200,
+        name: 'Robots Meta',
+        details: { tested: TESTED, reference: SPEC, sourceHtml: snippet, snippet, domPaths: elements.map((_, i) => `head > meta[name="robots"]:nth-of-type(${i + 1})`) },
+      }
+    }
+
+    const el = elements[0]!
+    const content = (el.getAttribute('content') || '').trim()
+    const tokens = parse(content)
+    const hasNoindex = tokens.includes('noindex')
+    const hasNofollow = tokens.includes('nofollow')
+    const type: 'info' | 'warn' = hasNoindex || hasNofollow ? 'warn' : 'info'
     const sourceHtml = extractHtml(el)
+    const snippet = extractSnippet(sourceHtml)
     return {
       label: 'HEAD',
-      message: msg,
-      type: t,
+      message: `Meta Robots: ${content || '(empty)'}`,
+      type,
       priority: 610,
       name: 'Robots Meta',
       details: {
         sourceHtml,
-        snippet: extractSnippet(sourceHtml),
+        snippet,
         domPath: getDomPath(el),
         tested: TESTED,
         reference: SPEC,
         tokens,
+        hasNoindex,
+        hasNofollow,
       },
     }
   },

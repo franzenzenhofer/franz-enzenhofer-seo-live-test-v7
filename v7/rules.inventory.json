@@ -300,6 +300,12 @@
     "what": "static"
   },
   {
+    "id": "head:unavailable-after",
+    "name": "Meta Unavailable After",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
     "id": "head:meta-viewport",
     "name": "Meta Viewport",
     "enabledByDefault": true,
@@ -505,7 +511,7 @@
   },
   {
     "id": "head:title",
-    "name": "SEO Title",
+    "name": "SEO Title Length",
     "enabledByDefault": true,
     "what": "static"
   },

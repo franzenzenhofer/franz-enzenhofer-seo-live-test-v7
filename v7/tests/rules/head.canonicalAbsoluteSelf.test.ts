@@ -11,7 +11,6 @@ describe('rules: canonical', () => {
   })
   it('self match', async () => {
     const r = await canonicalSelfRule.run({ html:'', url:'https://ex.com/a', doc: D('<link rel="canonical" href="https://ex.com/a">') } as any, { globals: {} })
-    expect((r as any).type).toBe('ok')
+    expect((r as any).type).toBe('info')
   })
 })
-

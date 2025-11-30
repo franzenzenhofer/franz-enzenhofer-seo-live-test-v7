@@ -19,7 +19,7 @@ export const ogTitleRule: Rule = {
     const sourceHtml = extractHtml(el)
     return {
       label: 'HEAD',
-      message: `og:title present (${el.content.length} chars)`,
+      message: `Open Graph (Facebook) title: "${el.content}"`,
       type: 'info',
       name: 'Open Graph Title',
       details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), ogTitle: el.content, tested: TESTED, reference: SPEC },

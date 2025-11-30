@@ -13,7 +13,7 @@ const inferBrandFromUrl = (url: string): { brand: string; host: string } => {
     const { hostname } = new URL(url || '')
     const host = hostname.replace(/^www\./, '')
     const parts = host.split('.').filter(Boolean)
-    const brand = parts.length >= 2 ? parts[parts.length - 2] ?? '' : parts[0] ?? ''
+    const brand = parts.reduce((longest, part) => (part.length > longest.length ? part : longest), '')
     return { brand, host }
   } catch {
     return { brand: '', host: '' }
@@ -37,9 +37,9 @@ export const brandInTitleRule: Rule = {
       return {
         label: LABEL,
         name: NAME,
-        message: 'Could not determine brand (no config and hostname missing). Set "brand" in settings.',
-        type: 'warn',
-        priority: 850,
+        message: 'Could not determine brand; set "brand" in settings.',
+        type: 'info',
+        priority: 900,
         details: { reference: SPEC, brandSource, host },
       }
     }
@@ -52,20 +52,14 @@ export const brandInTitleRule: Rule = {
     const isTitleMissing = !element || titleText.length === 0
     const hasBrand = titleText.toLowerCase().includes(brand.toLowerCase())
 
-    // 5. Build message (Quantified, showing the value)
-    let message = ''
-    if (isTitleMissing) {
-      message = `Missing <title> tag. Cannot check brand "${extractSnippet(brand, 20)}".`
-    } else if (hasBrand) {
-      message = `Title contains brand "${extractSnippet(brand, 20)}".`
-    } else {
-      message = `Title missing brand "${extractSnippet(brand, 20)}".`
-    }
+    const message = isTitleMissing
+      ? `Missing <title> tag. Cannot check brand "${extractSnippet(brand, 20)}".`
+      : hasBrand
+        ? `Title contains brand "${extractSnippet(brand, 20)}".`
+        : `Meta-Title does not include the brand "${brand}".`
 
-    // 6. Determine type
-    const type = isTitleMissing ? 'info' : hasBrand ? 'ok' : 'warn'
+    const type: 'info' | 'warn' = hasBrand && !isTitleMissing ? 'info' : 'warn'
 
-    // 7. Build evidence (Chain of Evidence)
     const details = element
       ? {
           sourceHtml: extractHtml(element),
@@ -85,7 +79,7 @@ export const brandInTitleRule: Rule = {
       name: NAME,
       message,
       type,
-      priority: hasBrand ? 700 : isTitleMissing ? 900 : 400,
+      priority: hasBrand ? 700 : 300,
       details,
     }
   },

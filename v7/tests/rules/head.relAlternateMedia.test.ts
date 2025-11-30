@@ -6,7 +6,7 @@ const doc = (h: string) => new DOMParser().parseFromString(h, 'text/html')
 describe('rule: rel alternate media', () => {
   it('counts media links', async () => {
     const r = await relAlternateMediaRule.run({ html:'', url:'', doc: doc('<link rel="alternate" media="only screen and (max-width: 640px)" href="m.html"/>') }, { globals: {} })
-    expect((r as any).message.includes('rel=alternate')).toBe(true)
+    expect((r as any).message.toLowerCase()).toContain('alternate')
+    expect((r as any).type).toBe('warn')
   })
 })
-

@@ -1,12 +1,16 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 
-// Constants
 const LABEL = 'HEAD'
 const NAME = 'Hreflang Multipage Validation'
 const RULE_ID = 'head:hreflang-multipage'
-const SELECTOR = 'head > link[rel="alternate"][hreflang]'
+const SELECTOR_HEAD = 'head > link[rel~="alternate" i][hreflang][href]'
+const SELECTOR_ANY = 'link[rel~="alternate" i][hreflang][href]'
 const SPEC = 'https://developers.google.com/search/docs/specialty/international/localized-versions'
+const order = { info: 0, warn: 1, error: 2 }
+
+const upgrade = (current: 'info' | 'warn' | 'error', next: 'info' | 'warn' | 'error') =>
+  order[next] > order[current] ? next : current
 
 export const hreflangMultipageRule: Rule = {
   id: RULE_ID,
@@ -14,79 +18,92 @@ export const hreflangMultipageRule: Rule = {
   enabled: true,
   what: 'static',
   async run(page) {
-    // 1. Query with precision selector
-    const elements = Array.from(page.doc.querySelectorAll(SELECTOR))
-    const count = elements.length
+    let links = Array.from(page.doc.querySelectorAll(SELECTOR_HEAD)) as HTMLLinkElement[]
+    const fallback = Array.from(page.doc.querySelectorAll(SELECTOR_ANY)) as HTMLLinkElement[]
+    const maybeInBody = !links.length && fallback.length > 0
+    if (!links.length) links = fallback
 
-    // 2. Determine states (Binary Logic)
-    const isPresent = count > 0
-
-    if (!isPresent) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'No hreflang links found.',
-        type: 'info',
-        priority: 900,
-        details: { reference: SPEC },
-      }
+    if (!links.length) {
+      return { label: LABEL, name: NAME, message: 'No hreflang links to validate.', type: 'info', priority: 900, details: { reference: SPEC } }
     }
 
-    // 3. Extract and normalize hreflang values (case-insensitive per spec)
-    const hreflangValues = elements.map((el) => (el.getAttribute('hreflang') || '').trim().toLowerCase()).filter(Boolean)
+    const canonicalEl = (page.doc.querySelector('head > link[rel~="canonical" i]') || page.doc.querySelector('link[rel~="canonical" i]')) as HTMLLinkElement | null
+    const canonicalHref = canonicalEl?.getAttribute('href')?.trim() || ''
+    const canonical = new URL(canonicalHref || page.url, page.url).toString()
+    const selfRef = links.find((l) => new URL(l.getAttribute('href') || '', page.url).toString() === canonical)
+    const selfHreflang = selfRef?.getAttribute('hreflang')?.trim() || ''
 
-    // 4. Detect issues
-    const uniqueValues = new Set(hreflangValues)
-    const hasDuplicates = hreflangValues.length !== uniqueValues.size
-    const hasXDefault = hreflangValues.includes('x-default')
-
-    // 5. Find duplicate entries if any
-    const duplicates = hasDuplicates
-      ? hreflangValues.filter((val, idx) => hreflangValues.indexOf(val) !== idx)
-      : []
-    const uniqueDuplicates = [...new Set(duplicates)]
-
-    // 6. Build message (Quantified, showing the issue)
-    let message = ''
-    let type: 'ok' | 'warn' | 'info' = 'info'
-    let priority = 500
-
-    if (hasDuplicates) {
-      message = `${count} hreflang links with ${uniqueDuplicates.length} duplicate values: ${uniqueDuplicates.join(', ')}`
-      type = 'warn'
-      priority = 200
-    } else if (hasXDefault) {
-      message = `${count} hreflang links with x-default. Validation: OK.`
-      type = 'ok'
-      priority = 700
-    } else {
-      message = `${count} hreflang links without x-default.`
-      type = 'info'
-      priority = 600
+    let type: 'info' | 'warn' | 'error' = 'info'
+    const issues: string[] = []
+    if (!canonicalHref) {
+      issues.push('No valid canonical found. rel=alternate invalid when referenced with parameters.')
+      type = upgrade(type, 'warn')
+    }
+    if (!selfRef) {
+      issues.push('No onpage hreflang self reference to canonical URL.')
+      type = upgrade(type, 'error')
+    }
+    if (maybeInBody) {
+      issues.push('Markup may be in <body> or DOM parsing issue.')
+      type = upgrade(type, 'warn')
     }
 
-    // 7. Build evidence (Chain of Evidence)
-    const sourceHtml = extractHtmlFromList(elements)
-    const domPaths = elements.map((_, idx) => (idx === 0 ? SELECTOR : `${SELECTOR}:nth-of-type(${idx + 1})`))
+    const checks: Array<Promise<{ level: 'warn' | 'error'; text: string }[]>> = links
+      .filter((link) => new URL(link.getAttribute('href') || '', page.url).toString() !== canonical)
+      .map(async (link): Promise<{ level: 'warn' | 'error'; text: string }[]> => {
+        const href = new URL(link.getAttribute('href') || '', page.url).toString()
+        const hreflang = (link.getAttribute('hreflang') || '').trim()
+        const ctrl = new AbortController()
+        const t = setTimeout(() => ctrl.abort(), 10000)
+        try {
+          const res = await fetch(href, { redirect: 'follow', signal: ctrl.signal })
+          clearTimeout(t)
+          const messages: { level: 'warn' | 'error'; text: string }[] = []
+          if (res.redirected) messages.push({ level: 'warn', text: `'${hreflang}' URL triggers redirect.` })
+          if (res.status !== 200) {
+            messages.push({ level: 'error', text: `'${hreflang}' returns HTTP ${res.status}.` })
+            return messages
+          }
+          const body = await res.text()
+          const dom = new DOMParser().parseFromString(body, 'text/html')
+          const selfSelector = `link[rel~="alternate" i][hreflang="${hreflang}"][href="${href}"]`
+          const backSelector = selfHreflang
+            ? `link[rel~="alternate" i][hreflang="${selfHreflang}"][href="${canonical}"]`
+            : `link[rel~="alternate" i][hreflang][href="${canonical}"]`
+          if (!dom.querySelector(selfSelector)) messages.push({ level: 'error', text: `'${hreflang}' no self reference found.` })
+          if (!dom.querySelector(backSelector)) messages.push({ level: 'error', text: `'${hreflang}' no back reference to canonical.` })
+          return messages
+        } catch (e) {
+          clearTimeout(t)
+          return [{ level: 'warn', text: `'${hreflang}' check failed: ${String(e)}` }]
+        }
+      })
 
+    const results = await Promise.all(checks)
+    results.flat().forEach(({ level, text }) => {
+      type = upgrade(type, level)
+      issues.push(text)
+    })
+
+    const message = issues.length
+      ? `Link-Rel-Alternate-Hreflang: ${issues.join(' ')}`
+      : 'Link-Rel-Alternate-Hreflang was checked successfully and is correct!'
+
+    const sourceHtml = extractHtmlFromList(links)
     return {
       label: LABEL,
       name: NAME,
       message,
       type,
-      priority,
+      priority: type === 'info' ? 709 : type === 'warn' ? 200 : 80,
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml, 200),
-        domPaths,
-        count,
-        hreflangValues,
-        hasXDefault,
-        hasDuplicates,
-        duplicates: uniqueDuplicates,
+        domPaths: links.map((_, i) => (i === 0 ? SELECTOR_HEAD : `${SELECTOR_HEAD}:nth-of-type(${i + 1})`)),
+        canonical,
+        canonicalHref: canonicalHref || null,
         reference: SPEC,
       },
     }
   },
 }
-

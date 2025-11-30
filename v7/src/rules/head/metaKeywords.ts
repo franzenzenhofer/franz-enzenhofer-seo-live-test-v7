@@ -14,62 +14,54 @@ export const metaKeywordsRule: Rule = {
   enabled: true,
   what: 'static',
   async run(page) {
-    // 1. Query with precision selector
-    const element = page.doc.querySelector(SELECTOR)
-
-    // 2. Extract content and handle whitespace
-    const content = (element?.getAttribute('content') || '').trim()
-
-    // 3. Determine states (Binary Logic)
-    const isPresent = Boolean(element)
-    const hasContent = isPresent && content.length > 0
-
-    // 4. Parse keywords if present
-    const keywords = hasContent ? content.split(',').map((k) => k.trim()).filter(Boolean) : []
-
-    // 5. Build message (Quantified, showing deprecation warning)
-    let message = ''
-    let type: 'ok' | 'warn' = 'ok'
-    let priority = 900
-
-    if (!isPresent) {
-      message = 'No meta keywords tag. (Preferred: this tag is ignored since 2009)'
-      type = 'ok'
-      priority = 980
-    } else if (!hasContent) {
-      message = 'Meta keywords tag present but empty. (Deprecated/ignored; remove it)'
-      type = 'warn'
-      priority = 700
-    } else if (keywords.length === 1) {
-      message = `Meta keywords present with 1 keyword. (Deprecated/ignored; remove it)`
-      type = 'warn'
-      priority = 650
-    } else {
-      message = `Meta keywords present with ${keywords.length} keywords. (Deprecated/ignored; remove it)`
-      type = 'warn'
-      priority = 650
+    const elements = Array.from(page.doc.querySelectorAll(SELECTOR))
+      .concat(Array.from(page.domIdleDoc?.querySelectorAll(SELECTOR) || []))
+      .filter((el, idx, arr) => arr.findIndex((n) => n.getAttribute('content') === el.getAttribute('content')) === idx)
+    if (elements.length === 0) {
+      return {
+        label: LABEL,
+        name: NAME,
+        message: 'No meta keywords tag (recommended).',
+        type: 'info',
+        priority: 980,
+        details: { reference: SPEC },
+      }
     }
 
-    // 6. Build evidence (Chain of Evidence)
-    const details = isPresent
-      ? {
-          sourceHtml: extractHtml(element),
-          snippet: extractSnippet(content || '(empty)'),
-          domPath: getDomPath(element),
-          content,
-          keywords,
-          count: keywords.length,
-          reference: SPEC,
-        }
-      : { reference: SPEC }
+    if (elements.length > 1) {
+      const snippet = extractHtml(elements[0]!)
+      return {
+        label: LABEL,
+        name: NAME,
+        message: 'Multiple meta keywords tags found (deprecated, remove).',
+        type: 'warn',
+        priority: 300,
+        details: { sourceHtml: snippet, snippet: extractSnippet(snippet), domPaths: elements.map((_, i) => `${SELECTOR}:nth-of-type(${i + 1})`), reference: SPEC },
+      }
+    }
+
+    const element = elements[0]!
+    const content = (element.getAttribute('content') || '').trim()
+    const keywords = content.split(',').map((k) => k.trim()).filter(Boolean)
+    const message = keywords.length === 0
+      ? 'Meta keywords tag present but empty (deprecated, remove).'
+      : `Unnecessary meta keywords tag: ${content}`
 
     return {
       label: LABEL,
       name: NAME,
       message,
-      type,
-      priority,
-      details,
+      type: 'warn',
+      priority: 650,
+      details: {
+        sourceHtml: extractHtml(element),
+        snippet: extractSnippet(content || '(empty)'),
+        domPath: getDomPath(element),
+        content,
+        keywords,
+        count: keywords.length,
+        reference: SPEC,
+      },
     }
   },
 }

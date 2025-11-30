@@ -8,7 +8,7 @@ describe('title rule', () => {
   it('detects missing title', async () => {
     const result = await run('<html><head></head></html>')
     expect(result.type).toBe('error')
-    expect(result.message).toContain('Missing <title> tag')
+    expect(result.message).toContain('No <title> tag')
   })
 
   it('detects empty title', async () => {
@@ -25,7 +25,8 @@ describe('title rule', () => {
 
   it('passes single non-empty title', async () => {
     const result = await run('<html><head><title>Valid Title</title></head></html>')
-    expect(result.type).toBe('ok')
-    expect(result.message).toContain('1 <title> tag found')
+    expect(result.type).toBe('info')
+    expect(result.message).toBe('SEO-<title>: Valid Title')
+    expect(result.details?.snippet).toBe('<title>Valid Title</title>')
   })
 })

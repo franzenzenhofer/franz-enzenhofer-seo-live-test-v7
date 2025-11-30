@@ -26,9 +26,9 @@ export const metaDescriptionRule: Rule = {
       const combined = nodes.map((node) => extractHtml(node)).join('\n')
       return {
         label: LABEL,
-        message: `${count} meta descriptions found.`,
-        type: 'warn',
-        priority: 200,
+        message: 'Multiple meta description tags found.',
+        type: 'error',
+        priority: 100,
         name: NAME,
         details: { domPaths: nodes.map((_, i) => selectorAt(i)), snippet: combined, sourceHtml: combined, reference: SPEC },
       }
@@ -38,8 +38,8 @@ export const metaDescriptionRule: Rule = {
     const empty = description.length === 0
     return {
       label: LABEL,
-      message: empty ? 'Meta description empty.' : `Meta description present (${description.length} chars)`,
-      type: empty ? 'warn' : 'info',
+      message: empty ? 'Meta description is empty.' : `Meta description: ${description}`,
+      type: empty ? 'error' : 'info',
       priority: empty ? 100 : 760,
       name: NAME,
       details: {

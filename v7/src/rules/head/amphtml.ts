@@ -5,7 +5,7 @@ import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
 const LABEL = 'HEAD'
 const NAME = 'AMP HTML Link'
 const RULE_ID = 'head:amphtml'
-const SELECTOR = 'head > link[rel="amphtml"]'
+const SELECTOR = 'head > link[rel~="amphtml" i]'
 const SPEC = 'https://developers.google.com/search/docs/appearance/amp'
 
 export const amphtmlRule: Rule = {
@@ -14,44 +14,35 @@ export const amphtmlRule: Rule = {
   enabled: true,
   what: 'static',
   async run(page) {
-    // 1. Query with precision selector
     const element = page.doc.querySelector(SELECTOR)
-
-    // 2. Extract href and handle whitespace
     const href = element?.getAttribute('href')?.trim() || ''
+    if (!element) {
+      return {
+        label: LABEL,
+        name: NAME,
+        message: 'No amphtml link present.',
+        type: 'info',
+        priority: 950,
+        details: { reference: SPEC },
+      }
+    }
 
-    // 3. Determine states (Binary Logic)
-    const isPresent = Boolean(element)
-    const hasHref = isPresent && href.length > 0
-
-    // 4. Build message (Quantified, showing the value)
-    const message = !isPresent
-      ? 'No AMP HTML link found (recommended).'
-      : !hasHref
-        ? 'AMP HTML link present but href is empty (discouraged).'
-        : `AMP HTML link present (discouraged): "${extractSnippet(href, 50)}"`
-
-    // 5. Determine type (AMP is deprecated/optional; flag if present)
-    const type = isPresent ? 'warn' : 'info'
-
-    // 6. Build evidence (Chain of Evidence)
-    const details = isPresent
-      ? {
-          sourceHtml: extractHtml(element),
-          snippet: extractSnippet(href || '(empty href)'),
-          domPath: getDomPath(element),
-          href: href || '(empty)',
-          reference: SPEC,
-        }
-      : { reference: SPEC }
-
+    const sourceHtml = extractHtml(element)
+    const hasHref = href.length > 0
     return {
       label: LABEL,
       name: NAME,
-      message,
-      type,
-      priority: isPresent ? 800 : 950,
-      details,
+      message: hasHref ? `Link rel=amphtml URL: ${href}` : 'amphtml link present but href missing.',
+      type: hasHref ? 'info' : 'warn',
+      priority: 500,
+      details: {
+        sourceHtml,
+        snippet: extractSnippet(href || sourceHtml),
+        domPath: getDomPath(element),
+        href: href || '(empty)',
+        validatorUrl: hasHref ? `https://validator.ampproject.org/#url=${href}` : undefined,
+        reference: SPEC,
+      },
     }
   },
 }

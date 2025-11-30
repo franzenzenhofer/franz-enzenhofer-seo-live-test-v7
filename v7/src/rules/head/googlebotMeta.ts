@@ -14,54 +14,53 @@ export const googlebotMetaRule: Rule = {
   enabled: true,
   what: 'static',
   async run(page) {
-    // 1. Query with precision selector
-    const element = page.doc.querySelector(SELECTOR)
-
-    // 2. Extract content and handle whitespace
-    const content = (element?.getAttribute('content') || '').trim()
-
-    // 3. Determine states (Binary Logic)
-    const isPresent = Boolean(element)
-    const hasContent = isPresent && content.length > 0
-
-    // 4. Parse directives if present
-    const directives = hasContent ? content.split(',').map((d) => d.trim()).filter(Boolean) : []
-
-    // 5. Build message (Quantified, showing the value)
-    let message = ''
-    if (!isPresent) {
-      message = 'No Googlebot-specific meta tag found.'
-    } else if (!hasContent) {
-      message = 'Googlebot meta tag present but content is empty.'
-    } else if (directives.length === 1) {
-      message = `Googlebot directive: ${directives[0]}`
-    } else {
-      message = `Googlebot: ${directives.length} directives (${extractSnippet(directives.join(', '), 50)})`
+    const elements = Array.from(page.doc.querySelectorAll(SELECTOR))
+    if (elements.length === 0) {
+      return {
+        label: LABEL,
+        name: NAME,
+        message: 'No Googlebot meta tag found.',
+        type: 'info',
+        priority: 900,
+        details: { reference: SPEC },
+      }
     }
 
-    // 6. Determine type (informational - presence indicates specific Googlebot instructions)
-    const type = 'info'
+    if (elements.length > 1) {
+      const snippet = extractHtml(elements[0]!)
+      return {
+        label: LABEL,
+        name: NAME,
+        message: 'Multiple Googlebot meta tags found.',
+        type: 'warn',
+        priority: 200,
+        details: { sourceHtml: snippet, snippet: extractSnippet(snippet), domPaths: elements.map((_, i) => `${SELECTOR}:nth-of-type(${i + 1})`), reference: SPEC },
+      }
+    }
 
-    // 7. Build evidence (Chain of Evidence)
-    const details = isPresent
-      ? {
-          sourceHtml: extractHtml(element),
-          snippet: extractSnippet(content || '(empty)'),
-          domPath: getDomPath(element),
-          content,
-          directives,
-          reference: SPEC,
-        }
-      : { reference: SPEC }
+    const element = elements[0]!
+    const content = (element.getAttribute('content') || '').trim()
+    const directives = content.split(',').map((d) => d.trim()).filter(Boolean)
+    const hasNoindex = directives.some((d) => d.toLowerCase() === 'noindex' || d.toLowerCase() === 'none')
+    const hasNofollow = directives.some((d) => d.toLowerCase() === 'nofollow' || d.toLowerCase() === 'none')
+    const type: 'info' | 'warn' = hasNoindex || hasNofollow ? 'warn' : 'info'
 
     return {
       label: LABEL,
       name: NAME,
-      message,
+      message: `Meta Googlebot: ${content || '(empty)'}`,
       type,
-      priority: isPresent ? 600 : 900,
-      details,
+      priority: type === 'warn' ? 150 : 600,
+      details: {
+        sourceHtml: extractHtml(element),
+        snippet: extractSnippet(content || '(empty)'),
+        domPath: getDomPath(element),
+        content,
+        directives,
+        hasNoindex,
+        hasNofollow,
+        reference: SPEC,
+      },
     }
   },
 }
-

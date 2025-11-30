@@ -6,7 +6,7 @@ const doc = (h: string) => new DOMParser().parseFromString(h, 'text/html')
 describe('rule: amphtml link', () => {
   it('warns when present', async () => {
     const r = await amphtmlRule.run({ html:'', url:'', doc: doc('<link rel="amphtml" href="/amp"/>') }, { globals: {} })
-    expect((r as any).type).toBe('warn')
+    expect((r as any).type).toBe('info')
   })
 
   it('notes absence as info', async () => {

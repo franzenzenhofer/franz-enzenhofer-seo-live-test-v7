@@ -1,10 +1,9 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
+import { extractHtml, extractHtmlFromList, extractSnippet, getDomPath } from '@/shared/html-utils'
 
 const LABEL = 'HEAD'
 const NAME = 'Canonical Link'
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
-const TESTED = 'Checked for a <link rel="canonical"> tag in <head> and extracted its resolved href.'
 
 export const canonicalRule: Rule = {
   id: 'head-canonical',
@@ -12,28 +11,54 @@ export const canonicalRule: Rule = {
   enabled: true,
   what: 'static',
   run: async (page) => {
-    const el = page.doc.querySelector('link[rel="canonical"]') as HTMLLinkElement|null
-    if (!el || !el.href) {
+    const elements = Array.from(page.doc.querySelectorAll('link[rel~="canonical" i]')) as HTMLLinkElement[]
+    const count = elements.length
+    if (count === 0) {
       return {
         label: LABEL,
-        message: 'No canonical link found.',
-        type: 'error',
+        message: 'No canonical found within the static HTML.',
+        type: 'warn',
         name: NAME,
-        details: { tested: TESTED, reference: SPEC, canonicalUrl: null },
+        priority: 400,
+        details: { reference: SPEC, canonicalUrl: null },
       }
     }
+    if (count > 1) {
+      const sourceHtml = extractHtmlFromList(elements)
+      return {
+        label: LABEL,
+        message: 'Multiple canonical found within the static HTML.',
+        type: 'error',
+        priority: 200,
+        name: NAME,
+        details: {
+          sourceHtml,
+          snippet: extractSnippet(sourceHtml),
+          domPaths: elements.map((_, idx) => `link[rel~="canonical" i]:nth-of-type(${idx + 1})`),
+          reference: SPEC,
+        },
+      }
+    }
+    const el = elements[0] as HTMLLinkElement
     const sourceHtml = extractHtml(el)
+    const href = el.getAttribute('href')?.trim() || ''
+    const resolved = href ? new URL(href, page.url).toString() : ''
+    const isSelf = resolved === page.url
+    const message = isSelf
+      ? `Canonical: ${resolved}`
+      : `${page.url} → Canonical → ${resolved}`
     return {
       label: LABEL,
-      message: 'Canonical link present',
-      type: 'info',
+      message,
+      type: isSelf ? 'info' : 'warn',
+      priority: isSelf ? 850 : 500,
       name: NAME,
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),
         domPath: getDomPath(el),
-        canonicalUrl: el.href,
-        tested: TESTED,
+        canonicalUrl: resolved,
+        pageUrl: page.url,
         reference: SPEC,
       },
     }

@@ -1,5 +1,5 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, extractHtmlFromList, extractSnippet, getDomPath } from '@/shared/html-utils'
+import { extractHtml, extractHtmlFromList, getDomPath } from '@/shared/html-utils'
 
 const LABEL = 'HEAD'
 const NAME = 'SEO Title Present'
@@ -11,47 +11,38 @@ export const titleRule: Rule = {
   enabled: true,
   what: 'static',
   run: async (page) => {
-    // 1. Query
     const nodes = Array.from(page.doc.querySelectorAll('head > title'))
     const count = nodes.length
-    const firstNode = nodes[0]
-
-    // 2. Content Analysis (Trimmed)
-    const rawContent = firstNode?.textContent ?? ''
-    const titleContent = rawContent.trim()
-    const hasContent = titleContent.length > 0
-
-    // 3. Logic States
-    const isMultiple = count > 1
+    const first = nodes[0]
+    const title = (first?.textContent || '').trim()
     const isMissing = count === 0
-    const isEmpty = count === 1 && !hasContent
-    const isOk = count === 1 && hasContent
+    const isMultiple = count > 1
+    const isEmpty = count === 1 && title.length === 0
+    const isOk = count === 1 && !isEmpty
 
-    // 4. Determine Result Properties
-    // We define the state, then map to the message. DRY.
-    const type = isOk ? 'ok' : 'error'
-    
-    let message = ''
-    if (isOk) message = `1 <title> tag found ("${extractSnippet(titleContent, 20)}").`
-    else if (isMultiple) message = `${count} <title> tags found (Must be exactly 1).`
-    else if (isMissing) message = 'Missing <title> tag.'
-    else if (isEmpty) message = '<title> tag exists but is empty.'
+    const type: 'info' | 'error' = isOk ? 'info' : 'error'
+    const message = isOk
+      ? `SEO-<title>: ${title}`
+      : isMultiple
+        ? `${count} <title> tags found in head (only one allowed).`
+        : isMissing
+          ? 'No <title> tag found in head.'
+          : '<title> tag exists but is empty.'
 
-    // 5. Evidence Construction
-    // If multiple, show the list. If one (even empty), show that one.
-    const sourceHtml = isMultiple ? extractHtmlFromList(nodes) : extractHtml(firstNode ?? null)
-    
+    const sourceHtml = isMultiple ? extractHtmlFromList(nodes) : extractHtml(first ?? null)
+
     return {
       label: LABEL,
       name: NAME,
       message,
       type,
-      priority: isOk ? 100 : 0, // Error = 0 (High priority fix)
+      priority: isOk ? 1000 : 0,
       details: {
-        title: titleContent,
-        length: titleContent.length,
+        snippet: isOk ? `<title>${title}</title>` : undefined,
+        title,
+        length: title.length,
         sourceHtml,
-        domPath: getDomPath(firstNode ?? null),
+        domPath: getDomPath(first ?? null),
         reference: SPEC,
       },
     }

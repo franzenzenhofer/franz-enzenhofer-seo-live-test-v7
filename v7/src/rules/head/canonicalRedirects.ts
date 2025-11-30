@@ -5,7 +5,7 @@ import type { Rule } from '@/core/types'
 const LABEL = 'HEAD'
 const NAME = 'Canonical Redirects'
 const RULE_ID = 'head:canonical-redirects'
-const SELECTOR = 'head > link[rel="canonical"]'
+const SELECTOR = 'head > link[rel~="canonical" i]'
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
 
 export const canonicalRedirectsRule: Rule = {
@@ -22,7 +22,7 @@ export const canonicalRedirectsRule: Rule = {
       return {
         name: NAME,
         label: LABEL,
-        message: 'No canonical link found.',
+        message: 'Skipped canonical redirect check: no canonical link found.',
         type: 'info',
         priority: 900,
         details: { reference: SPEC },
@@ -73,4 +73,3 @@ export const canonicalRedirectsRule: Rule = {
     }
   },
 }
-

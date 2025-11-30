@@ -6,7 +6,7 @@ const doc = (h: string) => new DOMParser().parseFromString(h, 'text/html')
 describe('rule: meta keywords', () => {
   it('ok when absent', async () => {
     const r = await metaKeywordsRule.run({ html:'', url:'', doc: doc('<p/>') }, { globals: {} })
-    expect((r as any).type).toBe('ok')
+    expect((r as any).type).toBe('info')
   })
 
   it('warns when present', async () => {

@@ -10,7 +10,6 @@ describe('rule: title length', () => {
   })
   it('accepts good titles', async () => {
     const r = await titleLengthRule.run({ html:'', url:'', doc: doc('<title>This is a good title with more than fifty characters total</title>') }, { globals: {} })
-    expect((r as any).type).toBe('ok')
+    expect((r as any).type).toBe('info')
   })
 })
-

@@ -7,6 +7,6 @@ describe('rule: meta googlebot', () => {
   it('reads content', async () => {
     const r = await googlebotMetaRule.run({ html:'', url:'', doc: D('<meta name="googlebot" content="noindex">') } as any, { globals: {} })
     expect((r as any).message.includes('noindex')).toBe(true)
+    expect((r as any).type).toBe('warn')
   })
 })
-

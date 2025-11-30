@@ -18,6 +18,7 @@ import { amphtmlRule } from './head/amphtml'
 import { ldjsonRule } from './dom/ldjson'
 import { metaKeywordsRule } from './head/metaKeywords'
 import { metaCharsetRule } from './head/metaCharset'
+import { metaUnavailableAfterRule } from './head/metaUnavailableAfter'
 import { canonicalAbsoluteRule } from './head/canonicalAbsolute'
 import { canonicalSelfRule } from './head/canonicalSelf'
 import { twitterCardRule } from './head/twitterCard'
@@ -125,6 +126,7 @@ export const registry: Rule[] = [
   ldjsonRule,
   metaKeywordsRule,
   metaCharsetRule,
+  metaUnavailableAfterRule,
   canonicalAbsoluteRule,
   canonicalSelfRule,
   twitterCardRule,

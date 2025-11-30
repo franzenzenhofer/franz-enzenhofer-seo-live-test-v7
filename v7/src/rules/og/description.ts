@@ -13,13 +13,13 @@ export const ogDescriptionRule: Rule = {
   what: 'static',
   async run(page) {
     const m = page.doc.querySelector(OG_SELECTORS.DESCRIPTION)
-    if (!m) return { label: 'OG', message: 'Missing og:description', type: 'warn', name: 'Open Graph Description', details: { tested: TESTED, reference: SPEC } }
+    if (!m) return { label: 'HEAD', message: 'Missing og:description', type: 'info', name: 'Open Graph Description', details: { tested: TESTED, reference: SPEC } }
     const c = m.getAttribute('content')?.trim() || ''
-    if (!c) return { label: 'OG', message: 'Empty og:description', type: 'warn', name: 'Open Graph Description', details: { tested: TESTED, reference: SPEC } }
+    if (!c) return { label: 'HEAD', message: 'Empty og:description', type: 'warn', name: 'Open Graph Description', details: { tested: TESTED, reference: SPEC } }
     const sourceHtml = extractHtml(m)
     return {
-      label: 'OG',
-      message: `og:description present (${c.length} chars)`,
+      label: 'HEAD',
+      message: `Open Graph (Facebook) description: "${c}"`,
       type: 'info',
       name: 'Open Graph Description',
       details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(m), ogDescription: c, tested: TESTED, reference: SPEC },
