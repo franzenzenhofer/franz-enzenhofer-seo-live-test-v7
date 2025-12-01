@@ -67,7 +67,6 @@ import { psiDesktopRule } from './google/psi/desktop'
 import { psiMobileFcpTbtRule } from './google/psi/mobileFcpTbt'
 import { gscPropertyAvailableRule } from './google/gsc/propertyAvailable'
 import { gscIsIndexedRule } from './google/gsc/isIndexed'
-import { mobileFriendlyRule } from './google/mobileFriendly'
 import { gscUrlInspectionRule } from './google/gsc/urlInspection'
 import { gscTopQueriesOfPageRule } from './google/gsc/topQueriesOfPage'
 import { gscPageWorldwideRule } from './google/gsc/pageWorldwideSearchAnalytics'
@@ -200,7 +199,6 @@ export const registry: Rule[] = [
   psiMobileFcpTbtRule,
   gscPropertyAvailableRule,
   gscIsIndexedRule,
-  mobileFriendlyRule,
   gscUrlInspectionRule,
   gscTopQueriesOfPageRule,
   gscPageWorldwideRule,
