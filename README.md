@@ -14,7 +14,7 @@ A Chrome extension that analyzes web pages in real-time with **100+ SEO rules** 
 >
 > **Click the link below** to download `latest-build.zip` directly.
 
-## **[Download latest-build.zip](https://github.com/franzenzenhofer/franz-enzenhofer-seo-live-test-v7/raw/refs/heads/main/latest-build.zip)**
+**>>> [Download latest-build.zip](https://github.com/franzenzenhofer/franz-enzenhofer-seo-live-test-v7/raw/refs/heads/main/latest-build.zip) <<<**
 
 ![Quick Install Guide](./install-guide.png)
 
