@@ -30,7 +30,7 @@ export type Page = {
   headerChain?: Array<{ url: string; status?: number; statusLine?: string; location?: string; redirectUrl?: string; fromCache?: boolean }>
   fromCache?: boolean
   ip?: string
-  navigationTiming?: { nextHopProtocol?: string | null; transferSize?: number; encodedBodySize?: number; decodedBodySize?: number; type?: string | null }
+  navigationTiming?: { nextHopProtocol?: string | null; transferSize?: number; encodedBodySize?: number; decodedBodySize?: number; type?: string | null; firstPaint?: number | null; firstContentfulPaint?: number | null }
   resources?: string[]
   // Enriched fields (optional, derived from events)
   firstUrl?: string

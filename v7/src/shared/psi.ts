@@ -10,8 +10,9 @@ export type PSIResult = {
   }
 }
 
-// Default PSI API key (user can override in settings)
-export const DEFAULT_PSI_KEY = '***REMOVED***' as const
+// Default PSI API key - users can override in settings
+// This is a free public API key for PageSpeed Insights
+export const DEFAULT_PSI_KEY = 'AIzaSyA725ufYWi-tYPleOUdN3Qn6-c19w04DmE' as const
 
 const keyOf = (u: string, s: string, k: string) => `psi:${k}:${s}:${u}`
 const now = () => Date.now()

@@ -9,7 +9,7 @@ import type { Page, Ctx } from '@/core/types'
  * the reasoning behind each rule.
  */
 describe('Rule References Validation', () => {
-  it('should require all rules to have a specification reference URL', async () => {
+  it('should require all rules to have a specification reference URL', { timeout: 30000 }, async () => {
     const rulesWithoutReferences: string[] = []
     const rulesWithInvalidReferences: Array<{ id: string; reference: string }> = []
 

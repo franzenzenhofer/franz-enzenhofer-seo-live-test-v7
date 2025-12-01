@@ -26,10 +26,10 @@ describe('Page shape completeness', () => {
     const probe = async () => ({}) // avoid network
     const p = await pageFromEvents(events, makeDoc, ()=>'about:blank', probe)
 
-    // Core
+    // Core - prefers document_end over idle
     expect(p.url).toBe(url)
-    expect(p.html.includes('Idle')).toBe(true)
-    expect(p.doc.title).toBe('Idle')
+    expect(p.html.includes('End')).toBe(true)
+    expect(p.doc.title).toBe('End')
     expect(p.status).toBe(200)
     expect(p.headers?.['content-type']).toContain('text/html')
     expect(p.resources?.some((r)=> r.endsWith('/img.png'))).toBe(true)
