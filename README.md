@@ -6,6 +6,8 @@ A Chrome extension that analyzes web pages in real-time with **100+ SEO rules** 
 
 ## Quick Install (Developer Mode)
 
+![Quick Install Guide](./install-guide.png)
+
 1. Download and extract [latest-build.zip](./latest-build.zip)
 2. Go to `chrome://extensions/` in Chrome
 3. Enable **Developer mode** (toggle in top-right)
