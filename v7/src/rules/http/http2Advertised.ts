@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 const LABEL = 'HTTP'
 const NAME = 'HTTP/2 Advertised (Alt-Svc)'
@@ -12,6 +13,7 @@ export const http2AdvertisedRule: Rule = {
   enabled: true,
   what: 'http',
   async run(page) {
+    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const altSvcHeader = page.headers?.['alt-svc']?.trim() || ''
     const altSvcLower = altSvcHeader.toLowerCase()
     const advertisesHttp2 = /\bh2\b|h2=/.test(altSvcLower)

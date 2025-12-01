@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 const LABEL = 'HTTP'
 const NAME = 'Vary: User-Agent'
@@ -12,6 +13,7 @@ export const varyUserAgentRule: Rule = {
   enabled: true,
   what: 'http',
   async run(page) {
+    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const varyHeader = page.headers?.['vary']?.trim() || ''
     const varyLower = varyHeader.toLowerCase()
     const includesUserAgent = varyLower.includes('user-agent')

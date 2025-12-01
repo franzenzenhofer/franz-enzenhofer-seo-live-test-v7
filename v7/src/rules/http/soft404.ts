@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 const LABEL = 'HTTP'
 const NAME = 'Soft 404 Probe'
@@ -23,6 +24,7 @@ export const soft404Rule: Rule = {
   enabled: true,
   what: 'http',
   async run(page) {
+    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     let probeUrl: string
     try {
       probeUrl = buildProbeUrl(page.url)

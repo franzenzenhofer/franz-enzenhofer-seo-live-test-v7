@@ -1,5 +1,6 @@
 import { NavigationLedgerSchema } from '@/background/history/types'
 import type { Rule } from '@/core/types'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 const LABEL = 'HTTP'
 const NAME = 'Redirect/Canonical chain'
@@ -23,6 +24,7 @@ export const redirectCanonicalChainRule: Rule = {
   enabled: true,
   what: 'http',
   async run(page, ctx) {
+    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const ledgerRaw = (ctx.globals as { navigationLedger?: unknown }).navigationLedger
     const ledger = NavigationLedgerSchema.safeParse(ledgerRaw)
     if (!ledger.success || !ledger.data.trace.length) {

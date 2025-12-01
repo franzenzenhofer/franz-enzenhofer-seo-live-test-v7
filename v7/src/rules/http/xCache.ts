@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 const LABEL = 'HTTP'
 const NAME = 'X-Cache Hit/Miss'
@@ -17,6 +18,7 @@ export const xCacheRule: Rule = {
   enabled: true,
   what: 'http',
   async run(page) {
+    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const xCacheHeader = getCaseInsensitiveHeader(page.headers, 'x-cache')
     const xCacheLower = xCacheHeader.toLowerCase()
     const hasXCache = Boolean(xCacheHeader)

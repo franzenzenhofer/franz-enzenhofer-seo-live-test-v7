@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 const LABEL = 'HTTP'
 const NAME = 'X-Robots unavailable_after'
@@ -12,6 +13,7 @@ export const unavailableAfterRule: Rule = {
   enabled: true,
   what: 'http',
   async run(page) {
+    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const xRobotsTag = (page.headers?.['x-robots-tag'] || '').trim()
     const xRobotsLower = xRobotsTag.toLowerCase()
     const unavailableMatch = xRobotsLower.match(/unavailable_after\s*:\s*([^\s,]+)/)

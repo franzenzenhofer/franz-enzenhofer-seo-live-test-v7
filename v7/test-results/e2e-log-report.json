@@ -4,18 +4,18 @@
     "errors": 2,
     "warnings": 0,
     "testPassed": true,
-    "timestamp": "2025-12-01T16:05:05.034Z"
+    "timestamp": "2025-12-01T16:29:26.550Z"
   },
   "logs": [
     {
       "type": "error",
       "message": "Failed to load resource: the server responded with a status of 404 ()",
-      "timestamp": 1764605099627
+      "timestamp": 1764606561048
     },
     {
       "type": "error",
       "message": "Failed to load resource: the server responded with a status of 404 ()",
-      "timestamp": 1764605099627
+      "timestamp": 1764606561048
     }
   ],
   "errors": [

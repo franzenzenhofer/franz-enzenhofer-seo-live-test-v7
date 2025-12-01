@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 // Constants
 const LABEL = 'HTTP'
@@ -13,6 +14,7 @@ export const altSvcOtherProtocolsRule: Rule = {
   enabled: true,
   what: 'http',
   async run(page) {
+    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     // 1. Extract Alt-Svc header value
     const altSvcHeader = page.headers?.['alt-svc'] || ''
 

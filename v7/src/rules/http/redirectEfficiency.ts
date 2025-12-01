@@ -1,5 +1,6 @@
 import { NavigationLedgerSchema } from '@/background/history/types'
 import type { Rule, Result } from '@/core/types'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 const LABEL = 'HTTP'
 const NAME = 'Redirect Efficiency Score'
@@ -13,6 +14,7 @@ export const redirectEfficiencyRule: Rule = {
   what: 'http',
 
   async run(page, ctx): Promise<Result> {
+    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const raw = (ctx.globals as { navigationLedger?: unknown }).navigationLedger
     const ledgerResult = NavigationLedgerSchema.safeParse(raw)
 

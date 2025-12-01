@@ -324,12 +324,6 @@
     "what": "static"
   },
   {
-    "id": "gsc:mobile-friendly",
-    "name": "Mobile Friendly Test",
-    "enabledByDefault": true,
-    "what": "gsc"
-  },
-  {
     "id": "http:navigation-path",
     "name": "Navigation Path Analysis",
     "enabledByDefault": true,

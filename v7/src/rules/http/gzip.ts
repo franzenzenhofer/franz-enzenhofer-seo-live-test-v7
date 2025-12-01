@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 const LABEL = 'HTTP'
 const NAME = 'Gzip/Brotli Compression'
@@ -27,6 +28,7 @@ export const gzipRule: Rule = {
   enabled: true,
   what: 'http',
   async run(page) {
+    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const encodingHeader = page.headers?.['content-encoding'] || page.headers?.['Content-Encoding'] || ''
     const encodings = parseEncodings(encodingHeader)
     const details = encodings.map((enc) => ({ encoding: enc, ...(KNOWN_ENCODINGS[enc] || { note: 'Unknown encoding', modern: false }) }))

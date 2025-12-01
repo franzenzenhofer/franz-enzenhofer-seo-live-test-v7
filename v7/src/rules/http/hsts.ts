@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 const LABEL = 'HTTP'
 const NAME = 'Strict-Transport-Security (HSTS)'
@@ -12,6 +13,7 @@ export const hstsRule: Rule = {
   enabled: true,
   what: 'http',
   async run(page) {
+    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const hstsHeader = page.headers?.['strict-transport-security']?.trim() || ''
     const hasHsts = Boolean(hstsHeader)
     if (!hasHsts) {

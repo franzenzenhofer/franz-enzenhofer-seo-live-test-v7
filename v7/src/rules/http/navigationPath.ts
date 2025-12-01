@@ -1,5 +1,6 @@
 import { NavigationLedgerSchema } from '@/background/history/types'
 import type { Rule, Result } from '@/core/types'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 const LABEL = 'HTTP'
 const NAME = 'Navigation Path Analysis'
@@ -20,6 +21,7 @@ export const navigationPathRule: Rule = {
   what: 'http',
 
   async run(page, ctx): Promise<Result> {
+    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const raw = (ctx.globals as { navigationLedger?: unknown }).navigationLedger
     const ledgerResult = NavigationLedgerSchema.safeParse(raw)
     if (!ledgerResult.success) return buildResult('Navigation path data unavailable.', 'info', 900, {})

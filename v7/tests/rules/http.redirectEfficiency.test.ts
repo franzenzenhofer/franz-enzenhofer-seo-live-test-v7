@@ -3,16 +3,23 @@ import { describe, it, expect } from 'vitest'
 import { redirectEfficiencyRule } from '@/rules/http/redirectEfficiency'
 import type { NavigationLedger } from '@/background/history/types'
 
-const createMockPage = () => ({
+const createMockPage = (headers: Record<string, string> = { 'content-type': 'text/html' }) => ({
   html: '',
   url: 'https://example.com',
   doc: new DOMParser().parseFromString('<html></html>', 'text/html'),
+  headers,
 })
 
 const run = (ledger?: NavigationLedger | null) =>
   redirectEfficiencyRule.run(createMockPage() as any, { globals: { navigationLedger: ledger } })
 
 describe('http:redirect-efficiency rule', () => {
+  it('returns runtime_error when headers not captured', async () => {
+    const result = await redirectEfficiencyRule.run(createMockPage({}) as any, { globals: { navigationLedger: null } })
+    expect(result.type).toBe('runtime_error')
+    expect(result.message).toContain('Hard Reload')
+  })
+
   it('returns info when no ledger available', async () => {
     const result = await run(null)
     expect(result.type).toBe('info')

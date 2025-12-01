@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 const LABEL = 'HEAD'
 const NAME = 'Common Mobile Setup'
@@ -12,6 +13,7 @@ export const commonMobileSetupRule: Rule = {
   enabled: true,
   what: 'http',
   async run(page) {
+    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const viewportEl = page.doc.querySelector('head > meta[name="viewport"]')
     const touchEl = page.doc.querySelector('head > link[rel~="apple-touch-icon"]')
     const hasViewport = Boolean(viewportEl)

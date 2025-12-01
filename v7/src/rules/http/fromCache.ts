@@ -1,4 +1,5 @@
 import type { Rule } from '@/core/types'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 const LABEL = 'HTTP'
 const NAME = 'Served from Browser Cache'
@@ -18,6 +19,7 @@ export const fromCacheRule: Rule = {
   enabled: true,
   what: 'http',
   async run(page, ctx) {
+    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const events = (ctx.globals as { events?: unknown }).events
     const cached = isFromCache(page, events)
     if (cached) {

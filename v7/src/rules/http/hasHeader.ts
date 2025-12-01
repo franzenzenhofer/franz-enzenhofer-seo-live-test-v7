@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 const LABEL = 'HTTP'
 const NAME = 'HTTP Header Presence (Configurable)'
@@ -12,6 +13,7 @@ export const hasHeaderRule: Rule = {
   enabled: true,
   what: 'http',
   async run(page, ctx) {
+    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const vars = (ctx.globals as { variables?: Record<string, unknown> }).variables || {}
     const raw = String((vars as Record<string, unknown>)['http_has_header'] || '').trim()
     if (!raw) {

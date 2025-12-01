@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 const LABEL = 'HTTP'
 const NAME = 'HTTP Status'
@@ -23,6 +24,7 @@ export const httpStatusRule: Rule = {
   enabled: true,
   what: 'http',
   run: async (page) => {
+    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const status = page.status
     const c = classify(status)
     return {

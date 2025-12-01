@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 const LABEL = 'HTTP'
 const NAME = 'X-Robots-Tag'
@@ -12,6 +13,7 @@ export const xRobotsRule: Rule = {
   enabled: true,
   what: 'http',
   async run(page) {
+    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const xRobotsTag = page.headers?.['x-robots-tag']?.trim() || ''
     const hasXRobots = Boolean(xRobotsTag)
     const message = hasXRobots

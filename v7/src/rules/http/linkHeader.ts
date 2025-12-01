@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 const LABEL = 'HTTP'
 const NAME = 'Link Header'
@@ -12,6 +13,7 @@ export const linkHeaderRule: Rule = {
   enabled: true,
   what: 'http',
   async run(page) {
+    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const linkHeader = page.headers?.['link'] || ''
     const hasLink = linkHeader.length > 0
     const links = hasLink ? linkHeader.split(',').map((l) => l.trim()).filter(Boolean) : []

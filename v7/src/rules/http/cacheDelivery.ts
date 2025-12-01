@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 // Constants
 const LABEL = 'HTTP'
@@ -13,6 +14,7 @@ export const cacheDeliveryRule: Rule = {
   enabled: true,
   what: 'http',
   async run(page) {
+    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     // 1. Extract Age header
     const ageHeader = page.headers?.['age'] || ''
     const ageValue = Number(ageHeader || '0')

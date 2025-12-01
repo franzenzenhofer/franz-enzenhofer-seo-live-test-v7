@@ -1,4 +1,5 @@
 import type { Rule } from '@/core/types'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 const LABEL = 'HTTP'
 const NAME = 'Negotiated Network Protocol'
@@ -13,6 +14,7 @@ export const negotiatedProtocolRule: Rule = {
   enabled: true,
   what: 'http',
   async run(page) {
+    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const proto = page.navigationTiming?.nextHopProtocol || ''
     const isHttps = page.url.startsWith('https:')
     if (!proto) {
