@@ -6,15 +6,27 @@ A Chrome extension that analyzes web pages in real-time with **100+ SEO rules** 
 
 ## Quick Install (Developer Mode)
 
+### Step 1: Download the Extension
+
+# [>>> DOWNLOAD latest-build.zip <<<](./latest-build.zip)
+
+> ### **DO NOT** use GitHub's green "Code" button or "Download ZIP"!
+>
+> That downloads the source code, NOT the extension.
+>
+> **Click the link above** to download `latest-build.zip` directly.
+
 ![Quick Install Guide](./install-guide.png)
 
-1. **Download** [latest-build.zip](./latest-build.zip) ← Click this link directly!
-   > ⚠️ **Important:** Download `latest-build.zip`, NOT the GitHub "Download ZIP" button (that downloads the source code, not the built extension)
-2. **Extract** the zip file to a folder
-3. Go to `chrome://extensions/` in Chrome
-4. Enable **Developer mode** (toggle in top-right)
-5. Click **Load unpacked** → select the extracted folder (should contain `manifest.json`)
-6. Done! Click the extension icon on any website to start analyzing
+---
+
+### Step 2: Install in Chrome
+
+1. **Extract** the downloaded `latest-build.zip` to a folder
+2. Go to `chrome://extensions/` in Chrome
+3. Enable **Developer mode** (toggle in top-right)
+4. Click **Load unpacked** → select the extracted folder (should contain `manifest.json`)
+5. Done! Click the extension icon on any website to start analyzing
 
 ---
 
@@ -36,21 +48,10 @@ A Chrome extension that analyzes web pages in real-time with **100+ SEO rules** 
 | HTTP | Status codes, redirects, HSTS, security headers, gzip |
 | BODY | H1, images, internal links, nofollow |
 | SPEED | Preload, preconnect, DNS prefetch, blocking scripts |
-| Google | PageSpeed Insights, Search Console, Mobile Friendly |
+| Google | PageSpeed Insights, Search Console |
 | DISCOVER | Google Discover eligibility checks |
 
-## Installation
-
-### Option 1: Install from Pre-built ZIP (Recommended)
-
-1. **Download** [latest-build.zip](./latest-build.zip)
-2. **Extract** the ZIP to a folder on your computer
-3. **Open Chrome** and go to `chrome://extensions/`
-4. **Enable Developer mode** (toggle in top-right corner)
-5. **Click "Load unpacked"** and select the extracted folder
-6. **Done!** The extension icon appears in your toolbar
-
-### Option 2: Build from Source
+## Build from Source (Optional)
 
 ```bash
 # Clone the repository
