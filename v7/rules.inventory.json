@@ -168,12 +168,6 @@
     "what": "static"
   },
   {
-    "id": "dom:html-lang",
-    "name": "HTML lang attribute",
-    "enabledByDefault": true,
-    "what": "static"
-  },
-  {
     "id": "http:headers-present",
     "name": "HTTP Header Captured",
     "enabledByDefault": true,

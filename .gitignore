@@ -21,3 +21,6 @@ yarn-error.log*
 
 # Legacy extension (deprecated)
 f19n-obtrusive-livetest/
+
+# Trash folder
+trash/
