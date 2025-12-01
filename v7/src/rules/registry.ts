@@ -50,7 +50,6 @@ import { trailingSlashRule } from './url/trailingSlash'
 import { nodeCountRule } from './dom/nodeCount'
 import { nodeDepthRule } from './dom/nodeDepth'
 import { clientSideRenderingRule } from './dom/clientSideRendering'
-import { htmlLangRule } from './dom/htmlLang'
 import { linkPreloadRule } from './speed/linkPreload'
 import { blockingScriptsRule } from './speed/blockingScripts'
 import { preconnectRule } from './speed/preconnect'
@@ -167,7 +166,6 @@ export const registry: Rule[] = [
   nodeCountRule,
   nodeDepthRule,
   clientSideRenderingRule,
-  htmlLangRule,
   linkPreloadRule,
   blockingScriptsRule,
   preconnectRule,

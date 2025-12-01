@@ -1,5 +1,47 @@
 F19N Obtrusive Live Test v7 (MV3)
 
+A comprehensive SEO testing Chrome extension that runs 100+ rules to analyze web pages for SEO issues, performance, and best practices.
+
+## Installation (Developer Mode)
+
+### Quick Install (3 steps)
+
+1. **Clone and build:**
+   ```bash
+   git clone https://github.com/franzenzenhofer/franz-enzenhofer-seo-live-test-v7.git
+   cd franz-enzenhofer-seo-live-test-v7/v7
+   npm install
+   npm run build
+   ```
+
+2. **Load in Chrome:**
+   - Open `chrome://extensions` in Chrome
+   - Enable **Developer mode** (toggle in top right)
+   - Click **Load unpacked**
+   - Select the `v7/dist` folder
+
+3. **Use it:**
+   - Navigate to any website
+   - Click the extension icon in toolbar
+   - View SEO analysis in the side panel
+
+### Features
+
+- **100+ SEO Rules** - Head tags, meta data, schema, images, links, security headers
+- **Google Integration** - PageSpeed Insights, Search Console (requires setup)
+- **Real-time Analysis** - Results update as you browse
+- **Export Reports** - HTML/JSON export for sharing
+
+### Optional: Google API Setup
+
+**PageSpeed Insights:** Works out of the box with a default API key. For heavy usage, get your own free key at [Google Cloud Console](https://developers.google.com/speed/docs/insights/v5/get-started).
+
+**Search Console:** Click "Sign In" in Settings → Google Account to connect your Google account.
+
+---
+
+## Technical Overview
+
 - MV3 + Chrome side panel (React + Vite)
 - Strict TypeScript, ESLint (flat), Prettier
 - Unit tests (Vitest + jsdom)
