@@ -8,13 +8,13 @@ A Chrome extension that analyzes web pages in real-time with **100+ SEO rules** 
 
 ### Step 1: Download the Extension
 
-# [>>> DOWNLOAD latest-build.zip <<<](./latest-build.zip)
-
 > ### **DO NOT** use GitHub's green "Code" button or "Download ZIP"!
 >
 > That downloads the source code, NOT the extension.
 >
-> **Click the link above** to download `latest-build.zip` directly.
+> **Click the link below** to download `latest-build.zip` directly.
+
+## **[Download latest-build.zip](./latest-build.zip)**
 
 ![Quick Install Guide](./install-guide.png)
 
