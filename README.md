@@ -8,11 +8,13 @@ A Chrome extension that analyzes web pages in real-time with **100+ SEO rules** 
 
 ![Quick Install Guide](./install-guide.png)
 
-1. Download and extract [latest-build.zip](./latest-build.zip)
-2. Go to `chrome://extensions/` in Chrome
-3. Enable **Developer mode** (toggle in top-right)
-4. Click **Load unpacked** → select the extracted folder
-5. Done! Click the extension icon on any website to start analyzing
+1. **Download** [latest-build.zip](./latest-build.zip) ← Click this link directly!
+   > ⚠️ **Important:** Download `latest-build.zip`, NOT the GitHub "Download ZIP" button (that downloads the source code, not the built extension)
+2. **Extract** the zip file to a folder
+3. Go to `chrome://extensions/` in Chrome
+4. Enable **Developer mode** (toggle in top-right)
+5. Click **Load unpacked** → select the extracted folder (should contain `manifest.json`)
+6. Done! Click the extension icon on any website to start analyzing
 
 ---
 
