@@ -22,7 +22,7 @@ export const titleRule: Rule = {
 
     const type: 'info' | 'error' = isOk ? 'info' : 'error'
     const message = isOk
-      ? `SEO-<title>: ${title}`
+      ? 'Title set.'
       : isMultiple
         ? `${count} <title> tags found in head (only one allowed).`
         : isMissing

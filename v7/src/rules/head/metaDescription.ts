@@ -38,7 +38,7 @@ export const metaDescriptionRule: Rule = {
     const empty = description.length === 0
     return {
       label: LABEL,
-      message: empty ? 'Meta description is empty.' : `Meta description: ${description}`,
+      message: empty ? 'Meta description is empty.' : 'Meta description set.',
       type: empty ? 'error' : 'info',
       priority: empty ? 100 : 760,
       name: NAME,

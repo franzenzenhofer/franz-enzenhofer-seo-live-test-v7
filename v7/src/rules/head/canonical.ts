@@ -45,8 +45,8 @@ export const canonicalRule: Rule = {
     const resolved = href ? new URL(href, page.url).toString() : ''
     const isSelf = resolved === page.url
     const message = isSelf
-      ? `Canonical: ${resolved}`
-      : `${page.url} → Canonical → ${resolved}`
+      ? 'Canonical set (self-referencing).'
+      : 'Canonical points to different URL.'
     return {
       label: LABEL,
       message,

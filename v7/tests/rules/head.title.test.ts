@@ -26,7 +26,7 @@ describe('title rule', () => {
   it('passes single non-empty title', async () => {
     const result = await run('<html><head><title>Valid Title</title></head></html>')
     expect(result.type).toBe('info')
-    expect(result.message).toBe('SEO-<title>: Valid Title')
+    expect(result.message).toBe('Title set.')
     expect(result.details?.snippet).toBe('<title>Valid Title</title>')
   })
 })
