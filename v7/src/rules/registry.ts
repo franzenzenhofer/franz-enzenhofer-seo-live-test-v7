@@ -61,7 +61,6 @@ import { googlebotMetaRule } from './head/googlebotMeta'
 import { googlebotUrlCheckRule } from './robots/googlebotUrlCheck'
 import { robotsSitemapReferenceRule } from './robots/sitemapReference'
 import { robotsComplexityRule } from './robots/complexity'
-import { linkedImagesAltNoTextRule } from './a11y/linkedImagesAltNoText'
 import { psiMobileRule } from './google/psi/mobile'
 import { psiDesktopRule } from './google/psi/desktop'
 import { psiMobileFcpTbtRule } from './google/psi/mobileFcpTbt'
@@ -192,7 +191,6 @@ export const registry: Rule[] = [
   googlebotUrlCheckRule,
   robotsSitemapReferenceRule,
   robotsComplexityRule,
-  linkedImagesAltNoTextRule,
   psiMobileRule,
   psiDesktopRule,
   psiMobileFcpTbtRule,

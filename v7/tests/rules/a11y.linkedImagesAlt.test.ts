@@ -7,7 +7,7 @@ describe('rule: linked images alt', () => {
   it('warns when image has no alt and link has no text', async () => {
     const r = await linkedImagesAltRule.run({ html:'', url:'', doc: doc('<a href="#"><img/></a>') }, { globals: {} })
     expect(r.type).toBe('warn')
-    expect(r.message).toContain('linked images missing alt and no text')
+    expect(r.message).toContain('linked images missing alt text or link text')
   })
 
   it('passes when image has alt text', async () => {
@@ -29,7 +29,15 @@ describe('rule: linked images alt', () => {
     const html = '<a href="#1"><img/></a><a href="#2"><img/></a>'
     const r = await linkedImagesAltRule.run({ html:'', url:'', doc: doc(html) }, { globals: {} })
     expect(r.type).toBe('warn')
-    expect(r.message).toContain('2 linked images missing alt and no text')
+    expect(r.message).toContain('2 linked images missing alt text or link text')
+  })
+
+  it('caps snippet details and exposes total count', async () => {
+    const html = '<a href="#1"><img/></a><a href="#2"><img/></a><a href="#3"><img/></a><a href="#4"><img/></a>'
+    const r = await linkedImagesAltRule.run({ html:'', url:'', doc: doc(html) }, { globals: {} })
+    expect(r.type).toBe('warn')
+    expect(r.details?.count).toBe(4)
+    expect(Array.isArray(r.details?.domPaths)).toBe(true)
+    expect((r.details?.domPaths as string[]).length).toBeLessThanOrEqual(3)
   })
 })
-
