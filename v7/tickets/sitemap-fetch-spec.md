@@ -1,0 +1,29 @@
+## Sitemap fetch and cache spec (future work)
+
+- **Goal**: Surface sitemap URLs and parsed entries for a property when allowed, to power rules (index coverage, canonical validation, mixed-content checks). Do not run sitemap fetches on every page load; reuse cached artifacts and respect size limits.
+- **Trigger**:
+  - Only enable when we have Google access to the property (SC-domain or URL-prefix available in settings).
+  - Allow additional fetch whitelists in settings (persisted), e.g., explicit sitemap URLs to pull even without GSC access.
+  - For HTTPS pages, first probe `robots.txt` (once per origin, cached). Parse `Sitemap:` lines case-insensitively; enqueue discovered sitemap URLs plus user-specified whitelist.
+- **Fetching and limits**:
+  - Follow XML sitemaps and sitemap index files recursively.
+  - Hard limit by **bytes downloaded**, not by URL count (e.g., cap at ~50–100 MB total per property per cache window). Skip entries beyond limit and mark results as truncated.
+  - Respect `lastmod` to avoid re-parsing unchanged sitemap index children.
+  - Timeout individual fetches; treat non-200 as soft errors with warnings, not crashes.
+  - Accept gzip/deflate if offered; record compression status.
+- **Parsing**:
+  - Support XML sitemap, sitemap index, and plain-text sitemap (line-delimited URLs).
+  - Keep a normalized list: `{ url, lastmod?, changefreq?, priority?, source }`.
+  - Store provenance: robots.txt discovery vs settings whitelist, and whether entries are truncated.
+- **Caching**:
+  - Cache per property (SC-domain/URL-prefix) for a reasonable TTL (e.g., 12–24h) and store fetch ETags/last-modified to enable conditional requests.
+  - Cache robots.txt sitemap lines separately with their own TTL (e.g., 1h) to avoid frequent crawls.
+- **Surfaces / UX**:
+  - When truncated, warn: include byte budget consumed and first/last URLs sampled.
+  - Expose which sitemap URLs were fetched, which were skipped, and whether discovery came from robots.txt or settings whitelist.
+  - Make results available to rules via a shared sitemap store (no per-rule fetches). Rules must only read cached data.
+- **Rules enabled by this data (future)**:
+  - Check that the current page is listed in at least one sitemap.
+  - Compare canonical vs sitemap URL presence.
+  - Flag mixed protocol or obvious duplicates (http/https, trailing slash mismatches) within sitemap entries.
+  - Detect `noindex` + sitemap inclusion conflicts.
