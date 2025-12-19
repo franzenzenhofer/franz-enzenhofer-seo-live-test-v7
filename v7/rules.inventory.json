@@ -318,6 +318,12 @@
     "what": "static"
   },
   {
+    "id": "head:meta-other-robots",
+    "name": "Meta other robots",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
     "id": "head:robots-noindex",
     "name": "Meta Robots Noindex",
     "enabledByDefault": true,
