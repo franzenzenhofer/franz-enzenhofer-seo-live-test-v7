@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { discoverMaxImagePreviewLargeRule } from '@/rules/discover/maxImagePreviewLarge'
-import { discoverTwitterLargeCardRule } from '@/rules/discover/twitterLargeCard'
 import { discoverArticleStructuredDataRule } from '@/rules/discover/articleStructuredData'
 import { discoverPublishedTimeRule } from '@/rules/discover/publishedTime'
 import { discoverAuthorPresentRule } from '@/rules/discover/authorPresent'
@@ -16,11 +15,6 @@ describe('discover rules', () => {
   it('max-image-preview:large via meta', async () => {
     const p = { html:'', url:'https://ex.com', doc: D('<meta name="robots" content="max-image-preview:large">') }
     const r = await discoverMaxImagePreviewLargeRule.run(p as any, { globals: {} })
-    expect((r as any).type).toBe('ok')
-  })
-  it('twitter large card', async () => {
-    const p = { html:'', url:'', doc: D('<meta name="twitter:card" content="summary_large_image">') }
-    const r = await discoverTwitterLargeCardRule.run(p as any, { globals: {} })
     expect((r as any).type).toBe('ok')
   })
   it('article structured data present', async () => {
@@ -64,4 +58,3 @@ describe('discover rules', () => {
     expect((r as any).type).toBe('info')
   })
 })
-

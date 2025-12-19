@@ -259,13 +259,7 @@
   },
   {
     "id": "a11y:linked-images-alt",
-    "name": "Linked Images need alt",
-    "enabledByDefault": true,
-    "what": "static"
-  },
-  {
-    "id": "a11y:linked-images-alt-no-text",
-    "name": "Linked images without alt and text",
+    "name": "Linked images need alt or text",
     "enabledByDefault": true,
     "what": "static"
   },
@@ -596,12 +590,6 @@
   {
     "id": "head:twitter-card",
     "name": "Twitter Card",
-    "enabledByDefault": true,
-    "what": "static"
-  },
-  {
-    "id": "discover:twitter-large-card",
-    "name": "Twitter large card",
     "enabledByDefault": true,
     "what": "static"
   },
