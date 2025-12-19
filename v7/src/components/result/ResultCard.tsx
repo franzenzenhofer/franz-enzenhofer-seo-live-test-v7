@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 
+import { MessageWithLinks } from './MessageWithLinks'
 import { ResultDetails } from './ResultDetails'
 import { ResultHeader } from './ResultHeader'
 import { useResultHighlight } from './useResultHighlight'
@@ -63,7 +64,7 @@ export const ResultCard = ({ result, index, displayIndex, isPinned, onTogglePin,
         disabled={isDisabled}
         onOpenReport={result.runIdentifier ? openReport : undefined}
       />
-      <p className="text-sm text-slate-900 break-words">{result.message}</p>
+      <MessageWithLinks text={result.message} className="text-sm text-slate-900 break-words" />
       {snippet && <pre className="text-xs bg-white/70 border rounded p-2 whitespace-pre-wrap break-words text-slate-700">{snippet}</pre>}
       {open && hasDetails && <ResultDetails details={detailPayload} />}
     </article>
