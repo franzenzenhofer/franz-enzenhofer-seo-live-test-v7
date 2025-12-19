@@ -25,7 +25,7 @@ describe('canonical header and signal rules', () => {
     expect(res.type).toBe('error')
   })
 
-  it('warns when both HTML and HTTP canonicals match', async () => {
+  it('errors when both HTML and HTTP canonicals match (dual sources)', async () => {
     const page = {
       html: '',
       url: 'https://ex.com/a',
@@ -33,7 +33,7 @@ describe('canonical header and signal rules', () => {
       headers: { link: '<https://ex.com/a>; rel="canonical"' },
     }
     const res = await canonicalSignalsConflictRule.run(page as any, { globals: {} })
-    expect(res.type).toBe('warn')
+    expect(res.type).toBe('error')
   })
 
   it('flags HTTPS to HTTP downgrade', async () => {

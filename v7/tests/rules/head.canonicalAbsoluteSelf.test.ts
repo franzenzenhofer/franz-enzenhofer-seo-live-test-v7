@@ -26,4 +26,16 @@ describe('rules: canonical', () => {
     expect(r.message).toContain('points to')
     expect((r.details as any).matchesPageUrl).toBe(false)
   })
+
+  it('warns when canonical is outside head', async () => {
+    const r = await canonicalRule.run({ html:'', url:'https://ex.com/a', doc: D('<body><link rel="canonical" href="https://ex.com/a"></body>') } as any, { globals: {} })
+    expect(r.type).toBe('warn')
+    expect(r.message).toContain('outside')
+  })
+
+  it('warns when canonical contains fragment', async () => {
+    const r = await canonicalRule.run({ html:'', url:'https://ex.com/a', doc: D('<head><link rel="canonical" href="https://ex.com/a#section"></head>') } as any, { globals: {} })
+    expect(r.type).toBe('warn')
+    expect(r.message).toContain('fragment')
+  })
 })

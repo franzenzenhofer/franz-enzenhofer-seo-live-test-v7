@@ -48,10 +48,10 @@ export const canonicalSignalsConflictRule: Rule = {
       label: LABEL,
       name: NAME,
       message: matches
-        ? 'Both HTML and HTTP canonical set; remove one to avoid conflicts.'
-        : 'HTML and HTTP canonical conflict; they point to different URLs.',
-      type: matches ? 'warn' : 'error',
-      priority: matches ? 300 : 100,
+        ? 'Both HTML and HTTP canonicals set; remove one source to avoid conflicts.'
+        : 'HTML and HTTP canonicals conflict; they point to different URLs.',
+      type: 'error',
+      priority: matches ? 150 : 80,
       details: {
         htmlCanonical,
         headerCanonical,

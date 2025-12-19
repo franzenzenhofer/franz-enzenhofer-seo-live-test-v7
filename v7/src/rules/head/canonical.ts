@@ -34,20 +34,24 @@ export const canonicalRule: Rule = {
         type: 'error',
         priority: 200,
         name: NAME,
-        details: {
-          sourceHtml,
-          snippet: extractSnippet(sourceHtml),
-          domPaths: elements.map((_, idx) => `link[rel~="canonical" i]:nth-of-type(${idx + 1})`),
-          hrefs: elements.map((el) => (el.getAttribute('href') || '').trim()),
-          reference: SPEC,
-          count,
-        },
+        details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPaths: elements.map((_, idx) => `link[rel~="canonical" i]:nth-of-type(${idx + 1})`), hrefs: elements.map((el) => (el.getAttribute('href') || '').trim()), reference: SPEC, count },
       }
     }
 
     const el = elements[0] as HTMLLinkElement
     const sourceHtml = extractHtml(el)
     const href = (el.getAttribute('href') || '').trim()
+    if (!el.closest('head')) {
+      return {
+        label: LABEL,
+        message: 'Canonical link is outside <head>; move it into <head>.',
+        type: 'warn',
+        priority: 250,
+        name: NAME,
+        details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), href, reference: SPEC },
+      }
+    }
+
     if (!href) {
       return {
         label: LABEL,
@@ -55,18 +59,22 @@ export const canonicalRule: Rule = {
         type: 'warn',
         priority: 300,
         name: NAME,
-        details: {
-          sourceHtml,
-          snippet: extractSnippet(sourceHtml),
-          domPath: getDomPath(el),
-          href,
-          reference: SPEC,
-          count,
-        },
+        details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), href, reference: SPEC, count },
       }
     }
 
     try {
+      if (href.includes('#')) {
+        return {
+          label: LABEL,
+          message: 'Canonical URL contains a fragment; remove the fragment.',
+          type: 'warn',
+          priority: 250,
+          name: NAME,
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), href, reference: SPEC, count },
+        }
+      }
+
       const resolvedUrl = new URL(href, page.url).toString()
       const isAbsolute = isAbsoluteUrl(href)
       const normalizedPageUrl = normalizeUrl(page.url)
@@ -116,14 +124,7 @@ export const canonicalRule: Rule = {
         type: 'warn',
         priority: 150,
         name: NAME,
-        details: {
-          sourceHtml,
-          snippet: extractSnippet(sourceHtml),
-          domPath: getDomPath(el),
-          href,
-          reference: SPEC,
-          count,
-        },
+        details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), href, reference: SPEC, count },
       }
     }
   },
