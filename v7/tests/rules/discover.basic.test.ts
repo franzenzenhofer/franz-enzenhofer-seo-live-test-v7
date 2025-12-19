@@ -5,7 +5,6 @@ import { discoverPublishedTimeRule } from '@/rules/discover/publishedTime'
 import { discoverAuthorPresentRule } from '@/rules/discover/authorPresent'
 import { discoverHeadlineLengthRule } from '@/rules/discover/headlineLength'
 import { discoverIndexableRule } from '@/rules/discover/indexable'
-import { discoverCanonicalOkRule } from '@/rules/discover/canonicalOk'
 import { discoverOgImageLargeRule } from '@/rules/discover/ogImageLarge'
 import { discoverPrimaryLanguageRule } from '@/rules/discover/primaryLanguage'
 
@@ -40,11 +39,6 @@ describe('discover rules', () => {
   it('indexable ok', async () => {
     const p = { html:'', url:'', doc: D('<p/>') }
     const r = await discoverIndexableRule.run(p as any, { globals: {} })
-    expect((r as any).type).toBe('ok')
-  })
-  it('canonical ok', async () => {
-    const p = { html:'', url:'https://ex.com/a', doc: D('<link rel="canonical" href="https://ex.com/a">') }
-    const r = await discoverCanonicalOkRule.run(p as any, { globals: {} })
     expect((r as any).type).toBe('ok')
   })
   it('og image large metadata', async () => {

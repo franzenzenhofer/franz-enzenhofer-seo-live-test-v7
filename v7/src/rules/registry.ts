@@ -20,8 +20,6 @@ import { parameterizedLinksDiffRule } from './dom/parameterizedLinksDiff'
 import { metaKeywordsRule } from './head/metaKeywords'
 import { metaCharsetRule } from './head/metaCharset'
 import { metaUnavailableAfterRule } from './head/metaUnavailableAfter'
-import { canonicalAbsoluteRule } from './head/canonicalAbsolute'
-import { canonicalSelfRule } from './head/canonicalSelf'
 import { twitterCardRule } from './head/twitterCard'
 import { robotsNoindexRule } from './head/robotsNoindex'
 import { gzipRule } from './http/gzip'
@@ -33,7 +31,6 @@ import { varyUserAgentRule } from './http/varyUserAgent'
 import { headersPresentRule } from './http/headersPresent'
 import { hasHeaderRule } from './http/hasHeader'
 import { soft404Rule } from './http/soft404'
-import { canonicalRedirectsRule } from './head/canonicalRedirects'
 import { h1Rule } from './body/h1'
 import { imagesLayoutRule } from './body/imagesLayout'
 import { imagesLazyRule } from './body/imagesLazy'
@@ -86,7 +83,6 @@ import { redirectEfficiencyRule } from './http/redirectEfficiency'
 import { negotiatedProtocolRule } from './http/negotiatedProtocol'
 import { redirectCanonicalChainRule } from './http/redirectCanonicalChain'
 import { topWordsRule } from './dom/topWords'
-import { canonicalChainRule } from './head/canonicalChain'
 import { schemaArticlePresentRule } from './schema/articlePresent'
 import { schemaArticleRequiredRule } from './schema/articleRequired'
 import { schemaBreadcrumbRule } from './schema/breadcrumb'
@@ -104,7 +100,6 @@ import { discoverPublishedTimeRule } from './discover/publishedTime'
 import { discoverAuthorPresentRule } from './discover/authorPresent'
 import { discoverHeadlineLengthRule } from './discover/headlineLength'
 import { discoverIndexableRule } from './discover/indexable'
-import { discoverCanonicalOkRule } from './discover/canonicalOk'
 import { discoverOgImageLargeRule } from './discover/ogImageLarge'
 import { discoverPrimaryLanguageRule } from './discover/primaryLanguage'
 
@@ -133,8 +128,6 @@ export const registry: Rule[] = [
   metaKeywordsRule,
   metaCharsetRule,
   metaUnavailableAfterRule,
-  canonicalAbsoluteRule,
-  canonicalSelfRule,
   twitterCardRule,
   robotsNoindexRule,
   gzipRule,
@@ -146,7 +139,6 @@ export const registry: Rule[] = [
   headersPresentRule,
   hasHeaderRule,
   soft404Rule,
-  canonicalRedirectsRule,
   h1Rule,
   imagesLayoutRule,
   imagesLazyRule,
@@ -185,7 +177,6 @@ export const registry: Rule[] = [
   fromCacheRule,
   securityHeadersRule,
   topWordsRule,
-  canonicalChainRule,
   pageSummaryRule,
   googlebotMetaRule,
   googlebotUrlCheckRule,
@@ -206,7 +197,6 @@ export const registry: Rule[] = [
   discoverAuthorPresentRule,
   discoverHeadlineLengthRule,
   discoverIndexableRule,
-  discoverCanonicalOkRule,
   discoverOgImageLargeRule,
   discoverPrimaryLanguageRule,
   schemaArticlePresentRule,

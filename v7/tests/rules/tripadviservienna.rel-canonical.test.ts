@@ -22,8 +22,9 @@ describe('Tripadvisor Vienna saved page', () => {
   it('detects canonical link', async () => {
     const page = loadPage()
     const res = await canonicalRule.run(page as any, { globals: {} })
-    expect(res.type).toBe('info')
-    expect((res.details as any)?.canonicalUrl).toBe(page.url)
+    expect(res.type).toBe('ok')
+    expect((res.details as any)?.resolvedUrl).toBe(page.url)
+    expect((res.details as any)?.matchesPageUrl).toBe(true)
   })
 
   it('detects hreflang alternates', async () => {

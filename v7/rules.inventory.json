@@ -48,38 +48,8 @@
     "what": "http"
   },
   {
-    "id": "head:canonical-absolute",
-    "name": "Canonical Absolute URL",
-    "enabledByDefault": true,
-    "what": "static"
-  },
-  {
     "id": "head-canonical",
     "name": "Canonical Link",
-    "enabledByDefault": true,
-    "what": "static"
-  },
-  {
-    "id": "discover:canonical-ok",
-    "name": "Canonical present + absolute",
-    "enabledByDefault": true,
-    "what": "static"
-  },
-  {
-    "id": "head:canonical-chain",
-    "name": "Canonical Redirect Chain",
-    "enabledByDefault": true,
-    "what": "static"
-  },
-  {
-    "id": "head:canonical-redirects",
-    "name": "Canonical Redirects",
-    "enabledByDefault": true,
-    "what": "static"
-  },
-  {
-    "id": "head:canonical-self",
-    "name": "Canonical Self-Referential",
     "enabledByDefault": true,
     "what": "static"
   },
