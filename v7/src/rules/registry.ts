@@ -11,6 +11,7 @@ import { canonicalNoindexConflictRule } from './head/canonicalNoindexConflict'
 import { httpStatusRule } from './http/status'
 import { robotsTxtRule } from './robots/robotsTxt'
 import { robotsMetaRule } from './head/robotsMeta'
+import { robotsAgentConflictsRule } from './head/robotsAgentConflicts'
 import { hreflangRule } from './head/hreflang'
 import { hreflangMultipageRule } from './head/hreflangMultipage'
 import { ogTitleRule } from './og/title'
@@ -128,6 +129,7 @@ export const registry: Rule[] = [
   httpStatusRule,
   robotsTxtRule,
   robotsMetaRule,
+  robotsAgentConflictsRule,
   hreflangRule,
   hreflangMultipageRule,
   ogTitleRule,

@@ -1,9 +1,9 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractHtmlFromList, extractSnippet, getDomPath } from '@/shared/html-utils'
+import { parseRobotsDirectives } from '@/shared/robots'
 
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag'
 const TESTED = 'Read <meta name="robots"> content and evaluated noindex/nofollow directives.'
-const parse = (v: string) => v.toLowerCase().split(',').map((s) => s.trim())
 
 export const robotsMetaRule: Rule = {
   id: 'head-robots-meta',
@@ -11,6 +11,7 @@ export const robotsMetaRule: Rule = {
   enabled: true,
   what: 'static',
   run: async (page) => {
+    const directives = parseRobotsDirectives(page.doc)
     const elements = Array.from(page.doc.querySelectorAll('head > meta[name="robots"]')) as HTMLMetaElement[]
     if (elements.length === 0) {
       return {
@@ -36,9 +37,10 @@ export const robotsMetaRule: Rule = {
 
     const el = elements[0]!
     const content = (el.getAttribute('content') || '').trim()
-    const tokens = parse(content)
-    const hasNoindex = tokens.includes('noindex')
-    const hasNofollow = tokens.includes('nofollow')
+    const robotsDirective = directives.find((d) => d.source === 'meta' && d.ua === 'robots')
+    const tokens = robotsDirective?.tokens || content.toLowerCase().split(',').map((s) => s.trim()).filter(Boolean)
+    const hasNoindex = robotsDirective?.hasNoindex || tokens.includes('noindex')
+    const hasNofollow = robotsDirective?.hasNofollow || tokens.includes('nofollow')
     const type: 'info' | 'warn' = hasNoindex || hasNofollow ? 'warn' : 'info'
     const sourceHtml = extractHtml(el)
     const snippet = extractSnippet(sourceHtml)

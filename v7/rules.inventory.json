@@ -462,6 +462,12 @@
     "what": "static"
   },
   {
+    "id": "head:robots-agent-conflicts",
+    "name": "Robots agent conflicts",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
     "id": "head-robots-meta",
     "name": "Robots Meta",
     "enabledByDefault": true,

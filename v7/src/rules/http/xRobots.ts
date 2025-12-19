@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
 import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
+import { parseRobotsDirectives } from '@/shared/robots'
 
 const LABEL = 'HTTP'
 const NAME = 'X-Robots-Tag'
@@ -14,11 +15,11 @@ export const xRobotsRule: Rule = {
   what: 'http',
   async run(page) {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
+    const directives = parseRobotsDirectives(page.doc, page.headers)
+    const headerDirectives = directives.filter((d) => d.source === 'header')
     const xRobotsTag = page.headers?.['x-robots-tag']?.trim() || ''
-    const hasXRobots = Boolean(xRobotsTag)
-    const message = hasXRobots
-      ? `X-Robots-Tag: ${xRobotsTag}`
-      : 'No X-Robots-Tag header found.'
+    const hasXRobots = headerDirectives.length > 0
+    const message = hasXRobots ? `X-Robots-Tag: ${headerDirectives.map((d) => `${d.ua}:${d.value}`).join('; ')}` : 'No X-Robots-Tag header found.'
     return {
       label: LABEL,
       name: NAME,
@@ -30,9 +31,9 @@ export const xRobotsRule: Rule = {
         snippet: extractSnippet(xRobotsTag || '(not present)'),
         xRobotsTag,
         hasXRobots,
+        directives: headerDirectives,
         reference: SPEC,
       },
     }
   },
 }
-

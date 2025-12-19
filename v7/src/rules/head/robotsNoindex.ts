@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
+import { parseRobotsDirectives } from '@/shared/robots'
 
 // Constants
 const LABEL = 'HEAD'
@@ -14,6 +15,7 @@ export const robotsNoindexRule: Rule = {
   enabled: true,
   what: 'static',
   async run(page) {
+    const directives = parseRobotsDirectives(page.doc)
     const elements = Array.from(page.doc.querySelectorAll(SELECTOR))
     if (elements.length === 0) {
       return {
@@ -40,9 +42,10 @@ export const robotsNoindexRule: Rule = {
 
     const element = elements[0]!
     const content = (element.getAttribute('content') || '').trim()
-    const directives = content.toLowerCase().split(',').map((d) => d.trim()).filter(Boolean)
-    const hasNoindex = directives.includes('noindex') || directives.includes('none')
-    const hasNofollow = directives.includes('nofollow') || directives.includes('none')
+    const robotsDirective = directives.find((d) => d.source === 'meta' && d.ua === 'robots')
+    const tokens = robotsDirective?.tokens || content.toLowerCase().split(',').map((d) => d.trim()).filter(Boolean)
+    const hasNoindex = robotsDirective?.hasNoindex || tokens.includes('noindex') || tokens.includes('none')
+    const hasNofollow = robotsDirective?.hasNofollow || tokens.includes('nofollow') || tokens.includes('none')
 
     let type: 'info' | 'warn' = 'info'
     let message = 'robots: ' + (content || '(empty)')
@@ -62,7 +65,7 @@ export const robotsNoindexRule: Rule = {
         snippet: extractSnippet(content || '(empty)'),
         domPath: getDomPath(element),
         content,
-        directives,
+        directives: tokens,
         hasNoindex,
         hasNofollow,
         reference: SPEC,
