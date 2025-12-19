@@ -100,7 +100,6 @@ import { schemaProductRule } from './schema/product'
 import { schemaRecipeRule } from './schema/recipe'
 import { schemaVideoRule } from './schema/video'
 import { discoverMaxImagePreviewLargeRule } from './discover/maxImagePreviewLarge'
-import { discoverTwitterLargeCardRule } from './discover/twitterLargeCard'
 import { discoverArticleStructuredDataRule } from './discover/articleStructuredData'
 import { discoverPublishedTimeRule } from './discover/publishedTime'
 import { discoverAuthorPresentRule } from './discover/authorPresent'
@@ -204,7 +203,6 @@ export const registry: Rule[] = [
   gscPageWorldwideRule,
   gscDirectoryWorldwideRule,
   discoverMaxImagePreviewLargeRule,
-  discoverTwitterLargeCardRule,
   discoverArticleStructuredDataRule,
   discoverPublishedTimeRule,
   discoverAuthorPresentRule,

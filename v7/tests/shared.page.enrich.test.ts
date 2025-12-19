@@ -32,6 +32,20 @@ describe('pageFromEvents enrich', () => {
     expect(p.lastUrl).toBe('https://a.example/x')
   })
 
+  it('falls back to probe headers when main-frame headers are missing', async () => {
+    const url = 'https://a.example/x'
+    const events = [
+      { t: 'nav:before', u: url },
+      { t: 'dom:document_idle', d: { html: '<!doctype html><title>Idle</title>' } },
+      { t: 'req:headers', u: 'https://a.example/img.png', h: { Status: '200', 'Content-Type': 'image/png' } },
+    ] as unknown as import('@/background/pipeline/types').EventRec[]
+    const probe = async () => ({ status: 200, headers: { 'content-type': 'text/html', 'content-encoding': 'gzip' } })
+
+    const p = await pageFromEvents(events, makeDoc, ()=>'about:blank', probe)
+    expect(p.headers?.['content-encoding']).toBe('gzip')
+    expect(p.headers?.['content-type']).toBe('text/html')
+  })
+
   it('prefers the last navigation URL when present', async () => {
     const events = [
       { t: 'nav:before', u: 'https://a.example/start' },

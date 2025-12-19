@@ -5,6 +5,8 @@ import type { EventRec } from '@/background/pipeline/types'
 
 type Head = { status?: number; headers?: Record<string, string> }
 
+const hasHeaders = (headers?: Record<string, string>) => !!headers && Object.keys(headers).length > 0
+
 const head = async (url: string): Promise<Head> => {
   try {
     let r = await fetch(url, { method: 'HEAD', redirect: 'follow' })
@@ -38,5 +40,13 @@ export const pageFromEvents = async (
 ): Promise<Page> => {
   const p0 = enrichFromEvents(ev, makeDoc, getHref)
   const base = await pageFromHtml(p0.html, p0.url, makeDoc, probe)
-  return { ...base, ...p0.extra }
+  const extra = p0.extra as Partial<Page> & { headerChain?: unknown; headers?: Record<string, string> }
+  const eventHeaders = hasHeaders(extra.headers) ? extra.headers : undefined
+  const probeHeaders = hasHeaders(base.headers) ? base.headers : undefined
+  const hasMainHeaders = Array.isArray(extra.headerChain) && extra.headerChain.length > 0
+  const headers = hasMainHeaders
+    ? eventHeaders || probeHeaders
+    : probeHeaders || eventHeaders
+  const status = hasMainHeaders ? extra.status ?? base.status : base.status ?? extra.status
+  return { ...base, ...extra, headers, status }
 }
