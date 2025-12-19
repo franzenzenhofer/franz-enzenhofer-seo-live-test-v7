@@ -480,6 +480,12 @@
     "what": "static"
   },
   {
+    "id": "head:robots-meta-list",
+    "name": "Robots meta list",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
     "id": "robots:blocked-resources",
     "name": "robots.txt Blocked Resources",
     "enabledByDefault": true,

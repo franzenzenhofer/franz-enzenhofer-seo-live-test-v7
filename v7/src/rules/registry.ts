@@ -13,6 +13,7 @@ import { robotsTxtRule } from './robots/robotsTxt'
 import { robotsMetaRule } from './head/robotsMeta'
 import { robotsAgentConflictsRule } from './head/robotsAgentConflicts'
 import { robotsOtherMetaRule } from './head/robotsOtherMeta'
+import { robotsMetaListRule } from './head/robotsMetaList'
 import { hreflangRule } from './head/hreflang'
 import { hreflangMultipageRule } from './head/hreflangMultipage'
 import { ogTitleRule } from './og/title'
@@ -132,6 +133,7 @@ export const registry: Rule[] = [
   robotsMetaRule,
   robotsAgentConflictsRule,
   robotsOtherMetaRule,
+  robotsMetaListRule,
   hreflangRule,
   hreflangMultipageRule,
   ogTitleRule,
