@@ -12,14 +12,22 @@ describe('rule: negotiated protocol', () => {
     expect(r.message).toContain('Hard Reload')
   })
 
-  it('warns when HTTPS negotiates http/1.1', async () => {
+  it('errors when HTTPS negotiates http/1.1 (outdated)', async () => {
     const r = await negotiatedProtocolRule.run(P('http/1.1') as any, { globals: {} })
-    expect(r.type).toBe('warn')
-    expect(r.message).toContain('HTTP/2+')
+    expect(r.type).toBe('error')
+    expect(r.message).toContain('outdated')
+    expect(r.message).toContain('HTTP/2 or HTTP/3')
   })
 
-  it('reports info for h2', async () => {
+  it('warns for h2 and recommends HTTP/3', async () => {
     const r = await negotiatedProtocolRule.run(P('h2') as any, { globals: {} })
-    expect(r.type).toBe('info')
+    expect(r.type).toBe('warn')
+    expect(r.message).toContain('HTTP/3')
+  })
+
+  it('reports ok for h3 (optimal)', async () => {
+    const r = await negotiatedProtocolRule.run(P('h3') as any, { globals: {} })
+    expect(r.type).toBe('ok')
+    expect(r.message).toContain('optimal')
   })
 })
