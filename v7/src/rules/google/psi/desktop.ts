@@ -17,6 +17,7 @@ export const psiDesktopRule: Rule = {
     const key = getPSIKey(userKey)
     const j = await runPSI(page.url, 'desktop', key)
     const summary = summarizePSI(j, page.url, 'desktop')
-    return { label: 'PSI', message: `Desktop performance: ${summary.score}`, type: 'info', name: NAME, details: { ...summary, reference: PSI_API_REFERENCE } }
+    const msg = `Desktop performance: ${summary.score} [View report](${summary.testUrl})`
+    return { label: 'PSI', message: msg, type: 'info', name: NAME, details: { ...summary, reference: PSI_API_REFERENCE } }
   },
 }

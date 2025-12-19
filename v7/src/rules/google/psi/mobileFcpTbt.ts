@@ -21,9 +21,10 @@ export const psiMobileFcpTbtRule: Rule = {
       typeof summary.fcpMs === 'number' ? `FCP ${summary.fcpMs}ms` : null,
       typeof summary.tbtMs === 'number' ? `TBT ${summary.tbtMs}ms` : null,
     ].filter(Boolean)
+    const metrics = parts.join(', ') || 'Metrics unavailable'
     return {
       label: 'PSI',
-      message: parts.join(', ') || 'Metrics unavailable',
+      message: `${metrics} [View report](${summary.testUrl})`,
       type: 'info',
       name: NAME,
       details: { ...summary, reference: PSI_API_REFERENCE },

@@ -13,6 +13,9 @@ export const summarizePSI = (result: PSIResult, url: string, strategy: Strategy)
   const pick = (id: string) => roundMs(audits[id]?.numericValue)
   const scoreRaw = lighthouse.categories?.performance?.score
 
+  const finalUrl = lighthouse.finalDisplayedUrl || lighthouse.finalUrl || url
+  const testUrl = `https://pagespeed.web.dev/analysis?url=${encodeURIComponent(finalUrl)}&form_factor=${strategy}`
+
   const base = {
     url,
     strategy,
@@ -23,7 +26,8 @@ export const summarizePSI = (result: PSIResult, url: string, strategy: Strategy)
     speedIndexMs: pick('speed-index'),
     cls: roundCls(audits['cumulative-layout-shift']?.numericValue),
     fetchTime: lighthouse.fetchTime,
-    finalDisplayedUrl: lighthouse.finalDisplayedUrl || lighthouse.finalUrl,
+    finalDisplayedUrl: finalUrl,
+    testUrl,
     userAgent: lighthouse.userAgent,
   }
 

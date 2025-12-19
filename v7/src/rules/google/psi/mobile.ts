@@ -17,6 +17,7 @@ export const psiMobileRule: Rule = {
     const key = getPSIKey(userKey)
     const j = await runPSI(page.url, 'mobile', key)
     const summary = summarizePSI(j, page.url, 'mobile')
-    return { label: 'PSI', message: `Mobile performance: ${summary.score}`, type: 'info', name: NAME, details: { ...summary, reference: PSI_API_REFERENCE } }
+    const msg = `Mobile performance: ${summary.score} [View report](${summary.testUrl})`
+    return { label: 'PSI', message: msg, type: 'info', name: NAME, details: { ...summary, reference: PSI_API_REFERENCE } }
   },
 }
