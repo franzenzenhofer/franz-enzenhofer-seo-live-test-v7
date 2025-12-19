@@ -48,6 +48,12 @@
     "what": "http"
   },
   {
+    "id": "head:canonical-noindex-conflict",
+    "name": "Canonical + noindex conflict",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
     "id": "head:canonical-hreflang-consistency",
     "name": "Canonical hreflang consistency",
     "enabledByDefault": true,
