@@ -102,6 +102,12 @@
     "what": "static"
   },
   {
+    "id": "speed:first-paint",
+    "name": "First Paint",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
     "id": "google:is-connected",
     "name": "Google auth connected",
     "enabledByDefault": true,
@@ -302,6 +308,12 @@
   {
     "id": "head:meta-viewport",
     "name": "Meta Viewport",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
+    "id": "http:mixed-content",
+    "name": "Mixed content",
     "enabledByDefault": true,
     "what": "static"
   },

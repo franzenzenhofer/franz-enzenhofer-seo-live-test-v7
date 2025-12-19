@@ -26,6 +26,7 @@ import { metaUnavailableAfterRule } from './head/metaUnavailableAfter'
 import { twitterCardRule } from './head/twitterCard'
 import { robotsNoindexRule } from './head/robotsNoindex'
 import { gzipRule } from './http/gzip'
+import { mixedContentRule } from './http/mixedContent'
 import { hstsRule } from './http/hsts'
 import { linkHeaderRule } from './http/linkHeader'
 import { xRobotsRule } from './http/xRobots'
@@ -54,6 +55,7 @@ import { linkPreloadRule } from './speed/linkPreload'
 import { blockingScriptsRule } from './speed/blockingScripts'
 import { preconnectRule } from './speed/preconnect'
 import { dnsPrefetchRule } from './speed/dnsPrefetch'
+import { firstPaintRule } from './speed/firstPaint'
 import { googleIsConnectedRule } from './google/isConnected'
 import { pageSummaryRule } from './debug/pageSummary'
 import { pageObjectRule } from './debug/pageObject'
@@ -137,6 +139,7 @@ export const registry: Rule[] = [
   twitterCardRule,
   robotsNoindexRule,
   gzipRule,
+  mixedContentRule,
   hstsRule,
   linkHeaderRule,
   xRobotsRule,
@@ -165,6 +168,7 @@ export const registry: Rule[] = [
   blockingScriptsRule,
   preconnectRule,
   dnsPrefetchRule,
+  firstPaintRule,
   googleIsConnectedRule,
   pageObjectRule,
   historyStateUpdateRule,
