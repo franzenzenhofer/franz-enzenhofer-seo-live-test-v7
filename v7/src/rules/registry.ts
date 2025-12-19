@@ -1,6 +1,9 @@
 import { titleRule } from './head/title'
 import { metaDescriptionRule } from './head/metaDescription'
 import { canonicalRule } from './head/canonical'
+import { canonicalHeaderRule } from './head/canonicalHeader'
+import { canonicalSignalsConflictRule } from './head/canonicalSignalsConflict'
+import { canonicalHttpsPreferenceRule } from './head/canonicalHttpsPreference'
 import { httpStatusRule } from './http/status'
 import { robotsTxtRule } from './robots/robotsTxt'
 import { robotsMetaRule } from './head/robotsMeta'
@@ -109,6 +112,9 @@ export const registry: Rule[] = [
   titleRule,
   metaDescriptionRule,
   canonicalRule,
+  canonicalHeaderRule,
+  canonicalSignalsConflictRule,
+  canonicalHttpsPreferenceRule,
   httpStatusRule,
   robotsTxtRule,
   robotsMetaRule,

@@ -48,8 +48,26 @@
     "what": "http"
   },
   {
+    "id": "head:canonical-header",
+    "name": "Canonical HTTP header",
+    "enabledByDefault": true,
+    "what": "http"
+  },
+  {
+    "id": "head:canonical-https-preference",
+    "name": "Canonical HTTPS preference",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
     "id": "head-canonical",
     "name": "Canonical Link",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
+    "id": "head:canonical-signals-conflict",
+    "name": "Canonical signals conflict",
     "enabledByDefault": true,
     "what": "static"
   },
