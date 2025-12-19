@@ -24,4 +24,10 @@ describe('rule: http mixed content', () => {
     expect(res.message).toContain('mixed-content')
     expect((res.details as any).count).toBe(2)
   })
+
+  it('errors when network-captured resources are mixed content', async () => {
+    const res = await mixedContentRule.run({ ...base, url: 'https://ex.com', resources: ['http://cdn.ex/a.js', 'https://ex.com/b.js'] } as any, ctx as any)
+    expect(res.type).toBe('error')
+    expect((res.details as any).count || (res.details as any).networkCount).toBeGreaterThan(0)
+  })
 })

@@ -48,6 +48,12 @@
     "what": "http"
   },
   {
+    "id": "head:canonical-hreflang-consistency",
+    "name": "Canonical hreflang consistency",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
     "id": "head:canonical-header",
     "name": "Canonical HTTP header",
     "enabledByDefault": true,
@@ -76,6 +82,12 @@
     "name": "Canonical tracking params",
     "enabledByDefault": true,
     "what": "static"
+  },
+  {
+    "id": "head:canonical-nav-consistency",
+    "name": "Canonical vs navigation",
+    "enabledByDefault": true,
+    "what": "http"
   },
   {
     "id": "dom:client-side-rendering",

@@ -30,12 +30,16 @@ export const canonicalTrackingParamsRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'static',
-  async run(page) {
+  async run(page, ctx) {
     const linkEl = page.doc.querySelector('link[rel~="canonical" i]')
     const href = (linkEl?.getAttribute('href') || '').trim()
     if (!href) {
       return { label: LABEL, name: NAME, message: 'No canonical link to inspect for tracking parameters.', type: 'info', priority: 850, details: { reference: SPEC } }
     }
+    const extraParams = Array.isArray((ctx.globals as { variables?: { canonicalTrackingParamsExtra?: unknown } }).variables?.canonicalTrackingParamsExtra)
+      ? ((ctx.globals as { variables?: { canonicalTrackingParamsExtra?: unknown } }).variables?.canonicalTrackingParamsExtra as string[])
+      : []
+    const paramList = Array.from(new Set([...BAD_PARAMS, ...extraParams.map((p) => String(p))]))
     try {
       const resolved = new URL(href, page.url)
       const protocol = resolved.protocol.toLowerCase()
@@ -43,7 +47,7 @@ export const canonicalTrackingParamsRule: Rule = {
         return { label: LABEL, name: NAME, message: 'Canonical URL uses a non-HTTP scheme; use an http(s) URL.', type: 'warn', priority: 200, details: { canonicalUrl: resolved.toString(), reference: SPEC } }
       }
       const params = resolved.searchParams
-      const offenders = BAD_PARAMS.filter((p) => params.has(p))
+      const offenders = paramList.filter((p) => params.has(p))
       if (!offenders.length) {
         return { label: LABEL, name: NAME, message: 'Canonical URL has no tracking parameters.', type: 'ok', priority: 800, details: { reference: SPEC } }
       }
