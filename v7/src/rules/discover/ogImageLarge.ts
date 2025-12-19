@@ -42,9 +42,17 @@ export const discoverOgImageLargeRule: Rule = {
       : {
           label: 'DISCOVER',
           message: w && h ? `OG image ${w}x${h}px (<1200px)` : 'OG image size metadata missing',
-          type: 'info',
+          type: 'warn',
           name: 'Large OG image (metadata)',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), width: w || undefined, height: h || undefined, reference: SPEC },
+          details: {
+            sourceHtml,
+            snippet: extractSnippet(sourceHtml),
+            width: w || undefined,
+            height: h || undefined,
+            reference: SPEC,
+            is: w && h ? `${w}x${h}px` : 'og:image:width and og:image:height meta tags missing',
+            should: 'Add og:image:width and og:image:height meta tags with at least 1200px on one side',
+          },
         }
   },
 }
