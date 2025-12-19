@@ -7,10 +7,11 @@ const NAME = 'Canonical signals conflict'
 const RULE_ID = 'head:canonical-signals-conflict'
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
 
-const parseHeaderCanonical = (val: string | undefined | null) => {
-  if (!val) return null
-  const m = /<([^>]+)>\s*;\s*rel="?canonical"?/i.exec(val)
-  return m ? m[1] : null
+const parseHeaderCanonicals = (val: string | undefined | null): string[] => {
+  if (!val) return []
+  const matches = [...val.matchAll(/<([^>]+)>\s*;\s*rel="?canonical"?/gi)]
+  const urls = matches.map((m) => m[1]).filter((u): u is string => !!u)
+  return Array.from(new Set(urls))
 }
 
 export const canonicalSignalsConflictRule: Rule = {
@@ -23,7 +24,19 @@ export const canonicalSignalsConflictRule: Rule = {
     const htmlHref = (linkEl?.getAttribute('href') || '').trim()
     const htmlCanonical = htmlHref ? new URL(htmlHref, page.url).toString() : ''
     const headerVal = page.headers?.['link'] || page.headers?.['Link'] || ''
-    const headerCanonical = parseHeaderCanonical(headerVal)
+    const headerCanonicals = parseHeaderCanonicals(headerVal)
+
+    if (headerCanonicals.length > 1) {
+      return {
+        label: LABEL,
+        name: NAME,
+        message: `Multiple rel="canonical" HTTP headers found (${headerCanonicals.length}); remove duplicates.`,
+        type: 'error',
+        priority: 100,
+        details: { header: headerVal, headerCanonicals, reference: SPEC },
+      }
+    }
+    const headerCanonical = headerCanonicals[0] || ''
 
     if (!headerCanonical || !htmlCanonical) {
       return {
@@ -55,6 +68,7 @@ export const canonicalSignalsConflictRule: Rule = {
       details: {
         htmlCanonical,
         headerCanonical,
+        headerCanonicals: headerCanonicals.length ? headerCanonicals : undefined,
         normalizedHtml,
         normalizedHeader,
         domPath: linkEl ? getDomPath(linkEl) : undefined,

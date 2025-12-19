@@ -4,6 +4,7 @@ import { canonicalRule } from './head/canonical'
 import { canonicalHeaderRule } from './head/canonicalHeader'
 import { canonicalSignalsConflictRule } from './head/canonicalSignalsConflict'
 import { canonicalHttpsPreferenceRule } from './head/canonicalHttpsPreference'
+import { canonicalTrackingParamsRule } from './head/canonicalTrackingParams'
 import { httpStatusRule } from './http/status'
 import { robotsTxtRule } from './robots/robotsTxt'
 import { robotsMetaRule } from './head/robotsMeta'
@@ -117,6 +118,7 @@ export const registry: Rule[] = [
   canonicalHeaderRule,
   canonicalSignalsConflictRule,
   canonicalHttpsPreferenceRule,
+  canonicalTrackingParamsRule,
   httpStatusRule,
   robotsTxtRule,
   robotsMetaRule,

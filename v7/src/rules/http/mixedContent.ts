@@ -23,7 +23,7 @@ export const mixedContentRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
-  what: 'static',
+  what: 'http',
   async run(page) {
     if (!page.url.startsWith('https://')) {
       return { label: LABEL, name: NAME, message: 'Page is not HTTPS; mixed content check skipped.', type: 'info', priority: 900, details: { reference: SPEC } }

@@ -72,6 +72,12 @@
     "what": "static"
   },
   {
+    "id": "head:canonical-tracking-params",
+    "name": "Canonical tracking params",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
     "id": "dom:client-side-rendering",
     "name": "Client-side rendering heuristic",
     "enabledByDefault": true,
@@ -315,7 +321,7 @@
     "id": "http:mixed-content",
     "name": "Mixed content",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "http"
   },
   {
     "id": "http:navigation-path",

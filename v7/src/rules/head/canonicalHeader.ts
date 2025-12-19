@@ -6,10 +6,11 @@ const NAME = 'Canonical HTTP header'
 const RULE_ID = 'head:canonical-header'
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
 
-const parseCanonicalHeader = (val: string | undefined | null): string | null => {
-  if (!val) return null
-  const match = /<([^>]+)>\s*;\s*rel="?canonical"?/i.exec(val)
-  return match?.[1] || null
+const parseCanonicalHeaders = (val: string | undefined | null): string[] => {
+  if (!val) return []
+  const matches = [...val.matchAll(/<([^>]+)>\s*;\s*rel="?canonical"?/gi)]
+  const urls = matches.map((m) => m[1]).filter((u): u is string => !!u)
+  return Array.from(new Set(urls))
 }
 
 export const canonicalHeaderRule: Rule = {
@@ -19,8 +20,8 @@ export const canonicalHeaderRule: Rule = {
   what: 'http',
   async run(page) {
     const headerVal = page.headers?.['link'] || page.headers?.['Link'] || ''
-    const canonical = parseCanonicalHeader(headerVal)
-    if (!canonical) {
+    const canonicals = parseCanonicalHeaders(headerVal)
+    if (!canonicals.length) {
       return {
         label: LABEL,
         name: NAME,
@@ -30,6 +31,17 @@ export const canonicalHeaderRule: Rule = {
         details: { reference: SPEC },
       }
     }
+    if (canonicals.length > 1) {
+      return {
+        label: LABEL,
+        name: NAME,
+        message: `Multiple rel="canonical" HTTP headers found (${canonicals.length}); keep exactly one.`,
+        type: 'error',
+        priority: 120,
+        details: { header: headerVal, canonicalUrls: canonicals, snippet: extractSnippet(headerVal), reference: SPEC },
+      }
+    }
+    const canonical = canonicals[0]
     return {
       label: LABEL,
       name: NAME,
