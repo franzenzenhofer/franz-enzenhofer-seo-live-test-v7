@@ -108,6 +108,12 @@
     "what": "http"
   },
   {
+    "id": "dom:data-nosnippet",
+    "name": "Data-nosnippet usage",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
     "id": "gsc:directory-worldwide",
     "name": "Directory worldwide analytics",
     "enabledByDefault": true,
@@ -474,6 +480,18 @@
     "what": "static"
   },
   {
+    "id": "head:robots-max-snippet",
+    "name": "Robots max-snippet",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
+    "id": "head:robots-max-video-preview",
+    "name": "Robots max-video-preview",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
     "id": "head-robots-meta",
     "name": "Robots Meta",
     "enabledByDefault": true,
@@ -482,6 +500,18 @@
   {
     "id": "head:robots-meta-list",
     "name": "Robots meta list",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
+    "id": "head:robots-noimageindex",
+    "name": "Robots noimageindex",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
+    "id": "head:robots-nosnippet",
+    "name": "Robots nosnippet",
     "enabledByDefault": true,
     "what": "static"
   },

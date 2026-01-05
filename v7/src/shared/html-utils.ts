@@ -17,6 +17,13 @@ export const extractHtmlFromList = (elements: NodeListOf<Element> | Element[]): 
   return raw.slice(0, TRUNCATION_LIMITS.HTML_CONTENT) + '...[truncated]'
 }
 
+export const joinHtmlFragments = (fragments: string[]): string => {
+  if (!fragments || fragments.length === 0) return ''
+  const raw = fragments.join('\n')
+  if (raw.length <= TRUNCATION_LIMITS.HTML_CONTENT) return raw
+  return raw.slice(0, TRUNCATION_LIMITS.HTML_CONTENT) + '...[truncated]'
+}
+
 export const extractSnippet = (html: string, maxChars = 100): string => {
   if (!html) return ''
   const trimmed = html.trim()

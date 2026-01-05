@@ -14,6 +14,10 @@ import { robotsMetaRule } from './head/robotsMeta'
 import { robotsAgentConflictsRule } from './head/robotsAgentConflicts'
 import { robotsOtherMetaRule } from './head/robotsOtherMeta'
 import { robotsMetaListRule } from './head/robotsMetaList'
+import { robotsNosnippetRule } from './head/robotsNosnippet'
+import { robotsMaxSnippetRule } from './head/robotsMaxSnippet'
+import { robotsMaxVideoPreviewRule } from './head/robotsMaxVideoPreview'
+import { robotsNoImageIndexRule } from './head/robotsNoImageIndex'
 import { hreflangRule } from './head/hreflang'
 import { hreflangMultipageRule } from './head/hreflangMultipage'
 import { ogTitleRule } from './og/title'
@@ -26,6 +30,7 @@ import { brandInTitleRule } from './head/brandInTitle'
 import { shortlinkRule } from './head/shortlink'
 import { amphtmlRule } from './head/amphtml'
 import { ldjsonRule } from './dom/ldjson'
+import { dataNosnippetRule } from './dom/dataNosnippet'
 import { parameterizedLinksDiffRule } from './dom/parameterizedLinksDiff'
 import { metaKeywordsRule } from './head/metaKeywords'
 import { metaCharsetRule } from './head/metaCharset'
@@ -134,6 +139,10 @@ export const registry: Rule[] = [
   robotsAgentConflictsRule,
   robotsOtherMetaRule,
   robotsMetaListRule,
+  robotsNosnippetRule,
+  robotsMaxSnippetRule,
+  robotsMaxVideoPreviewRule,
+  robotsNoImageIndexRule,
   hreflangRule,
   hreflangMultipageRule,
   ogTitleRule,
@@ -146,6 +155,7 @@ export const registry: Rule[] = [
   shortlinkRule,
   amphtmlRule,
   ldjsonRule,
+  dataNosnippetRule,
   parameterizedLinksDiffRule,
   metaKeywordsRule,
   metaCharsetRule,
