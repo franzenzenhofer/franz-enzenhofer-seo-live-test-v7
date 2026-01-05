@@ -20,8 +20,8 @@
   3. Scan results
 - Expected: UI shows active filter context and visible count
 - Actual: No indication of hidden types or how many results are filtered out
-- IS: Users can misinterpret missing results as “no issues”
-- SHOULD: Show “showing X of Y” plus active type/search filters with a reset action
+- IS: Users can misinterpret missing results as "no issues"
+- SHOULD: Show "showing X of Y" plus active type/search filters with a reset action
 - Reasoning: Power users need immediate confirmation that filters are applied correctly
 - Code hints: `src/sidepanel/ui/AppBody.tsx`, `src/sidepanel/ui/Results.tsx`, `src/sidepanel/ui/resultQuery.ts`
 - Acceptance criteria:
@@ -63,7 +63,7 @@
 - Expected: A single action copies the filtered findings
 - Actual: Users must copy each card individually
 - IS: Sharing findings is slow and error-prone
-- SHOULD: Add a “Copy filtered” action for the visible results
+- SHOULD: Add a "Copy filtered" action for the visible results
 - Reasoning: Pro users routinely share filtered findings in tickets or audits
 - Code hints: `src/sidepanel/ui/AppBody.tsx`, `src/sidepanel/ui/Results.tsx`, `src/components/result/resultCopy.ts`
 - Acceptance criteria:
@@ -72,5 +72,5 @@
 
 ## Review (Devil's Advocate)
 - TCK-401: Adds UI chrome that could feel busy, but can stay compact and only show filter details when active.
-- TCK-402: Priority numbers are opaque; mitigate by labeling as “Priority” and keeping it secondary to severity.
+- TCK-402: Priority numbers are opaque; mitigate by labeling as "Priority" and keeping it secondary to severity.
 - TCK-403: Bulk copy could create large clipboard payloads; still acceptable because it is user-triggered and scoped to filtered results.
