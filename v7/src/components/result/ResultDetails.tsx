@@ -3,6 +3,9 @@ import type { Result } from '@/shared/results'
 const isHttpUrl = (value: unknown): value is string =>
   typeof value === 'string' && /^https?:\/\//i.test(value)
 
+const formatLabel = (key: string) =>
+  key.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').toUpperCase()
+
 const formatValue = (value: unknown) => {
   if (value == null) return ''
   if (typeof value === 'string') return value
@@ -20,7 +23,11 @@ export const ResultDetails = ({ details }: { details?: Result['details'] }) => {
   return (
     <div className="mt-2 border-t pt-2 space-y-2 text-xs">
       {entries.map(([key, value]) => {
-        const label = key.toUpperCase()
+        const label = formatLabel(key)
+        const isSelectors = key === 'highlightSelectors' && Array.isArray(value)
+        const selectorText = isSelectors
+          ? (value.filter((item) => typeof item === 'string') as string[]).join('\n')
+          : null
         return (
           <div key={key}>
             <span className="font-semibold uppercase tracking-wide text-[10px] text-slate-500">{label}</span>
@@ -33,6 +40,10 @@ export const ResultDetails = ({ details }: { details?: Result['details'] }) => {
             >
               {value}
             </a>
+          ) : isSelectors ? (
+            <pre className="mt-1 whitespace-pre-wrap break-words bg-white/60 p-2 rounded border text-[11px]">
+              {selectorText}
+            </pre>
           ) : (
             <pre className="mt-1 whitespace-pre-wrap break-words bg-white/60 p-2 rounded border text-[11px]">
               {formatValue(value)}

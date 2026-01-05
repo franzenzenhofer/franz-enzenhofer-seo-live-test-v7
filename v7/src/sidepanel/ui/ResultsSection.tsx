@@ -49,6 +49,7 @@ export const ResultsSection = ({ show, setShow, query, setQuery, results, debugE
         types={activeTypes}
         q={parsed.text}
         priorityFilter={parsed.priorityFilter}
+        priorityLabel={parsed.priorityLabel}
         debugEnabled={debugEnabled}
         onResetFilters={resetFilters}
         sortMode={sortMode}

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 type Props = {
   isPinned?: boolean
@@ -10,15 +10,34 @@ type Props = {
 
 export const ResultActionsMenu = ({ isPinned, disabled, onTogglePin, onToggleDisable, onOpenReport }: Props) => {
   const [open, setOpen] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
   const close = () => setOpen(false)
   const toggle = () => setOpen((v) => !v)
+  useEffect(() => {
+    if (!open) return
+    const onClick = (event: MouseEvent) => {
+      if (wrapperRef.current && event.target instanceof Node && !wrapperRef.current.contains(event.target)) {
+        setOpen(false)
+      }
+    }
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onClick)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
   return (
-    <div className="relative">
+    <div className="relative" ref={wrapperRef}>
       <button
         type="button"
         className="px-2 py-1 text-slate-600 hover:text-slate-900"
         onClick={toggle}
         aria-label="Result actions"
+        aria-expanded={open}
       >
         ⋮
       </button>

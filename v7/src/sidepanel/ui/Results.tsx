@@ -15,13 +15,14 @@ export const Results = ({
   types,
   q,
   priorityFilter,
+  priorityLabel,
   debugEnabled,
   onResetFilters,
   tabId,
   logUi,
   sortMode = 'name',
   defaultExpanded = false,
-}: { items: Result[]; types?: string[]; q?: string; priorityFilter?: PriorityFilter | null; debugEnabled: boolean; onResetFilters?: () => void; tabId?: number | null; logUi?: LogFn; sortMode?: ResultSortMode; defaultExpanded?: boolean }) => {
+}: { items: Result[]; types?: string[]; q?: string; priorityFilter?: PriorityFilter | null; priorityLabel?: string; debugEnabled: boolean; onResetFilters?: () => void; tabId?: number | null; logUi?: LogFn; sortMode?: ResultSortMode; defaultExpanded?: boolean }) => {
   const { pinned, togglePin } = usePinnedRules()
   const { flags, toggleFlag } = useRuleFlags()
   const filtered = useMemo(() => items.filter((i) => matchesResult(i, { types, q, priority: priorityFilter })), [items, types, q, priorityFilter])
@@ -59,7 +60,7 @@ export const Results = ({
           />
         )
       })}
-      {!filtered.length && <NoResults items={items} types={types} q={q} debugEnabled={debugEnabled} onResetFilters={onResetFilters} />}
+      {!filtered.length && <NoResults items={items} types={types} q={q} priorityLabel={priorityLabel} debugEnabled={debugEnabled} onResetFilters={onResetFilters} />}
     </div>
   )
 }

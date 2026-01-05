@@ -5,9 +5,9 @@ import { getLogs } from '@/shared/logs'
 
 type DebugSnapshot = { pageUrl?: string; evCount?: number; tail?: unknown[] }
 
-type Props = { items: unknown[]; types?: string[]; q?: string; debugEnabled: boolean; onResetFilters?: () => void }
+type Props = { items: unknown[]; types?: string[]; q?: string; priorityLabel?: string; debugEnabled: boolean; onResetFilters?: () => void }
 
-export const NoResults = ({ items, types, q, debugEnabled, onResetFilters }: Props) => {
+export const NoResults = ({ items, types, q, priorityLabel, debugEnabled, onResetFilters }: Props) => {
   const [dbg, setDbg] = useState<DebugSnapshot | null>(null)
   const [last, setLast] = useState<string[]>([])
 
@@ -41,6 +41,7 @@ export const NoResults = ({ items, types, q, debugEnabled, onResetFilters }: Pro
   const info = filteredOut ? 'All results are filtered out.' : 'No results yet. Click Run test or press Enter to start.'
   const canReset = filteredOut && Boolean(onResetFilters)
   const filters = (types || []).join(',') || 'all'
+  const priority = priorityLabel || 'none'
   const dump = () => {
     if (!debugEnabled) return
     const blob = new Blob([JSON.stringify({ summary: { total: items.length, visible: 0, types: filters, q }, lastRun: dbg, lastLogs: last }, null, 2)], { type: 'application/json' })
@@ -62,7 +63,7 @@ export const NoResults = ({ items, types, q, debugEnabled, onResetFilters }: Pro
         )}
       </div>
       <div>
-        Filters: {filters}; Query: {q?.length ? 'yes' : 'no'}
+        Filters: {filters}; Priority: {priority}; Query: {q?.length ? 'yes' : 'no'}
       </div>
       {debugEnabled && dbg && <div>Last run: url={dbg.pageUrl || '(none)'} ev={dbg.evCount || 0}</div>}
       {debugEnabled && last.length > 0 && (
