@@ -84,14 +84,14 @@ test('hard reload: runId and timestamp update', async () => {
     const firstRunId = firstMeta!.runId
     const firstRanAt = firstMeta!.ranAt
 
-    // Click "Hard Reload" button
-    console.log('[DEBUG] Clicking Hard Reload button...')
-    const hardReloadButton = await panel.locator('button:has-text("Hard Reload")').first()
-    await hardReloadButton.click()
+    // Click "Run test" button
+    console.log('[DEBUG] Clicking Run test button...')
+    const runTestButton = await panel.locator('button:has-text("Run test")').first()
+    await runTestButton.click()
 
-    // Wait for the button text to change back from "Running..." to "Hard Reload"
-    await panel.waitForSelector('button:has-text("Hard Reload")', { timeout: 30_000 })
-    console.log('[DEBUG] Hard reload completed')
+    // Wait for the button text to change back from "Running test..." to "Run test"
+    await panel.waitForSelector('button:has-text("Run test")', { timeout: 30_000 })
+    console.log('[DEBUG] Run test completed')
 
     // Wait for new runId to appear (it should be different from the first one)
     let secondMeta: { runId: string; ranAt: string } | null = null

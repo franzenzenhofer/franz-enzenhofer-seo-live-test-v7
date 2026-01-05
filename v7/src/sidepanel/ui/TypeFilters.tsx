@@ -1,7 +1,8 @@
+import type { MouseEvent } from 'react'
+
 import type { Result } from '@/shared/results'
 import { getResultColor, getResultLabel, resultTypeOrder } from '@/shared/colors'
 import { computeResultCoverage } from '@/shared/resultCoverage'
-import { createDefaultTypeVisibility } from '@/shared/resultFilterState'
 
 type Props = {
   show: Record<string, boolean>
@@ -14,31 +15,31 @@ export const TypeFilters = ({ show, setShow, results, debugEnabled }: Props) => 
     acc[r.type] = (acc[r.type] || 0) + 1
     return acc
   }, {} as Record<string, number>)
-  const { totalRules, missingRules } = computeResultCoverage(results)
-  const showMissing = debugEnabled && missingRules.length > 0
+  const { totalRules, coveredRules, missingRules } = computeResultCoverage(results)
+  const showMissingCount = missingRules.length > 0
+  const showMissingList = debugEnabled && missingRules.length > 0
   return (
     <>
       <div className="text-xs text-gray-600 flex items-center gap-3 mb-1">
-        <span>Total {totalRules}</span>
-        {showMissing && <span className="text-red-600 font-semibold">Missing {missingRules.length}</span>}
+        <span>Coverage {coveredRules}/{totalRules}</span>
+        {showMissingCount && <span className="text-red-600 font-semibold">Missing {missingRules.length}</span>}
       </div>
       <div className="flex items-center gap-2 flex-wrap">
         {resultTypeOrder.map((type) => {
           const count = counts[type] || 0
           const colors = getResultColor(type)
           const isActive = show[type]
-          const handleClick = () => {
-            const currentlyOnlyThis = show[type] && resultTypeOrder.every((key) => (key === type ? show[key] : !show[key]))
-            if (currentlyOnlyThis) {
-              setShow(() => createDefaultTypeVisibility())
+          const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+            if (event.altKey) {
+              setShow(() =>
+                resultTypeOrder.reduce<Record<string, boolean>>((acc, key) => {
+                  acc[key] = key === type
+                  return acc
+                }, {}),
+              )
               return
             }
-            setShow(() =>
-              resultTypeOrder.reduce<Record<string, boolean>>((acc, key) => {
-                acc[key] = key === type
-                return acc
-              }, {}),
-            )
+            setShow((prev) => ({ ...prev, [type]: !prev[type] }))
           }
           return (
             <button
@@ -54,7 +55,7 @@ export const TypeFilters = ({ show, setShow, results, debugEnabled }: Props) => 
           )
         })}
       </div>
-      {showMissing && (
+      {showMissingList && (
         <details className="mt-2 w-full rounded border border-red-100 bg-red-50 p-2 text-xs text-red-700">
           <summary className="cursor-pointer select-none font-semibold">Show missing rules</summary>
           <ul className="list-disc pl-4 mt-1 space-y-0.5">

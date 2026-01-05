@@ -25,14 +25,6 @@ export const App = () => {
   if (loading) {
     return <p className="p-3">Loading…</p>
   }
-  if (!meta && !items.length) {
-    return (
-      <>
-        <Shortcuts runNow={runNow} clean={clean} openLogs={openLogs} openSettings={openSettings} logsEnabled={debugEnabled} />
-        <p className="p-3">No results yet. Click "Run" to start.</p>
-      </>
-    )
-  }
   return (
     <>
       <Shortcuts runNow={runNow} clean={clean} openLogs={openLogs} openSettings={openSettings} logsEnabled={debugEnabled} />

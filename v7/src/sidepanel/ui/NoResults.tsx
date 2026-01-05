@@ -38,7 +38,7 @@ export const NoResults = ({ items, types, q, debugEnabled, onResetFilters }: Pro
   }, [debugEnabled])
 
   const filteredOut = items.length > 0
-  const info = filteredOut ? 'All results are filtered out.' : 'No results have been saved yet.'
+  const info = filteredOut ? 'All results are filtered out.' : 'No results yet. Click Run test or press Enter to start.'
   const canReset = filteredOut && Boolean(onResetFilters)
   const filters = (types || []).join(',') || 'all'
   const dump = () => {

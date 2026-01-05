@@ -23,8 +23,9 @@ export const RunNow = ({ url }: { url?: string }) => {
       }`}
       onClick={run}
       disabled={running}
+      title="Hard reloads the page and clears cache"
     >
-      {running ? 'Running…' : 'Hard Reload'}
+      {running ? 'Running test…' : 'Run test'}
     </button>
   )
 }
