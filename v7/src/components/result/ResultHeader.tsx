@@ -49,6 +49,11 @@ export const ResultHeader = ({
               {result.what}
             </span>
           )}
+          {typeof result.priority === 'number' && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase bg-slate-100 text-slate-600" title="Priority score">
+              P{result.priority}
+            </span>
+          )}
           {numberLabel !== null && <span className="text-[10px] text-slate-500">#{numberLabel}</span>}
           {result.ruleId && (
             <span className="text-[10px] text-slate-500 font-mono" title="Rule ID">
