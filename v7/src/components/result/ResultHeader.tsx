@@ -50,6 +50,11 @@ export const ResultHeader = ({
             </span>
           )}
           {numberLabel !== null && <span className="text-[10px] text-slate-500">#{numberLabel}</span>}
+          {result.ruleId && (
+            <span className="text-[10px] text-slate-500 font-mono" title="Rule ID">
+              {result.ruleId}
+            </span>
+          )}
         </div>
         {canToggleDetails && (
           <button

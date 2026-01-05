@@ -9,7 +9,7 @@ export const resultTypeOrder = ['error', 'warn', 'info', 'ok', 'runtime_error', 
 
 export const resultTypeLabels: Record<ResultType, string> = {
   error: 'failed',
-  runtime_error: 'error',
+  runtime_error: 'rule error',
   warn: 'warn',
   info: 'info',
   ok: 'ok',

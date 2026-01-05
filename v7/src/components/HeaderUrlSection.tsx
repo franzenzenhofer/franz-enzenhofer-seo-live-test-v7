@@ -2,16 +2,19 @@ import { useEffect, useRef } from 'react'
 
 import { RunMetaDisplay } from './RunMetaDisplay'
 
+import type { RunStatus } from '@/shared/runStatus'
+
 export type HeaderUrlSectionProps = {
   editableUrl: string
   onUrlChange: (url: string) => void
   runId?: string
   ranAt?: string
+  status?: RunStatus
   onOpenUrl?: (url: string) => void
   onOpenReport?: () => void
 }
 
-export const HeaderUrlSection = ({ editableUrl, onUrlChange, runId, ranAt, onOpenUrl, onOpenReport }: HeaderUrlSectionProps) => {
+export const HeaderUrlSection = ({ editableUrl, onUrlChange, runId, ranAt, status, onOpenUrl, onOpenReport }: HeaderUrlSectionProps) => {
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -69,7 +72,7 @@ export const HeaderUrlSection = ({ editableUrl, onUrlChange, runId, ranAt, onOpe
         </div>
       </div>
 
-      <RunMetaDisplay runId={runId} ranAt={ranAt} onOpenReport={onOpenReport} />
+      <RunMetaDisplay runId={runId} ranAt={ranAt} status={status} onOpenReport={onOpenReport} />
     </div>
   )
 }

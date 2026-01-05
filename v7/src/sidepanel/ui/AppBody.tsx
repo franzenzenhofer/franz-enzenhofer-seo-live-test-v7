@@ -48,6 +48,7 @@ export const AppBody = ({
         url={meta?.url || ''}
         runId={runId || meta?.runId}
         ranAt={meta?.ranAt}
+        status={meta?.status}
         onOpenReport={onOpenReport}
         onClean={onClean}
         onOpenLogs={onOpenLogs}

@@ -8,7 +8,6 @@ import type { LogFn } from './usePanelLogger'
 import { ResultCard } from '@/components/result/ResultCard'
 import { resultSortOrder } from '@/shared/colors'
 import { isResultUnconfigured, type Result } from '@/shared/results'
-
 export const Results = ({
   items,
   types,
@@ -18,36 +17,35 @@ export const Results = ({
   tabId,
   logUi,
   defaultExpanded = false,
-}: {
-  items: Result[]
-  types?: string[]
-  q?: string
-  debugEnabled: boolean
-  onResetFilters?: () => void
-  tabId?: number | null
-  logUi?: LogFn
-  defaultExpanded?: boolean
-}) => {
+}: { items: Result[]; types?: string[]; q?: string; debugEnabled: boolean; onResetFilters?: () => void; tabId?: number | null; logUi?: LogFn; defaultExpanded?: boolean }) => {
   const { pinned, togglePin } = usePinnedRules()
   const { flags, toggleFlag } = useRuleFlags()
-  const filtered = useMemo(() => items.filter((i) => {
-    if (types?.includes('unconfigured')) return isResultUnconfigured(i)
-    if (types && !types.includes(i.type)) return false
-    if (q && !`${i.label} ${i.message}`.toLowerCase().includes(q.toLowerCase())) return false
-    return true
-  }), [items, types, q])
-  const sorted = useMemo(() => [...filtered].sort((a, b) => {
-    const keyA = ruleKeyOf(a)
-    const keyB = ruleKeyOf(b)
-    const pinA = keyA ? pinned[keyA] : false
-    const pinB = keyB ? pinned[keyB] : false
-    if (pinA !== pinB) return pinA ? -1 : 1
-    const orderA = resultSortOrder[a.type as keyof typeof resultSortOrder] ?? 999
-    const orderB = resultSortOrder[b.type as keyof typeof resultSortOrder] ?? 999
-    if (orderA !== orderB) return orderA - orderB
-    return (keyA || a.label).localeCompare(keyB || b.label)
-  }), [filtered, pinned])
-
+  const filtered = useMemo(() => {
+    const needle = q?.toLowerCase().trim()
+    return items.filter((i) => {
+      if (types?.includes('unconfigured')) return isResultUnconfigured(i)
+      if (types && !types.includes(i.type)) return false
+      if (needle) {
+        const haystack = `${i.label} ${i.name} ${i.ruleId ?? ''} ${i.what ?? ''} ${i.message}`.toLowerCase()
+        if (!haystack.includes(needle)) return false
+      }
+      return true
+    })
+  }, [items, types, q])
+  const sorted = useMemo(
+    () => [...filtered].sort((a, b) => {
+      const keyA = ruleKeyOf(a)
+      const keyB = ruleKeyOf(b)
+      const pinA = keyA ? pinned[keyA] : false
+      const pinB = keyB ? pinned[keyB] : false
+      if (pinA !== pinB) return pinA ? -1 : 1
+      const orderA = resultSortOrder[a.type as keyof typeof resultSortOrder] ?? 999
+      const orderB = resultSortOrder[b.type as keyof typeof resultSortOrder] ?? 999
+      if (orderA !== orderB) return orderA - orderB
+      return (keyA || a.label).localeCompare(keyB || b.label)
+    }),
+    [filtered, pinned],
+  )
   return (
     <div className="space-y-2">
       {sorted.map((r, i) => {

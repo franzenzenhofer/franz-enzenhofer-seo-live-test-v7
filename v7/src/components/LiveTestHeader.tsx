@@ -2,12 +2,15 @@ import type { ReactNode } from 'react'
 
 import { HeaderUrlSection } from './HeaderUrlSection'
 
+import type { RunStatus } from '@/shared/runStatus'
+
 export type LiveTestHeaderProps = {
   url: string
   editableUrl?: string
   onUrlChange?: (url: string) => void
   runId?: string
   ranAt?: string
+  runStatus?: RunStatus
   version?: string
   primaryAction?: ReactNode
   secondaryActions?: ReactNode
@@ -21,6 +24,7 @@ export const LiveTestHeader = ({
   onUrlChange,
   runId,
   ranAt,
+  runStatus,
   version,
   primaryAction,
   secondaryActions,
@@ -47,6 +51,7 @@ export const LiveTestHeader = ({
           onUrlChange={onUrlChange || (() => {})}
           runId={runId}
           ranAt={ranAt}
+          status={runStatus}
           onOpenUrl={onOpenUrl}
           onOpenReport={onOpenReport}
         />

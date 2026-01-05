@@ -4,11 +4,13 @@ import { RunNow } from './RunNow'
 
 import { LiveTestHeader } from '@/components/LiveTestHeader'
 import { openUrlInCurrentTab } from '@/shared/openUrlInCurrentTab'
+import type { RunStatus } from '@/shared/runStatus'
 
 type Props = {
   url: string
   runId?: string
   ranAt?: string
+  status?: RunStatus
   onOpenReport: () => void
   onClean: () => void
   onOpenLogs: () => void
@@ -20,6 +22,7 @@ export const PanelHeader = ({
   url,
   runId,
   ranAt,
+  status,
   onOpenReport,
   onClean,
   onOpenLogs,
@@ -40,6 +43,7 @@ export const PanelHeader = ({
       onUrlChange={setEditableUrl}
       runId={runId}
       ranAt={ranAt}
+      runStatus={status}
       version={version}
       primaryAction={<RunNow url={editableUrl} />}
       onOpenUrl={openUrlInCurrentTab}
