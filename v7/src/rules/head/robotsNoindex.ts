@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
+import { extractHtml, extractSnippet } from '@/shared/html-utils'
+import { getDomPath, getDomPaths } from '@/shared/dom-path'
 import { parseRobotsDirectives } from '@/shared/robots'
 
 // Constants
@@ -36,7 +37,7 @@ export const robotsNoindexRule: Rule = {
         message: 'Multiple robots meta tags — check for conflicting noindex/nofollow directives.',
         type: 'warn',
         priority: 150,
-        details: { sourceHtml: snippet, snippet: extractSnippet(snippet), domPaths: elements.map((_, i) => `${SELECTOR}:nth-of-type(${i + 1})`), reference: SPEC },
+        details: { sourceHtml: snippet, snippet: extractSnippet(snippet), domPaths: getDomPaths(elements), reference: SPEC },
       }
     }
 

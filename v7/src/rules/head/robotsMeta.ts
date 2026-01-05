@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, extractHtmlFromList, extractSnippet, getDomPath } from '@/shared/html-utils'
+import { extractHtml, extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
+import { getDomPath, getDomPaths } from '@/shared/dom-path'
 import { parseRobotsDirectives } from '@/shared/robots'
 
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag'
@@ -31,7 +32,7 @@ export const robotsMetaRule: Rule = {
         type: 'warn',
         priority: 200,
         name: 'Robots Meta',
-        details: { tested: TESTED, reference: SPEC, sourceHtml: snippet, snippet, domPaths: elements.map((_, i) => `head > meta[name="robots"]:nth-of-type(${i + 1})`) },
+        details: { tested: TESTED, reference: SPEC, sourceHtml: snippet, snippet, domPaths: getDomPaths(elements) },
       }
     }
 

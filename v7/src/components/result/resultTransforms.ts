@@ -3,8 +3,8 @@ import type { Result } from '@/shared/results'
 export const buildDomHighlight = (result: Result) => {
   if (!result.details) return { selectors: [], colors: undefined as string[] | undefined }
   const domPaths = Array.isArray(result.details['domPaths'])
-    ? (result.details['domPaths'].filter(Boolean) as string[])
-    : typeof result.details['domPath'] === 'string'
+    ? (result.details['domPaths'].filter((p) => typeof p === 'string' && p.trim()) as string[])
+    : typeof result.details['domPath'] === 'string' && result.details['domPath'].trim()
       ? [result.details['domPath']]
       : []
   const domPathColors = Array.isArray(result.details['domPathColors'])

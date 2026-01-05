@@ -16,13 +16,13 @@ describe('meta description rule', () => {
     const html = '<meta name="description" content="First"><meta name="description" content="Second">'
     const result = await run(`<html><head>${html}</head><body></body></html>`)
     expect(result.type).toBe('error')
-    expect(result.details?.domPaths).toEqual(['meta[name="description"]', 'meta[name="description"]:nth-of-type(2)'])
+    expect(result.details?.domPaths).toEqual(['html > head > meta:nth-of-type(1)', 'html > head > meta:nth-of-type(2)'])
   })
 
   it('returns info when description present', async () => {
     const result = await run('<html><head><meta name="description" content="Hello world"></head></html>')
     expect(result.type).toBe('info')
     expect(result.details?.description).toBe('Hello world')
-    expect(result.details?.domPath).toBe('meta[name="description"]')
+    expect(result.details?.domPath).toBe('html > head > meta')
   })
 })

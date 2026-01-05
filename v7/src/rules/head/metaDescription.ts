@@ -1,13 +1,12 @@
 import type { Rule } from '@/core/types'
 import { extractHtml } from '@/shared/html-utils'
+import { getDomPath, getDomPaths } from '@/shared/dom-path'
 
 const LABEL = 'HEAD'
 const NAME = 'Meta Description'
 const RULE_ID = 'head-meta-description'
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/supported-tags#meta-descriptions'
 const SELECTOR = 'meta[name="description"]'
-
-const selectorAt = (index: number) => (index === 0 ? SELECTOR : `${SELECTOR}:nth-of-type(${index + 1})`)
 
 const cleanContent = (value: string | null | undefined) => (value || '').trim()
 
@@ -30,7 +29,7 @@ export const metaDescriptionRule: Rule = {
         type: 'error',
         priority: 100,
         name: NAME,
-        details: { domPaths: nodes.map((_, i) => selectorAt(i)), snippet: combined, sourceHtml: combined, reference: SPEC },
+        details: { domPaths: getDomPaths(nodes), snippet: combined, sourceHtml: combined, reference: SPEC },
       }
     }
     const node = nodes[0]!
@@ -45,7 +44,7 @@ export const metaDescriptionRule: Rule = {
       details: {
         snippet: description || '(empty)',
         sourceHtml: extractHtml(node),
-        domPath: SELECTOR,
+        domPath: getDomPath(node),
         description,
         reference: SPEC,
       },

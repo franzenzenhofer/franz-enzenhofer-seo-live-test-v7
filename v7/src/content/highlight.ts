@@ -14,21 +14,31 @@ const ensureHighlightStyle = () => {
 const highlightSelectors = (selectors: string[], colors?: string[]) => {
   ensureHighlightStyle()
   const palette: string[] = (colors && colors.length ? colors : DEFAULT_COLORS) as string[]
+  const seen = new Set<Element>()
   clearHighlight()
   selectors.forEach((selector, idx) => {
-    const el = document.querySelector(selector)
-    if (!el) return
+    let matches: Element[] = []
+    try {
+      matches = Array.from(document.querySelectorAll(selector))
+    } catch {
+      return
+    }
+    if (!matches.length) return
     const colorCandidate = colors ? colors[idx] : undefined
     const fallbackPaletteColor = ((palette.length ? palette[idx % palette.length] : DEFAULT_COLORS[0]) ?? DEFAULT_COLORS[0]) as string
     const color: string =
       typeof colorCandidate === 'string' && colorCandidate.trim()
         ? colorCandidate
         : fallbackPaletteColor
-    el.classList.add(HIGHLIGHT_CLASS)
-    el.setAttribute('data-highlight-idx', String(idx))
-    el.setAttribute('data-highlight-color', color)
-    ;(el as HTMLElement).style.setProperty('--lt-highlight-color', color)
-    highlightedEls.push(el)
+    matches.forEach((el) => {
+      if (seen.has(el)) return
+      seen.add(el)
+      el.classList.add(HIGHLIGHT_CLASS)
+      el.setAttribute('data-highlight-idx', String(idx))
+      el.setAttribute('data-highlight-color', color)
+      ;(el as HTMLElement).style.setProperty('--lt-highlight-color', color)
+      highlightedEls.push(el)
+    })
   })
   return highlightedEls.length > 0
 }

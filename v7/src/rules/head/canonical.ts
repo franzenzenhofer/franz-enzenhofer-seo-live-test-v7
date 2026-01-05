@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, extractHtmlFromList, extractSnippet, getDomPath } from '@/shared/html-utils'
+import { extractHtml, extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
+import { getDomPath, getDomPaths } from '@/shared/dom-path'
 import { isAbsoluteUrl, normalizeUrl } from '@/shared/url-utils'
 
 const LABEL = 'HEAD'
@@ -34,7 +35,7 @@ export const canonicalRule: Rule = {
         type: 'error',
         priority: 200,
         name: NAME,
-        details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPaths: elements.map((_, idx) => `link[rel~="canonical" i]:nth-of-type(${idx + 1})`), hrefs: elements.map((el) => (el.getAttribute('href') || '').trim()), reference: SPEC, count },
+        details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPaths: getDomPaths(elements), hrefs: elements.map((el) => (el.getAttribute('href') || '').trim()), reference: SPEC, count },
       }
     }
 

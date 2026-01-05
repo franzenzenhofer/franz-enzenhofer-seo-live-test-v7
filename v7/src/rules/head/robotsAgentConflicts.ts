@@ -29,6 +29,7 @@ export const robotsAgentConflictsRule: Rule = {
       return { label: LABEL, name: NAME, message: 'No robots directives found.', type: 'info', priority: 920, details: { reference: SPEC } }
     }
     const byUa = groupByUa(directives)
+    const domPaths = directives.map((d) => d.domPath).filter((path): path is string => Boolean(path))
     const robotsGlobal = byUa['robots'] || []
     const hasGlobal = robotsGlobal.length > 0
     const globalNoindex = robotsGlobal.some((d) => d.hasNoindex)
@@ -59,10 +60,11 @@ export const robotsAgentConflictsRule: Rule = {
           unusualAgents,
           reference: SPEC,
           directives,
+          domPaths,
         },
       }
     }
 
-    return { label: LABEL, name: NAME, message: 'Robots directives consistent across agents.', type: 'ok', priority: 850, details: { reference: SPEC } }
+    return { label: LABEL, name: NAME, message: 'Robots directives consistent across agents.', type: 'ok', priority: 850, details: { reference: SPEC, domPaths } }
   },
 }

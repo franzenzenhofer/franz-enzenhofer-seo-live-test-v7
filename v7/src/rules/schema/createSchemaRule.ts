@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
 import { parseLd, findType, docs } from '@/shared/structured'
-import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
+import { extractHtml, extractSnippet } from '@/shared/html-utils'
+import { getDomPath } from '@/shared/dom-path'
 
 /**
  * Validation result with optional missing fields reporting

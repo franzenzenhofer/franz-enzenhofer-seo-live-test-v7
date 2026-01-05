@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
-import { extractSnippet, getDomPath } from '@/shared/html-utils'
+import { extractSnippet } from '@/shared/html-utils'
+import { getDomPath } from '@/shared/dom-path'
 
 const SPEC = 'https://web.dev/html-has-lang/'
 

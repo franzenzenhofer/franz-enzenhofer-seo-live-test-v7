@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
-import { extractHtmlFromList, extractSnippet, getDomPath } from '@/shared/html-utils'
+import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
+import { getDomPath } from '@/shared/dom-path'
 
 const LABEL = 'BODY'
 const NAME = 'Internal links count'

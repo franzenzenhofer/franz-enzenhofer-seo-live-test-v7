@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { stripAttributesDeep } from '@/shared/html-utils'
+import { getDomPath, getDomPaths } from '@/shared/dom-path'
 
 const LABEL = 'BODY', NAME = 'H1 Present', RULE_ID = 'body:h1', SPEC = 'https://developers.google.com/style/headings?hl=en'
 
@@ -16,7 +17,7 @@ export const h1Rule: Rule = {
       const message = count ? `${count} <h1> elements found.` : 'No <h1> found.'
       const priority = count ? 100 : 0
       const details = count
-        ? { domPaths: nodes.map((_, idx) => (idx === 0 ? 'h1' : `h1:nth-of-type(${idx + 1})`)), reference: SPEC }
+        ? { domPaths: getDomPaths(nodes), reference: SPEC }
         : { reference: SPEC }
       return { ...header, message, type: 'warn', priority, details }
     }
@@ -28,7 +29,7 @@ export const h1Rule: Rule = {
         message: '<h1> is empty.',
         type: 'warn',
         priority: 200,
-        details: { snippet: stripAttributesDeep(node), sourceHtml: node.outerHTML, domPath: 'h1', reference: SPEC },
+        details: { snippet: stripAttributesDeep(node), sourceHtml: node.outerHTML, domPath: getDomPath(node), reference: SPEC },
       }
     }
     return {
@@ -36,7 +37,7 @@ export const h1Rule: Rule = {
       message: '1 <h1> found.',
       type: 'ok',
       priority: 1000,
-      details: { snippet: stripAttributesDeep(node), sourceHtml: node.outerHTML, domPath: 'h1', reference: SPEC },
+      details: { snippet: stripAttributesDeep(node), sourceHtml: node.outerHTML, domPath: getDomPath(node), reference: SPEC },
     }
   },
 }

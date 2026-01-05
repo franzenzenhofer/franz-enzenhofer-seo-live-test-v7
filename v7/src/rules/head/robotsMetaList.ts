@@ -25,6 +25,7 @@ export const robotsMetaListRule: Rule = {
     }
 
     const summary = directives.map((d) => `${d.ua}: ${d.value || '(empty)'}`).join('; ')
+    const domPaths = directives.map((d) => d.domPath).filter((path): path is string => Boolean(path))
     return {
       label: LABEL,
       name: NAME,
@@ -33,6 +34,7 @@ export const robotsMetaListRule: Rule = {
       priority: 640,
       details: {
         directives,
+        domPaths,
         reference: SPEC,
       },
     }

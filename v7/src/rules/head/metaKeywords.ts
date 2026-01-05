@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
+import { extractHtml, extractSnippet } from '@/shared/html-utils'
+import { getDomPath, getDomPaths } from '@/shared/dom-path'
 
 // Constants
 const LABEL = 'HEAD'
@@ -36,7 +37,7 @@ export const metaKeywordsRule: Rule = {
         message: 'Multiple meta keywords tags found (deprecated, remove).',
         type: 'warn',
         priority: 300,
-        details: { sourceHtml: snippet, snippet: extractSnippet(snippet), domPaths: elements.map((_, i) => `${SELECTOR}:nth-of-type(${i + 1})`), reference: SPEC },
+        details: { sourceHtml: snippet, snippet: extractSnippet(snippet), domPaths: getDomPaths(elements), reference: SPEC },
       }
     }
 

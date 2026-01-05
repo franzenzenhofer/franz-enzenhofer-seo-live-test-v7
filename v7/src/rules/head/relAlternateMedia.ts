@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
+import { getDomPaths } from '@/shared/dom-path'
 
 // Constants
 const LABEL = 'HEAD'
@@ -33,7 +34,7 @@ export const relAlternateMediaRule: Rule = {
         : `Separate media alternates discovered (${count}).`
 
     const sourceHtml = extractHtmlFromList(elements)
-    const domPaths = elements.map((_, idx) => (idx === 0 ? SELECTOR : `${SELECTOR}:nth-of-type(${idx + 1})`))
+    const domPaths = getDomPaths(elements)
 
     return {
       label: LABEL,

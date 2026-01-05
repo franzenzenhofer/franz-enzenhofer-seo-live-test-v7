@@ -22,6 +22,7 @@ export const robotsOtherMetaRule: Rule = {
     const summary = directives
       .map((d) => `${d.ua}: ${d.value || '(empty)'}`)
       .join('; ')
+    const domPaths = directives.map((d) => d.domPath).filter((path): path is string => Boolean(path))
     const hasNoindex = directives.some((d) => d.hasNoindex)
     const hasNofollow = directives.some((d) => d.hasNofollow)
     return {
@@ -34,6 +35,7 @@ export const robotsOtherMetaRule: Rule = {
         directives,
         hasNoindex,
         hasNofollow,
+        domPaths,
         reference: SPEC,
       },
     }

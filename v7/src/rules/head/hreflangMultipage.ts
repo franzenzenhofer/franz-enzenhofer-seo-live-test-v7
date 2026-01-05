@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
+import { getDomPaths } from '@/shared/dom-path'
 
 const LABEL = 'HEAD'
 const NAME = 'Hreflang Multipage Validation'
@@ -99,7 +100,7 @@ export const hreflangMultipageRule: Rule = {
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml, 200),
-        domPaths: links.map((_, i) => (i === 0 ? SELECTOR_HEAD : `${SELECTOR_HEAD}:nth-of-type(${i + 1})`)),
+        domPaths: getDomPaths(links),
         canonical,
         canonicalHref: canonicalHref || null,
         reference: SPEC,

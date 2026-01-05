@@ -1,7 +1,8 @@
 import { OG_SELECTORS } from './og-constants'
 
 import { isAbsoluteUrl } from '@/shared/url-utils'
-import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
+import { extractHtml, extractSnippet } from '@/shared/html-utils'
+import { getDomPath } from '@/shared/dom-path'
 import type { Rule } from '@/core/types'
 
 const SPEC = 'https://ogp.me/#metadata'

@@ -1,6 +1,7 @@
 import { OG_SELECTORS } from './og-constants'
 
-import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
+import { extractHtml, extractSnippet } from '@/shared/html-utils'
+import { getDomPath } from '@/shared/dom-path'
 import { isAbsoluteUrl } from '@/shared/url-utils'
 import type { Rule } from '@/core/types'
 

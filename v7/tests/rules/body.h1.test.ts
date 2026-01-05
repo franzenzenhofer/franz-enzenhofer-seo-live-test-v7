@@ -14,7 +14,7 @@ describe('body:h1 rule', () => {
     expect(result.message).toBe('1 <h1> found.')
     expect(result.details?.snippet).toBe('<h1><a>SEO <em>Works</em></a></h1>')
     expect(result.details?.sourceHtml).toBe(html)
-    expect(result.details?.domPath).toBe('h1')
+    expect(result.details?.domPath).toBe('html > body > h1.hero')
     expect(result.details?.reference).toBe(SPEC)
   })
 
@@ -22,7 +22,7 @@ describe('body:h1 rule', () => {
     const result = await run('<h1>One</h1><h1>Two</h1>')
     expect(result.type).toBe('warn')
     expect(result.message).toBe('2 <h1> elements found.')
-    expect(result.details?.domPaths).toEqual(['h1', 'h1:nth-of-type(2)'])
+    expect(result.details?.domPaths).toEqual(['html > body > h1:nth-of-type(1)', 'html > body > h1:nth-of-type(2)'])
     expect(result.details?.reference).toBe(SPEC)
   })
 
@@ -38,7 +38,7 @@ describe('body:h1 rule', () => {
     expect(result.type).toBe('warn')
     expect(result.message).toBe('<h1> is empty.')
     expect(result.details?.snippet).toBe('<h1></h1>')
-    expect(result.details?.domPath).toBe('h1')
+    expect(result.details?.domPath).toBe('html > body > h1')
     expect(result.details?.reference).toBe(SPEC)
   })
 })

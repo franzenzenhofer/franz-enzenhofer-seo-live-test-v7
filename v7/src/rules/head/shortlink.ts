@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, extractSnippet, getDomPath } from '@/shared/html-utils'
+import { extractHtml, extractSnippet } from '@/shared/html-utils'
+import { getDomPath } from '@/shared/dom-path'
 
 const LABEL = 'HEAD'
 const NAME = 'Shortlink'

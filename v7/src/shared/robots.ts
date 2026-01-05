@@ -1,3 +1,5 @@
+import { getDomPath } from './dom-path'
+
 export type RobotsDirective = {
   ua: string
   source: 'meta' | 'header'
@@ -22,7 +24,7 @@ const splitTokens = (val: string) =>
 const parseMeta = (doc: Document): RobotsDirective[] => {
   const nodes = Array.from(doc.querySelectorAll('head > meta[name]')) as HTMLMetaElement[]
   const directives: RobotsDirective[] = []
-  nodes.forEach((el, idx) => {
+  nodes.forEach((el) => {
     const name = (el.getAttribute('name') || '').trim().toLowerCase()
     const content = (el.getAttribute('content') || '').trim()
     if (!content) return
@@ -34,7 +36,7 @@ const parseMeta = (doc: Document): RobotsDirective[] => {
       tokens,
       hasNoindex: tokens.includes('noindex') || tokens.includes('none'),
       hasNofollow: tokens.includes('nofollow') || tokens.includes('none'),
-      domPath: `head > meta[name="${name}"]:nth-of-type(${idx + 1})`,
+      domPath: getDomPath(el),
       sourceHtml: el.outerHTML,
     })
   })

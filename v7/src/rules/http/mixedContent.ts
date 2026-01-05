@@ -1,4 +1,5 @@
 import type { Rule } from '@/core/types'
+import { getDomPaths } from '@/shared/dom-path'
 
 const LABEL = 'HTTP'
 const NAME = 'Mixed content'
@@ -31,9 +32,8 @@ export const mixedContentRule: Rule = {
 
     const doc = page.doc
     const offenders: Element[] = []
-    const paths: string[] = []
     selectors.forEach((sel) => {
-      doc.querySelectorAll(sel).forEach((el, idx) => {
+      doc.querySelectorAll(sel).forEach((el) => {
         const url = (el.getAttribute('src') || el.getAttribute('href') || el.getAttribute('data') || '').trim()
         const action = el instanceof HTMLFormElement ? (el.getAttribute('action') || '').trim() : ''
         const candidate = sel.startsWith('form') ? action || url : url
@@ -41,7 +41,6 @@ export const mixedContentRule: Rule = {
         if (!isHttp(candidate)) return
         if (!isHttp(url)) return
         offenders.push(el)
-        paths.push(`${sel}:nth-of-type(${idx + 1})`)
       })
     })
 
@@ -62,13 +61,14 @@ export const mixedContentRule: Rule = {
       }
     }
 
+    const domPaths = getDomPaths(offenders)
     return {
       label: LABEL,
       name: NAME,
       message: `${offenders.length} mixed-content resource${offenders.length === 1 ? '' : 's'} loaded over HTTP on an HTTPS page.`,
       type: 'error',
       priority: 80,
-      details: { ...buildDetails(offenders, paths), reference: SPEC, fix: 'Serve all subresources over HTTPS or remove them.', networkResources: netOffenders.slice(0, SAMPLE_LIMIT), networkCount: netOffenders.length },
+      details: { ...buildDetails(offenders, domPaths), reference: SPEC, fix: 'Serve all subresources over HTTPS or remove them.', networkResources: netOffenders.slice(0, SAMPLE_LIMIT), networkCount: netOffenders.length },
     }
   },
 }

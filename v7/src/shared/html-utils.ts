@@ -24,45 +24,6 @@ export const extractSnippet = (html: string, maxChars = 100): string => {
   return trimmed.substring(0, maxChars) + '...'
 }
 
-export const getDomPath = (element: Element | null): string => {
-  if (!element) return ''
-
-  const path: string[] = []
-  let current: Element | null = element
-  const ELEMENT_NODE = 1
-
-  while (current && current.nodeType === ELEMENT_NODE) {
-    let selector = current.nodeName.toLowerCase()
-
-    if (current.id) {
-      selector += `#${current.id}`
-      path.unshift(selector)
-      break
-    }
-
-    if (current.className) {
-      const classes = current.className.trim().split(/\s+/).filter((c) => c)
-      if (classes.length > 0) {
-        selector += `.${classes.join('.')}`
-      }
-    }
-
-    const parent: Element | null = current.parentElement
-    if (parent) {
-      const siblings = Array.from(parent.children).filter((sibling: Element) => sibling.nodeName === current!.nodeName)
-      if (siblings.length > 1) {
-        const index = siblings.indexOf(current) + 1
-        selector += `:nth-of-type(${index})`
-      }
-    }
-
-    path.unshift(selector)
-    current = parent
-  }
-
-  return path.join(' > ')
-}
-
 export const stripAttributesDeep = (element: Element | null): string => {
   if (!element) return ''
   const clone = element.cloneNode(true) as Element

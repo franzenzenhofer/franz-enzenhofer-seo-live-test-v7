@@ -1,4 +1,5 @@
 import type { Rule } from '@/core/types'
+import { getDomPath } from '@/shared/dom-path'
 import { normalizeUrl, isHttps } from '@/shared/url-utils'
 
 const LABEL = 'HEAD'
@@ -36,11 +37,11 @@ export const canonicalHreflangConsistencyRule: Rule = {
     const normalizedCanonical = normalizeUrl(canonicalUrl)
 
     const hreflangTargets = hreflangEls
-      .map((el, idx) => {
+      .map((el) => {
         const href = (el.getAttribute('href') || '').trim()
         try {
           const resolved = new URL(href, page.url).toString()
-          return { resolved, domPath: `${SELECTOR}:nth-of-type(${idx + 1})` }
+          return { resolved, domPath: getDomPath(el) }
         } catch {
           return null
         }
