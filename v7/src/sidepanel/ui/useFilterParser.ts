@@ -8,8 +8,11 @@ const keywordToType = (() => {
     map.set(type.toLowerCase(), type)
     map.set(label.toLowerCase(), type)
   })
-  map.set('error', 'runtime_error')
+  map.set('error', 'error')
   map.set('failed', 'error')
+  map.set('runtime', 'runtime_error')
+  map.set('runtime_error', 'runtime_error')
+  map.set('rule', 'runtime_error')
   map.set('unconfigured', 'unconfigured')
   return map
 })()

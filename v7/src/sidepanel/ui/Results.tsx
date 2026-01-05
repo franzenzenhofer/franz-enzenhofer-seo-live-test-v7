@@ -1,13 +1,14 @@
 import { useMemo } from 'react'
 
 import { NoResults } from './NoResults'
+import { matchesResult } from './resultQuery'
 import { usePinnedRules, ruleKeyOf } from './usePinnedRules'
 import { useRuleFlags } from './useRuleFlags'
 import type { LogFn } from './usePanelLogger'
 
 import { ResultCard } from '@/components/result/ResultCard'
 import { resultSortOrder } from '@/shared/colors'
-import { isResultUnconfigured, type Result } from '@/shared/results'
+import type { Result } from '@/shared/results'
 export const Results = ({
   items,
   types,
@@ -20,18 +21,7 @@ export const Results = ({
 }: { items: Result[]; types?: string[]; q?: string; debugEnabled: boolean; onResetFilters?: () => void; tabId?: number | null; logUi?: LogFn; defaultExpanded?: boolean }) => {
   const { pinned, togglePin } = usePinnedRules()
   const { flags, toggleFlag } = useRuleFlags()
-  const filtered = useMemo(() => {
-    const needle = q?.toLowerCase().trim()
-    return items.filter((i) => {
-      if (types?.includes('unconfigured')) return isResultUnconfigured(i)
-      if (types && !types.includes(i.type)) return false
-      if (needle) {
-        const haystack = `${i.label} ${i.name} ${i.ruleId ?? ''} ${i.what ?? ''} ${i.message}`.toLowerCase()
-        if (!haystack.includes(needle)) return false
-      }
-      return true
-    })
-  }, [items, types, q])
+  const filtered = useMemo(() => items.filter((i) => matchesResult(i, types, q)), [items, types, q])
   const sorted = useMemo(
     () => [...filtered].sort((a, b) => {
       const keyA = ruleKeyOf(a)
