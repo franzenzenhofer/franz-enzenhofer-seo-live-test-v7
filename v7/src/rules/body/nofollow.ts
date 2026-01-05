@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
+import { getDomPaths } from '@/shared/dom-path'
 
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/qualify-outbound-links'
 
@@ -21,6 +22,7 @@ export const nofollowRule: Rule = {
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),
+          domPaths: getDomPaths(a),
           reference: SPEC,
         },
       }
@@ -35,6 +37,7 @@ export const nofollowRule: Rule = {
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),
+        domPaths: getDomPaths(a),
         tested: 'Checked <a> rel values for nofollow',
         reference: SPEC,
       },

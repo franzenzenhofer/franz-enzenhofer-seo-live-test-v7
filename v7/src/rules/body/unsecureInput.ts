@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
+import { getDomPaths } from '@/shared/dom-path'
 
 const SPEC = 'https://developer.mozilla.org/en-US/docs/Web/Security/Insecure_passwords'
 
@@ -37,6 +38,7 @@ export const unsecureInputRule: Rule = {
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),
+          domPaths: getDomPaths(pwdInputs),
           reference: SPEC,
         },
       }

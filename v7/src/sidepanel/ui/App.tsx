@@ -7,6 +7,7 @@ import { usePanelLogger } from './usePanelLogger'
 import { usePanelBootstrap } from './usePanelBootstrap'
 import { usePanelActions } from './usePanelActions'
 import { useResultsLogger } from './useResultsLogger'
+import type { ResultSortMode } from './resultSort'
 
 import { useDebugFlag } from '@/shared/hooks/useDebugFlag'
 import { createDefaultTypeVisibility } from '@/shared/resultFilterState'
@@ -14,6 +15,7 @@ import { createDefaultTypeVisibility } from '@/shared/resultFilterState'
 export const App = () => {
   const [show, setShow] = useState<Record<string, boolean>>(() => createDefaultTypeVisibility())
   const [query, setQuery] = useState('')
+  const [sortMode, setSortMode] = useState<ResultSortMode>('name')
   const { items, meta, loading, tabId, rawCount, activeRunId } = useResultsSource()
   const [debugEnabled] = useDebugFlag()
   const logUi = usePanelLogger(tabId)
@@ -35,6 +37,8 @@ export const App = () => {
         setShow={setShow}
         query={query}
         setQuery={setQuery}
+        sortMode={sortMode}
+        setSortMode={setSortMode}
         debugEnabled={debugEnabled}
         openSettings={openSettings}
         onClean={clean}

@@ -4,10 +4,10 @@ import { NoResults } from './NoResults'
 import { matchesResult } from './resultQuery'
 import { usePinnedRules, ruleKeyOf } from './usePinnedRules'
 import { useRuleFlags } from './useRuleFlags'
+import { compareResults, type ResultSortMode } from './resultSort'
 import type { LogFn } from './usePanelLogger'
 
 import { ResultCard } from '@/components/result/ResultCard'
-import { resultSortOrder } from '@/shared/colors'
 import type { Result } from '@/shared/results'
 export const Results = ({
   items,
@@ -17,8 +17,9 @@ export const Results = ({
   onResetFilters,
   tabId,
   logUi,
+  sortMode = 'name',
   defaultExpanded = false,
-}: { items: Result[]; types?: string[]; q?: string; debugEnabled: boolean; onResetFilters?: () => void; tabId?: number | null; logUi?: LogFn; defaultExpanded?: boolean }) => {
+}: { items: Result[]; types?: string[]; q?: string; debugEnabled: boolean; onResetFilters?: () => void; tabId?: number | null; logUi?: LogFn; sortMode?: ResultSortMode; defaultExpanded?: boolean }) => {
   const { pinned, togglePin } = usePinnedRules()
   const { flags, toggleFlag } = useRuleFlags()
   const filtered = useMemo(() => items.filter((i) => matchesResult(i, types, q)), [items, types, q])
@@ -29,12 +30,9 @@ export const Results = ({
       const pinA = keyA ? pinned[keyA] : false
       const pinB = keyB ? pinned[keyB] : false
       if (pinA !== pinB) return pinA ? -1 : 1
-      const orderA = resultSortOrder[a.type as keyof typeof resultSortOrder] ?? 999
-      const orderB = resultSortOrder[b.type as keyof typeof resultSortOrder] ?? 999
-      if (orderA !== orderB) return orderA - orderB
-      return (keyA || a.label).localeCompare(keyB || b.label)
+      return compareResults(a, b, sortMode)
     }),
-    [filtered, pinned],
+    [filtered, pinned, sortMode],
   )
   return (
     <div className="space-y-2">

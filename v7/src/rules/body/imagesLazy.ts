@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
+import { getDomPaths } from '@/shared/dom-path'
 
 const SPEC = 'https://web.dev/browser-level-image-lazy-loading/'
 
@@ -25,12 +26,14 @@ export const imagesLazyRule: Rule = {
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),
+          domPaths: getDomPaths(noLoading),
           reference: SPEC,
         },
       }
     }
 
     const allHtml = extractHtmlFromList(imgs)
+    const domPaths = getDomPaths(imgs)
     return {
       label: 'BODY',
       message: 'Images have loading attribute',
@@ -39,6 +42,7 @@ export const imagesLazyRule: Rule = {
       details: {
         sourceHtml: allHtml,
         snippet: extractSnippet(allHtml),
+        domPaths,
         tested: 'Validated <img> elements have loading attribute',
         reference: SPEC,
       },

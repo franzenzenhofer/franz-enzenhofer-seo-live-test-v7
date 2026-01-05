@@ -45,7 +45,7 @@ export const PanelHeader = ({
       ranAt={ranAt}
       runStatus={status}
       version={version}
-      primaryAction={<RunNow url={editableUrl} />}
+      primaryAction={<RunNow url={editableUrl} onUrlNormalized={setEditableUrl} />}
       onOpenUrl={openUrlInCurrentTab}
       onOpenReport={onOpenReport}
       secondaryActions={

@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
+import { getDomPaths } from '@/shared/dom-path'
 
 const SPEC = 'https://web.dev/cls/#images-without-dimensions'
 
@@ -25,12 +26,14 @@ export const imagesLayoutRule: Rule = {
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),
+          domPaths: getDomPaths(missing),
           reference: SPEC,
         },
       }
     }
 
     const allHtml = extractHtmlFromList(imgs)
+    const domPaths = getDomPaths(imgs)
     return {
       label: 'BODY',
       message: 'All images have dimensions',
@@ -39,6 +42,7 @@ export const imagesLayoutRule: Rule = {
       details: {
         sourceHtml: allHtml,
         snippet: extractSnippet(allHtml),
+        domPaths,
         tested: 'Checked <img> width/height attributes',
         reference: SPEC,
       },

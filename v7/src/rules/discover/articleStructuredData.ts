@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
+import { getDomPaths } from '@/shared/dom-path'
 
 const SPEC = 'https://developers.google.com/search/docs/appearance/structured-data/article'
 
@@ -33,6 +34,7 @@ export const discoverArticleStructuredDataRule: Rule = {
   async run(page) {
     const result = findArticle(page.doc)
     const sourceHtml = extractHtmlFromList(result.scripts)
+    const domPaths = getDomPaths(result.scripts)
 
     return result.found
       ? {
@@ -40,7 +42,7 @@ export const discoverArticleStructuredDataRule: Rule = {
           message: 'Article/NewsArticle structured data present',
           type: 'ok',
           name: 'Article structured data',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), reference: SPEC },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPaths, reference: SPEC },
         }
       : {
           label: 'DISCOVER',
@@ -52,6 +54,7 @@ export const discoverArticleStructuredDataRule: Rule = {
             snippet: extractSnippet(sourceHtml),
             scriptsFound: result.scripts.length,
             tested: 'Searched for Article/NewsArticle JSON-LD scripts',
+            domPaths,
             reference: SPEC,
           },
         }

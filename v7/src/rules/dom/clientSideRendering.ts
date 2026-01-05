@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
+import { getDomPaths } from '@/shared/dom-path'
 
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics'
 
@@ -17,6 +18,7 @@ export const clientSideRenderingRule: Rule = {
     const heavyScripts = page.doc.querySelectorAll('script:not([async]):not([defer])[src]').length
     const possible = len < 40 && (scripts > 5 || heavyScripts > 0)
     const sourceHtml = extractHtmlFromList(scriptEls)
+    const domPaths = getDomPaths(scriptEls)
 
     return possible
       ? {
@@ -30,6 +32,7 @@ export const clientSideRenderingRule: Rule = {
             textLength: len,
             scriptCount: scripts,
             heavyScriptCount: heavyScripts,
+            domPaths,
             reference: SPEC,
           },
         }
@@ -44,6 +47,7 @@ export const clientSideRenderingRule: Rule = {
             textLength: len,
             scriptCount: scripts,
             heavyScriptCount: heavyScripts,
+            domPaths,
             reference: SPEC,
           },
         }

@@ -1,15 +1,11 @@
 import type { Dispatch, SetStateAction } from 'react'
 
-import { Results } from './Results'
-import { ResultsSummary } from './ResultsSummary'
-import { Search } from './Search'
-import { TypeFilters } from './TypeFilters'
-import { useFilterParser } from './useFilterParser'
 import { PanelHeader } from './PanelHeader'
+import { ResultsSection } from './ResultsSection'
+import type { ResultSortMode } from './resultSort'
 
 import type { Result } from '@/shared/results'
 import type { RunMeta } from '@/shared/runMeta'
-import { createDefaultTypeVisibility } from '@/shared/resultFilterState'
 export const AppBody = ({
   meta,
   runId,
@@ -23,6 +19,8 @@ export const AppBody = ({
   onOpenLogs,
   results,
   onOpenReport,
+  sortMode,
+  setSortMode,
   tabId,
   logUi,
 }: {
@@ -38,12 +36,11 @@ export const AppBody = ({
   onOpenLogs: () => void
   results: Result[]
   onOpenReport: () => void
+  sortMode: ResultSortMode
+  setSortMode: (mode: ResultSortMode) => void
   tabId?: number | null
   logUi?: (action: string, data?: Record<string, unknown>) => void
 }) => {
-  const parsed = useFilterParser(query)
-  const activeTypes = parsed.hasTypeFilter ? parsed.types : Object.entries(show).filter(([, v]) => v).map(([k]) => k)
-  const resetFilters = () => { setShow(() => createDefaultTypeVisibility()); setQuery('') }
   return (
     <div className="dt-panel w-[360px]">
       <PanelHeader
@@ -57,21 +54,18 @@ export const AppBody = ({
         onOpenSettings={openSettings}
         debugEnabled={debugEnabled}
       />
-      <div className="p-3 space-y-3">
-        <Search onChange={setQuery} />
-        <TypeFilters show={show} setShow={setShow} results={results} debugEnabled={debugEnabled} />
-        <ResultsSummary items={results} types={activeTypes} q={parsed.text} typeSource={parsed.hasTypeFilter ? 'search' : 'toggle'} onResetFilters={resetFilters} />
-        <Results
-          items={results}
-          types={activeTypes}
-          q={parsed.text}
-          debugEnabled={debugEnabled}
-          onResetFilters={resetFilters}
-          tabId={tabId}
-          logUi={logUi}
-          defaultExpanded={false}
-        />
-      </div>
+      <ResultsSection
+        show={show}
+        setShow={setShow}
+        query={query}
+        setQuery={setQuery}
+        results={results}
+        debugEnabled={debugEnabled}
+        sortMode={sortMode}
+        setSortMode={setSortMode}
+        tabId={tabId}
+        logUi={logUi}
+      />
     </div>
   )
 }

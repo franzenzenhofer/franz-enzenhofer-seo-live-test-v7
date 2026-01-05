@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
+import { getDomPaths } from '@/shared/dom-path'
 
 const SPEC = 'https://developers.google.com/search/docs/appearance/google-discover/appearance'
 
@@ -30,6 +31,7 @@ export const discoverOgImageLargeRule: Rule = {
     const ok = w >= 1200 || h >= 1200
     const elements = [imgEl, wEl, hEl].filter(Boolean) as Element[]
     const sourceHtml = extractHtmlFromList(elements)
+    const domPaths = getDomPaths(elements)
 
     return ok
       ? {
@@ -37,7 +39,7 @@ export const discoverOgImageLargeRule: Rule = {
           message: `OG image large: ${w}x${h}px`,
           type: 'ok',
           name: 'Large OG image (metadata)',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), width: w, height: h, reference: SPEC },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPaths, width: w, height: h, reference: SPEC },
         }
       : {
           label: 'DISCOVER',
@@ -47,6 +49,7 @@ export const discoverOgImageLargeRule: Rule = {
           details: {
             sourceHtml,
             snippet: extractSnippet(sourceHtml),
+            domPaths,
             width: w || undefined,
             height: h || undefined,
             reference: SPEC,

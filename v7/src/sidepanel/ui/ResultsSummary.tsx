@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 
 import { matchesResult } from './resultQuery'
+import type { ResultSortMode } from './resultSort'
+import { SortToggle } from './SortToggle'
 
 import { toResultCopyPayload } from '@/components/result/resultCopy'
 import { getResultLabel, resultTypeOrder } from '@/shared/colors'
@@ -12,9 +14,11 @@ type Props = {
   q?: string
   typeSource?: 'search' | 'toggle'
   onResetFilters?: () => void
+  sortMode?: ResultSortMode
+  onSortModeChange?: (mode: ResultSortMode) => void
 }
 
-export const ResultsSummary = ({ items, types, q, typeSource, onResetFilters }: Props) => {
+export const ResultsSummary = ({ items, types, q, typeSource, onResetFilters, sortMode = 'name', onSortModeChange }: Props) => {
   const [copied, setCopied] = useState(false)
   const filtered = useMemo(() => items.filter((i) => matchesResult(i, types, q)), [items, types, q])
   const hasQuery = Boolean(q?.trim())
@@ -46,6 +50,7 @@ export const ResultsSummary = ({ items, types, q, typeSource, onResetFilters }: 
         {filterLine && <div className="text-[10px]">{filterLine}</div>}
       </div>
       <div className="flex items-center gap-1.5">
+        {onSortModeChange && <SortToggle mode={sortMode} onChange={onSortModeChange} />}
         {showReset && (
           <button className="text-[10px] text-blue-700 underline" onClick={onResetFilters} type="button">
             Reset

@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
+import { getDomPaths } from '@/shared/dom-path'
 
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls#manage-url-parameters'
 
@@ -24,6 +25,7 @@ export const parameterizedLinksRule: Rule = {
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),
+        domPaths: getDomPaths(paramLinks),
         reference: SPEC,
       },
     }
