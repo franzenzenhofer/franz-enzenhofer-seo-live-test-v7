@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { matchesResult } from './resultQuery'
 import type { ResultSortMode } from './resultSort'
 import { SortToggle } from './SortToggle'
+import type { PriorityFilter } from './priorityFilter'
 
 import { toResultCopyPayload } from '@/components/result/resultCopy'
 import { getResultLabel, resultTypeOrder } from '@/shared/colors'
@@ -12,21 +13,25 @@ type Props = {
   items: Result[]
   types?: string[]
   q?: string
+  priorityFilter?: PriorityFilter | null
+  priorityLabel?: string
   typeSource?: 'search' | 'toggle'
   onResetFilters?: () => void
   sortMode?: ResultSortMode
   onSortModeChange?: (mode: ResultSortMode) => void
 }
 
-export const ResultsSummary = ({ items, types, q, typeSource, onResetFilters, sortMode = 'name', onSortModeChange }: Props) => {
+export const ResultsSummary = ({ items, types, q, priorityFilter, priorityLabel, typeSource, onResetFilters, sortMode = 'name', onSortModeChange }: Props) => {
   const [copied, setCopied] = useState(false)
-  const filtered = useMemo(() => items.filter((i) => matchesResult(i, types, q)), [items, types, q])
+  const filtered = useMemo(() => items.filter((i) => matchesResult(i, { types, q, priority: priorityFilter })), [items, types, q, priorityFilter])
   const hasQuery = Boolean(q?.trim())
+  const hasPriority = Boolean(priorityLabel)
   const hasTypeFilters = types ? types.length !== resultTypeOrder.length : false
-  const showReset = Boolean(onResetFilters) && (hasQuery || hasTypeFilters)
+  const showReset = Boolean(onResetFilters) && (hasQuery || hasTypeFilters || hasPriority)
   const typeLabel = hasTypeFilters ? (types || []).map(getResultLabel).join(', ') || 'none' : ''
   const filterParts = [
     hasTypeFilters ? `${typeSource === 'search' ? 'Type keywords' : 'Types'}: ${typeLabel}` : '',
+    hasPriority ? `Priority: ${priorityLabel}` : '',
     hasQuery ? `Search: ${q?.trim()}` : '',
   ].filter(Boolean)
   const filterLine = filterParts.join(' • ')

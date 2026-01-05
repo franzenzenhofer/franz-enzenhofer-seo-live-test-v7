@@ -1,4 +1,5 @@
 import type { Rule } from '@/core/types'
+import { getDomPath } from '@/shared/dom-path'
 import { normalizeUrl } from '@/shared/url-utils'
 
 const LABEL = 'HEAD'
@@ -24,14 +25,15 @@ export const canonicalNavConsistencyRule: Rule = {
   async run(page, ctx) {
     const el = page.doc.querySelector('link[rel~="canonical" i]')
     const href = (el?.getAttribute('href') || '').trim()
+    const domPath = getDomPath(el)
     if (!href) {
-      return { label: LABEL, name: NAME, message: 'No canonical link to compare against navigation chain.', type: 'info', priority: 900, details: { reference: SPEC } }
+      return { label: LABEL, name: NAME, message: 'No canonical link to compare against navigation chain.', type: 'info', priority: 900, details: { reference: SPEC, domPath: domPath || undefined } }
     }
     let canonicalResolved = ''
     try {
       canonicalResolved = new URL(href, page.url).toString()
     } catch {
-      return { label: LABEL, name: NAME, message: 'Canonical URL invalid; cannot compare to navigation.', type: 'warn', priority: 200, details: { canonicalUrl: href, reference: SPEC } }
+      return { label: LABEL, name: NAME, message: 'Canonical URL invalid; cannot compare to navigation.', type: 'warn', priority: 200, details: { canonicalUrl: href, reference: SPEC, domPath } }
     }
 
     const ledger = getLedger(ctx)
@@ -45,7 +47,7 @@ export const canonicalNavConsistencyRule: Rule = {
     const normFirst = normalizeUrl(firstUrl || '')
 
     if (!redirectCount && normCanonical === normFinal) {
-      return { label: LABEL, name: NAME, message: 'Canonical aligns with final URL.', type: 'ok', priority: 850, details: { canonicalUrl: canonicalResolved, finalUrl, reference: SPEC } }
+      return { label: LABEL, name: NAME, message: 'Canonical aligns with final URL.', type: 'ok', priority: 850, details: { canonicalUrl: canonicalResolved, finalUrl, reference: SPEC, domPath } }
     }
 
     if (redirectCount > 0 && normCanonical === normFirst && normFinal !== normCanonical) {
@@ -55,7 +57,7 @@ export const canonicalNavConsistencyRule: Rule = {
         message: 'Canonical points to a URL that redirects; update canonical to the final landing URL.',
         type: 'warn',
         priority: 180,
-        details: { canonicalUrl: canonicalResolved, finalUrl, redirectCount, trace, reference: SPEC },
+        details: { canonicalUrl: canonicalResolved, finalUrl, redirectCount, trace, reference: SPEC, domPath },
       }
     }
 
@@ -66,10 +68,10 @@ export const canonicalNavConsistencyRule: Rule = {
         message: `Canonical URL (${canonicalResolved}) differs from final landing URL (${finalUrl}). Align them to avoid conflicting signals.`,
         type: 'warn',
         priority: 220,
-        details: { canonicalUrl: canonicalResolved, finalUrl, redirectCount, trace, reference: SPEC },
+        details: { canonicalUrl: canonicalResolved, finalUrl, redirectCount, trace, reference: SPEC, domPath },
       }
     }
 
-    return { label: LABEL, name: NAME, message: 'Canonical aligns with navigation.', type: 'ok', priority: 800, details: { canonicalUrl: canonicalResolved, finalUrl, redirectCount, reference: SPEC } }
+    return { label: LABEL, name: NAME, message: 'Canonical aligns with navigation.', type: 'ok', priority: 800, details: { canonicalUrl: canonicalResolved, finalUrl, redirectCount, reference: SPEC, domPath } }
   },
 }

@@ -10,6 +10,7 @@ import { canonicalHreflangConsistencyRule } from './head/canonicalHreflangConsis
 import { canonicalNoindexConflictRule } from './head/canonicalNoindexConflict'
 import { httpStatusRule } from './http/status'
 import { robotsTxtRule } from './robots/robotsTxt'
+import { robotsTxtSizeRule } from './robots/robotsTxtSize'
 import { robotsMetaRule } from './head/robotsMeta'
 import { robotsAgentConflictsRule } from './head/robotsAgentConflicts'
 import { robotsOtherMetaRule } from './head/robotsOtherMeta'
@@ -17,8 +18,10 @@ import { robotsMetaListRule } from './head/robotsMetaList'
 import { robotsNosnippetRule } from './head/robotsNosnippet'
 import { robotsMaxSnippetRule } from './head/robotsMaxSnippet'
 import { robotsMaxVideoPreviewRule } from './head/robotsMaxVideoPreview'
+import { robotsMaxImagePreviewRule } from './head/robotsMaxImagePreview'
 import { robotsNoImageIndexRule } from './head/robotsNoImageIndex'
 import { hreflangRule } from './head/hreflang'
+import { hreflangValuesRule } from './head/hreflangValues'
 import { hreflangMultipageRule } from './head/hreflangMultipage'
 import { ogTitleRule } from './og/title'
 import { ogDescriptionRule } from './og/description'
@@ -103,11 +106,13 @@ import { topWordsRule } from './dom/topWords'
 import { schemaArticlePresentRule } from './schema/articlePresent'
 import { schemaArticleRequiredRule } from './schema/articleRequired'
 import { schemaBreadcrumbRule } from './schema/breadcrumb'
+import { schemaBreadcrumbPositionsRule } from './schema/breadcrumbPositions'
 import { schemaEventRule } from './schema/event'
 import { schemaFaqRule } from './schema/faq'
 import { schemaHowToRule } from './schema/howto'
 import { schemaJobPostingRule } from './schema/jobPosting'
 import { schemaOrganizationRule } from './schema/organization'
+import { schemaWebSiteSearchActionRule } from './schema/webSiteSearchAction'
 import { schemaProductRule } from './schema/product'
 import { schemaRecipeRule } from './schema/recipe'
 import { schemaVideoRule } from './schema/video'
@@ -135,6 +140,7 @@ export const registry: Rule[] = [
   canonicalNoindexConflictRule,
   httpStatusRule,
   robotsTxtRule,
+  robotsTxtSizeRule,
   robotsMetaRule,
   robotsAgentConflictsRule,
   robotsOtherMetaRule,
@@ -142,8 +148,10 @@ export const registry: Rule[] = [
   robotsNosnippetRule,
   robotsMaxSnippetRule,
   robotsMaxVideoPreviewRule,
+  robotsMaxImagePreviewRule,
   robotsNoImageIndexRule,
   hreflangRule,
+  hreflangValuesRule,
   hreflangMultipageRule,
   ogTitleRule,
   ogDescriptionRule,
@@ -236,11 +244,13 @@ export const registry: Rule[] = [
   schemaArticlePresentRule,
   schemaArticleRequiredRule,
   schemaBreadcrumbRule,
+  schemaBreadcrumbPositionsRule,
   schemaEventRule,
   schemaFaqRule,
   schemaHowToRule,
   schemaJobPostingRule,
   schemaOrganizationRule,
+  schemaWebSiteSearchActionRule,
   schemaProductRule,
   schemaRecipeRule,
   schemaVideoRule,

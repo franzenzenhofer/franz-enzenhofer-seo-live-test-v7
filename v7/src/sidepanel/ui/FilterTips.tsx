@@ -11,8 +11,14 @@ export const FilterTips = () => (
         <span className="font-semibold">Types:</span> error, warn, info, ok, runtime, disabled, pending, unconfigured
       </div>
       <div>
+        <span className="font-semibold">Priority:</span>{' '}
+        <span className="font-mono">p&lt;200</span>, <span className="font-mono">p&gt;=400</span>,{' '}
+        <span className="font-mono">priority:100-300</span>
+      </div>
+      <div>
         <span className="font-semibold">Examples:</span>{' '}
-        <span className="font-mono">label:head warn</span>, <span className="font-mono">id:canonical</span>
+        <span className="font-mono">label:head warn</span>, <span className="font-mono">id:canonical</span>,{' '}
+        <span className="font-mono">p&lt;200 canonical</span>
       </div>
       <div>
         <span className="font-semibold">Shortcut:</span> Alt-click a type to solo it

@@ -1,5 +1,7 @@
 import { useMemo } from 'react'
 
+import { buildPriorityFilter, parsePriorityToken, type PriorityToken } from './priorityFilter'
+
 import { resultTypeLabels } from '@/shared/colors'
 
 const keywordToType = (() => {
@@ -26,25 +28,35 @@ const keywordToType = (() => {
 export const useFilterParser = (query: string) => {
   return useMemo(() => {
     const trimmed = query.trim().toLowerCase()
-    if (!trimmed) return { types: [], text: '', hasTypeFilter: false }
+    if (!trimmed) return { types: [], text: '', hasTypeFilter: false, priorityFilter: null, priorityLabel: '' }
 
     const words = trimmed.split(/\s+/)
     const foundTypes: string[] = []
     const textWords: string[] = []
+    const priorityTokens: PriorityToken[] = []
 
     for (const word of words) {
       const type = keywordToType.get(word)
       if (type) {
         foundTypes.push(type)
-      } else {
-        textWords.push(word)
+        continue
       }
+      const priorityToken = parsePriorityToken(word)
+      if (priorityToken) {
+        priorityTokens.push(priorityToken)
+        continue
+      }
+      textWords.push(word)
     }
 
+    const priorityFilter = buildPriorityFilter(priorityTokens)
+    const priorityLabel = priorityFilter ? priorityFilter.raw.join(', ') : ''
     return {
       types: foundTypes,
       text: textWords.join(' '),
       hasTypeFilter: foundTypes.length > 0,
+      priorityFilter,
+      priorityLabel,
     }
   }, [query])
 }

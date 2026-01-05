@@ -5,6 +5,7 @@ import { matchesResult } from './resultQuery'
 import { usePinnedRules, ruleKeyOf } from './usePinnedRules'
 import { useRuleFlags } from './useRuleFlags'
 import { compareResults, type ResultSortMode } from './resultSort'
+import type { PriorityFilter } from './priorityFilter'
 import type { LogFn } from './usePanelLogger'
 
 import { ResultCard } from '@/components/result/ResultCard'
@@ -13,16 +14,17 @@ export const Results = ({
   items,
   types,
   q,
+  priorityFilter,
   debugEnabled,
   onResetFilters,
   tabId,
   logUi,
   sortMode = 'name',
   defaultExpanded = false,
-}: { items: Result[]; types?: string[]; q?: string; debugEnabled: boolean; onResetFilters?: () => void; tabId?: number | null; logUi?: LogFn; sortMode?: ResultSortMode; defaultExpanded?: boolean }) => {
+}: { items: Result[]; types?: string[]; q?: string; priorityFilter?: PriorityFilter | null; debugEnabled: boolean; onResetFilters?: () => void; tabId?: number | null; logUi?: LogFn; sortMode?: ResultSortMode; defaultExpanded?: boolean }) => {
   const { pinned, togglePin } = usePinnedRules()
   const { flags, toggleFlag } = useRuleFlags()
-  const filtered = useMemo(() => items.filter((i) => matchesResult(i, types, q)), [items, types, q])
+  const filtered = useMemo(() => items.filter((i) => matchesResult(i, { types, q, priority: priorityFilter })), [items, types, q, priorityFilter])
   const sorted = useMemo(
     () => [...filtered].sort((a, b) => {
       const keyA = ruleKeyOf(a)

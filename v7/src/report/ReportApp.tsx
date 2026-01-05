@@ -62,6 +62,7 @@ export const ReportApp = () => {
             items={results}
             types={parsed.hasTypeFilter ? parsed.types : Object.entries(show).filter(([, v]) => v).map(([k]) => k)}
             q={parsed.text}
+            priorityFilter={parsed.priorityFilter}
             debugEnabled={debugEnabled}
             onResetFilters={resetFilters}
             tabId={null}

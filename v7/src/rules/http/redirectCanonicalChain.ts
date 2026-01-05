@@ -1,5 +1,6 @@
 import { NavigationLedgerSchema } from '@/background/history/types'
 import type { Rule } from '@/core/types'
+import { getDomPath } from '@/shared/dom-path'
 import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 const LABEL = 'HTTP'
@@ -72,7 +73,9 @@ export const redirectCanonicalChainRule: Rule = {
     })
 
     let canonicalNote = ''
-    const canonicalHref = page.doc.querySelector('link[rel~="canonical" i]')?.getAttribute('href') || ''
+    const canonicalEl = page.doc.querySelector('link[rel~="canonical" i]')
+    const canonicalHref = canonicalEl?.getAttribute('href') || ''
+    const canonicalDomPath = getDomPath(canonicalEl)
     if (canonicalHref) {
       try {
         const resolved = new URL(canonicalHref, page.url).href
@@ -102,6 +105,7 @@ export const redirectCanonicalChainRule: Rule = {
         redirectCount,
         historyCount,
         canonicalHref: canonicalNote || canonicalHref || null,
+        domPath: canonicalDomPath || undefined,
         fromCache: page.fromCache ?? null,
         reference: SPEC,
       },

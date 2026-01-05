@@ -16,6 +16,13 @@ export const buildDomHighlight = (result: Result) => {
 export const buildDetailPayload = (details: Result['details']) => {
   if (!details) return undefined
   const clean = { ...details }
+  const selectors = [
+    ...(typeof details?.domPath === 'string' && details.domPath.trim() ? [details.domPath] : []),
+    ...(Array.isArray(details?.domPaths) ? details.domPaths : []),
+  ].filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+  if (selectors.length) {
+    clean['highlightSelectors'] = Array.from(new Set(selectors))
+  }
   delete (clean as Record<string, unknown>)['snippet']
   delete (clean as Record<string, unknown>)['domPath']
   delete (clean as Record<string, unknown>)['domPaths']

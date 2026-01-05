@@ -192,6 +192,12 @@
     "what": "static"
   },
   {
+    "id": "head:hreflang-values",
+    "name": "Hreflang values",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
     "id": "http:headers-present",
     "name": "HTTP Header Captured",
     "enabledByDefault": true,
@@ -480,6 +486,12 @@
     "what": "static"
   },
   {
+    "id": "head:robots-max-image-preview",
+    "name": "Robots max-image-preview",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
     "id": "head:robots-max-snippet",
     "name": "Robots max-snippet",
     "enabledByDefault": true,
@@ -540,6 +552,12 @@
     "what": "http"
   },
   {
+    "id": "robots:size",
+    "name": "robots.txt size",
+    "enabledByDefault": true,
+    "what": "http"
+  },
+  {
     "id": "schema:article:present",
     "name": "Schema Article present",
     "enabledByDefault": true,
@@ -548,6 +566,12 @@
   {
     "id": "schema:article:required",
     "name": "Schema Article required fields",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
+    "id": "schema:breadcrumb:positions",
+    "name": "Schema Breadcrumb positions",
     "enabledByDefault": true,
     "what": "static"
   },
@@ -602,6 +626,12 @@
   {
     "id": "schema:video",
     "name": "Schema VideoObject",
+    "enabledByDefault": true,
+    "what": "static"
+  },
+  {
+    "id": "schema:website-searchaction",
+    "name": "Schema WebSite SearchAction",
     "enabledByDefault": true,
     "what": "static"
   },

@@ -1,27 +1,30 @@
 import type { Rule } from '@/core/types'
+import { getDomPath } from '@/shared/dom-path'
 
 const LABEL = 'DOM'
 const NAME = 'Parameterized links (static vs idle)'
 const RULE_ID = 'dom:parameterized-links-diff'
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
 
-const collectParamLinks = (doc?: Document, base?: URL) => {
+type ParamLink = { url: string; domPath: string }
+
+const collectParamLinks = (doc?: Document, base?: URL): ParamLink[] => {
   if (!doc || !base) return []
   const anchors = Array.from(doc.querySelectorAll<HTMLAnchorElement>('a[href]'))
   return anchors
-    .map((a) => a.getAttribute('href') || '')
-    .filter((h) => h.includes('?'))
-    .map((href) => {
+    .map((a) => ({ href: a.getAttribute('href') || '', el: a }))
+    .filter((entry) => entry.href.includes('?'))
+    .map((entry) => {
       try {
-        const u = href.startsWith('http') ? new URL(href) : new URL(href, base)
+        const u = entry.href.startsWith('http') ? new URL(entry.href) : new URL(entry.href, base)
         if (u.host !== base.host) return null
         u.hash = ''
-        return u.href
+        return { url: u.href, domPath: getDomPath(entry.el) }
       } catch {
         return null
       }
     })
-    .filter((u): u is string => !!u)
+    .filter((u): u is ParamLink => !!u)
 }
 
 export const parameterizedLinksDiffRule: Rule = {
@@ -38,6 +41,8 @@ export const parameterizedLinksDiffRule: Rule = {
     }
     const staticLinks = collectParamLinks(page.doc, base)
     const idleLinks = collectParamLinks(page.domIdleDoc, base)
+    const staticUrls = staticLinks.map((link) => link.url)
+    const idleUrls = idleLinks.map((link) => link.url)
 
     if (!page.domIdleDoc) {
       return {
@@ -46,13 +51,18 @@ export const parameterizedLinksDiffRule: Rule = {
         message: `No idle DOM snapshot. Static parameterized links: ${staticLinks.length}.`,
         type: 'info',
         priority: 900,
-        details: { staticLinks, idleLinks: [], reference: SPEC },
+        details: { staticLinks: staticUrls, idleLinks: [], reference: SPEC },
       }
     }
 
-    const staticOnly = staticLinks.filter((l) => !idleLinks.includes(l))
-    const idleOnly = idleLinks.filter((l) => !staticLinks.includes(l))
+    const staticOnly = staticLinks.filter((l) => !idleUrls.includes(l.url))
+    const idleOnly = idleLinks.filter((l) => !staticUrls.includes(l.url))
     const hasDiff = staticOnly.length || idleOnly.length
+    const domPaths = [...staticOnly, ...idleOnly].map((link) => link.domPath).filter(Boolean)
+    const domPathColors = [
+      ...staticOnly.map(() => '#f97316'),
+      ...idleOnly.map(() => '#2563eb'),
+    ]
 
     return {
       label: LABEL,
@@ -62,7 +72,15 @@ export const parameterizedLinksDiffRule: Rule = {
         : 'Parameterized links consistent between static and idle DOM.',
       type: hasDiff ? 'warn' : 'ok',
       priority: hasDiff ? 250 : 850,
-      details: { staticLinks, idleLinks, staticOnly, idleOnly, reference: SPEC },
+      details: {
+        staticLinks: staticUrls,
+        idleLinks: idleUrls,
+        staticOnly: staticOnly.map((link) => link.url),
+        idleOnly: idleOnly.map((link) => link.url),
+        domPaths,
+        domPathColors,
+        reference: SPEC,
+      },
     }
   },
 }

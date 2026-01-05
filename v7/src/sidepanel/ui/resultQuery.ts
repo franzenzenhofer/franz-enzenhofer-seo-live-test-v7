@@ -1,6 +1,9 @@
+import { matchesPriorityFilter, type PriorityFilter } from './priorityFilter'
+
 import { isResultUnconfigured, type Result } from '@/shared/results'
 
 type TokenKey = 'id' | 'label' | 'name'
+type MatchQuery = { types?: string[]; q?: string; priority?: PriorityFilter | null }
 
 const tokenKeys = new Set(['id', 'rule', 'label', 'name'])
 
@@ -30,9 +33,10 @@ const matchAny = (value: string | null | undefined, needles: string[]) => {
   return needles.some((needle) => haystack.includes(needle))
 }
 
-export const matchesResult = (result: Result, types?: string[], q?: string) => {
+export const matchesResult = (result: Result, { types, q, priority }: MatchQuery) => {
   if (types?.includes('unconfigured')) return isResultUnconfigured(result)
   if (types && !types.includes(result.type)) return false
+  if (!matchesPriorityFilter(result.priority, priority)) return false
   const { tokens, text } = parseQuery(q)
   if (!matchAny(result.ruleId, tokens.id)) return false
   if (!matchAny(result.label, tokens.label)) return false
