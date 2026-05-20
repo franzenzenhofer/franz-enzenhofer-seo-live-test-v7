@@ -18,8 +18,12 @@ const main = async (): Promise<void> => {
   const { context, userDataDir, close } = await launchExtension({ headless: false })
   try {
     const warmup = await context.newPage()
-    await warmup.goto(TARGET_URL, { waitUntil: 'load', timeout: 25_000 })
-    await warmup.waitForTimeout(5_000) // let the content script + rules engine settle
+    await warmup.goto(TARGET_URL, { waitUntil: 'load', timeout: 30_000 })
+    // Wikipedia + other heavy sites need ~10s after load for the content
+    // script's document_idle capture to flow through the collector + offscreen
+    // rule execution. Override via EXT_AUDIT_VISUAL_WAIT_MS for slower targets.
+    const waitMs = parseInt(process.env['EXT_AUDIT_VISUAL_WAIT_MS'] || '12000', 10)
+    await warmup.waitForTimeout(waitMs)
     const id = await findExtensionId(context, userDataDir)
     const panelUrl = `chrome-extension://${id}/src/sidepanel.html`
     const panel = await context.newPage()
