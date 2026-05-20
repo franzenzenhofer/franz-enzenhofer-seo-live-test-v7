@@ -27,3 +27,6 @@ trash/
 
 # Tickets
 ticket/
+
+# Git worktrees
+.worktrees/
