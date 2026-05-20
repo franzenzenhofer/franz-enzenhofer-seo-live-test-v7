@@ -1,3 +1,5 @@
+import { PSIResponse } from './schemas.js'
+
 export type PSIResult = {
   lighthouseResult?: {
     audits?: Record<string, { numericValue?: number }>
@@ -40,7 +42,10 @@ export const runPSI = async (url: string, strategy: 'mobile'|'desktop', key: str
   const api = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?strategy=${strategy}&url=${encodeURIComponent(url)}&key=${encodeURIComponent(key)}`
   const r = await fetch(api)
   if (!r.ok) throw new Error(`PSI ${r.status}`)
-  const j = (await r.json()) as PSIResult
+  const raw = await r.json()
+  const parsed = PSIResponse.safeParse(raw)
+  if (!parsed.success) throw new Error(`PSI response malformed: ${parsed.error.issues[0]?.message || 'schema mismatch'}`)
+  const j = parsed.data as PSIResult
   await write(k, { ts: now(), data: j })
   return j
 }
