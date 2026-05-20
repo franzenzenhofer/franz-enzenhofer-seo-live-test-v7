@@ -4,9 +4,11 @@ import { initDomCapture } from './domCapture'
 import { PageInfo, type PageInfoT } from '@/shared/schemas'
 import { extractPageInfo } from '@/shared/extract'
 import { Logger } from '@/shared/logger'
+import { installCrashNet } from '@/shared/crashNet'
 
 // Set context for logging
 Logger.setContext('content')
+installCrashNet('content')
 
 // Get tabId for logging - MUST be initialized before any logging
 let contentTabId: number | null = null

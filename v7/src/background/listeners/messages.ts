@@ -1,14 +1,28 @@
 import { pushEvent, markDomPhase } from '../pipeline/collector'
+import { abortSession } from '../rules/sessions'
 
 import { handleLogsBridgeMessage } from './logsBridge'
 
 import { isValidTabId, log, logSystem } from '@/shared/logs'
 
 type Sender = chrome.runtime.MessageSender
+type CrashMsg = { channel?: string; context?: string; kind?: string; message?: string; stack?: string }
+
+const handleCrashReport = (st: CrashMsg): void => {
+  const line = `crash:${st.context || '?'}:${st.kind || '?'} ${st.message || ''} ${(st.stack || '').slice(0, 200)}`
+  logSystem(line).catch(() => {})
+}
+
+const handlePanelClean = (tabId: number | null): void => {
+  if (!isValidTabId(tabId)) return
+  abortSession(tabId, 'cleaned').catch(() => {})
+}
 
 export const handleMessage = (msg: unknown, sender: Sender, send?: (resp?: unknown) => void) => {
-  const st = msg as { event?: string; data?: unknown; type?: string; tabId?: number; channel?: string; message?: string } | null
+  const st = msg as { event?: string; data?: unknown; type?: string; tabId?: number; channel?: string; message?: string; t?: string; d?: { tabId?: number }; context?: string; kind?: string; stack?: string } | null
   const tabId = st?.tabId || sender.tab?.id || null
+  if (st?.channel === 'crash') { handleCrashReport(st); return false }
+  if (st?.t === 'panel:clean') { handlePanelClean(st.d?.tabId ?? null); return false }
   if (st?.channel === 'log' && st.message) {
     if (!isValidTabId(tabId)) {
       logSystem(`log:drop tabId=${tabId ?? 'null'} message=${st.message.slice(0, 120)}`).catch(() => {})

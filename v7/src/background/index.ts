@@ -11,22 +11,14 @@ import { abortSession } from './rules/sessions'
 import { refreshIfPresent } from '@/shared/auth'
 import { rememberHttpTab } from '@/shared/tabMemory'
 import { Logger } from '@/shared/logger'
-import { isValidTabId } from '@/shared/logs'
+import { installCrashNet } from '@/shared/crashNet'
 
 Logger.setContext('background')
+installCrashNet('background')
 
 const panelPath = 'src/sidepanel.html'
 
 chrome.runtime.onInstalled.addListener(() => { seedDefaults() })
-
-chrome.runtime.onMessage.addListener(async (message) => {
-  if (message.t === 'panel:clean') {
-    const { tabId } = message.d
-    if (isValidTabId(tabId)) {
-      await abortSession(tabId, 'cleaned')
-    }
-  }
-})
 
 chrome.action.onClicked.addListener((tab) => {
   if (!tab.id) return
@@ -66,14 +58,4 @@ initDevAutoReload()
 
 // Try to reuse legacy Google token silently on startup
 refreshIfPresent().catch(() => {})
-
-// Guard against unhandled errors in the service worker.
-// These prevent noisy "Uncaught (in promise)" logs.
-addEventListener('unhandledrejection', (e) => {
-  console.warn('[bg] unhandledrejection', e.reason)
-  e.preventDefault?.()
-})
-addEventListener('error', (e: ErrorEvent) => {
-  console.warn('[bg] error', e?.error || e?.message)
-  e.preventDefault?.()
-})
+// installCrashNet('background') above replaces the inline error/unhandledrejection handlers.

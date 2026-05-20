@@ -1,8 +1,10 @@
 import { handleRun, type RunPayload } from './handleRun'
 
 import { Logger } from '@/shared/logger'
+import { installCrashNet } from '@/shared/crashNet'
 
 Logger.setContext('offscreen')
+installCrashNet('offscreen')
 
 const controllers = new Map<string, AbortController>()
 
