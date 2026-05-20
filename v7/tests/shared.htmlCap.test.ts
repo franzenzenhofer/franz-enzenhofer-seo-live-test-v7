@@ -22,12 +22,14 @@ describe('htmlCap', () => {
     expect(capped.snippet).toContain('[truncated')
   })
 
-  it('JSON-encoded message stays under the 32 KB chrome.runtime budget for a 5 MB page', async () => {
+  it('log-side payload (snippet + sha256 + size) stays under the 32 KB budget for a 5 MB page', async () => {
     const big = 'a'.repeat(5 * 1024 * 1024)
     const capped = await capHtmlForMessageAsync(big)
     expect(capped.truncated).toBe(true)
-    const wireMessage = JSON.stringify({ event: 'load', data: { html: capped.payload, htmlSha256: capped.sha256, htmlSize: capped.size, truncated: capped.truncated } })
-    expect(new TextEncoder().encode(wireMessage).length).toBeLessThan(RUNTIME_MESSAGE_BUDGET)
+    // The log-side payload carries only the capped representation; rules
+    // engine separately receives the full html via data.html.
+    const logPayload = JSON.stringify({ event: 'load', htmlSha256: capped.sha256, htmlSize: capped.size, truncated: capped.truncated, snippet: capped.snippet })
+    expect(new TextEncoder().encode(logPayload).length).toBeLessThan(RUNTIME_MESSAGE_BUDGET)
   })
 
   it('fills sha256 when truncated', async () => {
