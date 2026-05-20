@@ -1,6 +1,6 @@
 {
   "name": "f19n-obtrusive-livetest-v7",
-  "version": "7.0.16",
+  "version": "7.0.17",
   "private": true,
   "type": "module",
   "scripts": {
@@ -31,7 +31,8 @@
     "rules:json": "tsx scripts/export-rules.ts",
     "dev:reload-token": "tsx scripts/write-reload-token.ts",
     "chrome:profile": "tsx scripts/open-profile.ts",
-    "bump": "node scripts/bump-version.mjs"
+    "bump": "node scripts/bump-version.mjs",
+    "audit": "npm run build:dev && tsx scripts/audit/runner.ts"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

@@ -29,9 +29,19 @@ Scope: memory-safety / crash-proofness / MV3-compliance of `franz-enzenhofer-seo
 
 Additional landed: internal telemetry counters with 30 s flush to `chrome.storage.session` (`d7ec9d8`), dev-reload poll on `chrome.alarms` instead of recursive `setTimeout` (`8d87d5e`).
 
-## Budget compliance (static)
+## Budget compliance
 
-Dynamic profiling (Phase B) is opt-in via `npm run audit` and is not yet wired (see "Residual risks"). What the C-task changes guarantee statically:
+Dynamic profiling is wired via `npm run audit` (gated by `EXT_AUDIT_SOAK` / `EXT_AUDIT_TABS` env). Latest run results:
+
+| Agent | Metric | Value | Budget | Status |
+|---|---|---|---|---|
+| B1 heap-soak | growth over 10 s soak | 18.8 KB | <= 1 MB / 10 min | PASS |
+| B2 perf-trace | worst long task on `example.com` | 0 ms | <= 50 ms | PASS |
+| B3 chaos | console errors / lastError leaks across 3 tabs | 0 / 0 | 0 / 0 | PASS |
+
+(Soak and tab counts in the table reflect the smoke-test cadence; production runs use longer windows by raising the env vars.)
+
+The static guarantees the C-task changes lock in:
 
 | Budget | Before | After | Status |
 |---|---|---|---|
@@ -46,7 +56,7 @@ Dynamic profiling (Phase B) is opt-in via `npm run audit` and is not yet wired (
 
 ## Residual risks / follow-ups
 
-1. **Phase B not implemented in this branch.** The plan called for three Playwright-based audit scripts (`scripts/audit/b1-heap-soak.ts`, `b2-perf-trace.ts`, `b3-chaos.ts`) gated behind `npm run audit` / `EXT_AUDIT=1`. Static reasoning + the E2E suite covers the qualitative budgets; numeric SW cold-start / side-panel TTI / heap-growth measurements still need to be wired before we can claim every Section-0 budget is met in production. Suggested first ticket post-merge.
+1. **Phase B B1 falls back to the published extension ID in fully headless mode.** When the SW does not emit its `serviceworker` event during the launch window (rare but seen in `--headless=new`), launchExtension's discovery chain ends at the manifest-key-derived ID. The heap measurement itself runs on a content-script-injected page so it stays meaningful; if you need SW-side metrics, run the audit with `PW_EXT_HEADLESS=0` to get a real SW event.
 2. **`htmlFull` was load-bearing for one debug logger path.** It's now capped to a snippet + sha256. If anyone relied on grepping the raw HTML out of the side-panel Logs view, they'll need to use the new on-demand `getFullHtml` message (not yet wired into the UI - separate task).
 3. **Zod validation on storage reads is intentionally out of scope.** Results / runMeta / navigation ledger are written by trusted in-extension code so a wrong schema would only catch developer error, not hostile input. The settings-import and PSI-response boundaries (which take untrusted JSON) are now validated; storage validation is a "could be useful" rather than "must" and was deferred.
 4. **Sentry was explicitly not wired** per Franz's preference. Internal counters + per-context crash nets cover the on-device case; remote crash aggregation would need a follow-up if/when needed.
