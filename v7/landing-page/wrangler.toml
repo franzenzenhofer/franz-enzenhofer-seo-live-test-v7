@@ -1,0 +1,4 @@
+name = "seo-live-test"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "."
+account_id = "ecf21e85812dfa5b2a35245257fc71f5"

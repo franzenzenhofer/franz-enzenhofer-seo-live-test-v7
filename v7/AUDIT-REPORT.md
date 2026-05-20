@@ -3,7 +3,7 @@
 Branch: `franz/live-test`  
 Date: 2026-05-20  
 Extension version at audit start: 7.0.4  
-Extension version at audit end: 7.0.15  
+Extension version at audit end: 7.0.18  
 Scope: memory-safety / crash-proofness / MV3-compliance of `franz-enzenhofer-seo-live-test` v7
 
 ## Executive summary
@@ -35,11 +35,12 @@ Dynamic profiling is wired via `npm run audit` (gated by `EXT_AUDIT_SOAK` / `EXT
 
 | Agent | Metric | Value | Budget | Status |
 |---|---|---|---|---|
-| B1 heap-soak | growth over 10 s soak | 18.8 KB | <= 1 MB / 10 min | PASS |
+| B1 heap-soak | growth over 120 s soak | -379 KB (shrunk via GC) | <= 1 MB / 10 min | PASS |
 | B2 perf-trace | worst long task on `example.com` | 0 ms | <= 50 ms | PASS |
-| B3 chaos | console errors / lastError leaks across 3 tabs | 0 / 0 | 0 / 0 | PASS |
+| B3 chaos | console errors / lastError leaks across 20 tabs | 0 / 0 | 0 / 0 | PASS |
+| visual | side panel renders 127/127 rules + no ErrorBoundary fallback | screenshot at `test-results/audit/sidepanel.png` | render-clean | PASS |
 
-(Soak and tab counts in the table reflect the smoke-test cadence; production runs use longer windows by raising the env vars.)
+(Soak and tab counts here are from a substantial-but-not-final run; production runs scale via `EXT_AUDIT_SOAK` / `EXT_AUDIT_TABS` env.)
 
 The static guarantees the C-task changes lock in:
 
@@ -68,5 +69,7 @@ The static guarantees the C-task changes lock in:
 - lint: clean
 - unit tests: 460/460 passing
 - E2E (Playwright, real Chrome with extension loaded, `--load-extension=v7/dist`): 6/6 passing
+- `npm run audit` (B1/B2/B3): 3/3 within budget
+- Visual: headed-Chrome side-panel screenshot inspected, all 127 rules visible, no crash UI
 - Build: `npm run build:dev` produces a valid `dist/manifest.json` with correct OAuth config and the documented extension ID `jbnaibigcohjfefpfocphcjeliohhold`
-- Atomic commits: 8 C-task commits + 1 setup commit on `franz/live-test`, each preceded by typecheck/lint/test in the husky pre-commit
+- Atomic commits: 13 commits on `franz/live-test` (11 C-tasks + Phase B + Phase D + visual), each preceded by typecheck/lint/test in the husky pre-commit

@@ -30,3 +30,7 @@ ticket/
 
 # Git worktrees
 .worktrees/
+
+# Audit + per-run test artifacts + packaging outputs
+v7/test-results/
+v7/out/

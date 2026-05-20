@@ -102,6 +102,7 @@ import { redirectLoopRule } from './http/redirectLoop'
 import { redirectEfficiencyRule } from './http/redirectEfficiency'
 import { negotiatedProtocolRule } from './http/negotiatedProtocol'
 import { redirectCanonicalChainRule } from './http/redirectCanonicalChain'
+import { canonicalHostRedirectRule } from './http/canonicalHostRedirect'
 import { topWordsRule } from './dom/topWords'
 import { schemaArticlePresentRule } from './schema/articlePresent'
 import { schemaArticleRequiredRule } from './schema/articleRequired'
@@ -215,6 +216,7 @@ export const registry: Rule[] = [
   redirectEfficiencyRule,
   negotiatedProtocolRule,
   redirectCanonicalChainRule,
+  canonicalHostRedirectRule,
   cacheDeliveryRule,
   fromCacheRule,
   securityHeadersRule,

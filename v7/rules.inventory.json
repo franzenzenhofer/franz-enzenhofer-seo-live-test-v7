@@ -738,6 +738,12 @@
     "what": "gsc"
   },
   {
+    "id": "http:canonical-host-redirect",
+    "name": "WWW/Non-WWW Canonical Redirect",
+    "enabledByDefault": true,
+    "what": "http"
+  },
+  {
     "id": "http:x-cache",
     "name": "X-Cache Hit/Miss",
     "enabledByDefault": true,

@@ -1,10 +1,24 @@
-# Franz Enzenhofer SEO Live Test
+# SEO Live Test
 
-A Chrome extension that analyzes web pages in real-time with **100+ SEO rules** covering technical SEO, performance, accessibility, and Google integrations.
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/jbnaibigcohjfefpfocphcjeliohhold?label=Chrome%20Web%20Store)](https://chrome.google.com/webstore/detail/seo-live-test/jbnaibigcohjfefpfocphcjeliohhold)
+[![Manifest V3](https://img.shields.io/badge/Manifest-V3-blue)](https://developer.chrome.com/docs/extensions/mv3/)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE.txt)
+
+Real-time SEO analysis directly in your browser side panel. **100+ rules** for meta tags, headings, links, schema, and performance.
+
+**[Install from Chrome Web Store](https://chrome.google.com/webstore/detail/seo-live-test/jbnaibigcohjfefpfocphcjeliohhold)** | **[Landing Page](https://seo-live-test.franzai.com)** | **[Privacy Policy](https://seo-live-test.franzai.com/privacy.html)**
+
+![SEO Live Test Screenshot](v7/marketing/screenshots/screenshot-1-sidepanel.png)
 
 ---
 
-## Quick Install (Developer Mode)
+## Install from Chrome Web Store (Recommended)
+
+**[Add to Chrome - Free](https://chrome.google.com/webstore/detail/seo-live-test/jbnaibigcohjfefpfocphcjeliohhold)**
+
+---
+
+## Install via Developer Mode (Alternative)
 
 ### Step 1: Download the Extension
 
@@ -102,10 +116,27 @@ npm run build      # Production build
 - Vite + Tailwind CSS
 - Vitest for testing
 
+## Privacy
+
+This extension respects your privacy:
+- All analysis runs locally in your browser
+- No data is sent to external servers
+- No tracking or analytics
+- Optional Google integrations require explicit consent
+
+**[Full Privacy Policy](https://seo-live-test.franzai.com/privacy.html)**
+
 ## License
 
-See [LICENSE.txt](LICENSE.txt)
+MIT License - See [LICENSE.txt](LICENSE.txt)
 
 ## Author
 
 **Franz Enzenhofer** - [fullstackoptimization.com](https://fullstackoptimization.com)
+
+## Links
+
+- [Chrome Web Store](https://chrome.google.com/webstore/detail/seo-live-test/jbnaibigcohjfefpfocphcjeliohhold)
+- [Landing Page](https://seo-live-test.franzai.com)
+- [Privacy Policy](https://seo-live-test.franzai.com/privacy.html)
+- [Report Issues](https://github.com/franzenzenhofer/franz-enzenhofer-seo-live-test-v7/issues)
