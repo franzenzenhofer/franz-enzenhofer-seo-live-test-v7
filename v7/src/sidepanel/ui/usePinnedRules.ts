@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import { useStorageListener } from '@/shared/hooks/useStorageListener'
 import { PINNED_RULE_STORAGE_KEY } from '@/shared/favorites'
 import type { Result } from '@/shared/results'
 
@@ -14,14 +15,11 @@ export const usePinnedRules = () => {
       setPinned((stored as Record<string, boolean>) || {})
     }
     load().catch(() => {})
-    const listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
-      if (area === 'local' && changes[PINNED_RULE_STORAGE_KEY]) {
-        setPinned((changes[PINNED_RULE_STORAGE_KEY].newValue as Record<string, boolean>) || {})
-      }
-    }
-    chrome.storage.onChanged.addListener(listener)
-    return () => chrome.storage.onChanged.removeListener(listener)
   }, [])
+
+  useStorageListener(PINNED_RULE_STORAGE_KEY, (newValue, _old, area) => {
+    if (area === 'local') setPinned((newValue as Record<string, boolean>) || {})
+  })
 
   const togglePin = (key: string | undefined | null) => {
     if (!key) return

@@ -10,6 +10,7 @@ import { LogsFilters, type LogCategory } from './LogsFilters'
 import { LogsList } from './LogsList'
 import { extractCategory } from './logs-utils'
 
+import { useStorageListener } from '@/shared/hooks/useStorageListener'
 import { getActiveTabId } from '@/shared/chrome'
 import { clearLogs, getLogs } from '@/shared/logs'
 
@@ -25,14 +26,12 @@ export const Logs = () => {
 
   useEffect(() => {
     if (tabId === null) return
-    const load = () => getLogs(tabId).then(setLogs)
-    load()
-    const onChange = (c: Record<string, chrome.storage.StorageChange>, area: string) => {
-      if (area !== 'session') return
-      if (Object.keys(c).some((k) => k === `logs:${tabId}`)) load()
-    }
-    chrome.storage.onChanged.addListener(onChange)
-    return () => chrome.storage.onChanged.removeListener(onChange)
+    void getLogs(tabId).then(setLogs)
+  }, [tabId])
+
+  useStorageListener(tabId === null ? '' : `logs:${tabId}`, (_n, _o, area) => {
+    if (area !== 'session' || tabId === null) return
+    void getLogs(tabId).then(setLogs)
   }, [tabId])
 
   const filteredLogs = useMemo(() => logs.filter(log => (filterCategory === 'all' || extractCategory(log) === filterCategory) && (searchText === '' || log.toLowerCase().includes(searchText.toLowerCase()))), [logs, filterCategory, searchText])

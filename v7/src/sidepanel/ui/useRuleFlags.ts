@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 
+import { useStorageListener } from '@/shared/hooks/useStorageListener'
+
 const FLAGS_KEY = 'rule-flags'
 type Flags = Record<string, boolean>
 
@@ -12,14 +14,11 @@ export const useRuleFlags = () => {
       setFlags((stored as Flags) || {})
     }
     void load()
-    const listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
-      if (area === 'local' && changes[FLAGS_KEY]) {
-        setFlags((changes[FLAGS_KEY].newValue as Flags) || {})
-      }
-    }
-    chrome.storage.onChanged.addListener(listener)
-    return () => chrome.storage.onChanged.removeListener(listener)
   }, [])
+
+  useStorageListener(FLAGS_KEY, (newValue, _old, area) => {
+    if (area === 'local') setFlags((newValue as Flags) || {})
+  })
 
   const setFlag = (ruleId: string, enabled: boolean) => {
     setFlags((prev) => {
