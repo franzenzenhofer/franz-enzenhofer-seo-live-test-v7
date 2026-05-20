@@ -3,6 +3,9 @@
 ## Project Overview
 Production-ready Chrome Extension (Manifest V3) for SEO/performance testing with Chrome DevTools-inspired UI.
 
+**Before adding listeners, storage keys, content scripts, or fetches: read [RUNBOOK.md](./RUNBOOK.md).**
+For the 2026-05-20 hardening pass and remaining follow-ups, see [AUDIT-REPORT.md](./AUDIT-REPORT.md).
+
 ## OAuth Configuration
 **See [README.md - OAuth Configuration](README.md#oauth-configuration-google-search-console--analytics) for complete setup.**
 
