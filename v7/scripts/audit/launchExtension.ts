@@ -25,7 +25,8 @@ export interface LaunchedExtension {
   close: () => Promise<void>
 }
 
-export const launchExtension = async (): Promise<LaunchedExtension> => {
+export const launchExtension = async (opts: { headless?: boolean } = {}): Promise<LaunchedExtension> => {
+  const headless = opts.headless !== false // default headless for batch audit; pass { headless: false } for chrome-extension:// access
   const dist = distPath()
   if (!fs.existsSync(dist)) throw new Error(`Build first: ${dist} does not exist (run npm run build:dev)`)
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'f19n-audit-'))
@@ -35,11 +36,11 @@ export const launchExtension = async (): Promise<LaunchedExtension> => {
     '--disable-dev-shm-usage',
     `--disable-extensions-except=${dist}`,
     `--load-extension=${dist}`,
-    '--headless=new',
     '--js-flags=--expose-gc',
     '--enable-precise-memory-info',
   ]
-  const context = await chromium.launchPersistentContext(userDataDir, { args, headless: true })
+  if (headless) args.unshift('--headless=new')
+  const context = await chromium.launchPersistentContext(userDataDir, { args, headless })
   const close = async (): Promise<void> => {
     await context.close().catch(() => {})
     try { fs.rmSync(userDataDir, { recursive: true, force: true }) } catch { /* ignore */ }
