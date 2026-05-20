@@ -1,4 +1,4 @@
-type ResultLike = { name?: string; message?: string; runIdentifier?: string; ruleId?: string }
+type ResultLike = { name?: string; message?: string; runIdentifier?: string; ruleId?: string | null }
 
 export const dedupRunner = <T extends ResultLike>(list: T[]): T[] => {
   const seen = new Map<string, number>()

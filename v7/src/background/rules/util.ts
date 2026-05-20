@@ -1,4 +1,5 @@
-import { dedupRunner } from './dedup'
+export { persistResults } from './persistResults'
+
 export const allowedScheme = (url: string) => {
   const s = (url.split(':', 1)[0] || '').toLowerCase()
   return s === 'http' || s === 'https' || s === 'file'
@@ -42,33 +43,4 @@ export const summarizeEvents = (ev: Array<{ t: string; u?: string }>) => {
   const navs = ev.filter((e) => e.t.startsWith('nav:')).length
   const reqs = ev.filter((e) => e.t === 'req:headers').length
   return { top, navs, reqs }
-}
-type MinimalResult = { name?: string; message?: string; type?: string }
-const RESULTS_BYTE_LIMIT = 16 * 1024 * 1024 // generous headroom with unlimitedStorage while preventing runaway payloads
-const toBytes = (payload: unknown) => new TextEncoder().encode(JSON.stringify(payload)).length
-
-export const persistResults = async (tabId: number, key: string, prev: MinimalResult[] | undefined, add: MinimalResult[]) => {
-  const set = async (arr: MinimalResult[]) => { await chrome.storage.local.set({ [key]: arr }); return arr.length }
-  const replacingIds = new Set(add.map((r) => (r as { ruleId?: string }).ruleId).filter(Boolean))
-  const replacingNames = new Set(add.map((r) => r.name).filter(Boolean))
-
-  // Only remove pending results for rules being replaced, keep all others
-  const prevFiltered = prev?.filter(item => {
-    if (item.type !== 'pending') return true
-    const ruleId = (item as { ruleId?: string }).ruleId
-    if (ruleId && replacingIds.has(ruleId)) return false
-    return !replacingNames.has(item.name)
-  }) || []
-  const merged = dedupRunner([...prevFiltered, ...add])
-  const mergedBytes = toBytes(merged)
-  if (mergedBytes > RESULTS_BYTE_LIMIT) {
-    throw new Error(`Persisted results too large (${mergedBytes} bytes) for ${key}; refusing to overwrite existing runs`)
-  }
-
-  try {
-    return await set(merged)
-  } catch (err) {
-    const reason = err instanceof Error ? err.message : String(err)
-    throw new Error(`Failed to persist results for ${key}: ${reason}`)
-  }
 }
