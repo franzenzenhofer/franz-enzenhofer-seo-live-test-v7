@@ -1,4 +1,5 @@
 import { Logger, type LogCategory, type LogData } from '@/shared/logger'
+import { capHtmlForMessageAsync, HTML_CAP_BYTES } from '@/shared/htmlCap'
 
 const q = (sel: string) => document.querySelector(sel)
 
@@ -30,31 +31,35 @@ const captureAndSend = async (tabIdPromise: Promise<number>, getTabId: () => num
   const tabId = getTabId()
   Logger.logDirectSend(tabId, 'dom', 'capture start', { event, url: location.href })
   const html = q('html')?.innerHTML || ''
-  const htmlSize = html.length
+  const capped = await capHtmlForMessageAsync(html)
   const navTiming = collectNavTiming()
   Logger.logDirectSend(tabId, 'dom', 'capture done', {
     event,
-    htmlSize,
-    html: html.slice(0, 500),
-    htmlFull: html,
+    htmlSize: capped.size,
+    htmlSha256: capped.sha256,
+    truncated: capped.truncated,
+    snippet: capped.snippet,
     url: location.href,
     readyState: document.readyState,
     navTiming: navTiming || undefined,
   })
-  const data = { html, location, navTiming }
+  const data = { html: capped.payload, htmlSize: capped.size, htmlSha256: capped.sha256, truncated: capped.truncated, location, navTiming }
   chrome.runtime.sendMessage({ event, data })
-  Logger.logDirectSend(tabId, 'dom', 'send', { event, to: 'background', size: htmlSize })
+  Logger.logDirectSend(tabId, 'dom', 'send', { event, to: 'background', size: capped.size, capped: capped.truncated, cap: HTML_CAP_BYTES })
 }
 
 export const initDomCapture = (tabIdPromise: Promise<number>, getTabId: () => number | null) => {
+  const ac = new AbortController()
+  const { signal } = ac
   document.addEventListener('DOMContentLoaded', () => {
     logLater(tabIdPromise, getTabId, 'content', 'fire', { event: 'DOMContentLoaded' })
     captureAndSend(tabIdPromise, getTabId, 'DOMContentLoaded').catch(() => {})
-  })
+  }, { once: true, signal })
   window.addEventListener('load', () => {
     logLater(tabIdPromise, getTabId, 'content', 'fire', { event: 'load' })
     captureAndSend(tabIdPromise, getTabId, 'load').catch(() => {})
-  })
+  }, { once: true, signal })
+  window.addEventListener('pagehide', () => ac.abort(), { once: true })
   captureAndSend(tabIdPromise, getTabId, 'document_end').catch(() => {})
   captureAndSend(tabIdPromise, getTabId, 'document_idle').catch(() => {})
 }
