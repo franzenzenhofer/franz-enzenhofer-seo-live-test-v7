@@ -1,18 +1,20 @@
 export const PANEL_PATH = 'src/sidepanel.html'
 
+// Each entry below is required by an explicitly-named feature. Chrome Web Store
+// review expects justification per permission. Drop a permission only after
+// removing every callsite that uses it.
 export const PERMISSIONS: string[] = [
-  'sidePanel',
-  'offscreen',
-  'storage',
-  'unlimitedStorage',
-  'tabs',
-  'scripting',
-  'activeTab',
-  'webRequest',
-  'webNavigation',
-  'identity',
-  'alarms',
-  'contextMenus',
+  'sidePanel',        // Side-panel UI (chrome.sidePanel)
+  'offscreen',        // Sandboxed rule execution document (chrome.offscreen)
+  'storage',          // chrome.storage.local + .session for results + run state
+  'unlimitedStorage', // Run history grows large; bounded retention still below quota
+  'tabs',             // tabs.onActivated/onUpdated/onRemoved for per-tab session state
+  'scripting',        // chrome.scripting.executeScript for getPageInfo + highlight
+  'webRequest',       // Non-blocking observation of redirects/headers in history listener
+  'webNavigation',    // onCommitted + onHistoryStateUpdated for navigation ledger
+  'identity',         // OAuth flow for Google Search Console + Analytics
+  'alarms',           // chrome.alarms replaces every long timer in the SW
+  'contextMenus',     // background/commands.ts creates "Open Live Test" entry
 ]
 
 export const HOST_PERMISSIONS: string[] = ['<all_urls>']

@@ -14,6 +14,7 @@ const version_name = isDev ? `${version}-dev` : version
 
 export default defineManifest({
   manifest_version: 3,
+  minimum_chrome_version: '116',
   name,
   version,
   version_name,
