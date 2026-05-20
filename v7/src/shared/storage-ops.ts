@@ -5,6 +5,7 @@
 import { Logger } from './logger.js'
 import { getDataSize } from './storage-helpers.js'
 import { withQuotaRetry } from './storage-retry.js'
+import { incr } from './telemetry.js'
 
 export async function loggedStorageGet<T>(storage: chrome.storage.StorageArea, type: string, keys: string | string[] | null = null): Promise<{ [key: string]: T }> {
   const keyArray = keys === null ? ['*'] : Array.isArray(keys) ? keys : [keys]
@@ -25,10 +26,12 @@ export async function loggedStorageSet(storage: chrome.storage.StorageArea, type
   const keys = Object.keys(data)
   const size = getDataSize(data)
   Logger.logSync('storage', 'write start', { type, keys: keys.join(','), size })
+  incr('storage.write')
   try {
     await withQuotaRetry(`set:${type}:${keys.join(',')}`, () => storage.set(data))
     Logger.logSync('storage', 'write done', { type, keys: keys.join(','), size })
   } catch (error) {
+    incr('storage.write.fail')
     await Logger.logError('storage set', error, { type, keys: keys.join(',') })
     throw error
   }

@@ -1,3 +1,5 @@
+import { incr } from './telemetry'
+
 const cache = new Map<string, Promise<string | null>>()
 const DEFAULT_TIMEOUT_MS = 1500
 
@@ -15,8 +17,10 @@ const fetchWithTimeout = async (url: string, timeoutMs: number) => {
   const timer = setTimeout(() => controller.abort(), timeoutMs)
   try {
     const res = await fetch(url, { signal: controller.signal })
-    return res.ok ? res.text() : null
+    if (!res.ok) { incr('fetch.fail'); return null }
+    return await res.text()
   } catch {
+    incr('fetch.fail')
     return null
   } finally {
     clearTimeout(timer)

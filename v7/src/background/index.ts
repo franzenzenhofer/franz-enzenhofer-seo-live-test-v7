@@ -12,9 +12,12 @@ import { refreshIfPresent } from '@/shared/auth'
 import { rememberHttpTab } from '@/shared/tabMemory'
 import { Logger } from '@/shared/logger'
 import { installCrashNet } from '@/shared/crashNet'
+import { incr, startTelemetryFlush } from '@/shared/telemetry'
 
 Logger.setContext('background')
 installCrashNet('background')
+incr('sw.wakeups')
+startTelemetryFlush()
 
 const panelPath = 'src/sidepanel.html'
 

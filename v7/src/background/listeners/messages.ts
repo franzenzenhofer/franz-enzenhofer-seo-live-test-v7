@@ -4,6 +4,7 @@ import { abortSession } from '../rules/sessions'
 import { handleLogsBridgeMessage } from './logsBridge'
 
 import { isValidTabId, log, logSystem } from '@/shared/logs'
+import { incr } from '@/shared/telemetry'
 
 type Sender = chrome.runtime.MessageSender
 type CrashMsg = { channel?: string; context?: string; kind?: string; message?: string; stack?: string }
@@ -19,9 +20,10 @@ const handlePanelClean = (tabId: number | null): void => {
 }
 
 export const handleMessage = (msg: unknown, sender: Sender, send?: (resp?: unknown) => void) => {
+  incr('msg.in')
   const st = msg as { event?: string; data?: unknown; type?: string; tabId?: number; channel?: string; message?: string; t?: string; d?: { tabId?: number }; context?: string; kind?: string; stack?: string } | null
   const tabId = st?.tabId || sender.tab?.id || null
-  if (st?.channel === 'crash') { handleCrashReport(st); return false }
+  if (st?.channel === 'crash') { incr('crashnet.fired'); handleCrashReport(st); return false }
   if (st?.t === 'panel:clean') { handlePanelClean(st.d?.tabId ?? null); return false }
   if (st?.channel === 'log' && st.message) {
     if (!isValidTabId(tabId)) {
