@@ -20,6 +20,7 @@ export const PERMISSIONS: string[] = [
 export const HOST_PERMISSIONS: string[] = ['<all_urls>']
 
 export const CONTENT_SCRIPTS = [
+  { matches: ['<all_urls>'], js: ['src/content/documentEnd.ts'], run_at: 'document_end' },
   { matches: ['<all_urls>'], js: ['src/content/index.ts'], run_at: 'document_idle' },
 ]
 

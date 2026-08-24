@@ -39,8 +39,15 @@ export const pageFromEvents = async (
   probe: (u: string) => Promise<Head> = head,
 ): Promise<Page> => {
   const p0 = enrichFromEvents(ev, makeDoc, getHref)
-  const base = await pageFromHtml(p0.html, p0.url, makeDoc, probe)
   const extra = p0.extra as Partial<Page> & { headerChain?: unknown; headers?: Record<string, string> }
+  const probed = await probe(p0.url)
+  const base: Page = {
+    html: p0.html,
+    url: p0.url,
+    doc: extra.staticDoc || makeDoc(''),
+    status: probed.status,
+    headers: probed.headers,
+  }
   const eventHeaders = hasHeaders(extra.headers) ? extra.headers : undefined
   const probeHeaders = hasHeaders(base.headers) ? base.headers : undefined
   const hasMainHeaders = Array.isArray(extra.headerChain) && extra.headerChain.length > 0

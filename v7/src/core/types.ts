@@ -39,6 +39,8 @@ export type Page = {
   domIdleDoc?: Document
   domEndDoc?: Document
   domContentLoadedDoc?: Document
+  staticDomAvailable?: boolean
+  idleDomAvailable?: boolean
 }
 export type Ctx = { globals: Record<string, unknown> }
 export type Rule = {

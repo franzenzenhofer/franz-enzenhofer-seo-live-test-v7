@@ -34,6 +34,7 @@ export default defineManifest({
   side_panel: { default_path: PANEL_PATH },
   commands: COMMANDS,
   content_scripts: [
+    { matches: ['<all_urls>'], js: ['src/content/documentEnd.ts'], run_at: 'document_end' },
     { matches: ['<all_urls>'], js: ['src/content/index.ts'], run_at: 'document_idle' },
   ],
   web_accessible_resources: WEB_ACCESSIBLE,

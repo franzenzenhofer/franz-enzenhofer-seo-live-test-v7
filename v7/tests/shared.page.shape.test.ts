@@ -38,7 +38,7 @@ describe('Page shape completeness', () => {
     expect(p.firstUrl).toBe('https://a.example/x')
     expect(p.lastUrl).toBe(url)
     expect(p.rawHeaders?.['Content-Type']).toContain('text/html')
-    expect(p.domContentLoadedDoc?.title).toBe('DCL')
+    expect(p.domContentLoadedDoc).toBeUndefined()
     expect(p.domEndDoc?.title).toBe('End')
     expect(p.domIdleDoc?.title).toBe('Idle')
   })
