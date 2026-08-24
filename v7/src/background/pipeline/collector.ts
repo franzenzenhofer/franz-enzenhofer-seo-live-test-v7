@@ -33,11 +33,10 @@ export const pushEvent = async (tabId: number, ev: import('./types').EventRec) =
   await addEvent(tabId, ev)
   await Logger.logDirect(tabId, 'event', 'add', { type: ev.t, tabId })
   if (ev.t.startsWith('dom:')) {
-    const data = ev.d as { html?: string } | undefined
-    const html = typeof data?.html === 'string' ? data.html : ''
-    const len = html.length
-    log(tabId, `${ev.t} html=${len}`).catch((err) => console.error('[collector] log failed', err))
-    await Logger.logDirect(tabId, 'dom', 'event', { type: ev.t, htmlSize: len, html: html.slice(0, 500), htmlFull: html, url: ev.u || 'no-url' })
+    const data = ev.d as { facts?: { nodeCount?: number }; results?: unknown[] } | undefined
+    const nodes = data?.facts?.nodeCount || 0
+    log(tabId, `${ev.t} nodes=${nodes}`).catch((err) => console.error('[collector] log failed', err))
+    await Logger.logDirect(tabId, 'dom', 'event', { type: ev.t, nodes, results: data?.results?.length || 0, url: ev.u || 'no-url' })
   }
   if (ev.t === 'dom:document_idle') {
     await Logger.logDirect(tabId, 'event', 'schedule finalize', { reason: 'dom:document_idle', delay: '200ms' })

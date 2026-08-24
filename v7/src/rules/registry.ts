@@ -125,10 +125,11 @@ import { discoverHeadlineLengthRule } from './discover/headlineLength'
 import { discoverIndexableRule } from './discover/indexable'
 import { discoverOgImageLargeRule } from './discover/ogImageLarge'
 import { discoverPrimaryLanguageRule } from './discover/primaryLanguage'
+import { registerRule } from './ruleInputs'
 
 import type { Rule } from '@/core/types'
 
-export const registry: Rule[] = [
+const rules: Rule[] = [
   titleRule,
   metaDescriptionRule,
   canonicalRule,
@@ -257,3 +258,5 @@ export const registry: Rule[] = [
   schemaRecipeRule,
   schemaVideoRule,
 ]
+
+export const registry = rules.map(registerRule)

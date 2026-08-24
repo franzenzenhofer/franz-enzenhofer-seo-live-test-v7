@@ -18,6 +18,7 @@ export type Result = {
   details?: ResultDetails
   runIndex?: number
 }
+export type RuleInput = 'static' | 'idle' | 'compare' | 'context'
 export type Page = {
   html: string                 // static HTML snapshot (alias: staticHtml)
   staticHtml?: string          // alias of html for clarity
@@ -41,13 +42,19 @@ export type Page = {
   domContentLoadedDoc?: Document
   staticDomAvailable?: boolean
   idleDomAvailable?: boolean
+  phaseResults?: Result[]
+  staticFacts?: DomPhaseFacts
+  idleFacts?: DomPhaseFacts
 }
 export type Ctx = { globals: Record<string, unknown> }
 export type Rule = {
   id: string
+  input?: RuleInput
   name: string
   enabled: boolean
   what?: string
   timeout?: { mode?: 'fast' | 'api' | 'multipage'; timeoutMs?: number }
   run: (page: Page, ctx: Ctx) => Promise<Result>
 }
+export type RegisteredRule = Rule & { input: RuleInput }
+import type { DomPhaseFacts } from '@/shared/domFacts.types'

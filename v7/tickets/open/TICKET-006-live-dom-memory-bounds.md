@@ -1,6 +1,6 @@
 # TICKET-006: Analyze Live DOM Without Full-Page Copies
 
-**Status:** Open  
+**Status:** In Progress - WIP checkpoint 2026-08-24
 **Priority:** Critical  
 **Type:** Performance and architecture  
 **Depends on:** TICKET-005
@@ -45,3 +45,26 @@ Implement the phase runner and compact contracts until the focused tests pass, t
 - A failed or missing phase affects only rules that require that phase.
 - Typecheck, lint, and all tests pass.
 
+## WIP Handoff - 2026-08-24
+
+The user requested an immediate stop and private GitHub checkpoint. Do not start TICKET-007 until this ticket is green, fully gated, marked complete, and committed.
+
+Completed in the unverified WIP:
+
+- Added red tests for rule phase metadata, bounded DOM facts, distinct static/idle facts, matching-phase execution, and the removal of full-DOM serialization.
+- Added a central `static`/`idle`/`compare`/`context` registry mapping.
+- Added a constant-memory DOM walker, bounded DOM facts, compact document reconstruction, result bounding, settings-aware sequential phase execution, and compact phase messages.
+- Began adapting the collector, page assembly, offscreen execution, and final result merging to the compact contract.
+- The focused tests passed before the later integration edits: 4 files, 9 tests.
+
+Unfinished and required next:
+
+1. Re-run typecheck. Its last run found four errors; fixes were applied but not verified.
+2. Run focused tests and lint, then fix integration regressions without weakening the red tests.
+3. Add page/offscreen integration tests proving compact facts and phase results survive the complete pipeline.
+4. Finish exact bounded comparison behavior, including an unavailable result when evidence is truncated and the planned chunked spill store if exact sets are retained.
+5. Update the CLI adapter so one parsed static DOM is used and idle/compare rules report unavailable.
+6. Audit remaining evidence builders for temporary unbounded arrays and strings.
+7. Run the full typecheck, lint, test, and build gates. Only then mark this ticket complete and commit the finished unit.
+
+Known checkpoint condition: this commit is intentionally WIP and may not typecheck. It must not be treated as a release candidate.
