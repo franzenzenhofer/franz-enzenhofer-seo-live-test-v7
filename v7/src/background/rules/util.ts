@@ -5,8 +5,8 @@ export const allowedScheme = (url: string) => {
   return s === 'http' || s === 'https' || s === 'file'
 }
 
-export const hasDomSnapshot = (ev: Array<{ t: string; d?: { html?: string } }>) =>
-  ev.some((e) => e.t.startsWith('dom:') && !!e.d && typeof e.d.html === 'string' && e.d.html!.length > 0)
+export const hasDomSnapshot = (ev: Array<{ t: string; d?: { facts?: unknown; html?: string } }>) =>
+  ev.some((e) => e.t.startsWith('dom:') && (!!e.d?.facts || (typeof e.d?.html === 'string' && e.d.html.length > 0)))
 
 export const derivePageUrl = (ev: Array<{ t: string; u?: string }>) => {
   const nav = ev.filter((e) => !!e.u && e.t.startsWith('nav:'))

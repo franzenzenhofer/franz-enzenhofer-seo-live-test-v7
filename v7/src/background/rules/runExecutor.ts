@@ -24,10 +24,10 @@ export const executeRuleBatch = async ({ tabId, run, runState, key, pageUrl, sig
   let hadError = false
   let res: RuleResult[] = []
   try {
-    const de = [...run.ev].reverse().find((e) => e.t.startsWith('dom:')) as { d?: { html?: string } } | undefined
-    const htmlLen = typeof de?.d?.html === 'string' ? de.d!.html!.length : 0
+    const de = [...run.ev].reverse().find((e) => e.t.startsWith('dom:')) as { d?: { facts?: { nodeCount?: number } } } | undefined
+    const nodes = de?.d?.facts?.nodeCount || 0
     const summary = ruleSupport.summarizeEvents(run.ev as unknown as Array<{ t: string; u?: string }>)
-    await log(tabId, `runner:start tab=${tabId} runId=${runState.runId} ev=${run.ev.length} url=${pageUrl || '(none)'} html=${htmlLen} navs=${summary.navs} reqs=${summary.reqs} top=[${summary.top}]`)
+    await log(tabId, `runner:start tab=${tabId} runId=${runState.runId} ev=${run.ev.length} url=${pageUrl || '(none)'} nodes=${nodes} navs=${summary.navs} reqs=${summary.reqs} top=[${summary.top}]`)
     const firstNav = (run.ev.find((e) => e.t.startsWith('nav:') && typeof (e as { u?: unknown }).u === 'string') as { u?: string } | undefined)?.u || '(none)'
     await log(tabId, `runner:nav tab=${tabId} runId=${runState.runId} first=${firstNav} last=${pageUrl || '(none)'}`)
     res = await runInOffscreen<RuleResult[]>(

@@ -17,4 +17,12 @@ describe('content lifecycle manifest', () => {
     expect(source).not.toContain('initDomCapture')
     expect(source).toContain("captureDomPhase('document_idle'")
   })
+
+  it('does not serialize or hash full DOM HTML', () => {
+    const source = readFileSync(resolve(process.cwd(), 'src/content/domCapture.ts'), 'utf8')
+
+    expect(source).not.toContain('.innerHTML')
+    expect(source).not.toContain('capHtmlForMessageAsync')
+    expect(source).not.toContain('htmlSha256')
+  })
 })
