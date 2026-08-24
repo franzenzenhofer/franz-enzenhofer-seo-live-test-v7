@@ -7,13 +7,10 @@ export const enrichFromEvents = (
   makeDoc: (html: string) => Document,
   getHref: () => string,
 ) => {
-  // Prefer static snapshot (document_end), then DOMContentLoaded, then idle as fallback
   const idleDomEvent = [...ev].reverse().find((e) => e.t === 'dom:document_idle')
   const endDomEvent = [...ev].reverse().find((e) => e.t === 'dom:document_end')
-  const dclDomEvent = [...ev].reverse().find((e) => e.t === 'dom:DOMContentLoaded')
-  const staticDomEvent = endDomEvent || dclDomEvent || idleDomEvent
 
-  const staticHtml = ((staticDomEvent?.d as { html?: string } | undefined)?.html || '').toString()
+  const staticHtml = ((endDomEvent?.d as { html?: string } | undefined)?.html || '').toString()
   const idleHtml = ((idleDomEvent?.d as { html?: string } | undefined)?.html || '').toString()
 
   const nav = ev.filter((e) => !!e.u && e.t.startsWith('nav:'))
@@ -24,17 +21,16 @@ export const enrichFromEvents = (
   const { headers, rawHeaders, status, resources, hops, statusLine, fromCache, ip } = findMainHeaders(ev, firstUrl, lastUrl)
   const staticDoc = makeDoc(staticHtml)
   const domIdleDoc = idleHtml ? makeDoc(idleHtml) : undefined
-  const domEndDoc = endDomEvent?.d ? makeDoc(String((endDomEvent.d as { html?: string })?.html || '')) : undefined
-  const dclDoc = dclDomEvent?.d ? makeDoc(String((dclDomEvent.d as { html?: string })?.html || '')) : undefined
   const navigationTiming =
     (idleDomEvent?.d as { navTiming?: unknown } | undefined)?.navTiming ||
-    (staticDomEvent?.d as { navTiming?: unknown } | undefined)?.navTiming ||
+    (endDomEvent?.d as { navTiming?: unknown } | undefined)?.navTiming ||
     null
 
   const extra: Record<string, unknown> = {
     firstUrl, lastUrl, rawHeaders,
-    domIdleDoc, domEndDoc, domContentLoadedDoc: dclDoc,
+    domIdleDoc, domEndDoc: endDomEvent ? staticDoc : undefined,
     staticDoc, staticHtml,
+    staticDomAvailable: Boolean(staticHtml), idleDomAvailable: Boolean(idleHtml),
     resources, status, headers, statusLine, fromCache, ip,
     headerChain: hops,
     navigationTiming,

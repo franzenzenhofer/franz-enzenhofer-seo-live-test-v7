@@ -35,7 +35,8 @@ export const handleMessage = (msg: unknown, sender: Sender, send?: (resp?: unkno
   }
   if (handleLogsBridgeMessage(st?.type, tabId, send)) return true
   if (st?.event && tabId) {
-    pushEvent(tabId, { t: `dom:${st.event}`, d: st.data })
+    const phaseData = st.data as { url?: string } | undefined
+    pushEvent(tabId, { t: `dom:${st.event}`, u: phaseData?.url, d: st.data })
     if (st.event === 'document_idle') {
       chrome.storage.local.get('ui:autoRun').then((v)=> {
         if (v['ui:autoRun'] !== false) markDomPhase(tabId)

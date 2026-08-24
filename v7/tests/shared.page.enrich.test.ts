@@ -27,7 +27,7 @@ describe('pageFromEvents enrich', () => {
     // Optional enriched fields exist
     expect(p.domIdleDoc?.title).toBe('Idle')
     expect(p.domEndDoc?.title).toBe('End')
-    expect(p.domContentLoadedDoc?.title).toBe('DCL')
+    expect(p.domContentLoadedDoc).toBeUndefined()
     expect(p.firstUrl).toBe('https://a.example/x')
     expect(p.lastUrl).toBe('https://a.example/x')
   })
@@ -44,6 +44,21 @@ describe('pageFromEvents enrich', () => {
     const p = await pageFromEvents(events, makeDoc, ()=>'about:blank', probe)
     expect(p.headers?.['content-encoding']).toBe('gzip')
     expect(p.headers?.['content-type']).toBe('text/html')
+    expect(p.doc.title).toBe('')
+    expect(p.staticHtml).toBe('')
+    expect(p.domIdleDoc?.title).toBe('Idle')
+  })
+
+  it('keeps document_end and document_idle snapshots distinct', async () => {
+    const events = [
+      { t: 'dom:document_end', d: { html: '<title>Static</title>', capturedAt: 1 } },
+      { t: 'dom:document_idle', d: { html: '<title>Idle</title>', capturedAt: 2 } },
+    ] as unknown as import('@/background/pipeline/types').EventRec[]
+
+    const p = await pageFromEvents(events, makeDoc, ()=>'https://a.example/')
+    expect(p.doc.title).toBe('Static')
+    expect(p.domIdleDoc?.title).toBe('Idle')
+    expect(p.doc).not.toBe(p.domIdleDoc)
   })
 
   it('prefers the last navigation URL when present', async () => {

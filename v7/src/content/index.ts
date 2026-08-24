@@ -1,5 +1,6 @@
 import { handleHighlightMessage } from './highlight'
-import { initDomCapture } from './domCapture'
+import { captureDomPhase } from './domCapture'
+import { contentTabId, getContentTabId } from './tabContext'
 
 import { PageInfo, type PageInfoT } from '@/shared/schemas'
 import { extractPageInfo } from '@/shared/extract'
@@ -10,20 +11,7 @@ import { installCrashNet } from '@/shared/crashNet'
 Logger.setContext('content')
 installCrashNet('content')
 
-// Get tabId for logging - MUST be initialized before any logging
-let contentTabId: number | null = null
-const tabIdPromise = new Promise<number>((resolve) => {
-  chrome.runtime.sendMessage('tabIdPls', (response) => {
-    if (response?.tabId) {
-      contentTabId = response.tabId
-      resolve(response.tabId)
-    } else {
-      throw new Error('Failed to get tabId from background')
-    }
-  })
-})
-
-initDomCapture(tabIdPromise, () => contentTabId)
+captureDomPhase('document_idle', contentTabId, getContentTabId).catch(() => {})
 
 chrome.runtime.onMessage.addListener((msg, _s, reply) => {
   if (handleHighlightMessage(msg, reply)) return true
