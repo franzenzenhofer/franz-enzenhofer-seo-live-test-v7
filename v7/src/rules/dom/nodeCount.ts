@@ -1,21 +1,7 @@
 import type { Rule } from '@/core/types'
+import { walkNodes } from '@/shared/domFacts.walk'
 
 const SPEC = 'https://developer.chrome.com/docs/lighthouse/performance/dom-size'
-
-const count = (root: Node): number => {
-  let c = 0
-  const stack: Node[] = [root]
-
-  while (stack.length > 0) {
-    const node = stack.pop()!
-    c++
-    const ch = (node as Element).childNodes
-    for (let i = ch.length - 1; i >= 0; i--) {
-      stack.push(ch[i]!)
-    }
-  }
-  return c
-}
 
 export const nodeCountRule: Rule = {
   id: 'dom:node-count',
@@ -23,7 +9,7 @@ export const nodeCountRule: Rule = {
   enabled: true,
   what: 'static',
   async run(page) {
-    const n = count(page.doc.documentElement)
+    const n = page.idleFacts?.nodeCount ?? walkNodes(page.doc.documentElement, () => {}).count
     return {
       label: 'DOM',
       message: `Node count: ${n}`,

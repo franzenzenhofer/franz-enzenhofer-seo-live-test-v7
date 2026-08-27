@@ -26,8 +26,10 @@ export const normalizeRunResult = (
 const unavailableResult = (rule: RegisteredRule, runId?: string): Result => ({
   name: rule.name,
   label: rule.input.toUpperCase(),
-  message: `${rule.input === 'static' ? 'Static' : 'Idle'} DOM phase unavailable.`,
-  type: 'info',
+  message: rule.input === 'context'
+    ? 'Required bounded DOM context unavailable or truncated.'
+    : `${rule.input === 'static' ? 'Static' : rule.input === 'idle' ? 'Idle' : 'Cross-phase'} DOM lifecycle unavailable.`,
+  type: 'runtime_error',
   priority: 950,
   ruleId: rule.id,
   runIdentifier: runId,

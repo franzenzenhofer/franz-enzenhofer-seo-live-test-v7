@@ -16,14 +16,13 @@ export const TypeFilters = ({ show, setShow, results, debugEnabled }: Props) => 
     return acc
   }, {} as Record<string, number>)
   const { totalRules, coveredRules, missingRules } = computeResultCoverage(results)
-  const showMissingCount = missingRules.length > 0
   const showMissingList = debugEnabled && missingRules.length > 0
   return (
     <>
-      <div className="text-xs text-gray-600 flex items-center gap-3 mb-1">
+      {debugEnabled && <div className="text-xs text-gray-600 flex items-center gap-3 mb-1">
         <span>Coverage {coveredRules}/{totalRules}</span>
-        {showMissingCount && <span className="text-red-600 font-semibold">Missing {missingRules.length}</span>}
-      </div>
+        {missingRules.length > 0 && <span className="text-red-600 font-semibold">Missing {missingRules.length}</span>}
+      </div>}
       <div className="flex items-center gap-2 flex-wrap">
         {resultTypeOrder.map((type) => {
           const count = counts[type] || 0

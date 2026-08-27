@@ -1,5 +1,7 @@
 import { readPhaseExecution } from './phaseSettings'
 import { runPhaseRules } from './phaseRunner'
+import { sendPhaseResults } from './phaseMessages'
+import { isAuditEligible } from './auditEligibility'
 
 import { collectDomFacts, type DomPhase } from '@/shared/domFacts'
 import { Logger } from '@/shared/logger'
@@ -26,24 +28,28 @@ export const captureDomPhase = async (
   getTabId: () => number | null,
 ) => {
   await tabIdPromise
+  if (!await isAuditEligible()) return
   const tabId = getTabId()
   const phase: DomPhase = event === 'document_end' ? 'static' : 'idle'
   const facts = collectDomFacts(document, phase)
+  const navTiming = collectNavTiming()
   const { rules, globals } = await readPhaseExecution()
   const results = await runPhaseRules({
     tabId: tabId || 0,
     phase,
     rules,
-    page: { html: '', url: location.href, doc: document },
+    page: {
+      html: '', url: location.href, doc: document,
+      navigationTiming: navTiming || undefined,
+      ...(phase === 'static' ? { staticFacts: facts } : { idleFacts: facts }),
+    },
     globals,
   })
-  const navTiming = collectNavTiming()
   Logger.logDirectSend(tabId, 'dom', 'capture done', {
     event, url: location.href, nodes: facts.nodeCount, results: results.length,
   })
-  const data = {
-    facts, results, url: location.href, capturedAt: Date.now(), navTiming,
-  }
+  await sendPhaseResults(phase, location.href, results)
+  const data = { facts, url: location.href, capturedAt: Date.now(), navTiming }
   await chrome.runtime.sendMessage({ event, data })
   Logger.logDirectSend(tabId, 'dom', 'send', { event, to: 'background', nodes: facts.nodeCount })
 }

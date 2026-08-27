@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPaths } from '@/shared/dom-path'
+import { sampleElements } from '@/shared/domEvidence'
 
 // Constants
 const LABEL = 'HEAD'
@@ -15,15 +16,13 @@ export const relAlternateMediaRule: Rule = {
   enabled: true,
   what: 'static',
   async run(page) {
-    const elements = Array.from(page.doc.querySelectorAll(SELECTOR))
-      .concat(Array.from(page.domIdleDoc?.querySelectorAll(SELECTOR) || []))
-      .filter((el, idx, arr) => arr.findIndex((n) => n.getAttribute('href') === el.getAttribute('href') && n.getAttribute('media') === el.getAttribute('media')) === idx)
-    const count = elements.length
+    const elements = sampleElements(page.doc.querySelectorAll(SELECTOR))
+    const count = elements.total
     if (!count) {
       return { label: LABEL, name: NAME, message: 'No rel=alternate media links found.', type: 'info', priority: 900, details: { reference: SPEC } }
     }
 
-    const mediaData = elements.map((link) => ({
+    const mediaData = elements.sample.map((link) => ({
       media: link.getAttribute('media')?.trim() || '',
       href: link.getAttribute('href')?.trim() || '',
     }))
@@ -33,8 +32,8 @@ export const relAlternateMediaRule: Rule = {
         ? `Separate mobile/alternate URL discovered: ${mediaData[0].href}`
         : `Separate media alternates discovered (${count}).`
 
-    const sourceHtml = extractHtmlFromList(elements)
-    const domPaths = getDomPaths(elements)
+    const sourceHtml = extractHtmlFromList(elements.sample)
+    const domPaths = getDomPaths(elements.sample)
 
     return {
       label: LABEL,
@@ -47,6 +46,8 @@ export const relAlternateMediaRule: Rule = {
         snippet: extractSnippet(sourceHtml, 200),
         domPaths,
         count,
+        shown: elements.shown,
+        truncated: elements.truncated,
         mediaData,
         reference: SPEC,
       },

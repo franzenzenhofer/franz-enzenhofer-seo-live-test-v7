@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractHtmlFromList } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
+import { sampleElements } from '@/shared/domEvidence'
 
 const LABEL = 'HEAD'
 const NAME = 'SEO Title Present'
@@ -12,9 +13,9 @@ export const titleRule: Rule = {
   enabled: true,
   what: 'static',
   run: async (page) => {
-    const nodes = Array.from(page.doc.querySelectorAll('head > title'))
-    const count = nodes.length
-    const first = nodes[0]
+    const nodes = sampleElements(page.doc.querySelectorAll('head > title'))
+    const count = nodes.total
+    const first = nodes.sample[0]
     const title = (first?.textContent || '').trim()
     const isMissing = count === 0
     const isMultiple = count > 1
@@ -30,7 +31,7 @@ export const titleRule: Rule = {
           ? 'No <title> tag found in head.'
           : '<title> tag exists but is empty.'
 
-    const sourceHtml = isMultiple ? extractHtmlFromList(nodes) : extractHtml(first ?? null)
+    const sourceHtml = isMultiple ? extractHtmlFromList(nodes.sample) : extractHtml(first ?? null)
 
     return {
       label: LABEL,
@@ -43,6 +44,9 @@ export const titleRule: Rule = {
         title,
         length: title.length,
         sourceHtml,
+        count,
+        shown: nodes.shown,
+        truncated: nodes.truncated,
         domPath: getDomPath(first ?? null),
         reference: SPEC,
       },

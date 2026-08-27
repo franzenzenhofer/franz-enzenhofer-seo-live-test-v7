@@ -1,29 +1,15 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPaths } from '@/shared/dom-path'
+import { findType, parseLd } from '@/shared/structured'
 
 const SPEC = 'https://developers.google.com/search/docs/appearance/structured-data/article'
 
 const findArticle = (doc: Document) => {
-  const scripts = Array.from(doc.querySelectorAll('script[type="application/ld+json"]'))
-  const articleScripts: Element[] = []
-
-  for (const s of scripts) {
-    try {
-      const j = JSON.parse(s.textContent || 'null')
-      const arr = Array.isArray(j) ? j : [j]
-      for (const it of arr) {
-        const t = (it && (it['@type'] || '')).toString().toLowerCase()
-        if (t.includes('article') || t.includes('newsarticle')) {
-          articleScripts.push(s)
-          break
-        }
-      }
-    } catch {
-      /* ignore */
-    }
-  }
-  return { found: articleScripts.length > 0, scripts: articleScripts }
+  const nodes = parseLd(doc)
+  const found = findType(nodes, 'article').length > 0 || findType(nodes, 'newsarticle').length > 0
+  const script = found ? doc.querySelector('script[type="application/ld+json"]') : null
+  return { found, scripts: script ? [script] : [] }
 }
 
 export const discoverArticleStructuredDataRule: Rule = {

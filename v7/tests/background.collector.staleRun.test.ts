@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // @ts-expect-error test shim
 globalThis.chrome = {
   alarms: { onAlarm: { addListener: vi.fn() }, clear: vi.fn(), create: vi.fn() },
+  tabs: { get: vi.fn(async () => ({ active: true })) },
   storage: {
     local: { get: vi.fn(async () => ({})), remove: vi.fn(async () => {}) },
     session: { get: vi.fn(async () => ({})), set: vi.fn(async () => {}), remove: vi.fn(async () => {}) },
@@ -45,6 +46,7 @@ const invokeAlarm = async (tabId: number) => { await alarmHandlerHolder.handler?
 describe('collector alarm guard', () => {
   beforeEach(() => {
     runRulesOn.mockReset()
+    ;(chrome.tabs.get as unknown as ReturnType<typeof vi.fn>).mockReset().mockResolvedValue({ active: true })
     setRun(null)
   })
 
@@ -58,5 +60,27 @@ describe('collector alarm guard', () => {
     setRun({ id: 2, ev: [{ t: 'nav:before', u: 'https://first.example' }, { t: 'dom:document_idle', d: { html: '<html></html>' } }] })
     await invokeAlarm(4)
     expect(runRulesOn).toHaveBeenCalledTimes(1)
+  })
+
+  it('skips automatic execution for an inactive tab', async () => {
+    ;(chrome.tabs.get as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ active: false })
+    setRun({ id: 3, ev: [{ t: 'dom:document_idle' }] })
+    await invokeAlarm(5)
+    expect(runRulesOn).not.toHaveBeenCalled()
+  })
+
+  it('executes only the active tab across many pending tab alarms', async () => {
+    const tabsGet = chrome.tabs.get as unknown as ReturnType<typeof vi.fn>
+    for (let tabId = 10; tabId < 35; tabId++) {
+      tabsGet.mockResolvedValueOnce({ active: false })
+      setRun({ id: tabId, ev: [{ t: 'dom:document_idle' }] })
+      await invokeAlarm(tabId)
+    }
+    tabsGet.mockResolvedValueOnce({ active: true })
+    setRun({ id: 35, ev: [{ t: 'dom:document_idle' }] })
+    await invokeAlarm(35)
+
+    expect(runRulesOn).toHaveBeenCalledTimes(1)
+    expect(runRulesOn).toHaveBeenCalledWith(35, expect.objectContaining({ id: 35 }))
   })
 })

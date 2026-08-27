@@ -31,9 +31,9 @@ export const ResultsSection = ({ show, setShow, query, setQuery, results, debugE
   return (
     <div className="p-3 space-y-3">
       <Search onChange={setQuery} />
-      <FilterTips />
+      {debugEnabled && <FilterTips />}
       <TypeFilters show={show} setShow={setShow} results={results} debugEnabled={debugEnabled} />
-      <ResultsSummary
+      {debugEnabled && <ResultsSummary
         items={results}
         types={activeTypes}
         q={parsed.text}
@@ -43,7 +43,7 @@ export const ResultsSection = ({ show, setShow, query, setQuery, results, debugE
         onResetFilters={resetFilters}
         sortMode={sortMode}
         onSortModeChange={setSortMode}
-      />
+      />}
       <Results
         items={results}
         types={activeTypes}

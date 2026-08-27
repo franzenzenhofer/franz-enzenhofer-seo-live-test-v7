@@ -1,4 +1,4 @@
-F19N Obtrusive Live Test v7 (MV3)
+Franz Enzenhofer SEO Live Test (MV3)
 
 A comprehensive SEO testing Chrome extension that runs 100+ rules to analyze web pages for SEO issues, performance, and best practices.
 
@@ -122,11 +122,14 @@ Scripts
 
 Async, decoupled architecture
 
-- Collector (SW): webNavigation, webRequest, and DOM-phase messages push small event records into `chrome.storage.session`; an alarm finalizes a run (super async, no blocking).
-- Runner (offscreen): rules execute in an offscreen document using a JS interpreter (no eval in SW). Fully isolated from collection and UI.
-- Results store: rule outputs append to `chrome.storage.local` under `results:<tabId>`.
+- Content phases: static and idle rules run sequentially against the live DOM at Chrome's real `document_end` and `document_idle` phases. Only bounded results and typed facts cross the runtime boundary; full HTML does not.
+- Collector (SW): webNavigation, webRequest, and validated DOM-phase messages update bounded records in `chrome.storage.session`; an alarm finalizes without blocking collection.
+- Runner (offscreen): typed context and comparison rules run against network events and compact facts. Dynamic code execution and full-page DOM clones are not used.
+- Results store: bounded rule outputs persist under `results:<tabId>` with quota degradation that preserves core results.
 - UI (side panel): subscribes to storage changes and renders results. No direct coupling to collection or rule execution.
-- Navigation safety: if a navigation occurs after DOM capture (e.g., hard refresh or SPA transition), the pending run is cancelled so results never mix DOM from a previous page with a newer URL.
+- Navigation safety: a newer navigation aborts stale work and clears per-tab session state. Automatic audits start only for the active tab.
+
+The final phase mapping and runtime limits are documented in [docs/rule-phase-inventory.md](docs/rule-phase-inventory.md) and [docs/runtime-architecture.md](docs/runtime-architecture.md).
 
 Load in Chrome
 
@@ -154,10 +157,10 @@ Running against real data
 ### Extension (side panel)
 
 1. Build once (`npm run build`), then load `v7/dist` as an unpacked MV3 extension.
-2. Open any real tab (http/https only) and click the Live Test action to open the side panel.
+2. Open any real tab (http/https only) and click the Franz Enzenhofer SEO Live Test action to open the side panel.
 3. Optional: open `src/settings.html` (gear icon) to toggle rules or provide API tokens/variables (e.g. PSI key, GSC site URL).
-4. Use the `Run now` button to clear previous results/logs, hard-refresh the tab, and trigger an immediate capture; results are always sourced from the live DOM plus captured network metadata.
-5. Pin critical rules with the ★ icon so they stay at the top (persisted per user). The ⓘ icon opens the full `report.html` for that result and the `Logs` link pops open `logs.html` with the execution log for the active tab.
+4. Use `Run test` to hard-refresh the active tab and trigger an immediate capture; results come from the live DOM plus captured network metadata.
+5. Favorite critical rules with the ★ action so they stay at the top. Use `Report` for the full report; debug mode exposes logs and diagnostics.
 
 ### CLI
 

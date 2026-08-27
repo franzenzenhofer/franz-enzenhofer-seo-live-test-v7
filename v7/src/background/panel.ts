@@ -1,3 +1,5 @@
+import { EXTENSION_NAME } from '../../config.js'
+
 import { log } from '@/shared/logs'
 
 // Open the side panel defensively. Never throw.
@@ -14,7 +16,7 @@ export const enableAndOpenSidePanel = (tabId: number, path = 'src/sidepanel.html
       try {
         await chrome.action.setBadgeText({ tabId, text: 'Open' })
         await chrome.action.setBadgeBackgroundColor({ tabId, color: '#1b73e8' })
-        await chrome.action.setTitle({ tabId, title: 'Click to open Live Test' })
+        await chrome.action.setTitle({ tabId, title: `Click to open ${EXTENSION_NAME}` })
       } catch {
         // ignore
       }

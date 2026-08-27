@@ -67,4 +67,16 @@ describe('persistResults retention', () => {
     const stored = storageState[key] as PersistableResult[]
     expect(stored.some((r) => r.name === 'legacy')).toBe(true)
   })
+
+  it('retries quota failures without details while preserving every core result', async () => {
+    const set = chrome.storage.local.set as unknown as ReturnType<typeof vi.fn>
+    set.mockRejectedValueOnce(new Error('QUOTA_BYTES quota exceeded'))
+    const rows = makeRun('run-quota', 3).map((row) => ({ ...row, details: { sourceHtml: 'x'.repeat(10_000) } }))
+
+    await persistResults(11, 'results:11', [], rows)
+
+    const stored = storageState['results:11'] as PersistableResult[]
+    expect(stored).toHaveLength(3)
+    expect(stored.every((row) => !('details' in row))).toBe(true)
+  })
 })

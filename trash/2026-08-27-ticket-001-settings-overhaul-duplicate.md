@@ -1,10 +1,12 @@
 # TICKET-001: Settings Panel Overhaul
 
-**Status:** 📋 Open
+**Status:** Superseded by completed `tickets/closed/TICKET-001-settings-overhaul.md` (2026-08-27)
 **Priority:** HIGH
 **Effort:** 3-4 days
 **Type:** Feature Enhancement
 **Principle:** KISS + DRY - No Dead Code!
+
+> Archived duplicate plan. Moved to `trash/` on 2026-08-27 because the canonical ticket is complete.
 
 ---
 

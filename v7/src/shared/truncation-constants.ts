@@ -1,6 +1,6 @@
 export const TRUNCATION_LIMITS = {
   // 12KB cap keeps per-result payloads lean so two runs fit under storage quotas while still giving inspection context
-  HTML_CONTENT: 12000,
+  HTML_CONTENT: 4000,
 
   // 2KB - Plenty for debug logs, prevents log flooding attacks
   LOG_MESSAGE: 2000,

@@ -1,11 +1,10 @@
 import type { Rule } from '@/core/types'
-import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
-import { getDomPath } from '@/shared/dom-path'
+import { extractSnippet } from '@/shared/html-utils'
+import type { DomPhaseFacts } from '@/shared/domFacts'
 
 const LABEL = 'HEAD'
 const NAME = 'Meta Unavailable After'
 const RULE_ID = 'head:unavailable-after'
-const SELECTOR = 'meta[content^="unavailable_after"]'
 const SPEC = 'https://developers.google.com/search/blog/2007/04/using-meta-tags-to-block-indexing'
 
 const isUnavailable = (directive: string) => {
@@ -15,26 +14,35 @@ const isUnavailable = (directive: string) => {
   return !Number.isNaN(date) && date < Date.now()
 }
 
+const contents = (facts?: DomPhaseFacts): string[] => (facts?.elements || []).flatMap((element) => {
+  if (element.tag !== 'meta') return []
+  const content = element.attrs.find(([name]) => name.toLowerCase() === 'content')?.[1] || ''
+  return content.toLowerCase().startsWith('unavailable_after') ? [content] : []
+})
+
 export const metaUnavailableAfterRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'static',
   async run(page) {
-    const nodes: HTMLMetaElement[] = []
-    const push = (doc?: Document) => doc && nodes.push(...Array.from(doc.querySelectorAll(SELECTOR)) as HTMLMetaElement[])
-    push(page.doc)
-    push(page.domIdleDoc)
+    if (!page.staticFacts || !page.idleFacts || page.staticFacts.elementsTruncated || page.idleFacts.elementsTruncated) {
+      return {
+        label: LABEL, name: NAME, type: 'runtime_error', priority: 900,
+        message: 'Unavailable-after comparison requires complete bounded static and idle facts.',
+        details: { staticAvailable: !!page.staticFacts, idleAvailable: !!page.idleFacts, reference: SPEC },
+      }
+    }
+    const values = [...contents(page.staticFacts), ...contents(page.idleFacts)]
+    const unique = [...new Set(values)]
 
-    if (!nodes.length) {
+    if (!unique.length) {
       return { label: LABEL, name: NAME, message: 'No unavailable_after meta tag found.', type: 'info', priority: 900, details: { reference: SPEC } }
     }
 
-    const unique = nodes.filter((node, idx, arr) => arr.findIndex((n) => n.getAttribute('content') === node.getAttribute('content')) === idx)
-    const first = unique[0]!
-    const content = (first.getAttribute('content') || '').trim()
+    const content = unique[0]!.trim()
     const past = isUnavailable(content)
-    const sourceHtml = extractHtmlFromList(unique)
+    const sourceHtml = unique.map((value) => `<meta content="${value}">`).join('\n')
 
     return {
       label: LABEL,
@@ -45,7 +53,6 @@ export const metaUnavailableAfterRule: Rule = {
       details: {
         sourceHtml,
         snippet: extractSnippet(content || sourceHtml),
-        domPath: getDomPath(first),
         count: unique.length,
         past,
         reference: SPEC,

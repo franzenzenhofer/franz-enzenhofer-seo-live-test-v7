@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
 import { getDomPath } from '@/shared/dom-path'
 import { normalizeUrl, isHttps } from '@/shared/url-utils'
+import { EVIDENCE_LIMIT } from '@/shared/domEvidence'
 
 const LABEL = 'HEAD'
 const NAME = 'Canonical hreflang consistency'
@@ -20,7 +21,7 @@ export const canonicalHreflangConsistencyRule: Rule = {
     if (!canonicalHref) {
       return { label: LABEL, name: NAME, message: 'No canonical link; hreflang consistency not evaluated.', type: 'info', priority: 900, details: { reference: SPEC } }
     }
-    const hreflangEls = Array.from(page.doc.querySelectorAll(SELECTOR)) as HTMLLinkElement[]
+    const hreflangEls = page.doc.querySelectorAll<HTMLLinkElement>(SELECTOR)
     if (!hreflangEls.length) {
       return { label: LABEL, name: NAME, message: 'No hreflang cluster present.', type: 'info', priority: 850, details: { reference: SPEC } }
     }
@@ -36,30 +37,27 @@ export const canonicalHreflangConsistencyRule: Rule = {
     const canonicalHttps = isHttps(canonicalUrl)
     const normalizedCanonical = normalizeUrl(canonicalUrl)
 
-    const hreflangTargets = hreflangEls
-      .map((el) => {
-        const href = (el.getAttribute('href') || '').trim()
-        try {
-          const resolved = new URL(href, page.url).toString()
-          return { resolved, domPath: getDomPath(el) }
-        } catch {
-          return null
-        }
-      })
-      .filter((v): v is { resolved: string; domPath: string } => !!v)
-
-    const normalizedTargets = hreflangTargets.map((t) => ({ ...t, normalized: normalizeUrl(t.resolved) }))
-    const hasCanonicalInCluster = normalizedTargets.some((t) => t.normalized === normalizedCanonical)
-    const protocolHostMismatches = normalizedTargets.filter((t) => {
+    let hasCanonicalInCluster = false
+    let mismatchCount = 0
+    const protocolHostMismatches: Array<{ resolved: string; domPath: string }> = []
+    for (let index = 0; index < hreflangEls.length; index++) {
+      const element = hreflangEls.item(index)
+      if (!element) continue
       try {
-        const u = new URL(t.resolved)
-        return u.host !== canonicalHost || (canonicalHttps && u.protocol !== 'https:')
+        const resolved = new URL((element.getAttribute('href') || '').trim(), page.url).toString()
+        if (normalizeUrl(resolved) === normalizedCanonical) hasCanonicalInCluster = true
+        const url = new URL(resolved)
+        if (url.host === canonicalHost && (!canonicalHttps || url.protocol === 'https:')) continue
+        mismatchCount++
+        if (protocolHostMismatches.length < EVIDENCE_LIMIT) {
+          protocolHostMismatches.push({ resolved, domPath: getDomPath(element) })
+        }
       } catch {
-        return false
+        /* invalid hrefs are handled by their dedicated rule */
       }
-    })
+    }
 
-    if (!hasCanonicalInCluster || protocolHostMismatches.length) {
+    if (!hasCanonicalInCluster || mismatchCount) {
       return {
         label: LABEL,
         name: NAME,
@@ -71,6 +69,9 @@ export const canonicalHreflangConsistencyRule: Rule = {
           canonicalInCluster: hasCanonicalInCluster,
           mismatchingHreflang: protocolHostMismatches.map((m) => m.resolved),
           domPaths: protocolHostMismatches.map((m) => m.domPath),
+          mismatchCount,
+          shown: protocolHostMismatches.length,
+          truncated: mismatchCount > protocolHostMismatches.length,
           reference: SPEC,
           fix: 'Ensure hreflang URLs share the canonical host/protocol and include the canonical URL in the cluster.',
         },

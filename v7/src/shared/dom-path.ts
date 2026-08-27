@@ -30,8 +30,16 @@ export const getDomPath = (element: Element | null): string => {
 
     const parent: Element | null = current.parentElement
     if (parent) {
-      const siblings = Array.from(parent.children).filter((sibling: Element) => sibling.nodeName === current!.nodeName)
-      if (siblings.length > 1) selector += `:nth-of-type(${siblings.indexOf(current) + 1})`
+      let sameTag = 0
+      let position = 0
+      for (let index = 0; index < parent.children.length; index++) {
+        const sibling = parent.children.item(index)
+        if (!sibling) continue
+        if (sibling.nodeName !== current.nodeName) continue
+        sameTag++
+        if (sibling === current) position = sameTag
+      }
+      if (sameTag > 1) selector += `:nth-of-type(${position})`
     }
 
     path.unshift(selector)

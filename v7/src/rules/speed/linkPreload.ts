@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPaths } from '@/shared/dom-path'
+import { sampleElements } from '@/shared/domEvidence'
 
 const SPEC = 'https://web.dev/uses-rel-preload/'
 
@@ -11,9 +12,9 @@ export const linkPreloadRule: Rule = {
   what: 'static',
   async run(page) {
     const links = page.doc.querySelectorAll('link[rel="preload"]')
-    const n = links.length
-    const sourceHtml = n ? extractHtmlFromList(links) : ''
-    const domPaths = n ? getDomPaths(Array.from(links)) : []
+    const { sample, total: n, shown, truncated } = sampleElements(links)
+    const sourceHtml = n ? extractHtmlFromList(sample) : ''
+    const domPaths = n ? getDomPaths(sample) : []
     return {
       label: 'SPEED',
       message: n ? `preload links: ${n}` : 'No preload links',
@@ -23,6 +24,8 @@ export const linkPreloadRule: Rule = {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),
         count: n,
+        shown,
+        truncated,
         domPaths,
         tested: 'Queried <link rel="preload">',
         reference: SPEC,

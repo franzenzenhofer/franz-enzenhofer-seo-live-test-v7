@@ -37,6 +37,7 @@ export const executeRuleBatch = async ({ tabId, run, runState, key, pageUrl, sig
       (chunk) => chunkSync.append(Array.isArray(chunk) ? (chunk as RuleResult[]) : []),
       { signal },
     )
+    await chunkSync.append(res)
     await log(tabId, `runner:offscreen tab=${tabId} runId=${runState.runId} results=${res.length}`)
   } catch (e: unknown) {
     if (e instanceof Error && e.message === 'offscreen-run-cancelled') {

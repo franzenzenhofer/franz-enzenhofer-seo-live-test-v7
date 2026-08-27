@@ -2,6 +2,7 @@ import { enrichFromEvents } from './page.enrich'
 
 import type { Page } from '@/core/types'
 import type { EventRec } from '@/background/pipeline/types'
+import type { ResourceLedger } from '@/background/pipeline/types'
 
 type Head = { status?: number; headers?: Record<string, string> }
 
@@ -37,8 +38,9 @@ export const pageFromEvents = async (
   makeDoc: (html: string) => Document,
   getHref: () => string,
   probe: (u: string) => Promise<Head> = head,
+  resources?: ResourceLedger,
 ): Promise<Page> => {
-  const p0 = enrichFromEvents(ev, makeDoc, getHref)
+  const p0 = enrichFromEvents(ev, makeDoc, getHref, resources)
   const extra = p0.extra as Partial<Page> & { headerChain?: unknown; headers?: Record<string, string> }
   const probed = await probe(p0.url)
   const base: Page = {

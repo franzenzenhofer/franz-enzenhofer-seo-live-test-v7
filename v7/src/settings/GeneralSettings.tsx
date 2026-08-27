@@ -8,7 +8,7 @@ export const GeneralSettings = () => {
   // Real-time sync across all contexts (settings page, sidepanel, etc.)
   const [autoRun, setAutoRun] = useStorageSetting(STORAGE_KEYS.UI.AUTO_RUN, true)
   const [autoClear, setAutoClear] = useStorageSetting(STORAGE_KEYS.UI.AUTO_CLEAR, true)
-  const [debugMode, setDebugMode] = useStorageSetting(STORAGE_KEYS.UI.DEBUG, true)
+  const [debugMode, setDebugMode] = useStorageSetting(STORAGE_KEYS.UI.DEBUG, false)
 
   return (
     <div className="bg-gray-50 rounded-lg p-4">

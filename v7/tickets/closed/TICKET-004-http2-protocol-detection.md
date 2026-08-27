@@ -1,5 +1,7 @@
 # TICKET-004 – HTTP/2+ Protocol Detection Rule Verification
 
+**Status:** Complete (2026-08-27)
+
 ## Issue Summary
 
 The `http:negotiated-protocol` rule correctly identified that `https://autoundwirtschaft.at` serves content over **HTTP/1.1** instead of HTTP/2 or HTTP/3, despite using HTTPS.

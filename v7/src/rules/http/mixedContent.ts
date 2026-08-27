@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { getDomPaths } from '@/shared/dom-path'
+import { extractHtml } from '@/shared/html-utils'
 
 const LABEL = 'HTTP'
 const NAME = 'Mixed content'
@@ -11,7 +12,7 @@ const selectors = ['script[src]', 'link[href]', 'img[src]', 'iframe[src]', 'vide
 const isHttp = (url: string | null | undefined) => typeof url === 'string' && url.trim().toLowerCase().startsWith('http://')
 const buildDetails = (nodes: Element[], paths: string[]) => {
   const preview = nodes.slice(0, SAMPLE_LIMIT)
-  const snippet = preview.map((n) => n.outerHTML).join('\n\n')
+  const snippet = preview.map(extractHtml).join('\n\n')
   const omitted = nodes.length - preview.length
   return {
     snippet: omitted > 0 ? `${snippet}\n\n…${omitted} more resources omitted` : snippet,

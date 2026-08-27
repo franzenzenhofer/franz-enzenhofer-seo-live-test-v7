@@ -13,9 +13,8 @@ describe('rule: dom top words', () => {
   })
 
   it('extracts top words from body text', async () => {
-    // JSDOM innerText works differently - set textContent directly
     const doc = D('<html><body></body></html>')
-    Object.defineProperty(doc.body, 'innerText', { value: 'hello hello hello world world test longer words here' })
+    doc.body.textContent = 'hello hello hello world world test longer words here'
     const r = await topWordsRule.run({ html: '', url: 'https://ex.com', doc } as any, { globals: {} })
     expect(r.message).toContain('Top words')
     expect(r.message).toContain('hello')

@@ -22,6 +22,9 @@ export const STORAGE_KEYS = {
     FAVORITES: 'favorites',
     DISABLED_RULES: 'disabledRules',
   },
+  RESULTS: {
+    CLOSED_TABS: 'results:closed-tabs',
+  },
 } as const
 
 // Type-safe helper type for all storage keys

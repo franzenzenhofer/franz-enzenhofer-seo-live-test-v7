@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { test, expect, chromium, BrowserContext } from '@playwright/test'
 
 import { cleanupProfileDir, describeProfileChoice, prepareProfileDir } from '../../scripts/chrome-profile'
+import { browserExecutable } from './browserExecutable'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -25,7 +26,7 @@ const buildArgs = (headless: boolean) => {
   return args
 }
 
-const DEV_EXTENSION_ID = 'enkjceaniaomnogacnigmlpofdcegcfc'
+const DEV_EXTENSION_ID = 'jbnaibigcohjfefpfocphcjeliohhold'
 
 const withExtension = async (): Promise<ExtensionContext> => {
   if (!fs.existsSync(dist)) throw new Error('Build dist first (npm run build) before running e2e tests.')
@@ -35,6 +36,7 @@ const withExtension = async (): Promise<ExtensionContext> => {
   const context = await chromium.launchPersistentContext(profile.userDataDir, {
     args: buildArgs(headless),
     headless,
+    executablePath: browserExecutable(),
   })
   const cleanup = () => cleanupProfileDir(profile)
   return { context, userDataDir: profile.userDataDir, cleanup }

@@ -1,45 +1,36 @@
 import { getDomPath } from './dom-path'
+import { extractHtml } from './html-utils'
+import { sampleDelimitedTokens } from './boundedTokens'
+import type { RobotsDirective } from './robots.types'
 
-export type RobotsDirective = {
-  ua: string
-  source: 'meta' | 'header'
-  value: string
-  tokens: string[]
-  hasNoindex: boolean
-  hasNofollow: boolean
-  domPath?: string
-  sourceHtml?: string
-  headerKey?: string
-}
+export type { RobotsDirective } from './robots.types'
 
-const normalizeWhitespace = (val: string) => val.replace(/\s+/g, ' ').trim()
-
-const splitTokens = (val: string) =>
-  normalizeWhitespace(val)
-    .toLowerCase()
-    .split(/[,;]/)
-    .map((t) => t.trim())
-    .filter(Boolean)
+const scanTokens = (value: string) => sampleDelimitedTokens(value, ',;', ['noindex', 'none', 'nofollow'])
 
 const parseMeta = (doc: Document): RobotsDirective[] => {
-  const nodes = Array.from(doc.querySelectorAll('head > meta[name]')) as HTMLMetaElement[]
   const directives: RobotsDirective[] = []
-  nodes.forEach((el) => {
+  const nodes = doc.querySelectorAll<HTMLMetaElement>('head > meta[name]')
+  for (let index = 0; index < nodes.length; index++) {
+    const el = nodes.item(index)
+    if (!el) continue
     const name = (el.getAttribute('name') || '').trim().toLowerCase()
     const content = (el.getAttribute('content') || '').trim()
-    if (!content) return
-    const tokens = splitTokens(content)
+    if (!content) continue
+    if (directives.length >= 1_000) throw new Error('Robots meta directives exceed the bounded contract')
+    const scan = scanTokens(content)
     directives.push({
       ua: name,
       source: 'meta',
       value: content,
-      tokens,
-      hasNoindex: tokens.includes('noindex') || tokens.includes('none'),
-      hasNofollow: tokens.includes('nofollow') || tokens.includes('none'),
+      tokens: scan.values,
+      hasNoindex: scan.matches.includes('noindex') || scan.matches.includes('none'),
+      hasNofollow: scan.matches.includes('nofollow') || scan.matches.includes('none'),
+      tokenCount: scan.total,
+      tokensTruncated: scan.truncated,
       domPath: getDomPath(el),
-      sourceHtml: el.outerHTML,
+      sourceHtml: extractHtml(el),
     })
-  })
+  }
   return directives
 }
 
@@ -49,20 +40,24 @@ const parseHeader = (headers?: Record<string, string>): RobotsDirective[] => {
   if (!raw) return []
   // X-Robots-Tag can appear multiple times; split on commas unless namespaced
   // Allowed formats: "noindex, nofollow", "googlebot: noindex", "bingbot: noindex, nofollow"
-  const parts = raw.split(/,(?![^"]*")/).map((p) => p.trim()).filter(Boolean)
+  const scanned = sampleDelimitedTokens(raw, ',', [], 1_001)
+  if (scanned.total > 1_000) throw new Error('X-Robots-Tag directives exceed the bounded contract')
+  const parts = scanned.values
   const directives: RobotsDirective[] = []
   parts.forEach((part, idx) => {
     const m = /^([a-z0-9_-]+)\s*:\s*(.+)$/i.exec(part)
     const ua = (m?.[1] || 'robots').toLowerCase()
     const value = (m?.[2] || part).trim()
-    const tokens = splitTokens(value)
+    const scan = scanTokens(value)
     directives.push({
       ua,
       source: 'header',
       value,
-      tokens,
-      hasNoindex: tokens.includes('noindex') || tokens.includes('none'),
-      hasNofollow: tokens.includes('nofollow') || tokens.includes('none'),
+      tokens: scan.values,
+      hasNoindex: scan.matches.includes('noindex') || scan.matches.includes('none'),
+      hasNofollow: scan.matches.includes('nofollow') || scan.matches.includes('none'),
+      tokenCount: scan.total,
+      tokensTruncated: scan.truncated,
       headerKey: `x-robots-tag[${idx}]`,
     })
   })

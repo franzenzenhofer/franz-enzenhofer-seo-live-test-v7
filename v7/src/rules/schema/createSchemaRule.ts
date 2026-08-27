@@ -73,9 +73,14 @@ export function createSchemaRule(config: SchemaRuleConfig): Rule {
         : result
 
       // Find the script tag containing this schema
-      const script = Array.from(scripts).find((s) =>
-        searchStrings.some(str => s.textContent?.includes(str))
-      ) || null
+      let script: Element | null = null
+      for (let index = 0; index < scripts.length; index++) {
+        const candidate = scripts.item(index)
+        if (!candidate) continue
+        if (!searchStrings.some((value) => candidate.textContent?.includes(value))) continue
+        script = candidate
+        break
+      }
       const sourceHtml = extractHtml(script)
 
       // Build message

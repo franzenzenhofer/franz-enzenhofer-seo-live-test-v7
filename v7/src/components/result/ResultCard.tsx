@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { MessageWithLinks } from './MessageWithLinks'
 import { ResultDetails } from './ResultDetails'
 import { ResultHeader } from './ResultHeader'
+import { ResultMetadata } from './ResultMetadata'
 import { useResultHighlight } from './useResultHighlight'
 import { toResultCopyPayload } from './resultCopy'
 import { buildDomHighlight, buildDetailPayload, extractSnippet } from './resultTransforms'
@@ -25,7 +26,7 @@ type Props = {
 
 export const ResultCard = ({ result, index, displayIndex, isPinned, onTogglePin, isDisabled, onToggleDisable, defaultExpanded = false, tabId, logUi }: Props) => {
   const color = getResultColor(result.type)
-  const hasDetails = Boolean(result.details)
+  const hasDetails = Boolean(result.details || result.what || result.ruleId || typeof result.priority === 'number')
   const [open, setOpen] = useState(hasDetails && defaultExpanded)
   const snippet = extractSnippet(result.details)
   const { selectors, colors } = useMemo(() => buildDomHighlight(result), [result.details])
@@ -51,8 +52,6 @@ export const ResultCard = ({ result, index, displayIndex, isPinned, onTogglePin,
     <article id={typeof numberLabel === 'number' ? `result-${numberLabel}` : undefined} className={`${color.full} border rounded p-3 space-y-2`} data-testid="result-card">
       <ResultHeader
         result={result}
-        index={index}
-        displayIndex={numberLabel ?? undefined}
         isPinned={isPinned}
         onTogglePin={onTogglePin}
         onToggleDisable={toggleDisable}
@@ -65,8 +64,13 @@ export const ResultCard = ({ result, index, displayIndex, isPinned, onTogglePin,
         onOpenReport={result.runIdentifier ? openReport : undefined}
       />
       <MessageWithLinks text={result.message} className="text-sm text-slate-900 break-words" />
-      {snippet && <pre className="text-xs bg-white/70 border rounded p-2 whitespace-pre-wrap break-words text-slate-700">{snippet}</pre>}
-      {open && hasDetails && <ResultDetails details={detailPayload} />}
+      {open && hasDetails && (
+        <div className="space-y-2">
+          <ResultMetadata result={result} number={numberLabel} />
+          {snippet && <pre className="text-xs bg-white/70 border rounded p-2 whitespace-pre-wrap break-words text-slate-700">{snippet}</pre>}
+          <ResultDetails details={detailPayload} />
+        </div>
+      )}
     </article>
   )
 }

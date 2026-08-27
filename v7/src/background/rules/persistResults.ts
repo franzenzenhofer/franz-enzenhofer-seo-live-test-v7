@@ -1,10 +1,13 @@
 import { dedupRunner } from './dedup'
 
 import { Logger } from '@/shared/logger'
+import { isQuotaLike } from '@/shared/storage-retry'
 
 export interface PersistableResult {
   name?: string; message?: string; type?: string
   ruleId?: string | null; runIdentifier?: string
+  details?: unknown
+  [key: string]: unknown
 }
 
 // Soft cap evicts oldest runs; hard cap throws so the caller sees the failure.
@@ -66,7 +69,14 @@ export const persistResults = async (tabId: number, key: string, prev: Persistab
     return capped.length
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err)
-    throw new Error(`Failed to persist results for ${key}: ${reason}`)
+    if (!isQuotaLike(err)) throw new Error(`Failed to persist results for ${key}: ${reason}`)
+    const degraded = capped.map((result) => Object.fromEntries(Object.entries(result).filter(([name]) => name !== 'details')))
+    await chrome.storage.local.set({ [key]: degraded }).catch((retryError) => {
+      const retryReason = retryError instanceof Error ? retryError.message : String(retryError)
+      throw new Error(`Failed to persist degraded results for ${key}: ${retryReason}`)
+    })
+    Logger.logDirectSend(tabId, 'storage', 'degraded', { key, results: degraded.length, reason })
+    return degraded.length
   }
 }
 

@@ -6,7 +6,7 @@ import { seedDefaults } from './rules/index'
 import { enableAndOpenSidePanel } from './panel'
 import { registerCommandAndMenu } from './commands'
 import { initDevAutoReload } from './devReload'
-import { abortSession } from './rules/sessions'
+import { cleanupClosedTab } from './tabCleanup'
 
 import { refreshIfPresent } from '@/shared/auth'
 import { rememberHttpTab } from '@/shared/tabMemory'
@@ -48,8 +48,7 @@ chrome.tabs.onUpdated.addListener(async (tabId) => {
 })
 
 chrome.tabs.onRemoved.addListener((tabId) => {
-  abortSession(tabId, 'tab-closed').catch(() => {})
-  chrome.storage.session.remove(`nav:ledger:${tabId}`).catch(() => {})
+  cleanupClosedTab(tabId).catch((error) => console.error('[tab-cleanup] failed', error))
 })
 
 registerNavListeners()

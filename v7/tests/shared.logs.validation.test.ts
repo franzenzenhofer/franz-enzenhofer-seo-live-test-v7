@@ -13,6 +13,7 @@ beforeEach(() => {
   globalThis.chrome = {
     storage: {
       session,
+      local: { get: vi.fn(async () => ({ 'ui:debug': true })) },
     },
   }
 })
@@ -28,5 +29,11 @@ describe('shared/logs tab validation', () => {
   it('stores logs for valid tabs', async () => {
     await log(7, 'ok')
     expect(session.set).toHaveBeenCalledWith({ 'logs:7': expect.any(Array) })
+  })
+
+  it('drops routine logs when debug mode is off', async () => {
+    ;(chrome.storage.local.get as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ 'ui:debug': false })
+    await log(8, 'routine event')
+    expect(session.set).not.toHaveBeenCalled()
   })
 })

@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
+import { parseLd } from '@/shared/structured'
 
 const SPEC = 'https://developers.google.com/search/docs/appearance/structured-data/article#datepublished'
 
@@ -14,23 +15,15 @@ const findDates = (d: Document): DateResult => {
   let modified = modEl?.getAttribute('content') || ''
   let element: Element | null = pubEl || modEl
 
-  const scripts = Array.from(d.querySelectorAll('script[type="application/ld+json"]'))
-  for (const s of scripts) {
-    try {
-      const j = JSON.parse(s.textContent || 'null')
-      const arr = Array.isArray(j) ? j : [j]
-      for (const it of arr) {
-        if (it && typeof it['datePublished'] === 'string' && !published) {
-          published = it['datePublished']
-          element = element || s
-        }
-        if (it && typeof it['dateModified'] === 'string' && !modified) {
-          modified = it['dateModified']
-          element = element || s
-        }
-      }
-    } catch {
-      /* ignore */
+  const script = d.querySelector('script[type="application/ld+json"]')
+  for (const node of parseLd(d)) {
+    if (typeof node['datePublished'] === 'string' && !published) {
+      published = node['datePublished']
+      element = element || script
+    }
+    if (typeof node['dateModified'] === 'string' && !modified) {
+      modified = node['dateModified']
+      element = element || script
     }
   }
   return { published, modified, element }

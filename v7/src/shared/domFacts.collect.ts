@@ -2,14 +2,16 @@ import { attributesOf, elementFact, factBucket, type FactBucket } from './domFac
 import { normalizedTextLength, walkNodes } from './domFacts.walk'
 import type { DomPhase, DomPhaseFacts } from './domFacts.types'
 
-const PARAMETERIZED_LINK_LIMIT = 50
-const BUCKET_LIMITS: Record<FactBucket, number> = { head: 100, anchor: 50, resource: 50 }
+const PARAMETERIZED_LINK_LIMIT = 12
+const ELEMENT_CHAR_BUDGET = 14_000
+const BUCKET_LIMITS: Record<FactBucket, number> = { head: 40, anchor: 10, resource: 20 }
 
 export const collectDomFacts = (doc: Document, phase: DomPhase): DomPhaseFacts => {
   const elements: DomPhaseFacts['elements'] = []
   const used: Record<FactBucket, number> = { head: 0, anchor: 0, resource: 0 }
   const parameterizedLinks: string[] = []
   let parameterizedLinkCount = 0
+  let elementChars = 0
   let elementsTruncated = false
   let scriptCount = 0
   let blockingScriptCount = 0
@@ -25,14 +27,18 @@ export const collectDomFacts = (doc: Document, phase: DomPhase): DomPhaseFacts =
       const href = element.getAttribute('href') || ''
       if (href.includes('?')) {
         parameterizedLinkCount++
-        if (parameterizedLinks.length < PARAMETERIZED_LINK_LIMIT) parameterizedLinks.push(href.slice(0, 2_048))
+        if (parameterizedLinks.length < PARAMETERIZED_LINK_LIMIT) parameterizedLinks.push(href.slice(0, 512))
       }
     }
     const bucket = factBucket(element, doc)
     if (!bucket) return
     if (used[bucket] >= BUCKET_LIMITS[bucket]) { elementsTruncated = true; return }
+    const fact = elementFact(element, doc)
+    const factChars = JSON.stringify(fact).length
+    if (elementChars + factChars > ELEMENT_CHAR_BUDGET) { elementsTruncated = true; return }
     used[bucket]++
-    elements.push(elementFact(element, doc))
+    elementChars += factChars
+    elements.push(fact)
   })
   return {
     phase, nodeCount: metrics.count, maxDepth: metrics.maxDepth,

@@ -1,6 +1,6 @@
 # TICKET-008: Restore Rule Phase Parity and Bound Evidence
 
-**Status:** Open  
+**Status:** Complete (2026-08-27)
 **Priority:** High  
 **Type:** Rule correctness  
 **Depends on:** TICKET-007
@@ -40,4 +40,3 @@ Correct one rule family at a time. Run its focused tests before moving to the ne
 - Findings and total counts remain correct when evidence is truncated.
 - A single pathological rule input cannot crash or block other rules.
 - Typecheck, lint, and all tests pass.
-

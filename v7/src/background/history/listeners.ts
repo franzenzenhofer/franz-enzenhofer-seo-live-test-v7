@@ -79,3 +79,8 @@ export const getLedger = async (tabId: number): Promise<NavigationLedger | null>
   const res = await chrome.storage.session.get(k)
   return (res[k] as NavigationLedger) || null
 }
+
+export const clearLedger = async (tabId: number): Promise<void> => {
+  traces.delete(tabId)
+  await chrome.storage.session.remove(STORAGE_KEY(tabId))
+}

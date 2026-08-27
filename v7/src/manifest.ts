@@ -18,8 +18,8 @@ export default defineManifest({
   name,
   version,
   version_name,
-  description: 'Modern MV3 side-panel extension for live tests.',
-  action: { default_title: 'Open Live Test' },
+  description: `${EXTENSION_NAME} analyzes technical SEO signals in a Chrome side panel.`,
+  action: { default_title: `Open ${EXTENSION_NAME}` },
   icons: {
     '16': 'src/icons/icon-16.png',
     '32': 'src/icons/icon-32.png',

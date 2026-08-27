@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPath, getDomPaths } from '@/shared/dom-path'
+import { sampleElements } from '@/shared/domEvidence'
 import { isAbsoluteUrl, normalizeUrl } from '@/shared/url-utils'
 
 const LABEL = 'HEAD'
@@ -13,8 +14,8 @@ export const canonicalRule: Rule = {
   enabled: true,
   what: 'static',
   run: async (page) => {
-    const elements = Array.from(page.doc.querySelectorAll('link[rel~="canonical" i]')) as HTMLLinkElement[]
-    const count = elements.length
+    const elements = sampleElements(page.doc.querySelectorAll<HTMLLinkElement>('link[rel~="canonical" i]'))
+    const count = elements.total
 
     if (count === 0) {
       return {
@@ -28,18 +29,18 @@ export const canonicalRule: Rule = {
     }
 
     if (count > 1) {
-      const sourceHtml = extractHtmlFromList(elements)
+      const sourceHtml = extractHtmlFromList(elements.sample)
       return {
         label: LABEL,
         message: `Multiple canonical tags found (${count}); keep exactly one.`,
         type: 'error',
         priority: 200,
         name: NAME,
-        details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPaths: getDomPaths(elements), hrefs: elements.map((el) => (el.getAttribute('href') || '').trim()), reference: SPEC, count },
+        details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPaths: getDomPaths(elements.sample), hrefs: elements.sample.map((el) => (el.getAttribute('href') || '').trim()), reference: SPEC, count, shown: elements.shown, truncated: elements.truncated },
       }
     }
 
-    const el = elements[0] as HTMLLinkElement
+    const el = elements.sample[0]!
     const sourceHtml = extractHtml(el)
     const href = (el.getAttribute('href') || '').trim()
     if (!el.closest('head')) {

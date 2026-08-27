@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 
+import { EXTENSION_NAME } from '../../config.js'
+
 import { HeaderUrlSection } from './HeaderUrlSection'
 
 import type { RunStatus } from '@/shared/runStatus'
@@ -41,7 +43,7 @@ export const LiveTestHeader = ({
               alt="FE logo"
               className="h-6 w-6"
             />
-            <h1 className="text-base font-bold text-gray-900">Franz Enzenhofer SEO Live Test</h1>
+            <h1 className="text-base font-bold text-gray-900">{EXTENSION_NAME}</h1>
           </div>
           {version && <span className="text-[10px] uppercase tracking-wide text-gray-400">v{version}</span>}
         </div>

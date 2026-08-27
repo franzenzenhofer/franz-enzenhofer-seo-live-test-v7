@@ -1,7 +1,7 @@
 import type { DomElementFact } from './domFacts.types'
 
-const MAX_ATTRIBUTES = 20
-const MAX_VALUE_LENGTH = 2_048
+const MAX_ATTRIBUTES = 12
+const MAX_VALUE_LENGTH = 512
 const HEAD_TAGS = new Set(['base', 'link', 'meta', 'title'])
 const RESOURCE_TAGS = new Set(['audio', 'embed', 'form', 'iframe', 'img', 'object', 'script', 'source', 'video'])
 

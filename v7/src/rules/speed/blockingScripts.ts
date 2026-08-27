@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPaths } from '@/shared/dom-path'
+import { sampleElements } from '@/shared/domEvidence'
 
 const SPEC = 'https://developer.chrome.com/docs/lighthouse/performance/render-blocking-resources'
 
@@ -11,9 +12,9 @@ export const blockingScriptsRule: Rule = {
   what: 'static',
   async run(page) {
     const scripts = page.doc.querySelectorAll('head script[src]:not([async]):not([defer])')
-    const s = scripts.length
-    const sourceHtml = s ? extractHtmlFromList(scripts) : ''
-    const domPaths = s ? getDomPaths(Array.from(scripts)) : []
+    const { sample, total: s, shown, truncated } = sampleElements(scripts)
+    const sourceHtml = s ? extractHtmlFromList(sample) : ''
+    const domPaths = s ? getDomPaths(sample) : []
     return {
       label: 'SPEED',
       message: s ? `Blocking scripts in head: ${s}` : 'No blocking head scripts',
@@ -23,6 +24,8 @@ export const blockingScriptsRule: Rule = {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),
         count: s,
+        shown,
+        truncated,
         domPaths,
         tested: 'Scanned <head> for sync external scripts',
         reference: SPEC,

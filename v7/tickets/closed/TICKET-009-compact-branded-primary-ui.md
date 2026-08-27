@@ -1,6 +1,6 @@
 # TICKET-009: Compact and Brand the Primary UI
 
-**Status:** Open  
+**Status:** Complete (2026-08-27)
 **Priority:** High  
 **Type:** Product UI  
 **Depends on:** TICKET-008
@@ -42,4 +42,3 @@ Implement the shared brand constant and compact components. Pass focused UI test
 - Filter and diagnostic power remains available without default prose.
 - No custom or inline CSS is introduced.
 - Typecheck, lint, and all tests pass.
-

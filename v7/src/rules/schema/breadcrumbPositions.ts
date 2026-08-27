@@ -1,8 +1,7 @@
 import { createSchemaRule } from './createSchemaRule'
 
 type SchemaNode = Record<string, unknown>
-
-const asList = (value: unknown): SchemaNode[] => (Array.isArray(value) ? value.filter((v): v is SchemaNode => typeof v === 'object' && v !== null) : [])
+const EVIDENCE_LIMIT = 10
 
 const hasValidPosition = (value: unknown) => {
   if (typeof value === 'number') return Number.isFinite(value)
@@ -24,13 +23,21 @@ export const schemaBreadcrumbPositionsRule = createSchemaRule({
   name: 'Schema Breadcrumb positions',
   types: 'BreadcrumbList',
   validator: (n) => {
-    const items = asList(n['itemListElement'])
-    if (!items.length) return { ok: false, missing: ['itemListElement'] }
+    const items = n['itemListElement']
+    if (!Array.isArray(items) || !items.length) return { ok: false, missing: ['itemListElement'] }
     const missing: string[] = []
-    items.forEach((item, index) => {
-      if (!hasValidPosition(item['position'])) missing.push(`itemListElement[${index}].position`)
-      if (!hasValidItem(item['item'])) missing.push(`itemListElement[${index}].item`)
+    let missingCount = 0
+    const addMissing = (value: string) => {
+      missingCount++
+      if (missing.length < EVIDENCE_LIMIT) missing.push(value)
+    }
+    items.forEach((value, index) => {
+      if (!value || typeof value !== 'object') { addMissing(`itemListElement[${index}]`); return }
+      const item = value as SchemaNode
+      if (!hasValidPosition(item['position'])) addMissing(`itemListElement[${index}].position`)
+      if (!hasValidItem(item['item'])) addMissing(`itemListElement[${index}].item`)
     })
-    return { ok: missing.length === 0, missing }
+    if (missingCount > missing.length) missing.push(`…${missingCount - missing.length} more`)
+    return { ok: missingCount === 0, missing }
   },
 })

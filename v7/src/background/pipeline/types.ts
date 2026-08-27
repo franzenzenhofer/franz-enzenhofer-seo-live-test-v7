@@ -10,4 +10,5 @@ export type EventRec = {
   ru?: string
   d?: unknown
 }
-export type Run = { id: number; ev: EventRec[]; domDone?: boolean }
+export type ResourceLedger = { urls: string[]; total: number; dropped: number }
+export type Run = { id: number; ev: EventRec[]; domDone?: boolean; eventDropped?: number; resources?: ResourceLedger }

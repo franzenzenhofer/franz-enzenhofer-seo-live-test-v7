@@ -9,6 +9,7 @@ import {
   readSystemLogsFromSession,
   SYSTEM_TAB_ID,
 } from './logStore'
+import { shouldRetainLog } from './logPolicy'
 
 type LogsCommand = 'logs:get' | 'logs:clear'
 type LogsGetResponse = { logs: string[] }
@@ -30,6 +31,8 @@ const sendLogsMessage = async <T>(type: LogsCommand, tabId: number): Promise<T> 
 const formatEntry = (tab: string, message: string) => `[${new Date().toISOString()}] tab=${tab} ${message}`
 
 export const log = async (tabId: number, message: string) => {
+  ensureTabId(tabId)
+  if (!await shouldRetainLog(message)) return
   await appendLogEntry(tabId, formatEntry(String(tabId), message))
 }
 

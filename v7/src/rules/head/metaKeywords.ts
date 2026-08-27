@@ -1,6 +1,8 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet } from '@/shared/html-utils'
 import { getDomPath, getDomPaths } from '@/shared/dom-path'
+import { sampleElements } from '@/shared/domEvidence'
+import { sampleDelimitedTokens } from '@/shared/boundedTokens'
 
 // Constants
 const LABEL = 'HEAD'
@@ -15,10 +17,8 @@ export const metaKeywordsRule: Rule = {
   enabled: true,
   what: 'static',
   async run(page) {
-    const elements = Array.from(page.doc.querySelectorAll(SELECTOR))
-      .concat(Array.from(page.domIdleDoc?.querySelectorAll(SELECTOR) || []))
-      .filter((el, idx, arr) => arr.findIndex((n) => n.getAttribute('content') === el.getAttribute('content')) === idx)
-    if (elements.length === 0) {
+    const elements = sampleElements(page.doc.querySelectorAll(SELECTOR))
+    if (elements.total === 0) {
       return {
         label: LABEL,
         name: NAME,
@@ -29,22 +29,22 @@ export const metaKeywordsRule: Rule = {
       }
     }
 
-    if (elements.length > 1) {
-      const snippet = extractHtml(elements[0]!)
+    if (elements.total > 1) {
+      const snippet = extractHtml(elements.sample[0]!)
       return {
         label: LABEL,
         name: NAME,
         message: 'Multiple meta keywords tags found (deprecated, remove).',
         type: 'warn',
         priority: 300,
-        details: { sourceHtml: snippet, snippet: extractSnippet(snippet), domPaths: getDomPaths(elements), reference: SPEC },
+        details: { sourceHtml: snippet, snippet: extractSnippet(snippet), domPaths: getDomPaths(elements.sample), count: elements.total, shown: elements.shown, truncated: elements.truncated, reference: SPEC },
       }
     }
 
-    const element = elements[0]!
+    const element = elements.sample[0]!
     const content = (element.getAttribute('content') || '').trim()
-    const keywords = content.split(',').map((k) => k.trim()).filter(Boolean)
-    const message = keywords.length === 0
+    const keywords = sampleDelimitedTokens(content)
+    const message = keywords.total === 0
       ? 'Meta keywords tag present but empty (deprecated, remove).'
       : `Unnecessary meta keywords tag: ${content}`
 
@@ -59,8 +59,10 @@ export const metaKeywordsRule: Rule = {
         snippet: extractSnippet(content || '(empty)'),
         domPath: getDomPath(element),
         content,
-        keywords,
-        count: keywords.length,
+        keywords: keywords.values,
+        count: keywords.total,
+        shown: keywords.shown,
+        truncated: keywords.truncated,
         reference: SPEC,
       },
     }

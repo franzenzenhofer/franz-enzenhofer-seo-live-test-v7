@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
 import { extractHtml } from '@/shared/html-utils'
 import { getDomPath, getDomPaths } from '@/shared/dom-path'
+import { sampleElements } from '@/shared/domEvidence'
 
 const LABEL = 'HEAD'
 const NAME = 'Meta Description'
@@ -16,23 +17,23 @@ export const metaDescriptionRule: Rule = {
   enabled: true,
   what: 'static',
   run: async (page) => {
-    const nodes = Array.from(page.doc.querySelectorAll(SELECTOR)) as HTMLMetaElement[]
-    const count = nodes.length
+    const nodes = sampleElements(page.doc.querySelectorAll<HTMLMetaElement>(SELECTOR))
+    const count = nodes.total
     if (!count) {
       return { label: LABEL, message: 'No meta description found.', type: 'error', priority: 0, name: NAME, details: { reference: SPEC } }
     }
     if (count > 1) {
-      const combined = nodes.map((node) => extractHtml(node)).join('\n')
+      const combined = nodes.sample.map((node) => extractHtml(node)).join('\n')
       return {
         label: LABEL,
         message: 'Multiple meta description tags found.',
         type: 'error',
         priority: 100,
         name: NAME,
-        details: { domPaths: getDomPaths(nodes), snippet: combined, sourceHtml: combined, reference: SPEC },
+        details: { domPaths: getDomPaths(nodes.sample), snippet: combined, sourceHtml: combined, count, shown: nodes.shown, truncated: nodes.truncated, reference: SPEC },
       }
     }
-    const node = nodes[0]!
+    const node = nodes.sample[0]!
     const description = cleanContent(node.getAttribute('content'))
     const empty = description.length === 0
     return {

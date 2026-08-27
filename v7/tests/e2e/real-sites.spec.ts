@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import { test, expect, chromium, type BrowserContext } from '@playwright/test'
 
 import { cleanupProfileDir, describeProfileChoice, prepareProfileDir } from '../../scripts/chrome-profile'
+import { browserExecutable } from './browserExecutable'
 
 const dist = path.resolve(new URL('../../dist', import.meta.url).pathname)
 
@@ -25,7 +26,9 @@ const withExtension = async (): Promise<{ context: BrowserContext; cleanup: () =
   console.info(`[real-sites] Using ${describeProfileChoice(profile)}`)
   // Default headed so chrome-extension:// URLs resolve. Override with PW_EXT_HEADLESS=1.
   const headless = process.env['PW_EXT_HEADLESS'] === '1'
-  const context = await chromium.launchPersistentContext(profile.userDataDir, { args: buildArgs(headless), headless })
+  const context = await chromium.launchPersistentContext(profile.userDataDir, {
+    args: buildArgs(headless), headless, executablePath: browserExecutable(),
+  })
   return { context, cleanup: () => cleanupProfileDir(profile) }
 }
 

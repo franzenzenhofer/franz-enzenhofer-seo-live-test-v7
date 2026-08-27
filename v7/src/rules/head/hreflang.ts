@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPaths } from '@/shared/dom-path'
+import { sampleElements } from '@/shared/domEvidence'
 
 // Constants
 const LABEL = 'HEAD'
@@ -15,16 +16,16 @@ export const hreflangRule: Rule = {
   enabled: true,
   what: 'static',
   run: async (page) => {
-    const elements = Array.from(page.doc.querySelectorAll(SELECTOR))
-    const count = elements.length
-    const hreflangData = elements.map((link) => ({
+    const elements = sampleElements(page.doc.querySelectorAll(SELECTOR))
+    const count = elements.total
+    const hreflangData = elements.sample.map((link) => ({
       hreflang: link.getAttribute('hreflang')?.trim() || '',
       href: link.getAttribute('href')?.trim() || '',
     }))
     const languages = [...new Set(hreflangData.map((d) => d.hreflang).filter(Boolean))]
 
-    const sourceHtml = extractHtmlFromList(elements)
-    const domPaths = getDomPaths(elements)
+    const sourceHtml = extractHtmlFromList(elements.sample)
+    const domPaths = getDomPaths(elements.sample)
 
     const message =
       count === 0
@@ -43,6 +44,8 @@ export const hreflangRule: Rule = {
             snippet: extractSnippet(sourceHtml, 150),
             domPaths,
             count,
+            shown: elements.shown,
+            truncated: elements.truncated,
             languages,
             hreflangData,
             reference: SPEC,

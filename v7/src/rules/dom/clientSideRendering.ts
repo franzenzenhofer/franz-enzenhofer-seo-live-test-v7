@@ -1,10 +1,6 @@
 import type { Rule } from '@/core/types'
-import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
-import { getDomPaths } from '@/shared/dom-path'
 
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics'
-
-const textLen = (d: Document) => (d.body?.innerText || '').replace(/\s+/g, ' ').trim().length
 
 export const clientSideRenderingRule: Rule = {
   id: 'dom:client-side-rendering',
@@ -12,44 +8,33 @@ export const clientSideRenderingRule: Rule = {
   enabled: true,
   what: 'static',
   async run(page) {
-    const len = textLen(page.doc)
-    const scriptEls = Array.from(page.doc.querySelectorAll('script[src]'))
-    const scripts = scriptEls.length
-    const heavyScripts = page.doc.querySelectorAll('script:not([async]):not([defer])[src]').length
-    const possible = len < 40 && (scripts > 5 || heavyScripts > 0)
-    const sourceHtml = extractHtmlFromList(scriptEls)
-    const domPaths = getDomPaths(scriptEls)
-
-    return possible
-      ? {
-          label: 'DOM',
-          message: 'Possible client-side rendering (very low text, many scripts)',
-          type: 'info',
-          name: 'Client-side rendering heuristic',
-          details: {
-            sourceHtml,
-            snippet: extractSnippet(sourceHtml),
-            textLength: len,
-            scriptCount: scripts,
-            heavyScriptCount: heavyScripts,
-            domPaths,
-            reference: SPEC,
-          },
-        }
-      : {
-          label: 'DOM',
-          message: 'Server-rendered content likely present',
-          type: 'info',
-          name: 'Client-side rendering heuristic',
-          details: {
-            sourceHtml,
-            snippet: extractSnippet(sourceHtml),
-            textLength: len,
-            scriptCount: scripts,
-            heavyScriptCount: heavyScripts,
-            domPaths,
-            reference: SPEC,
-          },
-        }
+    const staticFacts = page.staticFacts
+    const idleFacts = page.idleFacts
+    if (!staticFacts || !idleFacts) {
+      return {
+        label: 'DOM', name: 'Client-side rendering heuristic', type: 'runtime_error',
+        message: 'Static and idle DOM facts are required for client-side rendering analysis.',
+        details: { staticAvailable: !!staticFacts, idleAvailable: !!idleFacts, reference: SPEC },
+      }
+    }
+    const addedText = Math.max(0, idleFacts.textLength - staticFacts.textLength)
+    const hydrated = addedText >= 40 && idleFacts.textLength >= staticFacts.textLength * 1.25
+    const scriptHeavy = staticFacts.scriptCount > 5 || staticFacts.blockingScriptCount > 0
+    const possible = hydrated || (staticFacts.textLength < 40 && scriptHeavy)
+    return {
+      label: 'DOM', name: 'Client-side rendering heuristic', type: 'info',
+      message: possible
+        ? `Client rendering changed visible text by ${addedText} characters between static and idle phases.`
+        : 'No material client-rendered text change detected between static and idle phases.',
+      details: {
+        staticTextLength: staticFacts.textLength,
+        idleTextLength: idleFacts.textLength,
+        addedText,
+        staticScriptCount: staticFacts.scriptCount,
+        staticBlockingScriptCount: staticFacts.blockingScriptCount,
+        hydrated,
+        reference: SPEC,
+      },
+    }
   },
 }
