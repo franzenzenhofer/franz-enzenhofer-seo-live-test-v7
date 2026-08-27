@@ -8,7 +8,7 @@ const DEFAULT_BLOCKED = Array.from(DEFAULT_BLOCKLIST)
 
 export const FactoryReset = () => {
   const resetAll = async () => {
-    const confirmed = window.confirm('Reset all Live Test data? This clears settings, favorites, run history, and cached results.')
+    const confirmed = window.confirm('Reset all Franz Enzenhofer SEO Live Test data? This clears settings, favorites, run history, and cached results.')
     if (!confirmed) return
     await chrome.storage.local.clear()
     await chrome.storage.session.clear().catch(() => {})

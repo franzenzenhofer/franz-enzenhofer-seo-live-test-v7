@@ -94,4 +94,16 @@ describe('Build Critical Files', () => {
       expect(content, `${file} missing script: ${script}`).toContain(script)
     })
   })
+
+  it('keeps primary extension surfaces on the canonical product name', () => {
+    const productName = 'Franz Enzenhofer SEO Live Test'
+    const config = readFileSync(resolve(process.cwd(), 'config.js'), 'utf-8')
+    const primaryHtml = ['sidepanel', 'report', 'settings', 'logs', 'ruleruns']
+
+    expect(config).toContain(`EXTENSION_NAME = '${productName}'`)
+    primaryHtml.forEach((name) => {
+      const content = readFileSync(resolve(process.cwd(), `src/${name}.html`), 'utf-8')
+      expect(content, `${name}.html is not branded`).toContain(productName)
+    })
+  })
 })

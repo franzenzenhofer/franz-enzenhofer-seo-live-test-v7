@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
+import { EVIDENCE_LIMIT } from '@/shared/domEvidence'
 
 const LABEL = 'BODY'
 const NAME = 'Internal links count'
@@ -23,19 +24,25 @@ export const internalLinksRule: Rule = {
   enabled: true,
   what: 'static',
   async run(page) {
-    const a = Array.from(page.doc.querySelectorAll('a[href]')) as HTMLAnchorElement[]
+    const anchors = page.doc.querySelectorAll<HTMLAnchorElement>('a[href]')
     const internalLinks: HTMLAnchorElement[] = []
     const externalLinks: HTMLAnchorElement[] = []
+    let internalCount = 0
+    let externalCount = 0
 
-    for (const x of a) {
+    for (let index = 0; index < anchors.length; index++) {
+      const x = anchors.item(index)
+      if (!x) continue
       if (sameHost(page.url, x.getAttribute('href') || '')) {
-        internalLinks.push(x)
+        internalCount++
+        if (internalLinks.length < EVIDENCE_LIMIT) internalLinks.push(x)
       } else {
-        externalLinks.push(x)
+        externalCount++
+        if (externalLinks.length < EVIDENCE_LIMIT) externalLinks.push(x)
       }
     }
 
-    const sourceHtml = extractHtmlFromList(a)
+    const sourceHtml = extractHtmlFromList([...internalLinks, ...externalLinks])
     const internalPaths = internalLinks.map((el) => getDomPath(el)).filter(Boolean)
     const externalPaths = externalLinks.map((el) => getDomPath(el)).filter(Boolean)
     const domPaths = [...internalPaths, ...externalPaths]
@@ -45,7 +52,7 @@ export const internalLinksRule: Rule = {
     ]
     return {
       label: LABEL,
-      message: `Links: internal ${internalLinks.length}, external ${externalLinks.length}`,
+      message: `Links: internal ${internalCount}, external ${externalCount}`,
       type: 'info',
       name: NAME,
       details: {
@@ -53,8 +60,10 @@ export const internalLinksRule: Rule = {
         snippet: extractSnippet(sourceHtml),
         tested: TESTED,
         reference: SPEC,
-        internalCount: internalLinks.length,
-        externalCount: externalLinks.length,
+        internalCount,
+        externalCount,
+        shown: internalLinks.length + externalLinks.length,
+        truncated: internalCount + externalCount > internalLinks.length + externalLinks.length,
         domPaths,
         domPathColors,
       },

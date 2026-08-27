@@ -20,11 +20,11 @@ export type Result = {
 }
 export type RuleInput = 'static' | 'idle' | 'compare' | 'context'
 export type Page = {
-  html: string                 // static HTML snapshot (alias: staticHtml)
-  staticHtml?: string          // alias of html for clarity
+  html: string                 // caller-provided HTML; empty in the compact browser pipeline
+  staticHtml?: string          // optional caller-provided static HTML
   url: string
-  doc: Document                // static DOM snapshot (alias: staticDoc)
-  staticDoc?: Document         // alias of doc for clarity
+  doc: Document                // caller DOM or compact static-fact document
+  staticDoc?: Document         // alias of doc for context rules
   status?: number
   statusLine?: string
   headers?: Record<string, string>
@@ -33,6 +33,8 @@ export type Page = {
   ip?: string
   navigationTiming?: { nextHopProtocol?: string | null; transferSize?: number; encodedBodySize?: number; decodedBodySize?: number; type?: string | null; firstPaint?: number | null; firstContentfulPaint?: number | null }
   resources?: string[]
+  resourceCount?: number
+  resourceDropped?: number
   // Enriched fields (optional, derived from events)
   firstUrl?: string
   lastUrl?: string

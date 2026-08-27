@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import { test, expect, chromium, type BrowserContext } from '@playwright/test'
 
 import { cleanupProfileDir, describeProfileChoice, prepareProfileDir } from '../../scripts/chrome-profile'
+import { browserExecutable } from './browserExecutable'
 
 const dist = path.resolve(new URL('../../dist', import.meta.url).pathname)
 
@@ -29,6 +30,7 @@ const withExtension = async (): Promise<ExtensionContext> => {
   const context = await chromium.launchPersistentContext(profile.userDataDir, {
     args: buildArgs(headless),
     headless,
+    executablePath: browserExecutable(),
   })
   const cleanup = () => cleanupProfileDir(profile)
   return { context, userDataDir: profile.userDataDir, cleanup }

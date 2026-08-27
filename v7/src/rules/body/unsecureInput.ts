@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPaths } from '@/shared/dom-path'
+import { sampleElements } from '@/shared/domEvidence'
 
 const SPEC = 'https://developer.mozilla.org/en-US/docs/Web/Security/Insecure_passwords'
 
@@ -27,9 +28,9 @@ export const unsecureInputRule: Rule = {
       }
     }
 
-    const pwdInputs = Array.from(page.doc.querySelectorAll('input[type="password"]'))
-    if (pwdInputs.length > 0) {
-      const sourceHtml = extractHtmlFromList(pwdInputs)
+    const pwdInputs = sampleElements(page.doc.querySelectorAll('input[type="password"]'))
+    if (pwdInputs.total > 0) {
+      const sourceHtml = extractHtmlFromList(pwdInputs.sample)
       return {
         label: 'BODY',
         message: 'Password input over HTTP',
@@ -38,7 +39,8 @@ export const unsecureInputRule: Rule = {
         details: {
           sourceHtml,
           snippet: extractSnippet(sourceHtml),
-          domPaths: getDomPaths(pwdInputs),
+          domPaths: getDomPaths(pwdInputs.sample),
+          count: pwdInputs.total, shown: pwdInputs.shown, truncated: pwdInputs.truncated,
           reference: SPEC,
         },
       }
@@ -49,7 +51,7 @@ export const unsecureInputRule: Rule = {
       message: 'No password inputs over HTTP',
       type: 'ok',
       name: 'Unsecure input over HTTP',
-      details: { protocol: proto || 'http:', count: pwdInputs.length, tested: 'Searched for <input type="password"> over HTTP', reference: SPEC },
+      details: { protocol: proto || 'http:', count: pwdInputs.total, tested: 'Searched for <input type="password"> over HTTP', reference: SPEC },
     }
   },
 }

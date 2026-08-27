@@ -1,22 +1,7 @@
 import type { Rule } from '@/core/types'
+import { walkNodes } from '@/shared/domFacts.walk'
 
 const SPEC = 'https://developer.chrome.com/docs/lighthouse/performance/dom-size'
-
-const depth = (root: Element): number => {
-  if (!root) return 0
-  let max = 1
-  const stack: { node: Element; d: number }[] = [{ node: root, d: 1 }]
-
-  while (stack.length > 0) {
-    const { node, d } = stack.pop()!
-    if (d > max) max = d
-
-    for (let i = node.children.length - 1; i >= 0; i--) {
-      stack.push({ node: node.children[i]!, d: d + 1 })
-    }
-  }
-  return max
-}
 
 export const nodeDepthRule: Rule = {
   id: 'dom:node-depth',
@@ -24,7 +9,7 @@ export const nodeDepthRule: Rule = {
   enabled: true,
   what: 'static',
   async run(page) {
-    const d = depth(page.doc.documentElement)
+    const d = page.idleFacts?.maxDepth ?? walkNodes(page.doc.documentElement, () => {}).maxDepth
     return {
       label: 'DOM',
       message: `Max depth: ${d}`,

@@ -1,3 +1,5 @@
+import { EXTENSION_NAME } from '../config.js'
+
 export const PANEL_PATH = 'src/sidepanel.html'
 
 // Each entry below is required by an explicitly-named feature. Chrome Web Store
@@ -31,6 +33,6 @@ export const WEB_ACCESSIBLE = [
 export const COMMANDS = {
   'open-sidepanel': {
     suggested_key: { default: 'Ctrl+Shift+L' },
-    description: 'Open Live Test side panel',
+    description: `Open ${EXTENSION_NAME} side panel`,
   },
 }

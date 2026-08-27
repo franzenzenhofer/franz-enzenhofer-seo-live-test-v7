@@ -19,6 +19,11 @@ describe('CLI: all rules on simple page', () => {
     ] as unknown as import('@/background/pipeline/types').EventRec[]
     const out = await runAllCli(registry, { events, html, globals: { variables: {}, events } } as any)
     expect(Array.isArray(out)).toBe(true)
-    expect((out as any[]).length).toBeGreaterThan(0)
+    expect((out as any[]).length).toBe(registry.length)
+    const idle = (out as any[]).find((result) => result.ruleId === 'dom:node-count')
+    const compare = (out as any[]).find((result) => result.ruleId === 'dom:client-side-rendering')
+    expect(idle.type).toBe('runtime_error')
+    expect(idle.message).toContain('unavailable for CLI')
+    expect(compare.type).toBe('runtime_error')
   }, 15000)
 })

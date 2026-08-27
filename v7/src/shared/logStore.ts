@@ -15,7 +15,7 @@ const getSessionArea = () => {
   return chrome.storage.session!
 }
 
-const MAX_LOG_ENTRIES = 3000
+export const MAX_LOG_ENTRIES = 200
 
 const readRawLogs = async (tabId: number) => {
   const area = getSessionArea()

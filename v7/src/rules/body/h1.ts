@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
-import { stripAttributesDeep } from '@/shared/html-utils'
+import { extractHtml, stripAttributesDeep } from '@/shared/html-utils'
 import { getDomPath, getDomPaths } from '@/shared/dom-path'
+import { sampleElements } from '@/shared/domEvidence'
 
 const LABEL = 'BODY', NAME = 'H1 Present', RULE_ID = 'body:h1', SPEC = 'https://developers.google.com/style/headings?hl=en'
 
@@ -10,14 +11,13 @@ export const h1Rule: Rule = {
   enabled: true,
   what: 'static',
   async run(page) {
-    const nodes = Array.from(page.doc.querySelectorAll('h1'))
-    const count = nodes.length
+    const { sample: nodes, total: count, shown, truncated } = sampleElements(page.doc.querySelectorAll('h1'))
     const header = { ruleId: RULE_ID, label: LABEL, name: NAME, what: 'static' } as const
     if (count !== 1) {
       const message = count ? `${count} <h1> elements found.` : 'No <h1> found.'
       const priority = count ? 100 : 0
       const details = count
-        ? { domPaths: getDomPaths(nodes), reference: SPEC }
+        ? { domPaths: getDomPaths(nodes), count, shown, truncated, reference: SPEC }
         : { reference: SPEC }
       return { ...header, message, type: 'warn', priority, details }
     }
@@ -29,7 +29,7 @@ export const h1Rule: Rule = {
         message: '<h1> is empty.',
         type: 'warn',
         priority: 200,
-        details: { snippet: stripAttributesDeep(node), sourceHtml: node.outerHTML, domPath: getDomPath(node), reference: SPEC },
+        details: { snippet: stripAttributesDeep(node), sourceHtml: extractHtml(node), domPath: getDomPath(node), reference: SPEC },
       }
     }
     return {
@@ -37,7 +37,7 @@ export const h1Rule: Rule = {
       message: '1 <h1> found.',
       type: 'ok',
       priority: 1000,
-      details: { snippet: stripAttributesDeep(node), sourceHtml: node.outerHTML, domPath: getDomPath(node), reference: SPEC },
+      details: { snippet: stripAttributesDeep(node), sourceHtml: extractHtml(node), domPath: getDomPath(node), reference: SPEC },
     }
   },
 }

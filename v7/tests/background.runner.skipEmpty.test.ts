@@ -47,15 +47,17 @@ describe('runner: skip empty/early runs', () => {
 })
 
 describe('runner: chunked results', () => {
-  it('stores each streamed result only once', async () => {
+  it('stores streamed and final results once without pending rows', async () => {
     const runInOffscreenMock = off.runInOffscreen as unknown as ReturnType<typeof vi.fn>
     runInOffscreenMock.mockImplementation(async (_tabId, _payload, _timeout, emit?: (chunk: RuleResult[]) => Promise<void>, _options?: unknown) => {
       const chunk: RuleResult[] = [
         { label: 'TEST', message: 'one', type: 'info', name: 'Rule A', ruleId: 'rule-a' },
-        { label: 'TEST', message: 'two', type: 'info', name: 'Rule B', ruleId: 'rule-b' },
       ]
       await emit?.(chunk)
-      return chunk
+      return [
+        ...chunk,
+        { label: 'TEST', message: 'two', type: 'info', name: 'Rule B', ruleId: 'rule-b' },
+      ]
     })
     const getEnabledSpy = vi.spyOn(support, 'getEnabledRules').mockResolvedValue([
       { id: 'rule-a', name: 'Rule A', enabled: true, what: 'static', run: vi.fn() } as any,
@@ -67,6 +69,7 @@ describe('runner: chunked results', () => {
     expect(Array.isArray(stored)).toBe(true)
     expect(stored).toHaveLength(2)
     expect(stored.map((r) => r.message)).toEqual(['one', 'two'])
+    expect(stored.some((result) => result.type === 'pending')).toBe(false)
     getEnabledSpy.mockRestore()
   })
 })

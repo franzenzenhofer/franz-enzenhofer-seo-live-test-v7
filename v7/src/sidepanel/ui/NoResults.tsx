@@ -62,9 +62,9 @@ export const NoResults = ({ items, types, q, priorityLabel, debugEnabled, onRese
           </button>
         )}
       </div>
-      <div>
+      {debugEnabled && <div>
         Filters: {filters}; Priority: {priority}; Query: {q?.length ? 'yes' : 'no'}
-      </div>
+      </div>}
       {debugEnabled && dbg && <div>Last run: url={dbg.pageUrl || '(none)'} ev={dbg.evCount || 0}</div>}
       {debugEnabled && last.length > 0 && (
         <pre className="text-[10px] bg-slate-50 p-2 border rounded max-h-32 overflow-auto">{last.join('\n')}</pre>

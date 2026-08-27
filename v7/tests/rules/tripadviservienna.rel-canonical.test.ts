@@ -7,6 +7,7 @@ import { describe, it, expect } from 'vitest'
 import { canonicalRule } from '@/rules/head/canonical'
 import { hreflangRule } from '@/rules/head/hreflang'
 import { relAlternateMediaRule } from '@/rules/head/relAlternateMedia'
+import { EVIDENCE_LIMIT } from '@/shared/domEvidence'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const fixturePath = path.join(__dirname, '../fixtures/tripadviservienna.html')
@@ -31,7 +32,8 @@ describe('Tripadvisor Vienna saved page', () => {
     const page = loadPage()
     const res = await hreflangRule.run(page as any, { globals: {} })
     expect((res.details as any)?.count).toBeGreaterThan(10)
-    expect((res.details as any)?.languages).toContain('de-AT')
+    expect((res.details as any)?.languages).toHaveLength(EVIDENCE_LIMIT)
+    expect((res.details as any)?.truncated).toBe(true)
     expect(res.message.toLowerCase()).toContain('hreflang')
   })
 

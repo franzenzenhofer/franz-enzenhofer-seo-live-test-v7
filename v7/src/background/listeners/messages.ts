@@ -5,6 +5,7 @@ import { handleLogsBridgeMessage } from './logsBridge'
 
 import { isValidTabId, log, logSystem } from '@/shared/logs'
 import { incr } from '@/shared/telemetry'
+import { validatePhaseMessage } from '@/shared/phaseContract'
 
 type Sender = chrome.runtime.MessageSender
 type CrashMsg = { channel?: string; context?: string; kind?: string; message?: string; stack?: string }
@@ -25,6 +26,10 @@ export const handleMessage = (msg: unknown, sender: Sender, send?: (resp?: unkno
   const tabId = st?.tabId || sender.tab?.id || null
   if (st?.channel === 'crash') { incr('crashnet.fired'); handleCrashReport(st); return false }
   if (st?.t === 'panel:clean') { handlePanelClean(st.d?.tabId ?? null); return false }
+  if (st?.type === 'audit:eligibility') {
+    send?.({ allowed: sender.tab?.active === true })
+    return false
+  }
   if (st?.channel === 'log' && st.message) {
     if (!isValidTabId(tabId)) {
       logSystem(`log:drop tabId=${tabId ?? 'null'} message=${st.message.slice(0, 120)}`).catch(() => {})
@@ -35,6 +40,11 @@ export const handleMessage = (msg: unknown, sender: Sender, send?: (resp?: unkno
   }
   if (handleLogsBridgeMessage(st?.type, tabId, send)) return true
   if (st?.event && tabId) {
+    const contract = validatePhaseMessage(st.event, st.data)
+    if (!contract.ok) {
+      logSystem(`runtime:reject-phase tabId=${tabId} reason=${contract.reason}`).catch(() => {})
+      return false
+    }
     const phaseData = st.data as { url?: string } | undefined
     pushEvent(tabId, { t: `dom:${st.event}`, u: phaseData?.url, d: st.data })
     if (st.event === 'document_idle') {

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 
-import { addEvent, setDomDone, popRun } from '@/background/pipeline/store'
+import { addEvent, setDomDone, popRun, RESOURCE_LIMITS } from '@/background/pipeline/store'
 
 // minimal chrome.storage.session mock
 const chromeAny: Record<string, unknown> = {
@@ -29,5 +29,33 @@ describe('store', () => {
     expect(r?.ev.length).toBe(1)
     expect(r?.domDone).toBe(true)
   })
-})
 
+  it('deduplicates resources in bounded batches while retaining totals', async () => {
+    for (let index = 0; index < RESOURCE_LIMITS.batch * 2; index++) {
+      await addEvent(2, { t: 'req:headers', u: `https://example.com/r-${index % 10}.js` })
+    }
+    const run = await popRun(2)
+
+    expect(run?.resources?.urls).toHaveLength(10)
+    expect(run?.resources?.total).toBe(RESOURCE_LIMITS.batch * 2)
+    expect(run?.resources?.dropped).toBe(RESOURCE_LIMITS.batch * 2 - 10)
+  })
+
+  it('bounds non-resource event state', async () => {
+    for (let index = 0; index < 100; index++) await addEvent(3, { t: `nav:${index}`, u: String(index) })
+    const run = await popRun(3)
+    expect(run?.ev).toHaveLength(64)
+    expect(run?.eventDropped).toBe(36)
+  })
+
+  it('bounds tens of thousands of resource events', async () => {
+    for (let index = 0; index < 20_000; index++) {
+      await addEvent(4, { t: 'req:headers', u: `https://example.com/resource-${index}.js` })
+    }
+    const run = await popRun(4)
+
+    expect(run?.resources?.total).toBe(20_000)
+    expect(run?.resources?.urls).toHaveLength(RESOURCE_LIMITS.urls)
+    expect(run?.resources?.dropped).toBe(19_000)
+  }, 30_000)
+})

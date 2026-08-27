@@ -5,7 +5,7 @@
 const QUOTA_HINTS = ['QUOTA', 'quota', 'MAX_', 'WRITE_OPERATIONS_PER']
 const BACKOFFS_MS = [100, 250, 500]
 
-const isQuotaLike = (err: unknown): boolean => {
+export const isQuotaLike = (err: unknown): boolean => {
   const msg = err instanceof Error ? err.message : String(err || '')
   return QUOTA_HINTS.some((h) => msg.includes(h))
 }

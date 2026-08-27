@@ -1,129 +1,37 @@
-import path from 'node:path'
-import fs from 'node:fs'
+import { expect, test } from '@playwright/test'
 
-import { test, expect, chromium, BrowserContext } from '@playwright/test'
+import { findExtensionId, readRunSnapshot, withExtension } from './extensionHarness'
+import type { RunSnapshot } from './extensionHarness'
 
-import { cleanupProfileDir, describeProfileChoice, prepareProfileDir } from '../../scripts/chrome-profile'
-
-const dist = path.resolve(new URL('../../dist', import.meta.url).pathname)
-
-type ExtensionContext = { context: BrowserContext; userDataDir: string; cleanup: () => void }
-
-const buildArgs = (headless: boolean) => {
-  const args = [
-    '--disable-gpu',
-    '--no-sandbox',
-    '--disable-dev-shm-usage',
-    `--disable-extensions-except=${dist}`,
-    `--load-extension=${dist}`,
-  ]
-  if (headless) args.unshift('--headless=new')
-  return args
-}
-
-const withExtension = async (): Promise<ExtensionContext> => {
-  if (!fs.existsSync(dist)) throw new Error('Build dist first (npm run build) before running e2e tests.')
-  const profile = prepareProfileDir()
-  console.info(`[e2e] Using ${describeProfileChoice(profile)}`)
-  const headless = process.env.PW_EXT_HEADLESS === '1'
-  const context = await chromium.launchPersistentContext(profile.userDataDir, {
-    args: buildArgs(headless),
-    headless,
-  })
-  const cleanup = () => cleanupProfileDir(profile)
-  return { context, userDataDir: profile.userDataDir, cleanup }
-}
-
-const findExtensionId = async (ctx: BrowserContext) => {
-  const sw = ctx.serviceWorkers()
-  for (const w of sw) {
-    const url = w.url()
-    const m = url.match(/^chrome-extension:\/\/([a-z]+)\//)
-    if (m) return m[1]
-  }
-  const w = await ctx.waitForEvent('serviceworker', { timeout: 10_000 }).catch(() => null)
-  if (w) {
-    const m = w.url().match(/^chrome-extension:\/\/([a-z]+)\//)
-    if (m) return m[1]
-  }
-  return null
-}
-
-test('hard reload: runId and timestamp update', async () => {
-  const { context, cleanup } = await withExtension()
+test('hard reload updates the completed run ID and timestamp', async () => {
+  const { context, userDataDir, cleanup } = await withExtension()
   try {
-    const extensionId = await findExtensionId(context)
-    expect(extensionId).not.toBeNull()
-
     const page = await context.newPage()
     await page.goto('https://example.com')
     await page.waitForLoadState('networkidle')
+    const targetUrl = page.url()
+    let first: RunSnapshot | null = null
+    await expect.poll(async () => {
+      first = await readRunSnapshot(context, targetUrl)
+      return first?.status
+    }, { timeout: 30_000 }).toBe('completed')
 
-    const sidePanelUrl = `chrome-extension://${extensionId}/src/sidepanel.html`
+    await page.bringToFront()
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+
+    let second: RunSnapshot | null = null
+    await expect.poll(async () => {
+      second = await readRunSnapshot(context, targetUrl)
+      return second?.status === 'completed' && second.runId !== first!.runId
+    }, { timeout: 30_000 }).toBe(true)
+
+    expect(second!.ranAt).not.toBe(first!.ranAt)
+    const extensionId = await findExtensionId(context, userDataDir)
     const panel = await context.newPage()
-    await panel.goto(sidePanelUrl)
-
-    console.log('[DEBUG] Waiting for first test run...')
-    await panel.waitForSelector('[title^="run-"]', { timeout: 15_000 })
-
-    const firstMeta = await panel.evaluate(async () => {
-      const tabId = parseInt(window.location.hash.slice(1)) || null
-      if (!tabId) {
-        const allKeys = await chrome.storage.local.get(null)
-        const metaKey = Object.keys(allKeys).find((k) => k.startsWith('results-meta:'))
-        if (!metaKey) return null
-        return allKeys[metaKey] as { runId: string; ranAt: string } | null
-      }
-      const key = `results-meta:${tabId}`
-      const result = await chrome.storage.local.get(key)
-      return result[key] as { runId: string; ranAt: string } | null
-    })
-    console.log('[DEBUG] First meta:', firstMeta)
-    expect(firstMeta).not.toBeNull()
-    expect(firstMeta?.runId).toBeTruthy()
-    const firstRunId = firstMeta!.runId
-    const firstRanAt = firstMeta!.ranAt
-
-    // Click "Run test" button
-    console.log('[DEBUG] Clicking Run test button...')
-    const runTestButton = await panel.locator('button:has-text("Run test")').first()
-    await runTestButton.click()
-
-    // Wait for the button text to change back from "Running test..." to "Run test"
-    await panel.waitForSelector('button:has-text("Run test")', { timeout: 30_000 })
-    console.log('[DEBUG] Run test completed')
-
-    // Wait for new runId to appear (it should be different from the first one)
-    let secondMeta: { runId: string; ranAt: string } | null = null
-    for (let i = 0; i < 40; i++) {
-      await panel.waitForTimeout(500)
-      secondMeta = await panel.evaluate(async () => {
-        const tabId = parseInt(window.location.hash.slice(1)) || null
-        if (!tabId) {
-          const allKeys = await chrome.storage.local.get(null)
-          const metaKey = Object.keys(allKeys).find((k) => k.startsWith('results-meta:'))
-          if (!metaKey) return null
-          return allKeys[metaKey] as { runId: string; ranAt: string } | null
-        }
-        const key = `results-meta:${tabId}`
-        const result = await chrome.storage.local.get(key)
-        return result[key] as { runId: string; ranAt: string } | null
-      })
-      console.log(`[DEBUG] Attempt ${i + 1}: meta =`, secondMeta)
-      if (secondMeta && secondMeta.runId !== firstRunId) {
-        console.log('[DEBUG] RunId changed!')
-        break
-      }
-    }
-
-    console.log('[DEBUG] First meta:', firstMeta)
-    console.log('[DEBUG] Second meta:', secondMeta)
-
-    expect(secondMeta).not.toBeNull()
-    expect(secondMeta?.runId).not.toBe(firstRunId)
-    expect(secondMeta?.ranAt).not.toBe(firstRanAt)
-
-    console.log('[DEBUG] ✅ Hard reload test passed!')
+    await panel.goto(`chrome-extension://${extensionId}/src/sidepanel.html`)
+    await expect(panel.locator(`[title="${second!.runId}"]`)).toBeVisible()
+    await expect(panel.getByTestId('result-card').first()).toBeVisible()
   } finally {
     await context.close()
     cleanup()

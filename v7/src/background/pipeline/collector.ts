@@ -1,9 +1,9 @@
 import { runRulesOn } from '../rules/runner'
 import { determineTrigger } from '../rules/triggerDetect'
-import { abortSession } from '../rules/sessions'
+import { clearTabSessionState } from '../tabCleanup'
 
-import { addEvent, popRun, resetRun, setDomDone } from './store'
-import { scheduleFinalize, clearFinalize, onAlarm } from './alarms'
+import { addEvent, popRun, setDomDone } from './store'
+import { scheduleFinalize, onAlarm } from './alarms'
 import { hasNavAfterDom } from './runGuards'
 
 import { log, logSystem, isValidTabId } from '@/shared/logs'
@@ -16,8 +16,7 @@ export const pushEvent = async (tabId: number, ev: import('./types').EventRec) =
   }
   await Logger.logDirect(tabId, 'event', 'receive', { type: ev.t, url: ev.u || 'no-url', hasData: !!ev.d, status: ev.s })
   if (ev.t === 'nav:before') {
-    await clearFinalize(tabId)
-    await resetRun(tabId)
+    await clearTabSessionState(tabId, 'navigation')
     await addEvent(tabId, ev)
     await Logger.logDirect(tabId, 'event', 'add', { type: ev.t, tabId })
     const { 'ui:autoClear': auto } = await chrome.storage.local.get('ui:autoClear')
@@ -27,7 +26,6 @@ export const pushEvent = async (tabId: number, ev: import('./types').EventRec) =
       await chrome.storage.local.remove(`results:${tabId}`)
       await Logger.logDirect(tabId, 'event', 'clear results', { reason: 'autoClear' })
     }
-    await abortSession(tabId, 'navigation')
     return
   }
   await addEvent(tabId, ev)
@@ -63,6 +61,11 @@ onAlarm(async (tabId) => {
     return
   }
   const trigger = determineTrigger(run.ev)
+  const tab = await chrome.tabs.get(tabId).catch(() => null)
+  if (!tab?.active) {
+    await Logger.logDirect(tabId, 'alarm', 'skip', { reason: 'inactive-tab', triggeredBy: trigger })
+    return
+  }
   await Logger.logDirect(tabId, 'alarm', 'execute', {
     runId: run.id,
     events: run.ev.length,

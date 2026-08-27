@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPaths } from '@/shared/dom-path'
+import { sampleElements } from '@/shared/domEvidence'
 
 const LABEL = 'DOM'
 const NAME = 'Data-nosnippet usage'
@@ -13,8 +14,8 @@ export const dataNosnippetRule: Rule = {
   enabled: true,
   what: 'static',
   async run(page) {
-    const elements = Array.from(page.doc.querySelectorAll('[data-nosnippet]'))
-    if (elements.length === 0) {
+    const { sample, total, shown, truncated } = sampleElements(page.doc.querySelectorAll('[data-nosnippet]'))
+    if (total === 0) {
       return {
         label: LABEL,
         name: NAME,
@@ -25,18 +26,20 @@ export const dataNosnippetRule: Rule = {
       }
     }
 
-    const sourceHtml = extractHtmlFromList(elements)
+    const sourceHtml = extractHtmlFromList(sample)
     return {
       label: LABEL,
       name: NAME,
-      message: `data-nosnippet used on ${elements.length} element(s).`,
+      message: `data-nosnippet used on ${total} element(s).`,
       type: 'warn',
       priority: 300,
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),
-        domPaths: getDomPaths(elements),
-        count: elements.length,
+        domPaths: getDomPaths(sample),
+        count: total,
+        shown,
+        truncated,
         reference: SPEC,
       },
     }

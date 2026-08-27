@@ -1,31 +1,18 @@
 import type { Rule } from '@/core/types'
-import { getDomPath } from '@/shared/dom-path'
 
 const LABEL = 'DOM'
 const NAME = 'Parameterized links (static vs idle)'
 const RULE_ID = 'dom:parameterized-links-diff'
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
 
-type ParamLink = { url: string; domPath: string }
-
-const collectParamLinks = (doc?: Document, base?: URL): ParamLink[] => {
-  if (!doc || !base) return []
-  const anchors = Array.from(doc.querySelectorAll<HTMLAnchorElement>('a[href]'))
-  return anchors
-    .map((a) => ({ href: a.getAttribute('href') || '', el: a }))
-    .filter((entry) => entry.href.includes('?'))
-    .map((entry) => {
-      try {
-        const u = entry.href.startsWith('http') ? new URL(entry.href) : new URL(entry.href, base)
-        if (u.host !== base.host) return null
-        u.hash = ''
-        return { url: u.href, domPath: getDomPath(entry.el) }
-      } catch {
-        return null
-      }
-    })
-    .filter((u): u is ParamLink => !!u)
-}
+const normalize = (hrefs: string[], base: URL) => hrefs.flatMap((href) => {
+  try {
+    const url = new URL(href, base)
+    if (url.host !== base.host) return []
+    url.hash = ''
+    return [url.href]
+  } catch { return [] }
+})
 
 export const parameterizedLinksDiffRule: Rule = {
   id: RULE_ID,
@@ -39,30 +26,34 @@ export const parameterizedLinksDiffRule: Rule = {
     } catch {
       return { label: LABEL, name: NAME, message: 'Invalid page URL', type: 'runtime_error', priority: 10, details: { reference: SPEC } }
     }
-    const staticLinks = collectParamLinks(page.doc, base)
-    const idleLinks = collectParamLinks(page.domIdleDoc, base)
-    const staticUrls = staticLinks.map((link) => link.url)
-    const idleUrls = idleLinks.map((link) => link.url)
-
-    if (!page.domIdleDoc) {
+    if (!page.staticFacts || !page.idleFacts) {
       return {
         label: LABEL,
         name: NAME,
-        message: `No idle DOM snapshot. Static parameterized links: ${staticLinks.length}.`,
-        type: 'info',
+        message: 'Static and idle DOM facts are required for an exact comparison.',
+        type: 'runtime_error',
         priority: 900,
-        details: { staticLinks: staticUrls, idleLinks: [], reference: SPEC },
+        details: { staticAvailable: !!page.staticFacts, idleAvailable: !!page.idleFacts, reference: SPEC },
       }
     }
+    if (page.staticFacts.parameterizedLinksTruncated || page.idleFacts.parameterizedLinksTruncated) {
+      return {
+        label: LABEL, name: NAME, type: 'runtime_error', priority: 900,
+        message: 'Parameterized-link comparison unavailable because exact phase evidence exceeded the bounded contract.',
+        details: {
+          staticTotal: page.staticFacts.parameterizedLinkCount,
+          idleTotal: page.idleFacts.parameterizedLinkCount,
+          truncated: true,
+          reference: SPEC,
+        },
+      }
+    }
+    const staticUrls = normalize(page.staticFacts.parameterizedLinks, base)
+    const idleUrls = normalize(page.idleFacts.parameterizedLinks, base)
 
-    const staticOnly = staticLinks.filter((l) => !idleUrls.includes(l.url))
-    const idleOnly = idleLinks.filter((l) => !staticUrls.includes(l.url))
+    const staticOnly = staticUrls.filter((url) => !idleUrls.includes(url))
+    const idleOnly = idleUrls.filter((url) => !staticUrls.includes(url))
     const hasDiff = staticOnly.length || idleOnly.length
-    const domPaths = [...staticOnly, ...idleOnly].map((link) => link.domPath).filter(Boolean)
-    const domPathColors = [
-      ...staticOnly.map(() => '#f97316'),
-      ...idleOnly.map(() => '#2563eb'),
-    ]
 
     return {
       label: LABEL,
@@ -75,10 +66,8 @@ export const parameterizedLinksDiffRule: Rule = {
       details: {
         staticLinks: staticUrls,
         idleLinks: idleUrls,
-        staticOnly: staticOnly.map((link) => link.url),
-        idleOnly: idleOnly.map((link) => link.url),
-        domPaths,
-        domPathColors,
+        staticOnly,
+        idleOnly,
         reference: SPEC,
       },
     }

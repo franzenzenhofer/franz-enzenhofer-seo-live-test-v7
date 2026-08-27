@@ -6,13 +6,15 @@
 - `research/` - Research documents and analysis
 
 ## Active Tickets
-See `open/` directory
+
+- No active tickets.
 
 ## Completed Work
-See `closed/` directory
+
+- TICKET-001 through TICKET-010 are complete and live in `closed/`.
 
 ## Research Documents
 See `research/` directory
 
 ---
-Last updated: $(date +%Y-%m-%d)
+Last updated: 2026-08-27

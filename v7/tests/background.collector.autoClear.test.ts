@@ -21,11 +21,13 @@ describe('collector: autoClear on nav:before', () => {
     expect(rm).toHaveBeenCalledWith('results:5')
   })
   it('respects ui:autoClear=false', async () => {
-    ;(chrome.storage.local.get as any).mockResolvedValueOnce({ 'ui:autoClear': false })
+    ;(chrome.storage.local.get as any).mockImplementation(async (key: string) =>
+      key === 'ui:autoClear' ? { 'ui:autoClear': false } : {})
     const rm = (chrome.storage.local.remove as unknown as ReturnType<typeof vi.fn>)
     rm.mockClear()
     await pushEvent(6, { t: 'nav:before', u: 'https://b.example' } as any)
     expect(rm).not.toHaveBeenCalled()
+    ;(chrome.storage.local.get as any).mockResolvedValue({})
   })
   it('clears finalize alarm and resets run buffer on nav:before', async () => {
     const clear = (await import('@/background/pipeline/alarms')).clearFinalize as unknown as ReturnType<typeof vi.fn>

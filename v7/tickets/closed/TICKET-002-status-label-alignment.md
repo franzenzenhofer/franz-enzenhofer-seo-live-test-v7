@@ -1,5 +1,7 @@
 # TICKET-002 – Status Label Alignment & Rule Count Consistency
 
+**Status:** Complete (2026-08-27)
+
 ## Context
 
 - Rule registry + `rules.inventory.json` both list **100 rules**, but the settings search placeholder still says “Search 101 rules...” (`v7/src/settings/RuleToggles.tsx`).

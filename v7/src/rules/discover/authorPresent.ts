@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
+import { parseLd } from '@/shared/structured'
 
 const SPEC = 'https://developers.google.com/search/docs/appearance/structured-data/article#author'
 
@@ -12,19 +13,16 @@ const findAuthor = (d: Document) => {
     return { name: metaContent, element: metaEl }
   }
 
-  const scripts = Array.from(d.querySelectorAll('script[type="application/ld+json"]'))
-  for (const s of scripts) {
-    try {
-      const j = JSON.parse(s.textContent || 'null')
-      const arr = Array.isArray(j) ? j : [j]
-      for (const it of arr) {
-        const a = it && it['author']
-        const n = typeof a === 'string' ? a : a && typeof a['name'] === 'string' ? a['name'] : ''
-        if (n) return { name: String(n), element: s }
-      }
-    } catch {
-      /* ignore */
-    }
+  const script = d.querySelector('script[type="application/ld+json"]')
+  for (const node of parseLd(d)) {
+    const author = node['author']
+    const first = Array.isArray(author) ? author[0] : author
+    const name = typeof first === 'string'
+      ? first
+      : first && typeof first === 'object' && typeof (first as Record<string, unknown>)['name'] === 'string'
+        ? String((first as Record<string, unknown>)['name'])
+        : ''
+    if (name) return { name, element: script }
   }
   return { name: '', element: null }
 }

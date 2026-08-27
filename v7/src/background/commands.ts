@@ -1,3 +1,5 @@
+import { EXTENSION_NAME } from '../../config.js'
+
 import { enableAndOpenSidePanel } from './panel'
 
 const activeTabId = async (): Promise<number|null> => {
@@ -12,7 +14,7 @@ export const registerCommandAndMenu = () => {
     }
   })
   chrome.runtime.onInstalled.addListener(() => {
-    chrome.contextMenus.create({ id: 'open_panel', title: 'Open Live Test', contexts: ['action','page'] })
+    chrome.contextMenus.create({ id: 'open_panel', title: `Open ${EXTENSION_NAME}`, contexts: ['action','page'] })
   })
   chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     if (info.menuItemId === 'open_panel') {

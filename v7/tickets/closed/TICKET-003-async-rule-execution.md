@@ -1,6 +1,6 @@
 # TICKET-003 – Async Rule Execution & Run-State Integrity
 
-**Status:** 🆕 Open  
+**Status:** Complete (2026-08-27)
 **Priority:** P0 — blocks reliable live testing  
 **Owner:** Codex (async-rool-executin)  
 **Principles:** Single Source of Truth · DRY · Fully Tested · Tailwind-only UI (no direct styling impact here)  

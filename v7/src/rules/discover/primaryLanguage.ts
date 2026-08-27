@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
+import { boundedOpeningTag } from '@/shared/boundedHtml'
 
 const SPEC = 'https://web.dev/html-has-lang/'
 
@@ -12,7 +13,7 @@ export const discoverPrimaryLanguageRule: Rule = {
   async run(page) {
     const el = page.doc.documentElement
     const lang = (el.getAttribute('lang') || '').trim()
-    const sourceHtml = `<html${el.attributes.length ? ' ' : ''}${Array.from(el.attributes).map(a => `${a.name}="${a.value}"`).join(' ')}>`
+    const sourceHtml = boundedOpeningTag(el)
 
     return lang
       ? {

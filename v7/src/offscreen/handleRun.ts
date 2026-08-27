@@ -1,14 +1,15 @@
 import { mergeRunResults, normalizeRunResult } from './runResults'
 
 import { registry } from '@/rules/registry'
+import { requiresCompleteDomFacts } from '@/rules/ruleInputs'
 import { runAll } from '@/core/run'
 import { pageFromEvents } from '@/shared/page'
 import { Logger } from '@/shared/logger'
 import { boundResults } from '@/shared/boundResult'
-import type { EventRec } from '@/background/pipeline/types'
+import type { Run } from '@/background/pipeline/types'
 import type { RegisteredRule } from '@/core/types'
 
-export type RunPayload = { id: number; ev: EventRec[]; domDone?: boolean }
+export type RunPayload = Run
 
 const applyRuleOverrides = (overrides?: Record<string, boolean>): RegisteredRule[] =>
   registry.map((rule) => (typeof overrides?.[rule.id] === 'boolean' ? { ...rule, enabled: overrides[rule.id]! } : rule))
@@ -33,7 +34,7 @@ export const handleRun = async (
   const makeDoc = (html: string) => new DOMParser().parseFromString(html, 'text/html')
 
   Logger.logDirectSend(tabId, 'page', 'build start', { events: run.ev.length })
-  const page = await pageFromEvents(run.ev, makeDoc, () => pageUrl || 'about:blank')
+  const page = await pageFromEvents(run.ev, makeDoc, () => pageUrl || 'about:blank', undefined, run.resources)
   Logger.logDirectSend(tabId, 'page', 'build done', {
     url: page.url,
     staticNodes: page.staticFacts?.nodeCount || 0,
@@ -49,7 +50,11 @@ export const handleRun = async (
     await chrome.runtime.sendMessage({ channel: 'offscreen', replyTo: messageId, chunk: true, data: normalized })
   }
 
-  const offscreenRules = rules.filter((rule) => rule.input === 'context' || rule.input === 'compare')
+  const offscreenRules = rules.filter((rule) => {
+    if (rule.input !== 'context' && rule.input !== 'compare') return false
+    if (!requiresCompleteDomFacts(rule.id)) return true
+    return !!page.staticFacts && !page.staticFacts.elementsTruncated
+  })
   const offscreenResults = await runAll(tabId, offscreenRules, page, { globals: globals || {} }, emitChunk, { signal })
   const results = mergeRunResults(rules, boundResults(page.phaseResults || []), boundResults(offscreenResults), runId)
 

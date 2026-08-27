@@ -32,9 +32,9 @@ export const ReportResultsSection = ({ results, debugEnabled }: Props) => {
         placeholder="Search results..."
         className="mb-4 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
-      <FilterTips />
+      {debugEnabled && <FilterTips />}
       <TypeFilters show={show} setShow={setShow} results={results} debugEnabled={debugEnabled} />
-      <ResultsSummary
+      {debugEnabled && <ResultsSummary
         items={results}
         types={activeTypes}
         q={parsed.text}
@@ -44,8 +44,8 @@ export const ReportResultsSection = ({ results, debugEnabled }: Props) => {
         onResetFilters={resetFilters}
         sortMode={sortMode}
         onSortModeChange={setSortMode}
-      />
-      <ReportResultSummary totalRules={coverage.totalRules} resultsCount={coverage.coveredRules} missing={coverage.missingRules} debugEnabled={debugEnabled} />
+      />}
+      {debugEnabled && <ReportResultSummary totalRules={coverage.totalRules} resultsCount={coverage.coveredRules} missing={coverage.missingRules} debugEnabled />}
       <Results
         items={results}
         types={activeTypes}
@@ -57,7 +57,7 @@ export const ReportResultsSection = ({ results, debugEnabled }: Props) => {
         tabId={null}
         logUi={undefined}
         sortMode={sortMode}
-        defaultExpanded
+        defaultExpanded={false}
       />
     </div>
   )

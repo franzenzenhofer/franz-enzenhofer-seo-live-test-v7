@@ -5,22 +5,21 @@ import { loadRules } from './loadRules'
 import { fromEnvVariables, googleTokenFromEnv } from './env'
 import { toHtml } from './report'
 
-const ctxOf = (url: string, html: string) => ({ id: Date.now(), ev: [
+const ctxOf = (url: string) => ({ id: Date.now(), ev: [
   { t: 'nav:before', u: url },
   { t: 'nav:commit', u: url },
-  { t: 'dom:document_idle', d: { html, location: { href: url } } },
 ] })
 
 type Opts = { format?: string; out?: string }
 
 export const execUrl = async (url: string, opts: Opts) => {
-  const res = await fetch(url); const html = await res.text(); const ctx = ctxOf(url, html)
+  const res = await fetch(url); const html = await res.text(); const ctx = ctxOf(url)
   const out = await runAllCli(loadRules(), { events: ctx.ev, html, globals: { variables: fromEnvVariables(), googleApiAccessToken: googleTokenFromEnv(), events: ctx.ev } })
   return output(url, out as Array<{label:string;message:string;type:string}>, opts)
 }
 
 export const execFile = async (path: string, opts: Opts) => {
-  const html = await fs.readFile(path, 'utf8'); const url = 'file://' + path; const ctx = ctxOf(url, html)
+  const html = await fs.readFile(path, 'utf8'); const url = 'file://' + path; const ctx = ctxOf(url)
   const out = await runAllCli(loadRules(), { events: ctx.ev, html, globals: { variables: fromEnvVariables(), googleApiAccessToken: googleTokenFromEnv(), events: ctx.ev } })
   return output(url, out as Array<{label:string;message:string;type:string}>, opts)
 }

@@ -51,10 +51,10 @@ export const PanelHeader = ({
       secondaryActions={
         <>
           <button className="text-blue-600 hover:text-blue-800 underline font-semibold" onClick={onOpenReport}>
-            Open Full Report
+            Report
           </button>
           <button className="text-gray-600 hover:text-gray-900 underline" onClick={onClean}>
-            Clean
+            Clear
           </button>
           {debugEnabled && (
             <button className="text-gray-600 hover:text-gray-900 underline" onClick={onOpenLogs}>

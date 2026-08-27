@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPaths } from '@/shared/dom-path'
+import { sampleMatchingElements } from '@/shared/domEvidence'
 
 const LABEL = 'HEAD'
 const NAME = 'Hreflang values'
@@ -17,18 +18,18 @@ export const hreflangValuesRule: Rule = {
   enabled: true,
   what: 'static',
   async run(page) {
-    const elements = Array.from(page.doc.querySelectorAll(SELECTOR)) as HTMLLinkElement[]
+    const elements = page.doc.querySelectorAll<HTMLLinkElement>(SELECTOR)
     if (!elements.length) {
       return { label: LABEL, name: NAME, message: 'No hreflang links found.', type: 'info', priority: 900, details: { reference: SPEC } }
     }
 
-    const invalid = elements.filter((el) => !isValidHreflang((el.getAttribute('hreflang') || '').trim()))
-    if (!invalid.length) {
+    const invalid = sampleMatchingElements(elements, (el) => !isValidHreflang((el.getAttribute('hreflang') || '').trim()))
+    if (!invalid.total) {
       return { label: LABEL, name: NAME, message: `All ${elements.length} hreflang values look valid.`, type: 'ok', priority: 820, details: { count: elements.length, reference: SPEC } }
     }
 
-    const invalidValues = invalid.map((el) => (el.getAttribute('hreflang') || '').trim()).filter(Boolean)
-    const sourceHtml = extractHtmlFromList(invalid)
+    const invalidValues = invalid.sample.map((el) => (el.getAttribute('hreflang') || '').trim()).filter(Boolean)
+    const sourceHtml = extractHtmlFromList(invalid.sample)
 
     return {
       label: LABEL,
@@ -39,10 +40,12 @@ export const hreflangValuesRule: Rule = {
       details: {
         sourceHtml,
         snippet: extractSnippet(sourceHtml, 150),
-        domPaths: getDomPaths(invalid),
+        domPaths: getDomPaths(invalid.sample),
         invalidValues,
-        invalidCount: invalid.length,
+        invalidCount: invalid.total,
         totalCount: elements.length,
+        shown: invalid.shown,
+        truncated: invalid.truncated,
         reference: SPEC,
       },
     }

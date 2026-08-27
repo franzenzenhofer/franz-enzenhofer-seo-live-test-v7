@@ -2,19 +2,24 @@
 // Based on v2's RuleContext.js (nodeToString, partialCodeLink)
 
 import { TRUNCATION_LIMITS } from './truncation-constants'
+import { boundedOuterHtml, boundedTextHtml } from './boundedHtml'
 
 export const extractHtml = (element: Element | null): string => {
-  if (!element) return ''
-  const html = element.outerHTML
-  if (html.length <= TRUNCATION_LIMITS.HTML_CONTENT) return html
-  return html.slice(0, TRUNCATION_LIMITS.HTML_CONTENT) + '...[truncated]'
+  const html = boundedOuterHtml(element, TRUNCATION_LIMITS.HTML_CONTENT)
+  return html.length < TRUNCATION_LIMITS.HTML_CONTENT ? html : `${html}...[truncated]`
 }
 
 export const extractHtmlFromList = (elements: NodeListOf<Element> | Element[]): string => {
   if (!elements || elements.length === 0) return ''
-  const raw = Array.from(elements).map(el => el.outerHTML).join('\n')
-  if (raw.length <= TRUNCATION_LIMITS.HTML_CONTENT) return raw
-  return raw.slice(0, TRUNCATION_LIMITS.HTML_CONTENT) + '...[truncated]'
+  let raw = ''
+  for (let index = 0; index < elements.length; index++) {
+    const element = elements[index]
+    if (!element) continue
+    const remaining = TRUNCATION_LIMITS.HTML_CONTENT - raw.length
+    if (remaining <= 1) break
+    raw += `${raw ? '\n' : ''}${boundedOuterHtml(element, remaining)}`
+  }
+  return raw.length < TRUNCATION_LIMITS.HTML_CONTENT ? raw : `${raw}...[truncated]`
 }
 
 export const joinHtmlFragments = (fragments: string[]): string => {
@@ -32,18 +37,7 @@ export const extractSnippet = (html: string, maxChars = 100): string => {
 }
 
 export const stripAttributesDeep = (element: Element | null): string => {
-  if (!element) return ''
-  const clone = element.cloneNode(true) as Element
-  const clean = (node: Element) => {
-    Array.from(node.attributes).forEach((attr) => node.removeAttribute(attr.name))
-    Array.from(node.children).forEach((child) => {
-      clean(child)
-      const hasContent = child.textContent?.trim().length
-      if (!hasContent && child.children.length === 0) child.remove()
-    })
-  }
-  clean(clone)
-  return clone.outerHTML
+  return boundedTextHtml(element, TRUNCATION_LIMITS.SNIPPET)
 }
 
 export const htmlEntitiesEncode = (str: string): string => {

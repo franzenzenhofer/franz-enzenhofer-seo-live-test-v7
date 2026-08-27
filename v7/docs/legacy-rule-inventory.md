@@ -1,5 +1,7 @@
 # Legacy vs v7 Rule Inventory
 
+This is a migration reference. The authoritative runtime phase mapping is [rule-phase-inventory.md](rule-phase-inventory.md), backed by `src/rules/ruleInputs.ts`.
+
 Default rules audited from `f19n-obtrusive-livetest/src/public/default-rules/*.js` and v7 rules from `v7/src/rules/**`.
 
 ## Legacy rules by area (legacy MV2)

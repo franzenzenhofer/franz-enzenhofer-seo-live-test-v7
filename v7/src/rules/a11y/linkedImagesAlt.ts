@@ -38,7 +38,7 @@ export const linkedImagesAltRule: Rule = {
       type: 'warn',
       priority: 100,
       name: NAME,
-      details: { ...buildLinkedImageDetails(result.failing, result.selectors), reference: SPEC, fix: 'Add descriptive alt text to linked images or provide visible link text.' },
+      details: { ...buildLinkedImageDetails(result.failing, result.selectors, result.total), reference: SPEC, fix: 'Add descriptive alt text to linked images or provide visible link text.' },
     }
   },
 }
