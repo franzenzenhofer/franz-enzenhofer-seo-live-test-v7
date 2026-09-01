@@ -7,6 +7,8 @@ import { ResultMetadata } from './ResultMetadata'
 import { useResultHighlight } from './useResultHighlight'
 import { toResultCopyPayload } from './resultCopy'
 import { buildDomHighlight, buildDetailPayload, extractSnippet } from './resultTransforms'
+import { ResultPreview } from './ResultPreview'
+import { EvidenceBox } from './EvidenceBox'
 
 import { getResultColor } from '@/shared/colors'
 import type { Result } from '@/shared/results'
@@ -65,10 +67,11 @@ export const ResultCard = ({ result, index, displayIndex, isPinned, onTogglePin,
         onOpenReport={result.runIdentifier ? openReport : undefined}
       />
       <MessageWithLinks text={result.message} className="text-sm text-slate-900 break-words" />
+      {!open && <ResultPreview details={result.details} />}
       {open && hasDetails && (
         <div className="space-y-2">
           <ResultMetadata result={result} number={numberLabel} />
-          {snippet && <pre className="text-xs bg-white/70 border rounded p-2 whitespace-pre-wrap break-words text-slate-700">{snippet}</pre>}
+          {snippet && <EvidenceBox>{snippet}</EvidenceBox>}
           <ResultDetails details={detailPayload} />
         </div>
       )}
