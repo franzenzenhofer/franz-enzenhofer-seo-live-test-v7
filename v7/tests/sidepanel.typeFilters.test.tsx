@@ -32,6 +32,15 @@ describe('TypeFilters', () => {
     expect(html).toContain('Stop showing failed')
   })
 
+  it('styles "Show all" as a link, matching the other panel actions', () => {
+    // Violet reads as a visited link; panel actions are blue and underlined.
+    const html = render(toggleType(createDefaultTypeVisibility(), 'error'))
+    const showAll = html.slice(html.indexOf('Show all') - 260, html.indexOf('Show all'))
+    expect(showAll).toContain('text-blue-600')
+    expect(showAll).toContain('underline')
+    expect(showAll).not.toContain('text-violet')
+  })
+
   it('marks the selected chip as pressed for assistive tech', () => {
     const filtered = toggleType(createDefaultTypeVisibility(), 'error')
     expect(render(filtered)).toContain('aria-pressed="true"')

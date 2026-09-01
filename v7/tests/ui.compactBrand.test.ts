@@ -29,13 +29,17 @@ describe('compact branded UI', () => {
     expect(html).toContain('Franz Enzenhofer SEO Live Test')
   })
 
-  it('keeps source and technical metadata behind Details', () => {
+  it('shows the judged value up front, keeping raw markup and metadata behind Details', () => {
     const collapsed = renderToStaticMarkup(createElement(ResultCard, { result }))
     const expanded = renderToStaticMarkup(createElement(ResultCard, { result, defaultExpanded: true }))
 
     expect(collapsed).toContain('Finding stays visible')
     expect(collapsed).toContain('Details')
-    expect(collapsed).not.toContain('private source snippet')
+    // Deliberate: a verdict without its value is not actionable. "Title set."
+    // has to show which title. The value is surfaced; the raw markup is not.
+    expect(collapsed).toContain('private source snippet')
+    expect(collapsed).not.toContain('&lt;main&gt;')
+    // Technical metadata still belongs behind Details.
     expect(collapsed).not.toContain('rule:secret-metadata')
     expect(expanded).toContain('private source snippet')
     expect(expanded).toContain('rule:secret-metadata')
@@ -44,7 +48,8 @@ describe('compact branded UI', () => {
   it('collapses report result cards and default diagnostics', () => {
     const html = renderToStaticMarkup(createElement(ReportResultsSection, { results: [result], debugEnabled: false }))
 
-    expect(html).not.toContain('private source snippet')
+    expect(html).toContain('private source snippet')
+    expect(html).not.toContain('&lt;main&gt;')
     expect(html).not.toContain('Coverage')
     expect(html).not.toContain('Filter tips')
     expect(html).not.toContain('Showing 1 of 1')

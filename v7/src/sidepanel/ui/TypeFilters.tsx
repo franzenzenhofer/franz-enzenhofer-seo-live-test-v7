@@ -49,7 +49,7 @@ export const TypeFilters = ({ show, setShow, results, debugEnabled }: Props) => 
           <button
             type="button"
             onClick={() => setShow(() => clearTypeFilter())}
-            className="rounded px-2 py-0.5 text-xs font-medium text-violet-700 underline"
+            className="rounded px-2 py-0.5 text-xs font-medium text-blue-600 hover:text-blue-800 underline"
           >
             Show all
           </button>
