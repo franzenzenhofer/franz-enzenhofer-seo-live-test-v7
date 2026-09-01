@@ -33,6 +33,16 @@ const attributeOf = (markup: string): string => {
   return match?.[1] ? clean(match[1]) : ''
 }
 
+/** Some rules hold a record (HTTP headers, a page summary). Show its pairs. */
+const recordOf = (value: unknown): string => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return ''
+  const pairs = Object.entries(value as Record<string, unknown>)
+    .filter(([, item]) => item !== null && item !== undefined && item !== '')
+    .slice(0, 6)
+    .map(([key, item]) => `${key}: ${clean(String(item)).slice(0, 40)}`)
+  return pairs.length ? cut(pairs.join(' · ')) : ''
+}
+
 /** Some rules collect a list (robots directives, hreflang pairs). Show it. */
 const listOf = (value: unknown): string => {
   if (!Array.isArray(value) || !value.length) return ''
@@ -60,7 +70,7 @@ export const resultPreview = (details: unknown): string => {
   for (const [key, value] of Object.entries(record)) {
     if (META_KEYS.has(key)) continue
     if (usable(value)) return cut(clean(value))
-    const list = listOf(value)
+    const list = listOf(value) || recordOf(value)
     if (list) return list
   }
   const markup = [record['snippet'], record['sourceHtml']]
