@@ -1,8 +1,8 @@
 # Chrome Web Store Submission Guide
 
-**Latest submission:** 7.0.38 (2026-05-20) - status: pending review, auto-publish on approval
-**Previously published:** 7.0.2
-**Last updated:** May 20, 2026
+**Latest submission:** 7.0.55 (2026-09-01) - status: pending review, auto-publish on approval
+**Currently published:** 7.0.38 (561 users)
+**Last updated:** September 1, 2026
 
 ## Files to Upload
 
