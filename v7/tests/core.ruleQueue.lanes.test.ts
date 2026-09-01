@@ -38,6 +38,29 @@ describe('ruleQueue lanes', () => {
     expect(order.slice(0, 20).every((id) => id.startsWith('fast:'))).toBe(true)
   })
 
+  it('runs every API rule in one wave, not in batches', async () => {
+    // An authenticated user has 3 PSI + 6 GSC network rules. At concurrency 4
+    // those ran in three waves, tripling wall clock for no reason - they wait on
+    // remote APIs rather than burning CPU.
+    const ids = ['psi:a', 'psi:b', 'psi:c', 'gsc:a', 'gsc:b', 'gsc:c', 'gsc:d', 'gsc:e', 'gsc:f']
+    let peak = 0
+    let active = 0
+    const rules = ids.map((id) => ({
+      id, name: id, enabled: true, what: id.startsWith('psi') ? 'psi' : 'gsc',
+      async run(): Promise<Result> {
+        active++; peak = Math.max(peak, active)
+        await new Promise((r) => setTimeout(r, 50))
+        active--
+        return { label: 'L', name: id, type: 'ok', message: 'ok' }
+      },
+    } as unknown as Rule))
+    const tasks = rules.map((rule, i) => ({ rule, slot: i, runIndex: i + 1 }))
+    const t0 = Date.now()
+    await runRuleQueue({ tabId: 0, page, ctx, tasks, assign: () => {} })
+    expect(peak).toBe(9)
+    expect(Date.now() - t0).toBeLessThan(120)
+  })
+
   it('runs slow rules concurrently in their own lane', async () => {
     const started: number[] = []
     const rules = ['psi:a', 'psi:b', 'psi:c'].map((id) => ({

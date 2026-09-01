@@ -28,9 +28,10 @@ test.describe('phase timeline', () => {
         })
         const pending = snap.results.filter((r) => r.type === 'pending').length
         const done = snap.results.length - pending
-        const line = `${done}/${snap.results.length} ${JSON.stringify(pendingByInput)}`
+        const names = snap.results.filter((r) => r.type === 'pending').map((r) => r.ruleId || '?')
+        const line = `${done}/${snap.results.length} ${names.join(',')}`
         if (line !== last) {
-          console.log(`[t] ${((Date.now() - t0) / 1000).toFixed(1).padStart(6)}s  resolved=${done}/${snap.results.length}  STILL-PENDING ${JSON.stringify(pendingByInput)}  status=${snap.status}`)
+          console.log(`[t] ${((Date.now() - t0) / 1000).toFixed(1).padStart(6)}s  resolved=${done}/${snap.results.length}  WAITING-ON: ${names.join(' ') || '(none)'}`)
           last = line
         }
         if (pending === 0 && snap.status !== 'running') break

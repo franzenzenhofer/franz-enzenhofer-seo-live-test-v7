@@ -20,8 +20,12 @@ type ExecOpts = {
 // Fast rules are pure DOM work (single-digit ms). Slow rules are network-bound
 // (PSI ~20s, GSC, crawlers). They get separate lanes so one PageSpeed run can
 // never starve the 120+ cheap rules queued behind it.
+// The slow lane is I/O-bound - it waits on remote APIs rather than burning CPU -
+// so it is sized to hold every API rule at once (3 PSI + 6 GSC). At 4 those
+// nine rules ran in three waves, tripling the wall clock for an authenticated
+// user for no reason.
 const FAST_CONCURRENCY = 8
-const SLOW_CONCURRENCY = 4
+const SLOW_CONCURRENCY = 10
 const TIMEOUT_ERROR = 'rule-timeout'
 
 export { CANCELLATION_ERROR }
