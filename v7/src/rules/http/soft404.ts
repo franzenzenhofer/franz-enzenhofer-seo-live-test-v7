@@ -1,6 +1,6 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
-import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
+import { discardBody, hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
 const LABEL = 'HTTP'
 const NAME = 'Soft 404 Probe'
@@ -41,6 +41,7 @@ export const soft404Rule: Rule = {
 
     try {
       const res = await fetch(probeUrl, { redirect: 'follow' })
+      discardBody(res)
       const status = res.status
       const finalUrl = res.url || probeUrl
       const redirected = res.redirected

@@ -18,5 +18,14 @@ describe('extractPageInfo', () => {
     expect(r.description).toBe('World')
     expect(r.canonical).toBe('https://ex.com/')
   })
+
+  it('finds the canonical like the rules do: any-case, multi-token rel', () => {
+    document.querySelectorAll('link').forEach((el) => el.remove())
+    const link = document.createElement('link')
+    link.setAttribute('rel', 'Canonical preload')
+    link.setAttribute('href', 'https://ex.com/case')
+    document.head.appendChild(link)
+    expect(extractPageInfo().canonical).toBe('https://ex.com/case')
+  })
 })
 

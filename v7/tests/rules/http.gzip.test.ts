@@ -56,4 +56,22 @@ describe('http:gzip rule', () => {
     expect(result.type).toBe('ok')
     expect((result.details as any).headerSource).toBe('probe')
   })
+
+  it('does not re-probe when page headers already came from a live probe', async () => {
+    const f = vi.fn()
+    vi.stubGlobal('fetch', f)
+    const result = await gzipRule.run(
+      {
+        html: '',
+        url: 'https://example.com',
+        doc: new DOMParser().parseFromString('<html></html>', 'text/html'),
+        headers: { 'content-type': 'image/png' },
+        headerSource: 'probe',
+      } as any,
+      { globals: {} },
+    )
+    expect(f).not.toHaveBeenCalled()
+    expect(result.type).toBe('error')
+    expect((result.details as any).headerSource).toBe('captured')
+  })
 })

@@ -50,7 +50,10 @@ export const gzipRule: Rule = {
     const chainLastUrl = page.headerChain?.[page.headerChain.length - 1]?.url
     const chainMismatch = chainLastUrl ? normalizeUrl(chainLastUrl) !== normalizeUrl(page.url) : false
     const hasEncodingHeader = !!headers['content-encoding']
-    const shouldProbe = hasHeaders(headers) && !hasEncodingHeader && docIsHtml && (!isHtmlLike(headers) || chainMismatch)
+    // headerSource 'probe' means page.headers already came from a live HEAD of
+    // page.url this run - probing again would repeat the identical request.
+    const shouldProbe = hasHeaders(headers) && !hasEncodingHeader && docIsHtml &&
+      (!isHtmlLike(headers) || chainMismatch) && page.headerSource !== 'probe'
     let headerSource: 'captured' | 'probe' = 'captured'
 
     if (shouldProbe) {

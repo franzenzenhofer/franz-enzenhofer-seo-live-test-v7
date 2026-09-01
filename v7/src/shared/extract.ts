@@ -10,7 +10,8 @@ export const getMeta = (name: string) => {
 }
 
 export const getCanonical = () => {
-  const el = sel('link[rel="canonical"]') as HTMLLinkElement | null
+  // Same selector the canonical rules use: any-case, multi-token rel values.
+  const el = sel('link[rel~="canonical" i]') as HTMLLinkElement | null
   return el?.href
 }
 
