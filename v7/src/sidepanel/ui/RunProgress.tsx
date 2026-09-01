@@ -24,9 +24,6 @@ export const RunProgress = ({ results }: { results: Result[] }) => {
           style={{ width: `${pct}%` }}
         />
       </div>
-      <div className="text-xs text-slate-500">
-        {pending} still running - slow checks (PageSpeed, Search Console) finish last.
-      </div>
     </div>
   )
 }
