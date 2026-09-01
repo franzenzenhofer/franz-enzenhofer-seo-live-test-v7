@@ -14,6 +14,7 @@ export const nodeDepthRule: Rule = {
       label: 'DOM',
       message: `Max depth: ${d}`,
       type: 'info',
+      priority: 800,
       name: 'DOM node depth',
       details: { maxDepth: d, reference: SPEC },
     }

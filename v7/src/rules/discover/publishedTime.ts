@@ -51,6 +51,7 @@ export const discoverPublishedTimeRule: Rule = {
         label: 'DISCOVER',
         message: 'No published time (meta or LD+JSON)',
         type: 'warn',
+        priority: 350,
         name: 'Published time',
         details: { ...baseDetails, is: 'datePublished missing', should: 'Add datePublished to article schema' },
       }
@@ -61,6 +62,7 @@ export const discoverPublishedTimeRule: Rule = {
         label: 'DISCOVER',
         message: `Published: ${published} (dateModified missing)`,
         type: 'warn',
+        priority: 450,
         name: 'Published time',
         details: { ...baseDetails, is: 'dateModified missing', should: 'Add dateModified to article schema' },
       }
@@ -70,6 +72,7 @@ export const discoverPublishedTimeRule: Rule = {
       label: 'DISCOVER',
       message: `Published: ${published}, Modified: ${modified}`,
       type: 'ok',
+      priority: 800,
       name: 'Published time',
       details: baseDetails,
     }

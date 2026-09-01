@@ -19,10 +19,10 @@ export const linkPreloadRule: Rule = {
       label: 'SPEED',
       message: n ? `preload links: ${n}` : 'No preload links',
       type: 'info',
+      priority: n ? 750 : 900,
       name: 'rel=preload links',
       details: {
-        sourceHtml,
-        snippet: extractSnippet(sourceHtml),
+        ...(n ? { sourceHtml, snippet: extractSnippet(sourceHtml) } : {}),
         count: n,
         shown,
         truncated,

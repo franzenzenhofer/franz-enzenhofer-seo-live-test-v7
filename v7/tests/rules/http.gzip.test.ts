@@ -14,9 +14,9 @@ describe('http:gzip rule', () => {
     expect(result.message).toContain('Hard Reload')
   })
 
-  it('fails when no encoding header but other headers present', async () => {
+  it('warns when no encoding header but other headers present', async () => {
     const result = await run({ 'content-type': 'text/html' })
-    expect(result.type).toBe('error')
+    expect(result.type).toBe('warn')
     expect(result.message).toContain('No content-encoding header')
   })
 
@@ -38,9 +38,9 @@ describe('http:gzip rule', () => {
     expect(result.message).toContain('br')
   })
 
-  it('fails when no content-encoding header present', async () => {
+  it('warns when no content-encoding header present', async () => {
     const result = await run({ 'content-type': 'text/html' })
-    expect(result.type).toBe('error')
+    expect(result.type).toBe('warn')
   })
 
   it('re-probes main document when captured headers look like an asset', async () => {
@@ -71,7 +71,7 @@ describe('http:gzip rule', () => {
       { globals: {} },
     )
     expect(f).not.toHaveBeenCalled()
-    expect(result.type).toBe('error')
+    expect(result.type).toBe('warn')
     expect((result.details as any).headerSource).toBe('captured')
   })
 })

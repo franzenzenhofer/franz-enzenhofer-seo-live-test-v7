@@ -15,13 +15,14 @@ export const ogTitleRule: Rule = {
   run: async (page) => {
     const el = page.doc.querySelector(OG_SELECTORS.TITLE) as HTMLMetaElement|null
     if (!el || !el.content) {
-      return { label: 'HEAD', message: 'No og:title meta.', type: 'info', name: 'Open Graph Title', details: { tested: TESTED, reference: SPEC } }
+      return { label: 'HEAD', message: 'No og:title meta.', type: 'info', priority: 900, name: 'Open Graph Title', details: { tested: TESTED, reference: SPEC } }
     }
     const sourceHtml = extractHtml(el)
     return {
       label: 'HEAD',
-      message: `Open Graph (Facebook) title: "${el.content}"`,
+      message: `Open Graph (Facebook) title: "${extractSnippet(el.content, 120)}"`,
       type: 'info',
+      priority: 760,
       name: 'Open Graph Title',
       details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), ogTitle: el.content, tested: TESTED, reference: SPEC },
     }

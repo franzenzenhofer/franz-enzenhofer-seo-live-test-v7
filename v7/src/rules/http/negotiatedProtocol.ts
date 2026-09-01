@@ -29,8 +29,8 @@ export const negotiatedProtocolRule: Rule = {
         message: `Network protocol: ${proto} (HTTP/3 – optimal performance).` }
     }
     if (isHttp2(proto)) {
-      return { label: LABEL, name: NAME, type: 'warn', priority: 400, details,
-        message: `Network protocol: ${proto}. Consider upgrading to HTTP/3 for better performance.` }
+      return { label: LABEL, name: NAME, type: 'ok', priority: 780, details,
+        message: `Network protocol: ${proto} (HTTP/2; HTTP/3 would be optimal).` }
     }
     if (isLegacy(proto) && isHttps) {
       return { label: LABEL, name: NAME, type: 'error', priority: 200, details,

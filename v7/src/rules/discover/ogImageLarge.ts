@@ -23,8 +23,9 @@ export const discoverOgImageLargeRule: Rule = {
         label: 'DISCOVER',
         message: 'Missing og:image meta tag',
         type: 'warn',
+        priority: 400,
         name: 'Large OG image (metadata)',
-        details: { sourceHtml: '', snippet: '', width: undefined, height: undefined, reference: SPEC },
+        details: { reference: SPEC },
       }
     }
 
@@ -38,6 +39,7 @@ export const discoverOgImageLargeRule: Rule = {
           label: 'DISCOVER',
           message: `OG image large: ${w}x${h}px`,
           type: 'ok',
+          priority: 850,
           name: 'Large OG image (metadata)',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPaths, width: w, height: h, reference: SPEC },
         }
@@ -45,6 +47,7 @@ export const discoverOgImageLargeRule: Rule = {
           label: 'DISCOVER',
           message: w && h ? `OG image ${w}x${h}px (<1200px)` : 'OG image size metadata missing',
           type: 'warn',
+          priority: 450,
           name: 'Large OG image (metadata)',
           details: {
             sourceHtml,

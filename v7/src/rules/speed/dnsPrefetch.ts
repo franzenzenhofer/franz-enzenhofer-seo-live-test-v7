@@ -20,10 +20,10 @@ export const dnsPrefetchRule: Rule = {
       label: 'SPEED',
       message: n ? `dns-prefetch links: ${n}` : 'No dns-prefetch links',
       type: 'info',
+      priority: n ? 750 : 900,
       name: 'rel=dns-prefetch',
       details: {
-        sourceHtml,
-        snippet: extractSnippet(sourceHtml),
+        ...(n ? { sourceHtml, snippet: extractSnippet(sourceHtml) } : {}),
         count: n,
         shown: evidence.shown,
         truncated: evidence.truncated,

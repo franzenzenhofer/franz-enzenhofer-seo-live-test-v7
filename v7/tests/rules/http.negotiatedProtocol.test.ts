@@ -19,9 +19,9 @@ describe('rule: negotiated protocol', () => {
     expect(r.message).toContain('HTTP/2 or HTTP/3')
   })
 
-  it('warns for h2 and recommends HTTP/3', async () => {
+  it('treats h2 as passing and mentions HTTP/3', async () => {
     const r = await negotiatedProtocolRule.run(P('h2') as any, { globals: {} })
-    expect(r.type).toBe('warn')
+    expect(r.type).toBe('ok')
     expect(r.message).toContain('HTTP/3')
   })
 

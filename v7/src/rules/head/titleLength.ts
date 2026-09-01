@@ -57,6 +57,7 @@ export const titleLengthRule: Rule = {
         sourceHtml,
         snippet: extractSnippet(title),
         domPath: getDomPath(element),
+        title,
         length: len,
         reference: SPEC,
       },

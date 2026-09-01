@@ -40,6 +40,7 @@ export const gscPropertyAvailableRule: Rule = {
       label: 'GSC',
       message: `Property available: ${property}`,
       type: 'ok',
+      priority: 800,
       name: NAME,
       details: {
         url: page.url,

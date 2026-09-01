@@ -28,6 +28,7 @@ export const gscDirectoryWorldwideRule: Rule = {
           label: 'GSC',
           message: `GSC query error ${r.status}`,
           type: 'warn',
+          priority: 200,
           name: NAME,
           details: { url: page.url, property, propertyType, status: r.status, reference: GSC_API_REFERENCE },
         }
@@ -36,8 +37,9 @@ export const gscDirectoryWorldwideRule: Rule = {
       const imp = (j.rows || []).reduce((a, x)=> a + (x.impressions || 0), 0)
       return {
         label: 'GSC',
-        message: `Directory impressions ${imp}`,
+        message: `Directory ${dir}: impressions ${imp}`,
         type: 'info',
+        priority: 750,
         name: NAME,
         details: { url: page.url, property, propertyType, directory: dir, impressions: imp, apiResponse: j, reference: GSC_API_REFERENCE },
       }

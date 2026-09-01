@@ -1,17 +1,11 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
+import { linkHeaderOf, parseHeaderCanonicals } from '@/shared/canonicalHeader'
 
 const LABEL = 'HEAD'
 const NAME = 'Canonical HTTP header'
 const RULE_ID = 'head:canonical-header'
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
-
-const parseCanonicalHeaders = (val: string | undefined | null): string[] => {
-  if (!val) return []
-  const matches = [...val.matchAll(/<([^>]+)>\s*;\s*rel="?canonical"?/gi)]
-  const urls = matches.map((m) => m[1]).filter((u): u is string => !!u)
-  return Array.from(new Set(urls))
-}
 
 export const canonicalHeaderRule: Rule = {
   id: RULE_ID,
@@ -19,8 +13,8 @@ export const canonicalHeaderRule: Rule = {
   enabled: true,
   what: 'http',
   async run(page) {
-    const headerVal = page.headers?.['link'] || page.headers?.['Link'] || ''
-    const canonicals = parseCanonicalHeaders(headerVal)
+    const headerVal = linkHeaderOf(page.headers)
+    const canonicals = parseHeaderCanonicals(headerVal)
     if (!canonicals.length) {
       return {
         label: LABEL,

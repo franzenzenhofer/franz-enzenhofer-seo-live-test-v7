@@ -1,5 +1,5 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, extractHtmlFromList } from '@/shared/html-utils'
+import { extractHtml, extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
 import { sampleElements } from '@/shared/domEvidence'
 
@@ -22,9 +22,9 @@ export const titleRule: Rule = {
     const isEmpty = count === 1 && title.length === 0
     const isOk = count === 1 && !isEmpty
 
-    const type: 'info' | 'error' = isOk ? 'info' : 'error'
+    const type: 'ok' | 'error' = isOk ? 'ok' : 'error'
     const message = isOk
-      ? 'Title set.'
+      ? `Title (${title.length} chars): "${extractSnippet(title, 120)}"`
       : isMultiple
         ? `${count} <title> tags found in head (only one allowed).`
         : isMissing

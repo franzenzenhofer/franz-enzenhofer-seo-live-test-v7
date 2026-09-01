@@ -21,10 +21,12 @@ export const metaViewportRule: Rule = {
     }
     const first = elements.sample[0]!
     const sourceHtml = extractHtml(first)
+    const content = (first.getAttribute('content') || '').trim()
+    const countNote = elements.total > 1 ? ` (${elements.total} viewport tags)` : ''
     return {
       name: NAME,
       label: LABEL,
-      message: `Responsive meta viewport tag (${elements.total}) discovered.`,
+      message: `Meta viewport: "${extractSnippet(content || '(empty)', 100)}"${countNote}`,
       type: 'info',
       priority: 600,
       details: {
@@ -34,7 +36,7 @@ export const metaViewportRule: Rule = {
         count: elements.total,
         shown: elements.shown,
         truncated: elements.truncated,
-        content: first.getAttribute('content') || '',
+        content,
         tested: TESTED,
         reference: SPEC,
       },

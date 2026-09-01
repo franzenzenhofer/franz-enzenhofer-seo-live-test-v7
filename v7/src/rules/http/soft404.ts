@@ -85,8 +85,8 @@ export const soft404Rule: Rule = {
           label: LABEL,
           name: NAME,
           message: `Non-existing URL returned HTTP 404 after redirect(s) (should be direct 404).`,
-          type: 'error',
-          priority: 100,
+          type: 'warn',
+          priority: 250,
           details: { probeUrl, finalUrl, status, redirected, snippet, reference: SPEC },
         }
       }

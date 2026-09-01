@@ -111,6 +111,7 @@ export const canonicalRule: Rule = {
           domPath: getDomPath(el),
           href,
           resolvedUrl,
+          canonicalUrl: resolvedUrl,
           normalizedPageUrl,
           normalizedCanonicalUrl,
           matchesPageUrl,

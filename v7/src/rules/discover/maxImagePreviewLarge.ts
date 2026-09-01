@@ -23,21 +23,21 @@ export const discoverMaxImagePreviewLargeRule: Rule = {
           label: 'DISCOVER',
           message: 'max-image-preview:large present',
           type: 'ok',
+          priority: 800,
           name: 'max-image-preview:large',
           details: {
-            sourceHtml,
-            snippet: extractSnippet(sourceHtml),
-            domPath: getDomPath(metaEl),
-            xRobotsTag: xr,
+            ...(sourceHtml ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(metaEl) } : {}),
+            ...(xr ? { xRobotsTag: xr } : {}),
             reference: SPEC,
           },
         }
       : {
           label: 'DISCOVER',
-          message: 'max-image-preview:large not present',
+          message: 'max-image-preview:large not present (recommended for Google Discover)',
           type: 'warn',
+          priority: 400,
           name: 'max-image-preview:large',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(metaEl), reference: SPEC },
+          details: { ...(sourceHtml ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(metaEl) } : {}), reference: SPEC },
         }
   },
 }

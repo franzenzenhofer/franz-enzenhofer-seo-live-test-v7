@@ -27,6 +27,7 @@ export const gscTopQueriesOfPageRule: Rule = {
           label: 'GSC',
           message: `GSC query error ${r.status}`,
           type: 'warn',
+          priority: 200,
           name: NAME,
           details: { url: page.url, property, propertyType, status: r.status, reference: GSC_API_REFERENCE },
         }
@@ -37,6 +38,7 @@ export const gscTopQueriesOfPageRule: Rule = {
         label: 'GSC',
         message: `Top queries: ${rows || 'none'}`,
         type: 'info',
+        priority: 750,
         name: NAME,
         details: { url: page.url, property, propertyType, topQueries: j.rows, apiResponse: j, reference: GSC_API_REFERENCE },
       }

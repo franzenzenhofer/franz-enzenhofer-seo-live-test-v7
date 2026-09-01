@@ -1,5 +1,5 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, stripAttributesDeep } from '@/shared/html-utils'
+import { extractHtml, extractSnippet, stripAttributesDeep } from '@/shared/html-utils'
 import { getDomPath, getDomPaths } from '@/shared/dom-path'
 import { sampleElements } from '@/shared/domEvidence'
 
@@ -22,8 +22,8 @@ export const h1Rule: Rule = {
       return { ...header, message, type: 'warn', priority, details }
     }
     const node = nodes[0]!
-    const hasContent = Boolean(node.textContent && node.textContent.trim().length)
-    if (!hasContent) {
+    const text = (node.textContent || '').replace(/\s+/g, ' ').trim()
+    if (!text) {
       return {
         ...header,
         message: '<h1> is empty.',
@@ -34,10 +34,10 @@ export const h1Rule: Rule = {
     }
     return {
       ...header,
-      message: '1 <h1> found.',
+      message: `1 <h1> found: "${extractSnippet(text, 120)}"`,
       type: 'ok',
       priority: 1000,
-      details: { snippet: stripAttributesDeep(node), sourceHtml: extractHtml(node), domPath: getDomPath(node), reference: SPEC },
+      details: { h1: text, snippet: stripAttributesDeep(node), sourceHtml: extractHtml(node), domPath: getDomPath(node), reference: SPEC },
     }
   },
 }

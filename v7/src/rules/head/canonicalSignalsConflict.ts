@@ -2,18 +2,12 @@ import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
 import { normalizeUrl } from '@/shared/url-utils'
+import { linkHeaderOf, parseHeaderCanonicals } from '@/shared/canonicalHeader'
 
 const LABEL = 'HEAD'
 const NAME = 'Canonical signals conflict'
 const RULE_ID = 'head:canonical-signals-conflict'
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
-
-const parseHeaderCanonicals = (val: string | undefined | null): string[] => {
-  if (!val) return []
-  const matches = [...val.matchAll(/<([^>]+)>\s*;\s*rel="?canonical"?/gi)]
-  const urls = matches.map((m) => m[1]).filter((u): u is string => !!u)
-  return Array.from(new Set(urls))
-}
 
 export const canonicalSignalsConflictRule: Rule = {
   id: RULE_ID,
@@ -24,7 +18,7 @@ export const canonicalSignalsConflictRule: Rule = {
     const linkEl = page.doc.querySelector('link[rel~="canonical" i]')
     const htmlHref = (linkEl?.getAttribute('href') || '').trim()
     const htmlCanonical = htmlHref ? new URL(htmlHref, page.url).toString() : ''
-    const headerVal = page.headers?.['link'] || page.headers?.['Link'] || ''
+    const headerVal = linkHeaderOf(page.headers)
     const headerCanonicals = parseHeaderCanonicals(headerVal)
 
     if (headerCanonicals.length > 1) {

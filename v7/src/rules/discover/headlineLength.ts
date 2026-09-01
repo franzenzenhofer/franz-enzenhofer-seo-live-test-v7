@@ -19,6 +19,7 @@ export const discoverHeadlineLengthRule: Rule = {
         label: 'DISCOVER',
         message: 'No <h1> tag found',
         type: 'warn',
+        priority: 300,
         name: 'Headline length',
         details: { reference: SPEC },
       }
@@ -30,15 +31,17 @@ export const discoverHeadlineLengthRule: Rule = {
     return isLongEnough
       ? {
           label: 'DISCOVER',
-          message: `Headline length ${n} chars (>=20)`,
+          message: `Headline length ${n} chars (>=20): "${extractSnippet(h, 100)}"`,
           type: 'ok',
+          priority: 850,
           name: 'Headline length',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), headline: h, reference: SPEC },
         }
       : {
           label: 'DISCOVER',
-          message: `Headline short: ${n} chars (<20)`,
+          message: `Headline short: ${n} chars (<20): "${extractSnippet(h, 100)}"`,
           type: 'info',
+          priority: 500,
           name: 'Headline length',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), headline: h, reference: SPEC },
         }

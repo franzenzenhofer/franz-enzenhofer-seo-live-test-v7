@@ -1,14 +1,21 @@
+import type { ReactElement } from 'react'
+
 import { EvidenceBox } from './EvidenceBox'
 
-import { resultPreview } from '@/shared/resultPreview'
+import { resultPreview, resultValue } from '@/shared/resultPreview'
 
 /**
- * The value the rule judged, under its verdict. "Title set." is not useful on
- * its own - the point is which title. Only shown while the card is collapsed,
- * since the expanded view carries the full evidence in the same box.
+ * The value the rule judged, under its verdict - but never text the verdict
+ * message already carries. Only shown while the card is collapsed; the
+ * expanded view carries the full evidence in the same box. A click copies the
+ * full untruncated value even when the display is cut.
  */
-export const ResultPreview = ({ details }: { details?: unknown }) => {
-  const preview = resultPreview(details)
+export const ResultPreview = ({ details, message }: { details?: unknown; message?: string }): ReactElement | null => {
+  const preview = resultPreview(details, message)
   if (!preview) return null
-  return <EvidenceBox testId="result-preview" title={preview}>{preview}</EvidenceBox>
+  return (
+    <EvidenceBox testId="result-preview" title={preview} copyValue={resultValue(details)}>
+      {preview}
+    </EvidenceBox>
+  )
 }

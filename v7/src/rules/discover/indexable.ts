@@ -27,25 +27,23 @@ export const discoverIndexableRule: Rule = {
           label: 'DISCOVER',
           message: 'Noindex detected',
           type: 'warn',
+          priority: 150,
           name: 'Indexable',
           details: {
-            sourceHtml,
-            snippet: extractSnippet(sourceHtml),
-            domPath: getDomPath(result.element),
-            xRobotsTag: result.xRobots,
+            ...(sourceHtml ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(result.element) } : {}),
+            ...(result.xRobots ? { xRobotsTag: result.xRobots } : {}),
             reference: SPEC,
           },
         }
       : {
           label: 'DISCOVER',
-          message: 'Indexable',
+          message: 'Indexable (no noindex in robots meta or X-Robots-Tag)',
           type: 'ok',
+          priority: 850,
           name: 'Indexable',
           details: {
-            sourceHtml,
-            snippet: extractSnippet(sourceHtml),
-            domPath: getDomPath(result.element),
-            xRobotsTag: result.xRobots,
+            ...(sourceHtml ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(result.element) } : {}),
+            ...(result.xRobots ? { xRobotsTag: result.xRobots } : {}),
             reference: SPEC,
           },
         }

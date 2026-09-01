@@ -7,6 +7,8 @@ export const schemaBreadcrumbRule = createSchemaRule({
   validator: (n) => {
     const els = (n['itemListElement'] as unknown[]) || []
     return els.length >= 2
+      ? { ok: true }
+      : { ok: false, missing: [`itemListElement needs >=2 entries (found ${els.length})`] }
   },
 })
 

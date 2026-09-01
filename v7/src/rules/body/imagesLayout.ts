@@ -20,6 +20,7 @@ export const imagesLayoutRule: Rule = {
         label: 'BODY',
         message: `${missing.total} images missing width/height`,
         type: 'warn',
+        priority: 300,
         name: 'Images missing dimensions',
         details: {
           sourceHtml,
@@ -38,6 +39,7 @@ export const imagesLayoutRule: Rule = {
       label: 'BODY',
       message: 'All images have dimensions',
       type: 'ok',
+      priority: 850,
       name: 'Images missing dimensions',
       details: {
         sourceHtml: allHtml,

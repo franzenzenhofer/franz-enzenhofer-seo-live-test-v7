@@ -26,6 +26,7 @@ export const psiMobileFcpTbtRule: Rule = {
       label: 'PSI',
       message: `${metrics} [View report](${summary.testUrl})`,
       type: 'info',
+      priority: 700,
       name: NAME,
       details: { ...summary, reference: PSI_API_REFERENCE },
     }

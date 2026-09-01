@@ -21,6 +21,7 @@ export const parameterizedLinksRule: Rule = {
       label: 'BODY',
       message: `Links with parameters: ${paramLinks.total}`,
       type: 'info',
+      priority: paramLinks.total ? 700 : 900,
       name: 'Links with query params',
       details: {
         sourceHtml,

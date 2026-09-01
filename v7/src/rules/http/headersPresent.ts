@@ -11,24 +11,24 @@ export const headersPresentRule: Rule = {
   enabled: true,
   what: 'http',
   async run(page) {
-    const hasHeaders = page.headers && Object.keys(page.headers).length > 0
-    if (!hasHeaders) {
+    const headerCount = Object.keys(page.headers || {}).length
+    if (!headerCount) {
       return {
         label: LABEL,
         name: NAME,
         message: 'No HTTP headers captured. Page may have been served from cache; header-dependent checks might fail.',
         type: 'warn',
-        priority: 1200,
-        details: { httpHeaders: page.headers || {}, status: page.status, fromCache: page.fromCache ?? null, reference: SPEC },
+        priority: 350,
+        details: { httpHeaders: page.headers || {}, headerCount, status: page.status, fromCache: page.fromCache ?? null, reference: SPEC },
       }
     }
     return {
       label: LABEL,
       name: NAME,
-      message: 'HTTP headers captured.',
+      message: `${headerCount} HTTP response headers captured${typeof page.status === 'number' ? ` (HTTP ${page.status})` : ''}.`,
       type: 'info',
       priority: 900,
-      details: { httpHeaders: page.headers || {}, status: page.status, fromCache: page.fromCache ?? null, reference: SPEC },
+      details: { httpHeaders: page.headers || {}, headerCount, status: page.status, fromCache: page.fromCache ?? null, reference: SPEC },
     }
   },
 }

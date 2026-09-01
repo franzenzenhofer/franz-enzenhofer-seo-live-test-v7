@@ -49,10 +49,14 @@ export const robotsAgentConflictsRule: Rule = {
     const unusualAgents = Object.keys(byUa).filter((ua) => ua !== 'robots' && !WELL_KNOWN.has(ua))
 
     if (conflicts.length || unusualAgents.length) {
+      const conflictText = conflicts.length
+        ? `${conflicts.length} agent conflict${conflicts.length > 1 ? 's' : ''}: ${conflicts.map((c) => `${c.ua} (${c.directive})`).join('; ')}`
+        : ''
+      const agentText = unusualAgents.length ? `Nonstandard robots agents: ${unusualAgents.join(', ')}` : ''
       return {
         label: LABEL,
         name: NAME,
-        message: 'Agent-specific robots directives detected; review conflicts and nonstandard agents.',
+        message: [conflictText, agentText].filter(Boolean).join('. ') + '.',
         type: conflicts.length ? 'warn' : 'info',
         priority: conflicts.length ? 180 : 800,
         details: {

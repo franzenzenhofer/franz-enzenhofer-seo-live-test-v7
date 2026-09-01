@@ -20,6 +20,7 @@ export const discoverPrimaryLanguageRule: Rule = {
           label: 'DISCOVER',
           message: `html[lang] set to '${lang}'`,
           type: 'info',
+          priority: 800,
           name: 'Primary language set',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), language: lang, reference: SPEC },
         }
@@ -27,6 +28,7 @@ export const discoverPrimaryLanguageRule: Rule = {
           label: 'DISCOVER',
           message: 'Missing lang attribute on <html> tag',
           type: 'warn',
+          priority: 250,
           name: 'Primary language set',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), language: null, reference: SPEC },
         }

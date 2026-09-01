@@ -28,7 +28,7 @@ export const fromCacheRule: Rule = {
         name: NAME,
         message: 'Page delivered via browser cache. Some HTTP header checks may be unreliable. Try Shift+Reload.',
         type: 'warn',
-        priority: 1000,
+        priority: 150,
         details: { fromCache: true, httpHeaders: page.headers || {}, reference: SPEC },
       }
     }

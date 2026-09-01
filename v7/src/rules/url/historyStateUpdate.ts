@@ -19,6 +19,7 @@ export const historyStateUpdateRule: Rule = {
       label: LABEL,
       message: observedSpaNav ? 'History state update (SPA navigation) observed' : 'No SPA-only history update detected',
       type: 'info',
+      priority: observedSpaNav ? 500 : 900,
       name: NAME,
       details: {
         tested: TESTED,

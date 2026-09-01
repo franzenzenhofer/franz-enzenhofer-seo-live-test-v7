@@ -23,10 +23,10 @@ describe('title rule', () => {
     expect(result.message).toContain('2 <title> tags found')
   })
 
-  it('passes single non-empty title', async () => {
+  it('passes single non-empty title showing the value', async () => {
     const result = await run('<html><head><title>Valid Title</title></head></html>')
-    expect(result.type).toBe('info')
-    expect(result.message).toBe('Title set.')
+    expect(result.type).toBe('ok')
+    expect(result.message).toBe('Title (11 chars): "Valid Title"')
     expect(result.details?.snippet).toBe('<title>Valid Title</title>')
   })
 })
