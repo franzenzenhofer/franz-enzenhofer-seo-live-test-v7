@@ -14,6 +14,7 @@ export const nodeCountRule: Rule = {
       label: 'DOM',
       message: `Node count: ${n}`,
       type: 'info',
+      priority: 800,
       name: 'DOM node count',
       details: { nodeCount: n, reference: SPEC },
     }

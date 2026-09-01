@@ -2,11 +2,14 @@ import parse from '@/vendor/robots'
 import type { Rule } from '@/core/types'
 import { fetchTextOnce } from '@/shared/fetchOnce'
 
+const LABEL = 'ROBOTS'
+const NAME = 'Googlebot URL allowed'
+const USER_AGENT = 'Googlebot'
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt'
 
 export const googlebotUrlCheckRule: Rule = {
   id: 'robots:googlebot-url-check',
-  name: 'Googlebot URL allowed',
+  name: NAME,
   enabled: true,
   what: 'http',
   async run(page) {
@@ -14,25 +17,29 @@ export const googlebotUrlCheckRule: Rule = {
     try {
       origin = new URL(page.url).origin
     } catch {
-      return { label: 'ROBOTS', message: 'Invalid URL', type: 'info', name: 'googlebotUrlCheck', details: { url: page.url, reference: SPEC } }
+      return { label: LABEL, message: 'Invalid URL', type: 'info', priority: 900, name: NAME, details: { url: page.url, reference: SPEC } }
     }
     const txt = await fetchTextOnce(`${origin}/robots.txt`)
     if (!txt)
       return {
-        label: 'ROBOTS',
+        label: LABEL,
         message: 'robots.txt not reachable',
         type: 'info',
-        name: 'Googlebot URL allowed',
+        priority: 850,
+        name: NAME,
         details: { origin, robotsTxt: '', reference: SPEC },
       }
-    const res = parse(txt, page.url, 'Googlebot') as Record<string, unknown>
+    const res = parse(txt, page.url, USER_AGENT) as Record<string, unknown>
     const allowed = Boolean(res['allowed'])
     return {
-      label: 'ROBOTS',
-      message: allowed ? 'Googlebot is allowed' : 'Googlebot is disallowed',
-      type: allowed ? 'ok' : 'warn',
-      name: 'Googlebot URL allowed',
-      details: { robotsTxt: txt, reference: SPEC },
+      label: LABEL,
+      message: allowed
+        ? `${USER_AGENT} is allowed to crawl this URL.`
+        : `${USER_AGENT} is disallowed from crawling this URL by robots.txt.`,
+      type: allowed ? 'ok' : 'error',
+      priority: allowed ? 800 : 60,
+      name: NAME,
+      details: { url: page.url, userAgent: USER_AGENT, allowed, robotsTxt: txt, reference: SPEC },
     }
   },
 }

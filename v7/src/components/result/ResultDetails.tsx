@@ -1,57 +1,44 @@
+import type { ReactElement } from 'react'
+
+import { DetailGuidance } from './DetailGuidance'
+import { DetailMeasurements } from './DetailMeasurements'
+import { DetailProvenance } from './DetailProvenance'
+import { DetailTechnical } from './DetailTechnical'
+import { EvidenceBox } from './EvidenceBox'
+import { formatLabel } from './detailText'
+import { hasTierContent, tierDetails } from './detailTiers'
+
 import type { Result } from '@/shared/results'
 
-const isHttpUrl = (value: unknown): value is string =>
-  typeof value === 'string' && /^https?:\/\//i.test(value)
+type Props = { details?: Result['details']; snippet?: string | null; message?: string }
 
-const formatLabel = (key: string) =>
-  key.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').toUpperCase()
-
-const formatValue = (value: unknown) => {
-  if (value == null) return ''
-  if (typeof value === 'string') return value
-  try {
-    return JSON.stringify(value, null, 2)
-  } catch {
-    return String(value)
-  }
-}
-
-export const ResultDetails = ({ details }: { details?: Result['details'] }) => {
-  if (!details) return null
-  const entries = Object.entries(details).filter(([key]) => key !== 'domPath' && key !== 'domPaths')
-  if (!entries.length) return null
+/**
+ * The expanded card, tiered by what the reader needs: the judged value once,
+ * diagnosis and fix next, compact facts, raw markup only when it adds
+ * something, technical payloads muted and last, and the spec reference as a
+ * footer. Expanded means everything: nothing folded, nothing truncated.
+ */
+export const ResultDetails = ({ details, snippet, message }: Props): ReactElement | null => {
+  const tiers = tierDetails(details, snippet, message)
+  if (!hasTierContent(tiers)) return null
   return (
-    <div className="mt-2 border-t pt-2 space-y-2 text-xs">
-      {entries.map(([key, value]) => {
-        const label = formatLabel(key)
-        const isSelectors = key === 'highlightSelectors' && Array.isArray(value)
-        const selectorText = isSelectors
-          ? (value.filter((item) => typeof item === 'string') as string[]).join('\n')
-          : null
-        return (
-          <div key={key}>
-            <span className="font-semibold uppercase tracking-wide text-[10px] text-slate-500">{label}</span>
-          {isHttpUrl(value) ? (
-            <a
-              href={value}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-1 block break-words rounded border bg-white/60 p-2 text-[11px] text-blue-700 underline"
-            >
-              {value}
-            </a>
-          ) : isSelectors ? (
-            <pre className="mt-1 whitespace-pre-wrap break-words bg-white/60 p-2 rounded border text-[11px]">
-              {selectorText}
-            </pre>
-          ) : (
-            <pre className="mt-1 whitespace-pre-wrap break-words bg-white/60 p-2 rounded border text-[11px]">
-              {formatValue(value)}
-            </pre>
-          )}
-          </div>
-        )
-      })}
+    <div className="mt-2 space-y-2 border-t pt-2 text-xs">
+      {tiers.evidence.map(({ key, text }) => (
+        <div key={key || 'snippet'}>
+          {key && <span className="font-medium text-slate-500">{formatLabel(key)}</span>}
+          <EvidenceBox testId="detail-evidence" copyValue={text}>{text}</EvidenceBox>
+        </div>
+      ))}
+      <DetailGuidance entries={tiers.guidance} />
+      <DetailMeasurements entries={tiers.measurements} />
+      {tiers.source.map(({ key, text }) => (
+        <div key={key} data-testid="detail-source">
+          <span className="font-medium text-slate-400">{formatLabel(key)}</span>
+          <EvidenceBox tone="muted" copyValue={text}>{text}</EvidenceBox>
+        </div>
+      ))}
+      <DetailTechnical entries={tiers.technical} />
+      <DetailProvenance provenance={tiers.provenance} />
     </div>
   )
 }

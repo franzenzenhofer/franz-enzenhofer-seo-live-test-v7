@@ -21,9 +21,10 @@ export const ldjsonRule: Rule = {
           label: 'DOM',
           message: `ld+json blocks: ${total}`,
           type: 'info',
+          priority: 750,
           name: 'LD+JSON presence',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml), count: total, shown, truncated, domPaths, tested: TESTED, reference: SPEC },
         }
-      : { label: 'DOM', message: 'No ld+json', type: 'info', name: 'ldjson', details: { tested: TESTED, reference: SPEC } }
+      : { label: 'DOM', message: 'No ld+json', type: 'info', priority: 900, name: 'LD+JSON presence', details: { tested: TESTED, reference: SPEC } }
   },
 }

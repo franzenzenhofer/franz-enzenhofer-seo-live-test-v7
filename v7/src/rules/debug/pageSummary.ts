@@ -20,6 +20,7 @@ export const pageSummaryRule: Rule = {
       label: 'DEBUG',
       message: `Title: ${t} · headers: ${l} · resources: ${res}`,
       type: 'info',
+      priority: 950,
       name: 'Page summary (debug)',
       details: {
         sourceHtml,

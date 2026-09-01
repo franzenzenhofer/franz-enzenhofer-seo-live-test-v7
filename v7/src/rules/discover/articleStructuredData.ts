@@ -27,6 +27,7 @@ export const discoverArticleStructuredDataRule: Rule = {
           label: 'DISCOVER',
           message: 'Article/NewsArticle structured data present',
           type: 'ok',
+          priority: 800,
           name: 'Article structured data',
           details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPaths, reference: SPEC },
         }
@@ -34,10 +35,9 @@ export const discoverArticleStructuredDataRule: Rule = {
           label: 'DISCOVER',
           message: 'No Article structured data',
           type: 'warn',
+          priority: 300,
           name: 'Article structured data',
           details: {
-            sourceHtml,
-            snippet: extractSnippet(sourceHtml),
             scriptsFound: result.scripts.length,
             tested: 'Searched for Article/NewsArticle JSON-LD scripts',
             domPaths,

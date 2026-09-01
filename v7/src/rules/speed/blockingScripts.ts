@@ -19,10 +19,10 @@ export const blockingScriptsRule: Rule = {
       label: 'SPEED',
       message: s ? `Blocking scripts in head: ${s}` : 'No blocking head scripts',
       type: s ? 'warn' : 'ok',
+      priority: s ? 250 : 850,
       name: 'Blocking scripts in head',
       details: {
-        sourceHtml,
-        snippet: extractSnippet(sourceHtml),
+        ...(s ? { sourceHtml, snippet: extractSnippet(sourceHtml) } : {}),
         count: s,
         shown,
         truncated,

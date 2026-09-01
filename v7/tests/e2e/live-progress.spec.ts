@@ -44,6 +44,22 @@ test.describe('live progress', () => {
     }
     await side.screenshot({ path: `${SHOTS}/final.png`, fullPage: true })
 
+    // Expanded-card check: the tiers (evidence once, compact measurements,
+    // folded technical, footer reference) are only visible with Details open.
+    const expandTargets: Array<[string, string]> = [
+      ['Meta description set.', 'expanded-meta-description.png'],
+      ['Canonical self-references', 'expanded-canonical.png'],
+      ['Links: internal', 'expanded-internal-links.png'],
+      ['HSTS', 'expanded-hsts.png'],
+    ]
+    for (const [text, file] of expandTargets) {
+      const card = side.locator('[data-testid="result-card"]', { hasText: text }).first()
+      if (!(await card.count())) continue
+      await card.getByRole('button', { name: 'Details' }).click()
+      await side.waitForTimeout(200)
+      await card.screenshot({ path: `${SHOTS}/${file}` })
+    }
+
     const snap = await readRunSnapshot(ctx, TARGET)
     const byType: Record<string, number> = {}
     snap?.results.forEach((r) => { byType[r.type] = (byType[r.type] || 0) + 1 })

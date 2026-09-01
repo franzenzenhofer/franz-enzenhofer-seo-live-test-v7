@@ -29,7 +29,7 @@ export const robotsMetaListRule: Rule = {
     return {
       label: LABEL,
       name: NAME,
-      message: `${directives.length} robots meta tags found: ${summary}`,
+      message: `${directives.length} robots meta tag${directives.length > 1 ? 's' : ''} found: ${summary}`,
       type: 'info',
       priority: 640,
       details: {

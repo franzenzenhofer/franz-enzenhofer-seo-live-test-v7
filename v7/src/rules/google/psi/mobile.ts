@@ -1,6 +1,6 @@
 import { extractPSIKey, PSI_API_REFERENCE } from '../google-utils'
 
-import { summarizePSI } from './summary'
+import { psiScoreVerdict, summarizePSI } from './summary'
 
 import { runPSI, getPSIKey } from '@/shared/psi'
 import type { Rule } from '@/core/types'
@@ -17,7 +17,8 @@ export const psiMobileRule: Rule = {
     const key = getPSIKey(userKey)
     const j = await runPSI(page.url, 'mobile', key)
     const summary = summarizePSI(j, page.url, 'mobile')
-    const msg = `Mobile performance: ${summary.score} [View report](${summary.testUrl})`
-    return { label: 'PSI', message: msg, type: 'info', name: NAME, details: { ...summary, reference: PSI_API_REFERENCE } }
+    const verdict = psiScoreVerdict(summary.score)
+    const msg = `Mobile performance: ${summary.score}/100 [View report](${summary.testUrl})`
+    return { label: 'PSI', message: msg, type: verdict.type, priority: verdict.priority, name: NAME, details: { ...summary, reference: PSI_API_REFERENCE } }
   },
 }

@@ -15,6 +15,7 @@ export const googleIsConnectedRule: Rule = {
           label: 'GOOGLE',
           message: 'Google token present',
           type: 'ok',
+          priority: 850,
           name: 'Google auth connected',
           details: { tested, tokenPresent: true, reference },
         }
@@ -22,6 +23,7 @@ export const googleIsConnectedRule: Rule = {
           label: 'GOOGLE',
           message: 'No Google token',
           type: 'info',
+          priority: 900,
           name: 'Google auth connected',
           details: { tested, tokenPresent: false, reference },
         }

@@ -5,6 +5,9 @@ export const schemaVideoRule = createSchemaRule({
   name: 'Schema VideoObject',
   types: 'VideoObject',
   searchStrings: ['Video'],
-  validator: (n) => !!n['name'] && !!n['description'] && !!n['thumbnailUrl'] && !!n['uploadDate'],
+  validator: (n) => {
+    const missing = ['name', 'description', 'thumbnailUrl', 'uploadDate'].filter((key) => !n[key])
+    return { ok: missing.length === 0, missing }
+  },
 })
 

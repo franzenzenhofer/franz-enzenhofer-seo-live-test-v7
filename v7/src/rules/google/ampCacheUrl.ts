@@ -33,8 +33,9 @@ export const ampCacheUrlRule: Rule = {
         label: 'HEAD',
         message: 'No amphtml link',
         type: 'info',
+        priority: 950,
         name: 'AMP Cache URL',
-        details: { sourceHtml: '', snippet: '', tested: 'Checked for <link rel="amphtml">', reference: SPEC },
+        details: { tested: 'Checked for <link rel="amphtml">', reference: SPEC },
       }
     }
 
@@ -46,15 +47,17 @@ export const ampCacheUrlRule: Rule = {
           label: 'HEAD',
           message: `AMP Cache: ${url}`,
           type: 'info',
+          priority: 700,
           name: 'AMP Cache URL',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(amp.element), reference: SPEC },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(amp.element), href: amp.href, ampCacheUrl: url, reference: SPEC },
         }
       : {
           label: 'HEAD',
-          message: 'AMP Cache not derivable',
-          type: 'info',
+          message: `AMP Cache URL not derivable from ${amp.href}`,
+          type: 'warn',
+          priority: 400,
           name: 'AMP Cache URL',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(amp.element), reference: SPEC },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(amp.element), href: amp.href, reference: SPEC },
         }
   },
 }

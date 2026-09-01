@@ -20,10 +20,10 @@ export const preconnectRule: Rule = {
       label: 'SPEED',
       message: n ? `preconnect links: ${n}` : 'No preconnect links',
       type: 'info',
+      priority: n ? 750 : 900,
       name: 'rel=preconnect',
       details: {
-        sourceHtml,
-        snippet: extractSnippet(sourceHtml),
+        ...(n ? { sourceHtml, snippet: extractSnippet(sourceHtml) } : {}),
         count: n,
         shown: evidence.shown,
         truncated: evidence.truncated,

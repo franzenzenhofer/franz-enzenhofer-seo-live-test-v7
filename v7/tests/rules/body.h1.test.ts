@@ -11,7 +11,8 @@ describe('body:h1 rule', () => {
   it('reports the single H1 with cleaned snippet and dom path', async () => {
     const html = '<h1 class="hero"><a class="link" href="/a">SEO <em>Works</em></a></h1>'
     const result = await run(html)
-    expect(result.message).toBe('1 <h1> found.')
+    expect(result.message).toBe('1 <h1> found: "SEO Works"')
+    expect(result.details?.h1).toBe('SEO Works')
     expect(result.details?.snippet).toBe('<h1><a>SEO <em>Works</em></a></h1>')
     expect(result.details?.sourceHtml).toBe(html)
     expect(result.details?.domPath).toBe('html > body > h1.hero')

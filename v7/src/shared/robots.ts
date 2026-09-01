@@ -1,6 +1,7 @@
 import { getDomPath } from './dom-path'
 import { extractHtml } from './html-utils'
 import { sampleDelimitedTokens } from './boundedTokens'
+import { isRobotsMetaDirective } from './robotsVocabulary'
 import type { RobotsDirective } from './robots.types'
 
 export type { RobotsDirective } from './robots.types'
@@ -16,6 +17,9 @@ const parseMeta = (doc: Document): RobotsDirective[] => {
     const name = (el.getAttribute('name') || '').trim().toLowerCase()
     const content = (el.getAttribute('content') || '').trim()
     if (!content) continue
+    // Standard HTML metas (viewport, referrer, generator...) are not robots
+    // directives; only crawler UAs or robots-vocabulary contents qualify.
+    if (!isRobotsMetaDirective(name, content)) continue
     if (directives.length >= 1_000) throw new Error('Robots meta directives exceed the bounded contract')
     const scan = scanTokens(content)
     directives.push({

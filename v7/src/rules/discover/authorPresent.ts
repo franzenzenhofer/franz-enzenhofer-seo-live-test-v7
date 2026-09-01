@@ -41,8 +41,10 @@ export const discoverAuthorPresentRule: Rule = {
           label: 'DISCOVER',
           message: `Author: ${result.name}`,
           type: 'info',
+          priority: 750,
           name: 'Author present',
           details: {
+            author: result.name,
             sourceHtml,
             snippet: extractSnippet(sourceHtml),
             domPath: getDomPath(result.element),
@@ -53,13 +55,9 @@ export const discoverAuthorPresentRule: Rule = {
           label: 'DISCOVER',
           message: 'No author (meta or LD+JSON)',
           type: 'warn',
+          priority: 350,
           name: 'Author present',
-          details: {
-            sourceHtml,
-            snippet: extractSnippet(sourceHtml),
-            domPath: getDomPath(result.element),
-            reference: SPEC,
-          },
+          details: { reference: SPEC },
         }
   },
 }

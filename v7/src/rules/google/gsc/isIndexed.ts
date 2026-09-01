@@ -27,6 +27,7 @@ export const gscIsIndexedRule: Rule = {
           label: 'GSC',
           message: `GSC query error ${r.status}`,
           type: 'warn',
+          priority: 200,
           name: NAME,
           details: { url: page.url, property, propertyType, status: r.status, reference: GSC_API_REFERENCE },
         }
@@ -34,8 +35,8 @@ export const gscIsIndexedRule: Rule = {
       const j = await r.json() as { rows?: Array<{ clicks?: number, impressions?: number }> }
       const imp = (j.rows || []).reduce((a, x)=> a + (x.impressions || 0), 0)
       return imp > 0
-        ? { label: 'GSC', message: `Indexed (impressions ${imp})`, type: 'ok', name: NAME, details: { url: page.url, property, propertyType, impressions: imp, apiResponse: j, reference: GSC_API_REFERENCE } }
-        : { label: 'GSC', message: 'No impressions (might not be indexed)', type: 'warn', name: NAME, details: { url: page.url, property, propertyType, impressions: 0, apiResponse: j, reference: GSC_API_REFERENCE } }
+        ? { label: 'GSC', message: `Indexed (impressions ${imp})`, type: 'ok', priority: 800, name: NAME, details: { url: page.url, property, propertyType, impressions: imp, apiResponse: j, reference: GSC_API_REFERENCE } }
+        : { label: 'GSC', message: 'No impressions (might not be indexed)', type: 'warn', priority: 300, name: NAME, details: { url: page.url, property, propertyType, impressions: 0, apiResponse: j, reference: GSC_API_REFERENCE } }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       return {

@@ -54,6 +54,7 @@ export const internalLinksRule: Rule = {
       label: LABEL,
       message: `Links: internal ${internalCount}, external ${externalCount}`,
       type: 'info',
+      priority: 750,
       name: NAME,
       details: {
         sourceHtml,

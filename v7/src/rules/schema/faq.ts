@@ -6,6 +6,7 @@ export const schemaFaqRule = createSchemaRule({
   types: 'FAQPage',
   validator: (n) => {
     const ents = (n['mainEntity'] as Array<Record<string, unknown>>) || []
-    return (ents || []).some((q) => q && String(q['@type'] || '').toLowerCase().includes('question') && !!q['acceptedAnswer'])
+    const ok = (ents || []).some((q) => q && String(q['@type'] || '').toLowerCase().includes('question') && !!q['acceptedAnswer'])
+    return ok ? { ok } : { ok, missing: ['mainEntity Question with acceptedAnswer'] }
   },
 })

@@ -19,9 +19,10 @@ describe('meta description rule', () => {
     expect(result.details?.domPaths).toEqual(['html > head > meta:nth-of-type(1)', 'html > head > meta:nth-of-type(2)'])
   })
 
-  it('returns info when description present', async () => {
+  it('passes when description present, showing length and value', async () => {
     const result = await run('<html><head><meta name="description" content="Hello world"></head></html>')
-    expect(result.type).toBe('info')
+    expect(result.type).toBe('ok')
+    expect(result.message).toContain('Hello world')
     expect(result.details?.description).toBe('Hello world')
     expect(result.details?.domPath).toBe('html > head > meta')
   })

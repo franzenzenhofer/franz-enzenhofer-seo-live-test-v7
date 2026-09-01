@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
+import { linkHeaderOf, parseHeaderCanonicals } from '@/shared/canonicalHeader'
 
 const LABEL = 'HEAD'
 const NAME = 'Canonical + noindex conflict'
@@ -15,13 +16,6 @@ const parseTokens = (val: string | undefined | null) =>
     .map((t) => t.trim())
     .filter(Boolean)
 
-const parseHeaderCanonicals = (val: string | undefined | null): string[] => {
-  if (!val) return []
-  const matches = [...val.matchAll(/<([^>]+)>\s*;\s*rel="?canonical"?/gi)]
-  const urls = matches.map((m) => m[1]).filter((u): u is string => !!u)
-  return Array.from(new Set(urls))
-}
-
 export const canonicalNoindexConflictRule: Rule = {
   id: RULE_ID,
   name: NAME,
@@ -30,7 +24,7 @@ export const canonicalNoindexConflictRule: Rule = {
   async run(page) {
     const linkEl = page.doc.querySelector('link[rel~="canonical" i]')
     const htmlCanonical = (linkEl?.getAttribute('href') || '').trim()
-    const headerCanonicals = parseHeaderCanonicals(page.headers?.['link'] || page.headers?.['Link'])
+    const headerCanonicals = parseHeaderCanonicals(linkHeaderOf(page.headers))
     const hasCanonical = !!htmlCanonical || headerCanonicals.length > 0
 
     const robotsMeta = page.doc.querySelector('head > meta[name="robots"]')
@@ -73,10 +67,11 @@ export const canonicalNoindexConflictRule: Rule = {
       priority: 900,
       details: {
         reference: SPEC,
+        ...(htmlCanonical ? { htmlCanonical } : {}),
+        ...(headerCanonicals.length ? { headerCanonicals } : {}),
         hasCanonical,
         hasNoindex,
         robotsMetaPresent: !!robotsMeta,
-        headerCanonicalsCount: headerCanonicals.length,
       },
     }
   },

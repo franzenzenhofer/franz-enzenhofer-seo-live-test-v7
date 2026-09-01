@@ -30,7 +30,7 @@ export const linkedImagesAltRule: Rule = {
       'linked images missing alt text or link text',
     )
     if (!result) {
-      return { label: LABEL, message: 'Linked images have alt text or link text.', type: 'ok', priority: 500, name: NAME, details: { reference: SPEC } }
+      return { label: LABEL, message: 'Linked images have alt text or link text.', type: 'ok', priority: 850, name: NAME, details: { reference: SPEC } }
     }
     return {
       label: LABEL,

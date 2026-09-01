@@ -60,10 +60,10 @@ export const trailingSlashRule: Rule = {
         const type = status === 404 ? 'info' : status === 410 ? 'warn' : status === 302 || status >= 500 ? 'error' : 'warn'
         return {
           label: LABEL,
-          message: `URL variant ${whatCase} trailing slash ${variantUrl} returns HTTP ${status}.`,
+          message: `URL variant ${whatCase} trailing slash ${variantUrl} returns HTTP ${status}${status === 404 ? ' (no duplicate-content variant)' : ''}.`,
           type,
           name: NAME,
-          priority: type === 'error' ? 150 : 400,
+          priority: type === 'error' ? 150 : type === 'warn' ? 400 : 800,
           details: baseDetails,
         }
       }

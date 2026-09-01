@@ -21,8 +21,9 @@ export const unsecureInputRule: Rule = {
     if (proto !== 'http:') {
       return {
         label: 'BODY',
-        message: 'Page not HTTP',
+        message: 'Page served over HTTPS; insecure password-input check not applicable.',
         type: 'info',
+        priority: 900,
         name: 'Unsecure input over HTTP',
         details: { protocol: proto || 'unknown', tested: 'Only flags password inputs on HTTP pages', reference: SPEC },
       }
@@ -35,6 +36,7 @@ export const unsecureInputRule: Rule = {
         label: 'BODY',
         message: 'Password input over HTTP',
         type: 'warn',
+        priority: 100,
         name: 'Unsecure input over HTTP',
         details: {
           sourceHtml,
@@ -50,6 +52,7 @@ export const unsecureInputRule: Rule = {
       label: 'BODY',
       message: 'No password inputs over HTTP',
       type: 'ok',
+      priority: 850,
       name: 'Unsecure input over HTTP',
       details: { protocol: proto || 'http:', count: pwdInputs.total, tested: 'Searched for <input type="password"> over HTTP', reference: SPEC },
     }

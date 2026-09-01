@@ -4,6 +4,11 @@ export const schemaHowToRule = createSchemaRule({
   id: 'schema:howto',
   name: 'Schema HowTo',
   types: 'HowTo',
-  validator: (n) => !!n['name'] && Array.isArray(n['step']),
+  validator: (n) => {
+    const missing: string[] = []
+    if (!n['name']) missing.push('name')
+    if (!Array.isArray(n['step'])) missing.push('step')
+    return { ok: missing.length === 0, missing }
+  },
 })
 

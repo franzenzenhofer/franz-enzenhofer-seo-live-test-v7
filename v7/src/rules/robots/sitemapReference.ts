@@ -1,9 +1,22 @@
 import type { Rule } from '@/core/types'
 import { fetchTextOnce } from '@/shared/fetchOnce'
 
+const LABEL = 'ROBOTS'
+const NAME = 'robots.txt Sitemap reference'
+const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap'
+const SITEMAP_SAMPLE_LIMIT = 10
+
+const sitemapUrlsOf = (txt: string): { urls: string[]; total: number } => {
+  const matches = txt.match(/^\s*sitemap\s*:\s*\S+.*$/gim) || []
+  const urls = matches
+    .map((line) => line.replace(/^\s*sitemap\s*:\s*/i, '').trim())
+    .filter(Boolean)
+  return { urls: urls.slice(0, SITEMAP_SAMPLE_LIMIT), total: urls.length }
+}
+
 export const robotsSitemapReferenceRule: Rule = {
   id: 'robots:sitemap-reference',
-  name: 'robots.txt Sitemap reference',
+  name: NAME,
   enabled: true,
   what: 'http',
   async run(page) {
@@ -12,33 +25,49 @@ export const robotsSitemapReferenceRule: Rule = {
       const url = new URL(page.url)
       if (url.protocol !== 'http:' && url.protocol !== 'https:') {
         return {
-          label: 'ROBOTS',
+          label: LABEL,
           message: `Skipped: ${url.protocol} URL`,
           type: 'info',
-          name: 'robots.txt Sitemap reference',
-          details: { protocol: url.protocol, origin: url.origin || '' },
+          priority: 900,
+          name: NAME,
+          details: { protocol: url.protocol, origin: url.origin || '', reference: SPEC },
         }
       }
       origin = url.origin
     } catch {
-      return { label: 'ROBOTS', message: 'Invalid URL', type: 'info', name: 'robotsSitemapReference', details: { url: page.url } }
+      return { label: LABEL, message: 'Invalid URL', type: 'info', priority: 900, name: NAME, details: { url: page.url, reference: SPEC } }
     }
     const txt = await fetchTextOnce(`${origin}/robots.txt`)
     if (!txt)
       return {
-        label: 'ROBOTS',
+        label: LABEL,
         message: 'robots.txt not reachable',
         type: 'info',
-        name: 'robots.txt Sitemap reference',
-        details: { origin, robotsTxt: '' },
+        priority: 850,
+        name: NAME,
+        details: { origin, robotsTxt: '', reference: SPEC },
       }
-    const has = /\n\s*sitemap\s*:\s*\S+/i.test(`\n${txt}`)
+    const { urls, total } = sitemapUrlsOf(txt)
+    if (!total) {
+      return {
+        label: LABEL,
+        message: 'No Sitemap reference in robots.txt.',
+        type: 'warn',
+        priority: 400,
+        name: NAME,
+        details: { sitemapCount: 0, robotsTxt: txt, reference: SPEC },
+      }
+    }
+    const first = urls[0]
     return {
-      label: 'ROBOTS',
-      message: has ? 'Sitemap reference present' : 'No Sitemap reference',
-      type: has ? 'ok' : 'warn',
-      name: 'robots.txt Sitemap reference',
-      details: { robotsTxt: txt },
+      label: LABEL,
+      message: total === 1
+        ? `Sitemap referenced: ${first}`
+        : `${total} Sitemaps referenced (first: ${first})`,
+      type: 'ok',
+      priority: 820,
+      name: NAME,
+      details: { sitemapCount: total, sitemapUrls: urls, robotsTxt: txt, reference: SPEC },
     }
   },
 }

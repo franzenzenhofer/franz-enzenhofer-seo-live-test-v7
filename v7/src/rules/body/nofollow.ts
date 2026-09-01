@@ -19,6 +19,7 @@ export const nofollowRule: Rule = {
         label: 'BODY',
         message: `${total} nofollow links`,
         type: 'info',
+        priority: 700,
         name: 'Nofollow Links',
         details: {
           sourceHtml,
@@ -36,6 +37,7 @@ export const nofollowRule: Rule = {
       label: 'BODY',
       message: 'No rel=nofollow links',
       type: 'ok',
+      priority: 850,
       name: 'Nofollow Links',
       details: {
         sourceHtml: '',

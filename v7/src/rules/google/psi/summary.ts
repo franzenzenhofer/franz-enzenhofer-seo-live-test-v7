@@ -39,3 +39,12 @@ export const summarizePSI = (result: PSIResult, url: string, strategy: Strategy)
 
   return compact(withWarnings)
 }
+
+// Lighthouse score buckets: 90-100 good, 50-89 needs improvement, 0-49 poor.
+export type PsiVerdict = { type: 'ok' | 'warn' | 'error'; priority: number }
+
+export const psiScoreVerdict = (score: number): PsiVerdict => {
+  if (score >= 90) return { type: 'ok', priority: 850 }
+  if (score >= 50) return { type: 'warn', priority: 300 }
+  return { type: 'error', priority: 120 }
+}

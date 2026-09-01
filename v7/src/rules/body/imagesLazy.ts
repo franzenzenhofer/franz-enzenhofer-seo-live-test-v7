@@ -20,6 +20,7 @@ export const imagesLazyRule: Rule = {
         label: 'BODY',
         message: `${noLoading.total} images without loading attribute`,
         type: 'info',
+        priority: 600,
         name: 'Images lazy-loading',
         details: {
           sourceHtml,
@@ -38,6 +39,7 @@ export const imagesLazyRule: Rule = {
       label: 'BODY',
       message: 'Images have loading attribute',
       type: 'ok',
+      priority: 850,
       name: 'Images lazy-loading',
       details: {
         sourceHtml: allHtml,

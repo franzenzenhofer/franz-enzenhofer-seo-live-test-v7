@@ -27,6 +27,7 @@ export const gscPageWorldwideRule: Rule = {
           label: 'GSC',
           message: `GSC query error ${r.status}`,
           type: 'warn',
+          priority: 200,
           name: NAME,
           details: { url: page.url, property, propertyType, status: r.status, reference: GSC_API_REFERENCE },
         }
@@ -39,6 +40,7 @@ export const gscPageWorldwideRule: Rule = {
         label: 'GSC',
         message: `Impressions ${imp}, Clicks ${cl}`,
         type: 'info',
+        priority: 750,
         name: NAME,
         details: { url: page.url, property, propertyType, impressions: imp, clicks: cl, apiResponse: j, reference: GSC_API_REFERENCE },
       }

@@ -40,8 +40,8 @@ export const xCacheRule: Rule = {
     }
     const isHit = xCacheLower.includes('hit')
     const isMiss = xCacheLower.includes('miss')
-    const status = isHit ? 'HIT' : isMiss ? 'MISS' : xCacheHeader
-    const message = `X-Cache: ${status}`
+    const cacheStatus = isHit ? 'HIT' : isMiss ? 'MISS' : xCacheHeader
+    const message = `X-Cache: ${cacheStatus}`
     return {
       label: LABEL,
       name: NAME,
@@ -55,7 +55,7 @@ export const xCacheRule: Rule = {
         hasXCache: true,
         isHit,
         isMiss,
-        status,
+        cacheStatus,
         reference: SPEC,
       },
     }

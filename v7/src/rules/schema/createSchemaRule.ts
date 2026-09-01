@@ -59,8 +59,9 @@ export function createSchemaRule(config: SchemaRuleConfig): Rule {
       if (!n) {
         return {
           label: 'SCHEMA',
-          message: `No ${types[0]} JSON‑LD`,
+          message: `No ${types[0]} JSON-LD`,
           type: 'info',
+          priority: 920,
           name: config.name,
           details: { tested, types, reference: docs(typesLower[0]!) },
         }
@@ -83,21 +84,24 @@ export function createSchemaRule(config: SchemaRuleConfig): Rule {
       }
       const sourceHtml = extractHtml(script)
 
-      // Build message
+      // Build message around the type actually found on the page.
       const docsUrl = docs(typesLower[0]!)
+      const rawType = n['@type']
+      const foundType = typeof rawType === 'string' && rawType.trim() ? rawType.trim() : types[0]
       let message: string
       if (validation.ok) {
-        message = `${types[0]} OK · Docs: ${docsUrl}`
+        message = `${foundType} structured data found and required fields present.`
       } else if (validation.missing && validation.missing.length > 0) {
-        message = `${types[0]} missing: ${validation.missing.join(', ')} · Docs: ${docsUrl}`
+        message = `${foundType} missing: ${validation.missing.join(', ')}`
       } else {
-        message = `${types[0]} missing fields · Docs: ${docsUrl}`
+        message = `${foundType} missing required fields.`
       }
 
       return {
         label: 'SCHEMA',
         message,
         type: validation.ok ? 'ok' : 'warn',
+        priority: validation.ok ? 800 : 250,
         name: config.name,
         details: script
           ? {
@@ -107,9 +111,10 @@ export function createSchemaRule(config: SchemaRuleConfig): Rule {
               tested,
               reference: docsUrl,
               types,
-              missing: validation.missing,
+              foundType,
+              ...(validation.missing?.length ? { missing: validation.missing } : {}),
             }
-          : { tested, reference: docsUrl, types, missing: validation.missing },
+          : { tested, reference: docsUrl, types, foundType, ...(validation.missing?.length ? { missing: validation.missing } : {}) },
       }
     },
   }

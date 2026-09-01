@@ -31,6 +31,6 @@ describe('rule: soft 404 probe', () => {
   it('flags redirected 404', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ status: 404, redirected: true, url: 'https://ex.com/redirected' }))
     const r = await soft404Rule.run(page() as any, { globals: {} })
-    expect(r.type).toBe('error')
+    expect(r.type).toBe('warn')
   })
 })

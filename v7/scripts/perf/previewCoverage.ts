@@ -4,9 +4,11 @@ import { resultPreview } from '@/shared/resultPreview'
 const rows = JSON.parse(fs.readFileSync(process.argv[2] || '/tmp/cli3.json', 'utf8')) as Array<Record<string, unknown>>
 // Only rules that actually captured evidence can show a value. A rule that
 // found nothing ("No nosnippet directive found.") has nothing to preview.
+const META = new Set(['reference', 'secondaryReference', 'domPath', 'domPaths', 'domPathColors', 'tested', 'validCardTypes', 'allowedValues', 'requiredHeaders', 'url'])
 const hasEvidence = (d: Record<string, unknown>) =>
-  Object.keys(d).some((k) => k !== 'reference' && k !== 'domPath' && k !== 'domPaths'
-    && d[k] !== null && d[k] !== undefined && d[k] !== false && d[k] !== '')
+  Object.keys(d).some((k) => !META.has(k)
+    && d[k] !== null && d[k] !== undefined && typeof d[k] !== 'boolean' && d[k] !== '' && d[k] !== 0
+    && !(Array.isArray(d[k]) && (d[k] as unknown[]).length === 0))
 let withPreview = 0, withEvidence = 0, noEvidence = 0
 const missing: string[] = []
 rows.forEach((r) => {
