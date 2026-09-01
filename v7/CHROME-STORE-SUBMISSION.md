@@ -1,8 +1,14 @@
 # Chrome Web Store Submission Guide
 
-**Latest submission:** 7.0.57 (2026-09-01) - status: pending review, auto-publish on approval
-**Supersedes:** 7.0.55, uploaded earlier the same day and replaced before review completed
+**In review:** 7.0.55 (2026-09-01) - auto-publish on approval
 **Currently published:** 7.0.38 (561 users)
+**Built and tagged, queued for next submission:** 7.0.57
+
+The console locks `Upload new package` and `Submit for review` while an item is
+pending review, and offers no way to cancel a pending submission. 7.0.57 (the
+`head:unavailable-after` gate fix) therefore ships in the next submission,
+once 7.0.55 clears review.
+
 **Last updated:** September 1, 2026
 
 ## Files to Upload
