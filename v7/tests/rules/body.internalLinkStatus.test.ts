@@ -36,9 +36,12 @@ describe('rule: internal link status', () => {
     const r = await internalLinkStatusRule.run({ html: '', url: 'https://example.com', doc } as any, { globals: {} })
     expect(r.type).toBe('ok')
     expect(r.message).toContain('1 sampled link redirect')
-    expect(r.message).toContain('HTTP 301 -> Location: https://example.com/target')
-    const checked = r.details?.checked as Array<{ redirectChain?: { hops: Array<{ status: number }> } }>
-    expect(checked[0]?.redirectChain?.hops.map((h) => h.status)).toEqual([301, 200])
+    // The message stays a short verdict; the full hop chain lives in details.
+    expect(r.message).not.toContain('HTTP 301 -> Location:')
+    expect(r.details?.redirectChainText).toContain('HTTP 301 -> Location: https://example.com/target')
+    expect(r.details?.redirectChainText).toContain('FINAL STATUS HTTP 200')
+    const checked = r.details?.checked as Array<{ redirectChain?: unknown }>
+    expect(checked[0]?.redirectChain).toBeUndefined()
   })
 
   it('treats a redirect loop as a failed link', async () => {
@@ -50,7 +53,7 @@ describe('rule: internal link status', () => {
     const doc = D('<a href="/l1">x</a>')
     const r = await internalLinkStatusRule.run({ html: '', url: 'https://example.com', doc } as any, { globals: {} })
     expect(r.type).toBe('error')
-    expect(r.message).toContain('REDIRECT LOOP')
+    expect(r.details?.redirectChainText).toContain('REDIRECT LOOP')
   })
 
   it('samples random 5 from larger set', async () => {

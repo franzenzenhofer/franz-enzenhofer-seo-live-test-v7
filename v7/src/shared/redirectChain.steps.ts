@@ -11,6 +11,18 @@ export const newChain = (startUrl: string, maxHops: number): RedirectChain => ({
   redirected: false, loop: false, capped: false, maxHops, httpDowngrade: false, hopsHidden: false,
 })
 
+/** Uniform failure for a chain fetch (timeout or network); carries the hops captured so far. */
+export const chainFailure = (
+  error: unknown, aborted: boolean, url: string, timeoutMs: number, hops: RedirectHop[],
+): RedirectChainError => {
+  const captured = `${hops.length} hop${hops.length === 1 ? '' : 's'} captured before failure`
+  if (aborted) {
+    return new RedirectChainError(`Redirect chain timed out after ${timeoutMs / 1000}s at ${url} (${captured})`, hops)
+  }
+  const msg = error instanceof Error ? error.message : String(error)
+  return new RedirectChainError(`Redirect chain fetch failed at ${url}: ${msg} (${captured})`, hops)
+}
+
 /** One manual-redirect fetch; failures carry the hops captured so far. */
 export const hopFetch = async (
   fetchFn: typeof fetch, url: string, signal: AbortSignal, timeoutMs: number, hops: RedirectHop[],
@@ -18,12 +30,7 @@ export const hopFetch = async (
   try {
     return await fetchFn(url, { redirect: 'manual', signal })
   } catch (error) {
-    const captured = `${hops.length} hop${hops.length === 1 ? '' : 's'} captured before failure`
-    if (signal.aborted) {
-      throw new RedirectChainError(`Redirect chain timed out after ${timeoutMs / 1000}s at ${url} (${captured})`, hops)
-    }
-    const msg = error instanceof Error ? error.message : String(error)
-    throw new RedirectChainError(`Redirect chain fetch failed at ${url}: ${msg} (${captured})`, hops)
+    throw chainFailure(error, signal.aborted, url, timeoutMs, hops)
   }
 }
 

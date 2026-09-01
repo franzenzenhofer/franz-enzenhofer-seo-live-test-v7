@@ -101,19 +101,25 @@ export const internalLinkStatusRule: Rule = {
       : failures.length
         ? `Sampled ${checks.length} of ${candidates.length} internal links.`
         : `Tested random sample of ${candidates.length} internal links.`
-    // Every link that redirects (or fails) shows its complete hop-by-hop chain - never summarized away.
+    // Every link that redirects (or fails) keeps its complete hop-by-hop chain in details - never summarized away.
     const chainTexts = checks
       .filter((c) => c.redirectChain && (c.redirectChain.redirected || c.redirectChain.loop || c.redirectChain.capped))
       .map((c) => c.redirectChainText)
       .join('\n\n')
     const redirectNote = redirecting.length ? ` ${redirecting.length} sampled link${redirecting.length > 1 ? 's' : ''} redirect.` : ''
-    const message = (failures.length
+    const message = failures.length
       ? `${failures.length}/${checks.length} links failed: ${failures.map((f) => `${f.status}`).join(', ')}. ${scope}${redirectNote}`
-      : `All ${checks.length} sampled links OK (${statusSummary}). ${scope}${redirectNote}`)
-      + (chainTexts ? `\n\nRedirect chains:\n${chainTexts}` : '')
+      : `All ${checks.length} sampled links OK (${statusSummary}). ${scope}${redirectNote}`
     const domPaths = sampled.map((entry) => getDomPath(entry.el)).filter((path) => path.length > 0)
+    // The structured chain is internal; the text block is its one rendered form.
+    const summarize = (check: LinkCheck): Omit<LinkCheck, 'redirectChain' | 'redirectChainText'> => {
+      const copy = { ...check }
+      delete copy.redirectChain
+      delete copy.redirectChainText
+      return copy
+    }
     return { label: LABEL, name: NAME, message, type, priority: failures.length ? 150 : 850,
-      details: { checked: checks, failures, statusSummary, redirectingCount: redirecting.length,
+      details: { checked: checks.map(summarize), failures: failures.map(summarize), statusSummary, redirectingCount: redirecting.length,
         ...(chainTexts ? { redirectChainText: chainTexts } : {}),
         ...(anchorsTruncated ? {} : { totalInternal: candidates.length }),
         capturedInternal: candidates.length, sampleSize: checks.length,

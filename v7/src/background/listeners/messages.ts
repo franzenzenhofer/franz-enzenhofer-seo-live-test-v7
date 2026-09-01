@@ -1,5 +1,7 @@
 import { pushEvent, markDomPhase } from '../pipeline/collector'
+import { handleProbeChainMessage } from '../probes/handler'
 import { abortSession } from '../rules/sessions'
+import type { ProbeChainMessage } from '../probes/handler'
 
 import { handleLogsBridgeMessage } from './logsBridge'
 
@@ -58,7 +60,11 @@ export const handleMessage = (msg: unknown, sender: Sender, send?: (resp?: unkno
     send?.({ tabId, url: sender.tab?.url })
     return false
   }
-  if (st?.channel === 'offscreen') return false
+  if (st?.channel === 'offscreen') {
+    const probe = (st as { probe?: ProbeChainMessage }).probe
+    if (probe) return handleProbeChainMessage(probe, send)
+    return false
+  }
   if (st?.channel || st?.type) {
     logSystem(`runtime:unhandled channel=${st?.channel || 'none'} type=${st?.type || 'none'} tabId=${tabId ?? 'null'}`).catch(() => {})
   }

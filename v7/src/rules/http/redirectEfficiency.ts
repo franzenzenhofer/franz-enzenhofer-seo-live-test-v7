@@ -34,8 +34,6 @@ export const redirectEfficiencyRule: Rule = {
     const { trace } = ledgerResult.data
     // Full hop-by-hop main-document chain (URL, status, Location) from webRequest.
     const chainDetails = redirectChainDetails(headerChainToRedirectChain(page.headerChain, page.status))
-    const chainText = chainDetails['redirectChainText']
-    const chainSuffix = typeof chainText === 'string' ? `\n\nRedirect chain:\n${chainText}` : ''
     const totalHops = trace.length
     const redirects = trace.filter((h) => h.type === 'http_redirect' || h.type === 'client_redirect')
     const httpRedirects = redirects.filter((h) => h.type === 'http_redirect')
@@ -85,13 +83,13 @@ Client redirects: ${clientRedirects.length}
 
     if (score >= 85) {
       type = 'ok'
-      message = `Good redirect efficiency (Score: ${score}/100).\n\n${summary}\n\nPerformance issues:\n${issuesDesc}${chainSuffix}`
+      message = `Good redirect efficiency (Score: ${score}/100).\n\n${summary}\n\nPerformance issues:\n${issuesDesc}`
     } else if (score >= 60) {
       type = 'warn'
-      message = `Moderate redirect overhead (Score: ${score}/100).\n\n${summary}\n\nPerformance issues:\n${issuesDesc}${chainSuffix}`
+      message = `Moderate redirect overhead (Score: ${score}/100).\n\n${summary}\n\nPerformance issues:\n${issuesDesc}`
     } else {
       type = 'error'
-      message = `Poor redirect efficiency (Score: ${score}/100).\n\n${summary}\n\nCritical performance issues:\n${issuesDesc}${chainSuffix}`
+      message = `Poor redirect efficiency (Score: ${score}/100).\n\n${summary}\n\nCritical performance issues:\n${issuesDesc}`
     }
 
     return {

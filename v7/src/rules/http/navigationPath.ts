@@ -51,10 +51,9 @@ export const navigationPathRule: Rule = {
 
     // The webRequest header chain carries the real per-hop statuses and Location
     // targets for the main document - always show it in full alongside the trace.
+    // Full webRequest hop detail stays in details (redirectChainText).
     const chainDetails = redirectChainDetails(headerChainToRedirectChain(page.headerChain, page.status))
-    const chainText = chainDetails['redirectChainText']
     const chainDesc = steps.join('\n')
-      + (typeof chainText === 'string' ? `\n\nHTTP hop detail (webRequest):\n${chainText}` : '')
 
     const hasTemporaryRedirect = redirects.some(
       (t) => t.statusCode === 302 || t.statusCode === 303 || t.statusCode === 307,

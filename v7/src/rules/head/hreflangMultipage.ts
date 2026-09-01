@@ -75,10 +75,13 @@ export const hreflangMultipageRule: Rule = {
           if (chain.loop || chain.capped) {
             if (response) discardBody(response)
             const what = chain.loop ? 'enters a redirect loop' : `exceeds ${chain.maxHops} redirects`
-            check.issues.push({ level: 'error', text: `'${hreflang}' URL ${what}:\n${chainText}` })
+            check.issues.push({ level: 'error', text: `'${hreflang}' URL ${what}.` })
             return check
           }
-          if (chain.redirected) check.issues.push({ level: 'warn', text: `'${hreflang}' URL triggers redirect:\n${chainText}` })
+          if (chain.redirected) {
+            const hopCount = chain.hopsHidden ? '' : ` (${chain.redirectCount} hop${chain.redirectCount === 1 ? '' : 's'})`
+            check.issues.push({ level: 'warn', text: `'${hreflang}' URL redirects${hopCount} to ${chain.finalUrl}.` })
+          }
           if (chain.finalStatus !== 200) {
             if (response) discardBody(response)
             check.issues.push({ level: 'error', text: `'${hreflang}' returns HTTP ${chain.finalStatus}.` })
@@ -125,7 +128,12 @@ export const hreflangMultipageRule: Rule = {
         canonical,
         canonicalHref: canonicalHref || null,
         selfHreflang: selfHreflang || null,
-        checked: checked.map(({ issues: linkIssues, ...check }) => ({ ...check, issues: linkIssues.map((i) => i.text) })),
+        // The structured chain is internal; each check keeps its full redirectChainText block.
+        checked: checked.map(({ issues: linkIssues, ...check }) => {
+          const copy = { ...check, issues: linkIssues.map((i) => i.text) }
+          delete copy.redirectChain
+          return copy
+        }),
         issues,
         reference: SPEC,
       },

@@ -24,8 +24,10 @@ export const formatRedirectChain = (chain: RedirectChain): string => {
 }
 
 /**
- * Consistent details payload for every redirect-aware rule:
- * `redirectChain` (structured hops) + `redirectChainText` (full text block).
+ * Consistent details payload for every redirect-aware rule: the full
+ * `redirectChainText` block is the single rendered form of the chain. The
+ * structured RedirectChain stays an internal shape - emitting it here too
+ * would render the same chain twice on one card.
  */
 export const redirectChainDetails = (chain: RedirectChain | null | undefined): Record<string, unknown> =>
-  chain ? { redirectChain: chain, redirectChainText: formatRedirectChain(chain) } : {}
+  chain ? { redirectChainText: formatRedirectChain(chain) } : {}

@@ -66,7 +66,7 @@ export type RunSnapshot = {
   status: string
   runId: string
   ranAt: string
-  results: Array<{ type: string; ruleId?: string; message: string }>
+  results: Array<{ type: string; ruleId?: string; message: string; details?: Record<string, unknown> }>
 }
 
 export const readRunSnapshot = async (context: BrowserContext, targetUrl: string): Promise<RunSnapshot | null> => {

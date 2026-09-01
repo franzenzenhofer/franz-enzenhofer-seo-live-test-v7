@@ -18,7 +18,13 @@ test.describe('rule message probe', () => {
       if (snap && !snap.results.some((r) => r.type === 'pending')) {
         snap.results
           .filter((r) => WANTED.includes(r.ruleId || ''))
-          .forEach((r) => console.log(`MSG [${r.type}] ${r.ruleId}: ${r.message}`))
+          .forEach((r) => {
+            console.log(`MSG [${r.type}] ${r.ruleId}: ${r.message}`)
+            const chainText = r.details?.['redirectChainText']
+            if (typeof chainText === 'string') console.log(`CHAIN ${r.ruleId}:\n${chainText}`)
+            const detailKeys = Object.keys(r.details || {}).join(',')
+            console.log(`DETAIL-KEYS ${r.ruleId}: ${detailKeys}`)
+          })
         break
       }
       await page.waitForTimeout(500)
