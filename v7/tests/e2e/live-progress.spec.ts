@@ -47,7 +47,7 @@ test.describe('live progress', () => {
     // Expanded-card check: the tiers (evidence once, compact measurements,
     // flat muted technical, footer reference) are only visible with Details open.
     const expandTargets: Array<[string, string]> = [
-      ['Meta description (', 'expanded-meta-description.png'],
+      ['Meta description', 'expanded-meta-description.png'],
       ['Canonical self-references', 'expanded-canonical.png'],
       ['Links: internal', 'expanded-internal-links.png'],
       ['HSTS', 'expanded-hsts.png'],

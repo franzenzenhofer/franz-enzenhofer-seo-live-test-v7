@@ -60,6 +60,7 @@ export const robotsMetaRule: Rule = {
         domPath: getDomPath(el),
         tested: TESTED,
         reference: SPEC,
+        content,
         tokens,
         hasNoindex,
         hasNofollow,

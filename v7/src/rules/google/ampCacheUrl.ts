@@ -45,7 +45,7 @@ export const ampCacheUrlRule: Rule = {
     return url
       ? {
           label: 'HEAD',
-          message: `AMP Cache: ${url}`,
+          message: 'AMP Cache URL derived from amphtml link.',
           type: 'info',
           priority: 700,
           name: 'AMP Cache URL',
@@ -53,7 +53,7 @@ export const ampCacheUrlRule: Rule = {
         }
       : {
           label: 'HEAD',
-          message: `AMP Cache URL not derivable from ${amp.href}`,
+          message: 'AMP Cache URL not derivable from the amphtml href.',
           type: 'warn',
           priority: 400,
           name: 'AMP Cache URL',

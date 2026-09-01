@@ -2,6 +2,8 @@ import { NavigationLedgerSchema } from '@/background/history/types'
 import type { Rule } from '@/core/types'
 import { getDomPath } from '@/shared/dom-path'
 import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
+import { redirectChainDetails } from '@/shared/redirectChainFormat'
+import { headerChainToRedirectChain } from '@/shared/redirectChainFromEvents'
 
 const LABEL = 'HTTP'
 const NAME = 'Redirect/Canonical chain'
@@ -41,6 +43,8 @@ export const redirectCanonicalChainRule: Rule = {
 
     const trace = ledger.data.trace
     const headerChain = (page.headerChain || []).map((h) => ({ ...h }))
+    // Consistent hop-chain shape shared with every redirect-aware rule.
+    const chainDetails = redirectChainDetails(headerChainToRedirectChain(page.headerChain, page.status))
     const redirectCount = trace.filter((t) => t.type === 'http_redirect').length
     const historyCount = trace.filter((t) => t.type === 'history_api').length
     const finalUrl = trace[trace.length - 1]?.url || page.url
@@ -52,7 +56,7 @@ export const redirectCanonicalChainRule: Rule = {
         message: 'Direct load (no redirects or history updates).',
         type: 'info',
         priority: 850,
-        details: { trace, headerChain, reference: SPEC },
+        details: { trace, headerChain, ...chainDetails, reference: SPEC },
       }
     }
 
@@ -101,6 +105,7 @@ export const redirectCanonicalChainRule: Rule = {
       details: {
         trace,
         headerChain,
+        ...chainDetails,
         finalUrl,
         redirectCount,
         historyCount,

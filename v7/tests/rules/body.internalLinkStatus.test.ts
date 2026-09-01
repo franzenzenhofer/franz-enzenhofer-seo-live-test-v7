@@ -24,6 +24,35 @@ describe('rule: internal link status', () => {
     expect(r.message).toContain('404')
   })
 
+  it('captures the full redirect chain of a redirecting link', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url === 'https://example.com/moved') {
+        return { status: 301, type: 'basic', url, headers: new Headers({ location: 'https://example.com/target' }) }
+      }
+      return { status: 200, type: 'basic', url, headers: new Headers() }
+    }))
+    const doc = D('<a href="/moved">x</a>')
+    const r = await internalLinkStatusRule.run({ html: '', url: 'https://example.com', doc } as any, { globals: {} })
+    expect(r.type).toBe('ok')
+    expect(r.message).toContain('1 sampled link redirect')
+    expect(r.message).toContain('HTTP 301 -> Location: https://example.com/target')
+    const checked = r.details?.checked as Array<{ redirectChain?: { hops: Array<{ status: number }> } }>
+    expect(checked[0]?.redirectChain?.hops.map((h) => h.status)).toEqual([301, 200])
+  })
+
+  it('treats a redirect loop as a failed link', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+      const target = url.endsWith('/l2') ? 'https://example.com/l1' : 'https://example.com/l2'
+      return { status: 302, type: 'basic', url, headers: new Headers({ location: target }) }
+    }))
+    const doc = D('<a href="/l1">x</a>')
+    const r = await internalLinkStatusRule.run({ html: '', url: 'https://example.com', doc } as any, { globals: {} })
+    expect(r.type).toBe('error')
+    expect(r.message).toContain('REDIRECT LOOP')
+  })
+
   it('samples random 5 from larger set', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ status: 200 }))
     const links = Array.from({ length: 20 }, (_, i) => `<a href="/p${i}">p${i}</a>`).join('')

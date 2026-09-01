@@ -23,6 +23,7 @@ export const pageSummaryRule: Rule = {
       priority: 950,
       name: 'Page summary (debug)',
       details: {
+        title: t,
         sourceHtml,
         snippet: extractSnippet(sourceHtml),
         domPath: getDomPath(titleEl),

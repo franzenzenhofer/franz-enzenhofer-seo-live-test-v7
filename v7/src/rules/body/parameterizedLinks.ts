@@ -4,6 +4,9 @@ import { getDomPaths } from '@/shared/dom-path'
 import { sampleMatchingElements } from '@/shared/domEvidence'
 
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls#manage-url-parameters'
+// Hrefs are cheap strings: carry them all, bounded only by the phase-message
+// byte budget (the bound is stated via hrefsTruncated).
+const HREF_LIMIT = 500
 
 export const parameterizedLinksRule: Rule = {
   id: 'body:parameterized-links',
@@ -11,10 +14,16 @@ export const parameterizedLinksRule: Rule = {
   enabled: true,
   what: 'static',
   async run(page) {
+    const anchors = page.doc.querySelectorAll<HTMLAnchorElement>('a[href]')
     const paramLinks = sampleMatchingElements(
-      page.doc.querySelectorAll<HTMLAnchorElement>('a[href]'),
+      anchors,
       (anchor) => (anchor.getAttribute('href') || '').includes('?'),
     )
+    const hrefs: string[] = []
+    for (let index = 0; index < anchors.length && hrefs.length < HREF_LIMIT; index++) {
+      const href = anchors.item(index)?.getAttribute('href') || ''
+      if (href.includes('?')) hrefs.push(href)
+    }
 
     const sourceHtml = extractHtmlFromList(paramLinks.sample)
     return {
@@ -27,6 +36,8 @@ export const parameterizedLinksRule: Rule = {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),
         domPaths: getDomPaths(paramLinks.sample),
+        hrefs,
+        hrefsTruncated: paramLinks.total > hrefs.length,
         count: paramLinks.total, shown: paramLinks.shown, truncated: paramLinks.truncated,
         reference: SPEC,
       },

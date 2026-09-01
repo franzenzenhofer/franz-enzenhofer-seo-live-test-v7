@@ -23,6 +23,7 @@ export const blockingScriptsRule: Rule = {
       name: 'Blocking scripts in head',
       details: {
         ...(s ? { sourceHtml, snippet: extractSnippet(sourceHtml) } : {}),
+        urls: Array.from(scripts, (el) => el.getAttribute('src') || '').filter(Boolean),
         count: s,
         shown,
         truncated,

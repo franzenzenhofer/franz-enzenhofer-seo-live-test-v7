@@ -1,5 +1,5 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, extractSnippet, stripAttributesDeep } from '@/shared/html-utils'
+import { extractHtml, stripAttributesDeep } from '@/shared/html-utils'
 import { getDomPath, getDomPaths } from '@/shared/dom-path'
 import { sampleElements } from '@/shared/domEvidence'
 
@@ -34,7 +34,7 @@ export const h1Rule: Rule = {
     }
     return {
       ...header,
-      message: `1 <h1> found: "${extractSnippet(text, 120)}"`,
+      message: '1 <h1> found.',
       type: 'ok',
       priority: 1000,
       details: { h1: text, snippet: stripAttributesDeep(node), sourceHtml: extractHtml(node), domPath: getDomPath(node), reference: SPEC },

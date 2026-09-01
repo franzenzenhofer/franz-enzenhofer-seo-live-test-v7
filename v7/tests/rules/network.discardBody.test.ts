@@ -35,13 +35,17 @@ describe('probe rules cancel response bodies they never read', () => {
     expect(cancel).toHaveBeenCalledTimes(1)
   })
 
-  it('trailing slash cancels the body when the variant redirects', async () => {
-    const { res, cancel } = mockRes({ status: 200, redirected: true, url: 'https://ex.test/a/' })
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(res))
+  it('trailing slash cancels every hop body when the variant redirects', async () => {
+    const hop = mockRes({ status: 301, headers: new Headers({ location: 'https://ex.test/a/' }), url: 'https://ex.test/a' })
+    const final = mockRes({ status: 200, url: 'https://ex.test/a/' })
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce(hop.res)
+      .mockResolvedValueOnce(final.res))
     const page = { html: '', url: 'https://ex.test/a/', doc: D('<p/>') }
     const r = await trailingSlashRule.run(page as never, { globals: {} })
     expect(r.type).toBe('info')
-    expect(cancel).toHaveBeenCalledTimes(1)
+    expect(hop.cancel).toHaveBeenCalledTimes(1)
+    expect(final.cancel).toHaveBeenCalledTimes(1)
   })
 
   it('hreflang multipage cancels the body of non-200 alternates', async () => {

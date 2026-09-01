@@ -123,18 +123,10 @@ describe('ResultDetails tiers', () => {
     expect(tiers.evidence[0]?.text).toBe('robots: index, follow\ngooglebot: noarchive')
   })
 
-  it('drops evidence and measurements the verdict message already contains', () => {
+  it('always keeps the value box, even when the verdict message quotes the value', () => {
     const title = 'Stocker mit Plan fuer das Zukunftsdepot'
-    const tiers = tierDetails({ title }, `<title>${title}</title>`, `Title (39 chars): "${title}"`)
-    expect(tiers.evidence).toHaveLength(0)
-    expect(tiers.measurements).toHaveLength(0)
-  })
-
-  it('keeps evidence that is fuller than what the message quotes', () => {
-    const value = `${description} It even carries a second sentence the message cannot fit.`
-    const tiers = tierDetails({ description: value }, null, `Meta description: "${value.slice(0, 60)}…"`)
+    const tiers = tierDetails({ title }, `<title>${title}</title>`)
     expect(tiers.evidence).toHaveLength(1)
-    expect(tiers.evidence[0]?.text).toBe(value)
   })
 
   it('drops a short measurement that repeats the evidence value', () => {

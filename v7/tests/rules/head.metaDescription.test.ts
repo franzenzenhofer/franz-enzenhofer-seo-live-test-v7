@@ -22,7 +22,7 @@ describe('meta description rule', () => {
   it('passes when description present, showing length and value', async () => {
     const result = await run('<html><head><meta name="description" content="Hello world"></head></html>')
     expect(result.type).toBe('ok')
-    expect(result.message).toContain('Hello world')
+    expect(result.message).toContain('11 characters')
     expect(result.details?.description).toBe('Hello world')
     expect(result.details?.domPath).toBe('html > head > meta')
   })

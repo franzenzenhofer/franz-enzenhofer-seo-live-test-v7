@@ -1,6 +1,6 @@
-import { attributeOf, messageRepeatsValue, normalizeText, textOf } from './textMatch'
+import { attributeOf, normalizeText, textOf } from './textMatch'
 
-export { attributeOf, messageContainsValue, messageRepeatsValue, normalizeText, textOf } from './textMatch'
+export { attributeOf, normalizeText, textOf } from './textMatch'
 
 // Keys that describe the finding rather than the page: never a preview.
 const META_KEYS = new Set([
@@ -69,12 +69,5 @@ export const resultValue = (details: unknown): string => {
   return textOf(markup) || attributeOf(markup)
 }
 
-/**
- * The judged value as a short preview - and nothing at all when the verdict
- * message already says it, so one card never shows the same text twice.
- */
-export const resultPreview = (details: unknown, message?: string): string => {
-  const value = resultValue(details)
-  if (!value || messageRepeatsValue(message, value)) return ''
-  return cut(value)
-}
+/** The judged value as a short one-line preview for the collapsed card. */
+export const resultPreview = (details: unknown): string => cut(resultValue(details))

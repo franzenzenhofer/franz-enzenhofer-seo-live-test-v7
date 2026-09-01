@@ -32,12 +32,12 @@ describe('rule: linked images alt', () => {
     expect(r.message).toContain('2 linked images missing alt text or link text')
   })
 
-  it('caps snippet details and exposes total count', async () => {
+  it('carries every failing linked image with its dom path', async () => {
     const html = '<a href="#1"><img/></a><a href="#2"><img/></a><a href="#3"><img/></a><a href="#4"><img/></a>'
     const r = await linkedImagesAltRule.run({ html:'', url:'', doc: doc(html) }, { globals: {} })
     expect(r.type).toBe('warn')
     expect(r.details?.count).toBe(4)
     expect(Array.isArray(r.details?.domPaths)).toBe(true)
-    expect((r.details?.domPaths as string[]).length).toBeLessThanOrEqual(3)
+    expect((r.details?.domPaths as string[]).length).toBe(4)
   })
 })

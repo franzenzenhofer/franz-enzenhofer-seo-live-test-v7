@@ -31,7 +31,7 @@ export const discoverHeadlineLengthRule: Rule = {
     return isLongEnough
       ? {
           label: 'DISCOVER',
-          message: `Headline length ${n} chars (>=20): "${extractSnippet(h, 100)}"`,
+          message: `Headline length ${n} chars (>=20).`,
           type: 'ok',
           priority: 850,
           name: 'Headline length',
@@ -39,7 +39,7 @@ export const discoverHeadlineLengthRule: Rule = {
         }
       : {
           label: 'DISCOVER',
-          message: `Headline short: ${n} chars (<20): "${extractSnippet(h, 100)}"`,
+          message: `Headline short: ${n} chars (<20).`,
           type: 'info',
           priority: 500,
           name: 'Headline length',

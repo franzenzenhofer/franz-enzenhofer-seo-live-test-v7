@@ -68,18 +68,20 @@ describe('head:robots-agent-conflicts with mixed head', () => {
     expect(res.message).not.toMatch(/review conflicts/)
   })
 
-  it('names the conflicting agents in the message', async () => {
+  it('counts conflicts in the message and names agents in details', async () => {
     const res = await robotsAgentConflictsRule.run(
       page('<meta name="robots" content="noindex"><meta name="googlebot" content="index">'),
       { globals: {} },
     )
     expect(res.type).toBe('warn')
-    expect(res.message).toContain('googlebot')
+    expect(res.message).toMatch(/conflicting agent-specific/)
+    expect((res.details as Record<string, unknown>)['conflicts']).toEqual([{ ua: 'googlebot', directive: 'index vs global noindex' }])
   })
 
-  it('names nonstandard agents in the message', async () => {
+  it('counts nonstandard agents in the message, names them in details', async () => {
     const res = await robotsAgentConflictsRule.run(page('<meta name="weirdbot" content="noindex">'), { globals: {} })
     expect(res.type).toBe('info')
-    expect(res.message).toContain('weirdbot')
+    expect(res.message).toMatch(/1 nonstandard robots agent/)
+    expect((res.details as Record<string, unknown>)['unusualAgents']).toEqual(['weirdbot'])
   })
 })

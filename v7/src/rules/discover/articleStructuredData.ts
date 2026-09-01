@@ -7,9 +7,10 @@ const SPEC = 'https://developers.google.com/search/docs/appearance/structured-da
 
 const findArticle = (doc: Document) => {
   const nodes = parseLd(doc)
-  const found = findType(nodes, 'article').length > 0 || findType(nodes, 'newsarticle').length > 0
+  const foundTypes = ['Article', 'NewsArticle'].filter((t) => findType(nodes, t.toLowerCase()).length > 0)
+  const found = foundTypes.length > 0
   const script = found ? doc.querySelector('script[type="application/ld+json"]') : null
-  return { found, scripts: script ? [script] : [] }
+  return { found, foundTypes, scripts: script ? [script] : [] }
 }
 
 export const discoverArticleStructuredDataRule: Rule = {
@@ -29,7 +30,7 @@ export const discoverArticleStructuredDataRule: Rule = {
           type: 'ok',
           priority: 800,
           name: 'Article structured data',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPaths, reference: SPEC },
+          details: { foundTypes: result.foundTypes, sourceHtml, snippet: extractSnippet(sourceHtml), domPaths, reference: SPEC },
         }
       : {
           label: 'DISCOVER',

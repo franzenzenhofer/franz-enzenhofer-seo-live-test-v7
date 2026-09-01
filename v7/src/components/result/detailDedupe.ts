@@ -1,8 +1,8 @@
-import { attributeOf, messageContainsValue, normalizeText, textOf } from '@/shared/textMatch'
+import { attributeOf, normalizeText, textOf } from '@/shared/textMatch'
 
 export type Candidate = { key: string; text: string; isSource: boolean }
 
-const MIN_OVERLAP = 20
+const MIN_OVERLAP = 12
 
 // Snippets are capped upstream; a trailing ellipsis must not defeat containment.
 export const comparable = (value: string): string =>
@@ -24,22 +24,17 @@ const infoOf = (value: string): string => {
 const covered = (candidate: string, kept: string[]): boolean =>
   kept.some((text) => text === candidate || (candidate.length >= MIN_OVERLAP && text.includes(candidate)))
 
-/**
- * Fullest information wins; on a tie the readable value beats raw markup.
- * `seeds` are texts already rendered above (the verdict message): a value
- * they fully contain is never repeated.
- */
-export const dedupeCandidates = (candidates: Candidate[], seeds: string[] = []): Candidate[] => {
+/** Fullest information wins; on a tie the readable value beats raw markup. */
+export const dedupeCandidates = (candidates: Candidate[]): Candidate[] => {
   const rows = candidates
     .map((entry, index) => ({ entry, reps: representationsOf(entry.text), info: infoOf(entry.text), index }))
     .filter((row) => row.info.length > 0)
   const kept: string[] = []
-  const seeded = (rep: string): boolean => seeds.some((seed) => messageContainsValue(seed, rep))
   const keptIndexes = new Set<number>()
   const byInformation = [...rows].sort((a, b) =>
     (b.info.length - a.info.length) || (Number(a.entry.isSource) - Number(b.entry.isSource)))
   for (const row of byInformation) {
-    if (row.reps.some((rep) => covered(rep, kept) || seeded(rep))) continue
+    if (row.reps.some((rep) => covered(rep, kept))) continue
     kept.push(...row.reps)
     keptIndexes.add(row.index)
   }

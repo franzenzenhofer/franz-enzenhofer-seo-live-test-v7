@@ -17,6 +17,7 @@ export const discoverMaxImagePreviewLargeRule: Rule = {
     const xr = (page.headers?.['x-robots-tag'] || '').toLowerCase()
     const ok = hasDirective(meta, 'max-image-preview:large') || hasDirective(xr, 'max-image-preview:large')
     const sourceHtml = extractHtml(metaEl)
+    const robotsContent = (metaEl?.getAttribute('content') || '').trim()
 
     return ok
       ? {
@@ -26,6 +27,7 @@ export const discoverMaxImagePreviewLargeRule: Rule = {
           priority: 800,
           name: 'max-image-preview:large',
           details: {
+            ...(robotsContent ? { robotsContent } : {}),
             ...(sourceHtml ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(metaEl) } : {}),
             ...(xr ? { xRobotsTag: xr } : {}),
             reference: SPEC,
@@ -37,7 +39,7 @@ export const discoverMaxImagePreviewLargeRule: Rule = {
           type: 'warn',
           priority: 400,
           name: 'max-image-preview:large',
-          details: { ...(sourceHtml ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(metaEl) } : {}), reference: SPEC },
+          details: { ...(robotsContent ? { robotsContent } : {}), ...(sourceHtml ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(metaEl) } : {}), reference: SPEC },
         }
   },
 }

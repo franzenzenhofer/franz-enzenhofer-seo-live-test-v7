@@ -39,7 +39,7 @@ export const discoverAuthorPresentRule: Rule = {
     return result.name
       ? {
           label: 'DISCOVER',
-          message: `Author: ${result.name}`,
+          message: 'Author present.',
           type: 'info',
           priority: 750,
           name: 'Author present',

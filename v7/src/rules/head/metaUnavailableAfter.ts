@@ -55,6 +55,7 @@ export const metaUnavailableAfterRule: Rule = {
       details: {
         sourceHtml,
         snippet: extractSnippet(content || sourceHtml),
+        values: unique,
         count: unique.length,
         past,
         reference: SPEC,

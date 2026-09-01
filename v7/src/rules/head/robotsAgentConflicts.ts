@@ -50,13 +50,15 @@ export const robotsAgentConflictsRule: Rule = {
 
     if (conflicts.length || unusualAgents.length) {
       const conflictText = conflicts.length
-        ? `${conflicts.length} agent conflict${conflicts.length > 1 ? 's' : ''}: ${conflicts.map((c) => `${c.ua} (${c.directive})`).join('; ')}`
+        ? `${conflicts.length} conflicting agent-specific robots directive${conflicts.length > 1 ? 's' : ''}`
         : ''
-      const agentText = unusualAgents.length ? `Nonstandard robots agents: ${unusualAgents.join(', ')}` : ''
+      const agentText = unusualAgents.length
+        ? `${unusualAgents.length} nonstandard robots agent${unusualAgents.length > 1 ? 's' : ''}`
+        : ''
       return {
         label: LABEL,
         name: NAME,
-        message: [conflictText, agentText].filter(Boolean).join('. ') + '.',
+        message: `${[conflictText, agentText].filter(Boolean).join(' and ')} detected.`,
         type: conflicts.length ? 'warn' : 'info',
         priority: conflicts.length ? 180 : 800,
         details: {

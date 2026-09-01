@@ -1,5 +1,5 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, extractSnippet } from '@/shared/html-utils'
+import { extractHtml } from '@/shared/html-utils'
 import { getDomPath, getDomPaths } from '@/shared/dom-path'
 import { sampleElements } from '@/shared/domEvidence'
 
@@ -40,7 +40,7 @@ export const metaDescriptionRule: Rule = {
       label: LABEL,
       message: empty
         ? 'Meta description is empty.'
-        : `Meta description (${description.length} chars): "${extractSnippet(description, 120)}"`,
+        : `Meta description present (${description.length} characters).`,
       type: empty ? 'error' : 'ok',
       priority: empty ? 100 : 760,
       name: NAME,

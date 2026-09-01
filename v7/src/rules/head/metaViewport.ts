@@ -26,7 +26,7 @@ export const metaViewportRule: Rule = {
     return {
       name: NAME,
       label: LABEL,
-      message: `Meta viewport: "${extractSnippet(content || '(empty)', 100)}"${countNote}`,
+      message: `Meta viewport tag present${countNote}.`,
       type: 'info',
       priority: 600,
       details: {

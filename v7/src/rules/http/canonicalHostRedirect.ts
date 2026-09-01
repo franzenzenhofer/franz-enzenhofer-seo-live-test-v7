@@ -1,6 +1,8 @@
 import { NavigationLedgerSchema } from '@/background/history/types'
 import type { Rule, Result } from '@/core/types'
 import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
+import { redirectChainDetails } from '@/shared/redirectChainFormat'
+import { headerChainToRedirectChain } from '@/shared/redirectChainFromEvents'
 
 const LABEL = 'HTTP'
 const NAME = 'WWW/Non-WWW Canonical Redirect'
@@ -29,6 +31,9 @@ const buildResult = (message: string, type: Result['type'], priority: number, de
   details: { ...details, reference: SPEC },
 })
 
+type Chained = Record<string, unknown>
+const withChain = (chain: Chained) => (details: Chained): Chained => ({ ...chain, ...details })
+
 const getCanonical = (pageUrl: string, doc: Document): URL | null => {
   const href = (doc.querySelector('link[rel~="canonical" i]')?.getAttribute('href') || '').trim()
   if (!href) return null
@@ -45,9 +50,11 @@ export const canonicalHostRedirectRule: Rule = {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
 
     const raw = (ctx.globals as { navigationLedger?: unknown }).navigationLedger
+    // Full hop-by-hop main-document chain (URL, status, Location) from webRequest.
+    const chained = withChain(redirectChainDetails(headerChainToRedirectChain(page.headerChain, page.status)))
     const ledgerResult = NavigationLedgerSchema.safeParse(raw)
     if (!ledgerResult.success || ledgerResult.data.trace.length === 0) {
-      return buildResult('No navigation data available to evaluate host canonicalization.', 'info', 900, {})
+      return buildResult('No navigation data available to evaluate host canonicalization.', 'info', 900, chained({}))
     }
 
     const trace = ledgerResult.data.trace
@@ -57,7 +64,7 @@ export const canonicalHostRedirectRule: Rule = {
     const first = parseUrlSafe(firstUrl)
     const final = parseUrlSafe(finalUrl)
     if (!first || !final) {
-      return buildResult('Invalid URL detected; cannot evaluate www/non-www redirect behavior.', 'warn', 200, { firstUrl, finalUrl })
+      return buildResult('Invalid URL detected; cannot evaluate www/non-www redirect behavior.', 'warn', 200, chained({ firstUrl, finalUrl }))
     }
 
     const sameBase = stripWww(first.hostname) === stripWww(final.hostname)
@@ -72,7 +79,7 @@ export const canonicalHostRedirectRule: Rule = {
           'Client-side redirect detected for www/non-www canonicalization. Use a single 301/308 server redirect.',
           'error',
           100,
-          { firstUrl, finalUrl, trace, clientRedirects: clientRedirects.length },
+          chained({ firstUrl, finalUrl, trace, clientRedirects: clientRedirects.length }),
         )
       }
 
@@ -81,7 +88,7 @@ export const canonicalHostRedirectRule: Rule = {
           `Expected a single server redirect for www/non-www canonicalization, found ${httpRedirects.length}.`,
           'error',
           120,
-          { firstUrl, finalUrl, trace, httpRedirects: httpRedirects.length },
+          chained({ firstUrl, finalUrl, trace, httpRedirects: httpRedirects.length }),
         )
       }
 
@@ -94,7 +101,7 @@ export const canonicalHostRedirectRule: Rule = {
           `Temporary redirect (${status || 'unknown'}) detected. Use a single permanent 301/308 redirect between www and non-www.`,
           'error',
           130,
-          { firstUrl, finalUrl, status, trace },
+          chained({ firstUrl, finalUrl, status, trace }),
         )
       }
 
@@ -103,7 +110,7 @@ export const canonicalHostRedirectRule: Rule = {
           'www/non-www redirect changed the path or query. Preserve the exact path and query parameters.',
           'error',
           140,
-          { firstUrl, finalUrl, trace },
+          chained({ firstUrl, finalUrl, trace }),
         )
       }
 
@@ -111,7 +118,7 @@ export const canonicalHostRedirectRule: Rule = {
         'Single-hop permanent redirect between www and non-www detected.',
         'ok',
         850,
-        { firstUrl, finalUrl, status, trace },
+        chained({ firstUrl, finalUrl, status, trace }),
       )
     }
 
@@ -126,7 +133,7 @@ export const canonicalHostRedirectRule: Rule = {
           'Canonical points to the alternate host but no redirect occurred. Use a single 301/308 redirect instead of canonical-only resolution.',
           'error',
           110,
-          { finalUrl, canonicalUrl: canonical.toString() },
+          chained({ firstUrl, finalUrl, canonicalUrl: canonical.toString(), trace }),
         )
       }
     }
@@ -135,7 +142,7 @@ export const canonicalHostRedirectRule: Rule = {
       'No www/non-www redirect observed (current host assumed canonical). Ensure the alternate host redirects in a single permanent hop.',
       'ok',
       800,
-      { firstUrl, finalUrl, trace, httpRedirects: httpRedirects.length },
+      chained({ firstUrl, finalUrl, trace, httpRedirects: httpRedirects.length }),
     )
   },
 }

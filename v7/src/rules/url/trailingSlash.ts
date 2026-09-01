@@ -1,11 +1,14 @@
 import type { Rule } from '@/core/types'
 import { discardBody } from '@/shared/http-utils'
 import { parseHtmlDocument } from '@/shared/parseHtml'
+import { followRedirectChain } from '@/shared/redirectChain'
+import { formatRedirectChain } from '@/shared/redirectChainFormat'
+import { RedirectChainError } from '@/shared/redirectChainTypes'
 
 const LABEL = 'URL'
 const NAME = 'URL trailing slash consistency'
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
-const TESTED = 'Fetched opposite trailing-slash variant, checked redirects and canonical alignment.'
+const TESTED = 'Fetched opposite trailing-slash variant with manual redirect following, checked the full hop chain and canonical alignment.'
 
 const normalize = (u: string) => {
   try {
@@ -49,18 +52,26 @@ export const trailingSlashRule: Rule = {
     const opposite = hasSlash ? 'with' : 'without'
 
     try {
-      const res = await fetch(variantUrl, { redirect: 'follow' })
-      const status = res.status
-      const finalUrl = res.url || variantUrl
-      const redirected = res.redirected
-      const baseDetails = { tested: TESTED, originalUrl, variantUrl, finalUrl, status, redirected, reference: SPEC }
+      const { chain, response } = await followRedirectChain(variantUrl, { wantBody: true })
+      const status = chain.finalStatus
+      const finalUrl = chain.finalUrl
+      const redirected = chain.redirected
+      const chainText = formatRedirectChain(chain)
+      const baseDetails = { tested: TESTED, originalUrl, variantUrl, finalUrl, status, redirected, redirectChain: chain, redirectChainText: chainText, reference: SPEC }
+
+      if (chain.loop || chain.capped) {
+        if (response) discardBody(response)
+        const what = chain.loop ? 'enters a redirect loop' : `redirects more than ${chain.maxHops} times`
+        return { label: LABEL, message: `URL variant ${whatCase} trailing slash ${what}.\n\nRedirect chain:\n${chainText}`, type: 'error', name: NAME, priority: 110, details: baseDetails }
+      }
 
       if (status !== 200) {
-        discardBody(res)
+        if (response) discardBody(response)
         const type = status === 404 ? 'info' : status === 410 ? 'warn' : status === 302 || status >= 500 ? 'error' : 'warn'
+        const chainSuffix = redirected ? `\n\nRedirect chain:\n${chainText}` : ''
         return {
           label: LABEL,
-          message: `URL variant ${whatCase} trailing slash ${variantUrl} returns HTTP ${status}${status === 404 ? ' (no duplicate-content variant)' : ''}.`,
+          message: `URL variant ${whatCase} trailing slash ${variantUrl} returns HTTP ${status}${status === 404 ? ' (no duplicate-content variant)' : ''}.${chainSuffix}`,
           type,
           name: NAME,
           priority: type === 'error' ? 150 : type === 'warn' ? 400 : 800,
@@ -68,14 +79,15 @@ export const trailingSlashRule: Rule = {
         }
       }
 
-      if (redirected) {
-        discardBody(res)
+      if (redirected || chain.hopsHidden) {
+        if (response) discardBody(response)
         const matchesOriginal = normalize(finalUrl) === normalize(originalUrl)
         return {
           label: LABEL,
-          message: matchesOriginal
+          message: (matchesOriginal
             ? `URL variant ${whatCase} trailing slash redirects to ${opposite} version (OK).`
-            : `URL variant ${whatCase} trailing slash redirects to ${finalUrl} (unexpected).`,
+            : `URL variant ${whatCase} trailing slash redirects to ${finalUrl} (unexpected).`)
+            + `\n\nRedirect chain:\n${chainText}`,
           type: matchesOriginal ? 'info' : 'error',
           name: NAME,
           priority: matchesOriginal ? 800 : 120,
@@ -83,7 +95,10 @@ export const trailingSlashRule: Rule = {
         }
       }
 
-      const body = await res.text()
+      if (!response) {
+        return { label: LABEL, message: `URL variant ${whatCase} trailing slash returned HTTP 200 but the response body was not available.`, type: 'runtime_error', name: NAME, priority: 10, details: baseDetails }
+      }
+      const body = await response.text()
       const doc = parseHtmlDocument(body, page.doc)
       const canonicalHref = doc.querySelector('link[rel~="canonical" i]')?.getAttribute('href') || ''
       if (!canonicalHref) {
@@ -113,40 +128,21 @@ export const trailingSlashRule: Rule = {
 
       const matchesOriginal = normalize(resolvedCanonical) === normalize(originalUrl)
       const matchesVariant = normalize(resolvedCanonical) === normalize(variantUrl)
+      const canonicalDetails = { ...baseDetails, canonicalHref: resolvedCanonical, matchesOriginal, matchesVariant, snippet: body.slice(0, 500) }
 
       if (!matchesOriginal && !matchesVariant) {
-        return {
-          label: LABEL,
-          message: `URL variant ${whatCase} trailing slash canonical points to ${resolvedCanonical} (unexpected).`,
-          type: 'error',
-          name: NAME,
-          priority: 130,
-          details: { ...baseDetails, canonicalHref: resolvedCanonical, matchesOriginal, matchesVariant, snippet: body.slice(0, 500) },
-        }
+        return { label: LABEL, message: `URL variant ${whatCase} trailing slash canonical points to ${resolvedCanonical} (unexpected).`, type: 'error', name: NAME, priority: 130, details: canonicalDetails }
       }
 
       if (matchesOriginal) {
-        return {
-          label: LABEL,
-          message: `URL variant ${whatCase} trailing slash canonical points back to ${opposite} version (OK).`,
-          type: 'info',
-          name: NAME,
-          priority: 850,
-          details: { ...baseDetails, canonicalHref: resolvedCanonical, matchesOriginal, matchesVariant, snippet: body.slice(0, 500) },
-        }
+        return { label: LABEL, message: `URL variant ${whatCase} trailing slash canonical points back to ${opposite} version (OK).`, type: 'info', name: NAME, priority: 850, details: canonicalDetails }
       }
 
-      return {
-        label: LABEL,
-        message: `URL variant ${whatCase} trailing slash canonical points to this variant (currently not canonical).`,
-        type: 'warn',
-        name: NAME,
-        priority: 300,
-        details: { ...baseDetails, canonicalHref: resolvedCanonical, matchesOriginal, matchesVariant, snippet: body.slice(0, 500) },
-      }
+      return { label: LABEL, message: `URL variant ${whatCase} trailing slash canonical points to this variant (currently not canonical).`, type: 'warn', name: NAME, priority: 300, details: canonicalDetails }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error)
-      return { label: LABEL, message: `Trailing slash probe failed: ${msg}`, type: 'runtime_error', name: NAME, priority: 10, details: { tested: TESTED, originalUrl, variantUrl, reference: SPEC } }
+      const hops = error instanceof RedirectChainError ? error.hops : []
+      return { label: LABEL, message: `Trailing slash probe failed: ${msg}`, type: 'runtime_error', name: NAME, priority: 10, details: { tested: TESTED, originalUrl, variantUrl, reference: SPEC, ...(hops.length ? { redirectChainHops: hops } : {}) } }
     }
   },
 }

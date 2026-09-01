@@ -1,6 +1,8 @@
 import { NavigationLedgerSchema } from '@/background/history/types'
 import type { Rule, Result } from '@/core/types'
 import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
+import { redirectChainDetails } from '@/shared/redirectChainFormat'
+import { headerChainToRedirectChain } from '@/shared/redirectChainFromEvents'
 
 const LABEL = 'HTTP'
 const NAME = 'Redirect Loop Detection'
@@ -30,6 +32,8 @@ export const redirectLoopRule: Rule = {
     }
 
     const { trace } = ledgerResult.data
+    // Full hop-by-hop main-document chain (URL, status, Location) from webRequest.
+    const chainDetails = redirectChainDetails(headerChainToRedirectChain(page.headerChain, page.status))
 
     // Filter to only actual redirects (not 'load' or 'history_api')
     const redirectTrace = trace.filter((hop) => hop.type === 'http_redirect' || hop.type === 'client_redirect')
@@ -43,6 +47,7 @@ export const redirectLoopRule: Rule = {
         priority: 800,
         details: {
           trace,
+          ...chainDetails,
           redirectCount: 0,
           reference: SPEC,
         },
@@ -69,6 +74,7 @@ export const redirectLoopRule: Rule = {
         priority: 800,
         details: {
           trace,
+          ...chainDetails,
           redirectCount: redirectTrace.length,
           uniqueUrlCount: urlCounts.size,
           reference: SPEC,
@@ -91,6 +97,7 @@ export const redirectLoopRule: Rule = {
       priority: 50,
       details: {
         trace,
+        ...chainDetails,
         loopUrls,
         reference: SPEC,
       },

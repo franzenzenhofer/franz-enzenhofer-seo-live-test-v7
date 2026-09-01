@@ -6,11 +6,12 @@ const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots
 
 const checkNoindex = (doc: Document, headers?: Record<string, string>) => {
   const metaEl = doc.querySelector('meta[name="robots"]')
-  const robots = (metaEl?.getAttribute('content') || '').toLowerCase()
+  const robotsContent = (metaEl?.getAttribute('content') || '').trim()
+  const robots = robotsContent.toLowerCase()
   const xr = (headers?.['x-robots-tag'] || '').toLowerCase()
   const hasNoindex = /\bnoindex\b/.test(robots) || /\bnoindex\b/.test(xr)
 
-  return { hasNoindex, element: metaEl, xRobots: xr }
+  return { hasNoindex, element: metaEl, xRobots: xr, robotsContent }
 }
 
 export const discoverIndexableRule: Rule = {
@@ -30,6 +31,7 @@ export const discoverIndexableRule: Rule = {
           priority: 150,
           name: 'Indexable',
           details: {
+            ...(result.robotsContent ? { robotsContent: result.robotsContent } : {}),
             ...(sourceHtml ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(result.element) } : {}),
             ...(result.xRobots ? { xRobotsTag: result.xRobots } : {}),
             reference: SPEC,
@@ -42,6 +44,7 @@ export const discoverIndexableRule: Rule = {
           priority: 850,
           name: 'Indexable',
           details: {
+            ...(result.robotsContent ? { robotsContent: result.robotsContent } : {}),
             ...(sourceHtml ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(result.element) } : {}),
             ...(result.xRobots ? { xRobotsTag: result.xRobots } : {}),
             reference: SPEC,

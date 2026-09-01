@@ -1,6 +1,20 @@
 import type { Rule } from '@/core/types'
 import { getDomPath } from '@/shared/dom-path'
-import { discardBody } from '@/shared/http-utils'
+import { followRedirectChain } from '@/shared/redirectChain'
+import { formatRedirectChain } from '@/shared/redirectChainFormat'
+import { RedirectChainError } from '@/shared/redirectChainTypes'
+import type { RedirectChain, RedirectHop } from '@/shared/redirectChainTypes'
+
+type LinkCheck = {
+  url: string
+  status: number
+  domPath: string
+  finalUrl?: string
+  error?: string
+  redirectChain?: RedirectChain
+  redirectChainText?: string
+  redirectChainHops?: RedirectHop[]
+}
 
 const LABEL = 'BODY'
 const NAME = 'Internal link HTTP status'
@@ -64,15 +78,22 @@ export const internalLinkStatusRule: Rule = {
       return { label: LABEL, name: NAME, type: 'info', priority: 900, details: { reference: SPEC, totalInternal: 0 },
         message: 'No internal links found to test.' }
     }
-    const checks = await Promise.all(sampled.map(async (entry) => {
+    const checks = await Promise.all(sampled.map(async (entry): Promise<LinkCheck> => {
       const url = entry.url
       try {
-        const res = await fetch(url, { redirect: 'follow' })
-        discardBody(res)
-        return { url, status: res.status, domPath: getDomPath(entry.el) }
-      } catch (e) { return { url, status: 0, error: e instanceof Error ? e.message : String(e), domPath: getDomPath(entry.el) } }
+        const { chain } = await followRedirectChain(url)
+        return {
+          url, status: chain.finalStatus, finalUrl: chain.finalUrl, domPath: getDomPath(entry.el),
+          redirectChain: chain, redirectChainText: formatRedirectChain(chain),
+        }
+      } catch (e) {
+        const hops = e instanceof RedirectChainError ? e.hops : []
+        return { url, status: 0, error: e instanceof Error ? e.message : String(e), domPath: getDomPath(entry.el),
+          ...(hops.length ? { redirectChainHops: hops } : {}) }
+      }
     }))
-    const failures = checks.filter((c) => !c.status || c.status >= 400)
+    const failures = checks.filter((c) => !c.status || c.status >= 400 || c.redirectChain?.loop || c.redirectChain?.capped)
+    const redirecting = checks.filter((c) => c.redirectChain?.redirected)
     const statusSummary = summarizeStatuses(checks)
     const type = failures.length ? 'error' : 'ok'
     const scope = anchorsTruncated
@@ -80,12 +101,20 @@ export const internalLinkStatusRule: Rule = {
       : failures.length
         ? `Sampled ${checks.length} of ${candidates.length} internal links.`
         : `Tested random sample of ${candidates.length} internal links.`
-    const message = failures.length
-      ? `${failures.length}/${checks.length} links failed: ${failures.map((f) => `${f.status}`).join(', ')}. ${scope}`
-      : `All ${checks.length} sampled links OK (${statusSummary}). ${scope}`
+    // Every link that redirects (or fails) shows its complete hop-by-hop chain - never summarized away.
+    const chainTexts = checks
+      .filter((c) => c.redirectChain && (c.redirectChain.redirected || c.redirectChain.loop || c.redirectChain.capped))
+      .map((c) => c.redirectChainText)
+      .join('\n\n')
+    const redirectNote = redirecting.length ? ` ${redirecting.length} sampled link${redirecting.length > 1 ? 's' : ''} redirect.` : ''
+    const message = (failures.length
+      ? `${failures.length}/${checks.length} links failed: ${failures.map((f) => `${f.status}`).join(', ')}. ${scope}${redirectNote}`
+      : `All ${checks.length} sampled links OK (${statusSummary}). ${scope}${redirectNote}`)
+      + (chainTexts ? `\n\nRedirect chains:\n${chainTexts}` : '')
     const domPaths = sampled.map((entry) => getDomPath(entry.el)).filter((path) => path.length > 0)
     return { label: LABEL, name: NAME, message, type, priority: failures.length ? 150 : 850,
-      details: { checked: checks, failures, statusSummary,
+      details: { checked: checks, failures, statusSummary, redirectingCount: redirecting.length,
+        ...(chainTexts ? { redirectChainText: chainTexts } : {}),
         ...(anchorsTruncated ? {} : { totalInternal: candidates.length }),
         capturedInternal: candidates.length, sampleSize: checks.length,
         ...(facts ? { pageAnchorCount, anchorEvidenceTruncated: anchorsTruncated } : {}),

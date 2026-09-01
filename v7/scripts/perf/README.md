@@ -8,6 +8,7 @@ Run from `v7/`.
 |---|---|
 | `npx tsx scripts/perf/timeRules.ts <url>` | Per-rule wall clock against a real URL. Names the rules that dominate a run. |
 | `npx tsx scripts/perf/factsBudgetCheck.ts` | Whether bounded DOM facts for real sites stay inside the 32 KB phase-message contract, and whether canonical / robots metas survive collection. |
+| `npx tsx scripts/perf/detailDuplication.ts /tmp/rules.json` | How many result cards would render the same text twice, before and after the tiered detail layout, plus how many detail values land in each tier. Input: a CLI json run. |
 
 ## In-browser diagnostics (Playwright, need `npm run build:dev` first)
 

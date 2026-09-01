@@ -9,6 +9,9 @@ const NAME = 'Hreflang Links'
 const RULE_ID = 'head-hreflang'
 const SELECTOR = 'head > link[rel~="alternate" i][hreflang]'
 const SPEC = 'https://developers.google.com/search/docs/specialty/international/localized-versions'
+// Full attribute capture for every hreflang link, bounded only by the
+// content-script phase-message byte budget (stated via hreflangDataTruncated).
+const PAIR_LIMIT = 200
 
 export const hreflangRule: Rule = {
   id: RULE_ID,
@@ -16,12 +19,20 @@ export const hreflangRule: Rule = {
   enabled: true,
   what: 'static',
   run: async (page) => {
-    const elements = sampleElements(page.doc.querySelectorAll(SELECTOR))
+    const all = page.doc.querySelectorAll(SELECTOR)
+    const elements = sampleElements(all)
     const count = elements.total
-    const hreflangData = elements.sample.map((link) => ({
-      hreflang: link.getAttribute('hreflang')?.trim() || '',
-      href: link.getAttribute('href')?.trim() || '',
-    }))
+    // Attribute pairs are cheap: collect them for EVERY hreflang link (the
+    // phase-message byte budget still applies, so state the in-rule bound).
+    const hreflangData: Array<{ hreflang: string; href: string }> = []
+    for (let index = 0; index < all.length && hreflangData.length < PAIR_LIMIT; index++) {
+      const link = all.item(index)
+      if (!link) continue
+      hreflangData.push({
+        hreflang: link.getAttribute('hreflang')?.trim() || '',
+        href: link.getAttribute('href')?.trim() || '',
+      })
+    }
     const languages = [...new Set(hreflangData.map((d) => d.hreflang).filter(Boolean))]
 
     const sourceHtml = extractHtmlFromList(elements.sample)
@@ -48,6 +59,7 @@ export const hreflangRule: Rule = {
             truncated: elements.truncated,
             languages,
             hreflangData,
+            hreflangDataTruncated: count > hreflangData.length,
             reference: SPEC,
           }
         : { reference: SPEC },
