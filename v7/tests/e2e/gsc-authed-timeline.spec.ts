@@ -52,6 +52,18 @@ test.describe('gsc authed', () => {
       }
       await page.waitForTimeout(500)
     }
+    // Second run on the same host: the derived property (hit or miss) is cached
+    // across runs, so this must cost no further probes.
+    const firstCount = (await worker.evaluate(() => ((self as unknown as { __gapi?: unknown[] }).__gapi || []).length))
+    await page.reload({ waitUntil: 'domcontentloaded' })
+    for (let i = 0; i < 60; i++) {
+      const snap = await readRunSnapshot(ctx, TARGET)
+      if (snap && !snap.results.some((r) => r.type === 'pending') && snap.status !== 'running') break
+      await page.waitForTimeout(500)
+    }
+    const secondCount = (await worker.evaluate(() => ((self as unknown as { __gapi?: unknown[] }).__gapi || []).length))
+    console.log(`[gsc] run1 calls=${firstCount}  run2 added=${secondCount - firstCount}`)
+
     const calls = await worker.evaluate(() => (self as unknown as { __gapi?: Array<{ url: string; at: number }> }).__gapi || [])
     const byEndpoint: Record<string, number> = {}
     calls.forEach((c) => {
