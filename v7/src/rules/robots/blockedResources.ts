@@ -57,7 +57,7 @@ export const robotsBlockedResourcesRule: Rule = {
     }
     const robotsTxt = r.text
     const userAgent = 'Googlebot'
-    let blockedCount = 0
+    const blockedResources: string[] = []
     let sameHostCount = 0
     for (const resourceUrl of list) {
       if (!sameHost(page.url, resourceUrl)) continue
@@ -65,8 +65,9 @@ export const robotsBlockedResourcesRule: Rule = {
       const result = parse(robotsTxt, resourceUrl, userAgent) as Record<string, unknown>
       const allowed = Boolean(result['allowed'])
       const disallowed = Boolean(result['disallowed'])
-      if (!allowed || disallowed) blockedCount++
+      if (!allowed || disallowed) blockedResources.push(resourceUrl)
     }
+    const blockedCount = blockedResources.length
     // Cross-host resources answer to their own hosts' robots.txt files, so
     // the verdict may only speak for the same-host resources it checked.
     const crossHostCount = resourceCount - sameHostCount
@@ -95,6 +96,8 @@ export const robotsBlockedResourcesRule: Rule = {
         sameHostCount,
         crossHostCount,
         blockedCount,
+        allowedCount: sameHostCount - blockedCount,
+        ...(blockedResources.length ? { blockedResources } : {}),
         hasBlockedResources,
         userAgent,
         reference: SPEC,

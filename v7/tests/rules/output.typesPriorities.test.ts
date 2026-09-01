@@ -39,8 +39,10 @@ describe('result types and priorities match the finding', () => {
 
   it('soft-404 redirect-to-404 is a warn, not an error', async () => {
     const orig = globalThis.fetch
-    // @ts-expect-error stub network
-    globalThis.fetch = vi.fn().mockResolvedValue({ status: 404, redirected: true, url: 'https://ex.com/404', body: null })
+    const hop = { status: 301, type: 'basic', redirected: false, url: 'https://ex.com/x', body: null, headers: new Headers({ location: 'https://ex.com/404' }) }
+    const final = { status: 404, type: 'basic', redirected: false, url: 'https://ex.com/404', body: null, headers: new Headers() }
+    // @ts-expect-error stub network: one real redirect hop, then the 404
+    globalThis.fetch = vi.fn().mockResolvedValueOnce(hop).mockResolvedValue(final)
     const res = await soft404Rule.run(page('', { headers: { a: '1' } }), ctx)
     globalThis.fetch = orig
     expect(res.type).toBe('warn')

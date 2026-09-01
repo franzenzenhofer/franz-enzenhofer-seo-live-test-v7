@@ -37,7 +37,7 @@ export const gscDirectoryWorldwideRule: Rule = {
       const imp = (j.rows || []).reduce((a, x)=> a + (x.impressions || 0), 0)
       return {
         label: 'GSC',
-        message: `Directory ${dir}: impressions ${imp}`,
+        message: `Directory impressions ${imp}.`,
         type: 'info',
         priority: 750,
         name: NAME,

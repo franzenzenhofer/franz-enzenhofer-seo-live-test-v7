@@ -1,8 +1,11 @@
 import type { Rule } from '@/core/types'
 import { discardBody } from '@/shared/http-utils'
 import { parseHtmlDocument } from '@/shared/parseHtml'
+import { followRedirectChain } from '@/shared/redirectChain'
+import { formatRedirectChain } from '@/shared/redirectChainFormat'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPaths } from '@/shared/dom-path'
+import type { RedirectChain } from '@/shared/redirectChainTypes'
 
 const LABEL = 'HEAD'
 const NAME = 'Hreflang Multipage Validation'
@@ -51,40 +54,55 @@ export const hreflangMultipageRule: Rule = {
       type = upgrade(type, 'warn')
     }
 
-    const checks: Array<Promise<{ level: 'warn' | 'error'; text: string }[]>> = links
+    type LinkCheck = {
+      hreflang: string; href: string; status?: number; redirected?: boolean
+      selfReference?: boolean; backReference?: boolean; error?: string
+      redirectChain?: RedirectChain; redirectChainText?: string
+      issues: { level: 'warn' | 'error'; text: string }[]
+    }
+    const checks: Array<Promise<LinkCheck>> = links
       .filter((link) => new URL(link.getAttribute('href') || '', page.url).toString() !== canonical)
-      .map(async (link): Promise<{ level: 'warn' | 'error'; text: string }[]> => {
+      .map(async (link): Promise<LinkCheck> => {
         const href = new URL(link.getAttribute('href') || '', page.url).toString()
         const hreflang = (link.getAttribute('hreflang') || '').trim()
-        const ctrl = new AbortController()
-        const t = setTimeout(() => ctrl.abort(), 10000)
         try {
-          const res = await fetch(href, { redirect: 'follow', signal: ctrl.signal })
-          clearTimeout(t)
-          const messages: { level: 'warn' | 'error'; text: string }[] = []
-          if (res.redirected) messages.push({ level: 'warn', text: `'${hreflang}' URL triggers redirect.` })
-          if (res.status !== 200) {
-            discardBody(res)
-            messages.push({ level: 'error', text: `'${hreflang}' returns HTTP ${res.status}.` })
-            return messages
+          const { chain, response } = await followRedirectChain(href, { timeoutMs: 10000, wantBody: true })
+          const chainText = formatRedirectChain(chain)
+          const check: LinkCheck = {
+            hreflang, href, status: chain.finalStatus, redirected: chain.redirected,
+            redirectChain: chain, redirectChainText: chainText, issues: [],
           }
-          const body = await res.text()
+          if (chain.loop || chain.capped) {
+            if (response) discardBody(response)
+            const what = chain.loop ? 'enters a redirect loop' : `exceeds ${chain.maxHops} redirects`
+            check.issues.push({ level: 'error', text: `'${hreflang}' URL ${what}:\n${chainText}` })
+            return check
+          }
+          if (chain.redirected) check.issues.push({ level: 'warn', text: `'${hreflang}' URL triggers redirect:\n${chainText}` })
+          if (chain.finalStatus !== 200) {
+            if (response) discardBody(response)
+            check.issues.push({ level: 'error', text: `'${hreflang}' returns HTTP ${chain.finalStatus}.` })
+            return check
+          }
+          const body = response ? await response.text() : ''
           const dom = parseHtmlDocument(body, page.doc)
           const selfSelector = `link[rel~="alternate" i][hreflang="${hreflang}"][href="${href}"]`
           const backSelector = selfHreflang
             ? `link[rel~="alternate" i][hreflang="${selfHreflang}"][href="${canonical}"]`
             : `link[rel~="alternate" i][hreflang][href="${canonical}"]`
-          if (!dom.querySelector(selfSelector)) messages.push({ level: 'error', text: `'${hreflang}' no self reference found.` })
-          if (!dom.querySelector(backSelector)) messages.push({ level: 'error', text: `'${hreflang}' no back reference to canonical.` })
-          return messages
+          check.selfReference = !!dom.querySelector(selfSelector)
+          check.backReference = !!dom.querySelector(backSelector)
+          if (!check.selfReference) check.issues.push({ level: 'error', text: `'${hreflang}' no self reference found.` })
+          if (!check.backReference) check.issues.push({ level: 'error', text: `'${hreflang}' no back reference to canonical.` })
+          return check
         } catch (e) {
-          clearTimeout(t)
-          return [{ level: 'warn', text: `'${hreflang}' check failed: ${String(e)}` }]
+          const msg = e instanceof Error ? e.message : String(e)
+          return { hreflang, href, error: msg, issues: [{ level: 'warn', text: `'${hreflang}' check failed: ${msg}` }] }
         }
       })
 
-    const results = await Promise.all(checks)
-    results.flat().forEach(({ level, text }) => {
+    const checked = await Promise.all(checks)
+    checked.flatMap((check) => check.issues).forEach(({ level, text }) => {
       type = upgrade(type, level)
       issues.push(text)
     })
@@ -106,6 +124,9 @@ export const hreflangMultipageRule: Rule = {
         domPaths: getDomPaths(links),
         canonical,
         canonicalHref: canonicalHref || null,
+        selfHreflang: selfHreflang || null,
+        checked: checked.map(({ issues: linkIssues, ...check }) => ({ ...check, issues: linkIssues.map((i) => i.text) })),
+        issues,
         reference: SPEC,
       },
     }

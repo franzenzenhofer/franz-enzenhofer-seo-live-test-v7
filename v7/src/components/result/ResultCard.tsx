@@ -66,11 +66,11 @@ export const ResultCard = ({ result, index, displayIndex, isPinned, onTogglePin,
         onOpenReport={result.runIdentifier ? openReport : undefined}
       />
       <MessageWithLinks text={result.message} className="text-sm text-slate-900 break-words" />
-      {!open && <ResultPreview details={result.details} message={result.message} />}
+      {!open && <ResultPreview details={result.details} />}
       {open && hasDetails && (
         <div className="space-y-2">
           <ResultMetadata result={result} number={numberLabel} />
-          <ResultDetails details={detailPayload} snippet={snippet} message={result.message} />
+          <ResultDetails details={detailPayload} snippet={snippet} />
         </div>
       )}
     </article>

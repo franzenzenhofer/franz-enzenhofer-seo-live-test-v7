@@ -35,7 +35,7 @@ for (const row of rows) {
   beforeBlocks += oldBlocks.length
   if (anyDup(oldBlocks)) beforeDupCards += 1
   // AFTER: tiered. Full-weight blocks are evidence + kept source only.
-  const tiers = tierDetails(payload, snippet, row.message)
+  const tiers = tierDetails(payload, snippet)
   const newBlocks = [...tiers.evidence, ...tiers.source].map((entry) => entry.text)
   afterFullBlocks += newBlocks.length
   if (anyDup(newBlocks)) afterDupCards += 1

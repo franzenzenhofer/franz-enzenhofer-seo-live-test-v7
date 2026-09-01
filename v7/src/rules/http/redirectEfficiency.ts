@@ -1,6 +1,8 @@
 import { NavigationLedgerSchema } from '@/background/history/types'
 import type { Rule, Result } from '@/core/types'
 import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
+import { redirectChainDetails } from '@/shared/redirectChainFormat'
+import { headerChainToRedirectChain } from '@/shared/redirectChainFromEvents'
 
 const LABEL = 'HTTP'
 const NAME = 'Redirect Efficiency Score'
@@ -30,6 +32,10 @@ export const redirectEfficiencyRule: Rule = {
     }
 
     const { trace } = ledgerResult.data
+    // Full hop-by-hop main-document chain (URL, status, Location) from webRequest.
+    const chainDetails = redirectChainDetails(headerChainToRedirectChain(page.headerChain, page.status))
+    const chainText = chainDetails['redirectChainText']
+    const chainSuffix = typeof chainText === 'string' ? `\n\nRedirect chain:\n${chainText}` : ''
     const totalHops = trace.length
     const redirects = trace.filter((h) => h.type === 'http_redirect' || h.type === 'client_redirect')
     const httpRedirects = redirects.filter((h) => h.type === 'http_redirect')
@@ -47,7 +53,7 @@ export const redirectEfficiencyRule: Rule = {
         message: `Perfect! Direct load with no redirects (Score: 100/100).\n\nOptimal performance - the page loaded directly without any intermediate hops.`,
         type: 'ok',
         priority: 900,
-        details: { score, redirects: 0, httpRedirects: 0, clientRedirects: 0, reference: SPEC },
+        details: { score, ...chainDetails, redirects: 0, httpRedirects: 0, clientRedirects: 0, reference: SPEC },
       }
     }
 
@@ -79,13 +85,13 @@ Client redirects: ${clientRedirects.length}
 
     if (score >= 85) {
       type = 'ok'
-      message = `Good redirect efficiency (Score: ${score}/100).\n\n${summary}\n\nPerformance issues:\n${issuesDesc}`
+      message = `Good redirect efficiency (Score: ${score}/100).\n\n${summary}\n\nPerformance issues:\n${issuesDesc}${chainSuffix}`
     } else if (score >= 60) {
       type = 'warn'
-      message = `Moderate redirect overhead (Score: ${score}/100).\n\n${summary}\n\nPerformance issues:\n${issuesDesc}`
+      message = `Moderate redirect overhead (Score: ${score}/100).\n\n${summary}\n\nPerformance issues:\n${issuesDesc}${chainSuffix}`
     } else {
       type = 'error'
-      message = `Poor redirect efficiency (Score: ${score}/100).\n\n${summary}\n\nCritical performance issues:\n${issuesDesc}`
+      message = `Poor redirect efficiency (Score: ${score}/100).\n\n${summary}\n\nCritical performance issues:\n${issuesDesc}${chainSuffix}`
     }
 
     return {
@@ -96,6 +102,8 @@ Client redirects: ${clientRedirects.length}
       priority: type === 'error' ? 100 : type === 'warn' ? 200 : 800,
       details: {
         score,
+        trace,
+        ...chainDetails,
         totalHops,
         redirects: redirects.length,
         httpRedirects: httpRedirects.length,

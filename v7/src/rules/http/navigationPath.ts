@@ -1,6 +1,8 @@
 import { NavigationLedgerSchema } from '@/background/history/types'
 import type { Rule, Result } from '@/core/types'
 import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
+import { redirectChainDetails } from '@/shared/redirectChainFormat'
+import { headerChainToRedirectChain } from '@/shared/redirectChainFromEvents'
 
 const LABEL = 'HTTP'
 const NAME = 'Navigation Path Analysis'
@@ -47,7 +49,12 @@ export const navigationPathRule: Rule = {
       return `${i + 1}. ${hop.url}\n   → ${label}`
     })
 
+    // The webRequest header chain carries the real per-hop statuses and Location
+    // targets for the main document - always show it in full alongside the trace.
+    const chainDetails = redirectChainDetails(headerChainToRedirectChain(page.headerChain, page.status))
+    const chainText = chainDetails['redirectChainText']
     const chainDesc = steps.join('\n')
+      + (typeof chainText === 'string' ? `\n\nHTTP hop detail (webRequest):\n${chainText}` : '')
 
     const hasTemporaryRedirect = redirects.some(
       (t) => t.statusCode === 302 || t.statusCode === 303 || t.statusCode === 307,
@@ -62,7 +69,7 @@ export const navigationPathRule: Rule = {
     const uniqueTempCodes = [...new Set(tempRedirectCodes)]
 
     if (redirectCount === 0) {
-      return buildResult(`Direct load (no redirects).\n\n${chainDesc}`, 'ok', 800, { trace, redirectCount })
+      return buildResult(`Direct load (no redirects).\n\n${chainDesc}`, 'ok', 800, { trace, redirectCount, ...chainDetails })
     }
 
     if (hasClientRedirect) {
@@ -70,7 +77,7 @@ export const navigationPathRule: Rule = {
         `Client-side redirect detected (${redirectCount} hop${redirectCount > 1 ? 's' : ''}).\nClient redirects are slow and bad for SEO.\n\n${chainDesc}`,
         'error',
         100,
-        { trace, redirectCount, issue: 'client_redirect' },
+        { trace, redirectCount, ...chainDetails, issue: 'client_redirect' },
       )
     }
 
@@ -79,7 +86,7 @@ export const navigationPathRule: Rule = {
         `Redirect chain (${redirectCount} hops) - Performance impact.\n\n${chainDesc}`,
         'error',
         150,
-        { trace, redirectCount, issue: 'long_chain' },
+        { trace, redirectCount, ...chainDetails, issue: 'long_chain' },
       )
     }
 
@@ -89,7 +96,7 @@ export const navigationPathRule: Rule = {
         `Temporary redirect (${codesStr}) detected.\nUse 301/308 for permanent redirects.\n\n${chainDesc}`,
         'warn',
         200,
-        { trace, redirectCount, issue: 'temp_redirect', tempRedirectCodes: uniqueTempCodes },
+        { trace, redirectCount, ...chainDetails, issue: 'temp_redirect', tempRedirectCodes: uniqueTempCodes },
       )
     }
 
@@ -98,7 +105,7 @@ export const navigationPathRule: Rule = {
         `HTTP → HTTPS redirect (${redirectCount} hop${redirectCount > 1 ? 's' : ''}).\n\n${chainDesc}`,
         'warn',
         250,
-        { trace, redirectCount, issue: 'mixed_content' },
+        { trace, redirectCount, ...chainDetails, issue: 'mixed_content' },
       )
     }
 
@@ -106,7 +113,7 @@ export const navigationPathRule: Rule = {
       `Single redirect (${redirectCount} hop).\n\n${chainDesc}`,
       'warn',
       300,
-      { trace, redirectCount },
+      { trace, redirectCount, ...chainDetails },
     )
   },
 }

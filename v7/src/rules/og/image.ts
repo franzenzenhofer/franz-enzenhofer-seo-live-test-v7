@@ -20,7 +20,7 @@ export const ogImageRule: Rule = {
     const abs = isAbsoluteUrl(c)
     const sourceHtml = extractHtml(m)
     return abs
-      ? { label: 'HEAD', message: `og:image: ${extractSnippet(c, 140)}`, type: 'info', priority: 760, name: 'Open Graph Image', details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(m), ogImage: c, tested: TESTED, reference: SPEC } }
-      : { label: 'HEAD', message: `og:image not absolute: ${extractSnippet(c || '(empty)', 140)}`, type: 'warn', priority: 350, name: 'Open Graph Image', details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(m), ogImage: c, tested: TESTED, reference: SPEC } }
+      ? { label: 'HEAD', message: 'og:image present (absolute URL).', type: 'info', priority: 760, name: 'Open Graph Image', details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(m), ogImage: c, tested: TESTED, reference: SPEC } }
+      : { label: 'HEAD', message: 'og:image present but not an absolute URL.', type: 'warn', priority: 350, name: 'Open Graph Image', details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(m), ogImage: c, tested: TESTED, reference: SPEC } }
   },
 }

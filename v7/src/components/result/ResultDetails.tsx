@@ -10,7 +10,7 @@ import { hasTierContent, tierDetails } from './detailTiers'
 
 import type { Result } from '@/shared/results'
 
-type Props = { details?: Result['details']; snippet?: string | null; message?: string }
+type Props = { details?: Result['details']; snippet?: string | null }
 
 /**
  * The expanded card, tiered by what the reader needs: the judged value once,
@@ -18,8 +18,8 @@ type Props = { details?: Result['details']; snippet?: string | null; message?: s
  * something, technical payloads muted and last, and the spec reference as a
  * footer. Expanded means everything: nothing folded, nothing truncated.
  */
-export const ResultDetails = ({ details, snippet, message }: Props): ReactElement | null => {
-  const tiers = tierDetails(details, snippet, message)
+export const ResultDetails = ({ details, snippet }: Props): ReactElement | null => {
+  const tiers = tierDetails(details, snippet)
   if (!hasTierContent(tiers)) return null
   return (
     <div className="mt-2 space-y-2 border-t pt-2 text-xs">

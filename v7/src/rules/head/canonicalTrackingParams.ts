@@ -50,7 +50,7 @@ export const canonicalTrackingParamsRule: Rule = {
       const params = resolved.searchParams
       const offenders = paramList.filter((p) => params.has(p))
       if (!offenders.length) {
-        return { label: LABEL, name: NAME, message: 'Canonical URL has no tracking parameters.', type: 'ok', priority: 800, details: { reference: SPEC } }
+        return { label: LABEL, name: NAME, message: 'Canonical URL has no tracking parameters.', type: 'ok', priority: 800, details: { canonicalUrl: resolved.toString(), checkedParams: paramList.length, reference: SPEC } }
       }
       return {
         label: LABEL,

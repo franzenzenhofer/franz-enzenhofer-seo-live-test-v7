@@ -20,7 +20,7 @@ export const ogDescriptionRule: Rule = {
     const sourceHtml = extractHtml(m)
     return {
       label: 'HEAD',
-      message: `Open Graph (Facebook) description (${c.length} chars): "${extractSnippet(c, 120)}"`,
+      message: `og:description present (${c.length} characters).`,
       type: 'info',
       priority: 760,
       name: 'Open Graph Description',

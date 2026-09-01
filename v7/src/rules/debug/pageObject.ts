@@ -14,8 +14,9 @@ export const pageObjectRule: Rule = {
     const summary = {
       url: page.url,
       status: page.status,
-      headersKeys: Object.keys(page.headers || {}),
-      resources: (page.resources || []).slice(0, 5),
+      headers: page.headers || {},
+      resources: page.resources || [],
+      resourceCount: (page.resources || []).length,
       fromCache: page.fromCache ?? null,
     }
     return {

@@ -23,6 +23,7 @@ export const linkPreloadRule: Rule = {
       name: 'rel=preload links',
       details: {
         ...(n ? { sourceHtml, snippet: extractSnippet(sourceHtml) } : {}),
+        urls: Array.from(links, (el) => el.getAttribute('href') || '').filter(Boolean),
         count: n,
         shown,
         truncated,

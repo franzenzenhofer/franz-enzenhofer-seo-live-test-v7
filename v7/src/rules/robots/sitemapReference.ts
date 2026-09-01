@@ -4,14 +4,13 @@ import { fetchTextOnce } from '@/shared/fetchOnce'
 const LABEL = 'ROBOTS'
 const NAME = 'robots.txt Sitemap reference'
 const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap'
-const SITEMAP_SAMPLE_LIMIT = 10
 
 const sitemapUrlsOf = (txt: string): { urls: string[]; total: number } => {
   const matches = txt.match(/^\s*sitemap\s*:\s*\S+.*$/gim) || []
   const urls = matches
     .map((line) => line.replace(/^\s*sitemap\s*:\s*/i, '').trim())
     .filter(Boolean)
-  return { urls: urls.slice(0, SITEMAP_SAMPLE_LIMIT), total: urls.length }
+  return { urls, total: urls.length }
 }
 
 export const robotsSitemapReferenceRule: Rule = {
@@ -58,12 +57,9 @@ export const robotsSitemapReferenceRule: Rule = {
         details: { sitemapCount: 0, robotsTxt: txt, reference: SPEC },
       }
     }
-    const first = urls[0]
     return {
       label: LABEL,
-      message: total === 1
-        ? `Sitemap referenced: ${first}`
-        : `${total} Sitemaps referenced (first: ${first})`,
+      message: `${total} Sitemap${total > 1 ? 's' : ''} referenced in robots.txt.`,
       type: 'ok',
       priority: 820,
       name: NAME,

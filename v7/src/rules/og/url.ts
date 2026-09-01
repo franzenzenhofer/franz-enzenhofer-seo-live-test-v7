@@ -30,17 +30,15 @@ export const ogUrlRule: Rule = {
     const ogUrl = content
     const pageUrl = page.url
 
-    let message = `Open Graph (Facebook) URL: ${ogUrl}`
+    let message = 'og:url present and consistent.'
     let type: 'info' | 'warn' = 'info'
 
     if (canonicalResolved && canonicalResolved !== ogUrl) {
-      message = `Open Graph URL does not equal canonical (${canonicalResolved}).`
+      message = 'og:url does not equal the canonical URL.'
       type = 'warn'
     } else if (pageUrl && pageUrl !== ogUrl) {
-      message = `Open Graph URL does not equal document location (${pageUrl}).`
+      message = 'og:url does not equal the document location.'
       type = 'warn'
-    } else {
-      message += ' (OK)'
     }
 
     return {

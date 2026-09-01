@@ -24,6 +24,7 @@ export const dnsPrefetchRule: Rule = {
       name: 'rel=dns-prefetch',
       details: {
         ...(n ? { sourceHtml, snippet: extractSnippet(sourceHtml) } : {}),
+        urls: Array.from(links, (el) => el.getAttribute('href') || '').filter(Boolean),
         count: n,
         shown: evidence.shown,
         truncated: evidence.truncated,

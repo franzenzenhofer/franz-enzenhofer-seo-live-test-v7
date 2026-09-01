@@ -15,32 +15,3 @@ export const attributeOf = (markup: string): string => {
   const match = /\s(?:href|content|src)\s*=\s*["']([^"']+)/i.exec(markup)
   return match?.[1] ? normalizeText(match[1]) : ''
 }
-
-const QUOTES = /["'„“”‚’‹›«»]/g
-const ELLIPSES = /(\.\.\.|…)/g
-/** Fold for repetition checks: whitespace, quotes, ellipses and case must not hide a repeat. */
-const fold = (value: string): string =>
-  normalizeText(value).replace(QUOTES, '').replace(ELLIPSES, ' ').replace(/\s+/g, ' ').trim().toLowerCase()
-
-const MIN_VALUE = 3
-const MIN_MESSAGE_IN_VALUE = 12
-
-/** True when the verdict message already contains the whole value (quoted or not). */
-export const messageContainsValue = (message: string | null | undefined, value: string): boolean => {
-  if (!message) return false
-  const msg = fold(message)
-  const val = fold(value)
-  if (!msg || val.length < MIN_VALUE) return false
-  return msg.includes(val) || (msg.length >= MIN_MESSAGE_IN_VALUE && val.includes(msg))
-}
-
-// A message that quotes a value truncates it; the shared opening is the tell.
-const PROBE = 24
-
-/** Also true when the message quotes a truncated form of the value. */
-export const messageRepeatsValue = (message: string | null | undefined, value: string): boolean => {
-  if (messageContainsValue(message, value)) return true
-  if (!message) return false
-  const val = fold(value)
-  return val.length > PROBE && fold(message).includes(val.slice(0, PROBE))
-}

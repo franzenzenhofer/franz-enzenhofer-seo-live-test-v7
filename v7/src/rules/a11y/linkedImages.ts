@@ -1,7 +1,7 @@
 import { extractHtml } from '@/shared/html-utils'
 
-const MAX_EXAMPLES = 3
-const MAX_SNIPPET_CHARS = 600
+const MAX_EXAMPLES = 10
+const MAX_SNIPPET_CHARS = 4000
 
 const clampSnippet = (html: string) => (html.length > MAX_SNIPPET_CHARS ? `${html.slice(0, MAX_SNIPPET_CHARS)}…` : html)
 

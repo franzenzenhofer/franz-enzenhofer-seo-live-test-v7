@@ -32,7 +32,7 @@ export const summarizePSI = (result: PSIResult, url: string, strategy: Strategy)
   }
 
   const warnings = Array.isArray(lighthouse.runWarnings)
-    ? lighthouse.runWarnings.filter((w) => typeof w === 'string' && w.trim()).slice(0, 5)
+    ? lighthouse.runWarnings.filter((w) => typeof w === 'string' && w.trim())
     : null
 
   const withWarnings = warnings && warnings.length ? { ...base, warnings } : base

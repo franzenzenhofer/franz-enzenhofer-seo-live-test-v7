@@ -15,7 +15,7 @@ const sample: PSIResult = {
     },
     fetchTime: '2025-11-21T11:00:00.000Z',
     finalDisplayedUrl: 'https://final.example.com',
-    runWarnings: ['first', 'second', 'third', 'fourth', 'fifth', 'ignored extra'],
+    runWarnings: ['first', 'second', 'third', 'fourth', 'fifth', 'sixth kept too'],
     userAgent: 'Mozilla/5.0',
   },
 }
@@ -36,7 +36,7 @@ describe('summarizePSI', () => {
       finalDisplayedUrl: 'https://final.example.com',
       testUrl: 'https://pagespeed.web.dev/analysis?url=https%3A%2F%2Ffinal.example.com&form_factor=mobile',
       userAgent: 'Mozilla/5.0',
-      warnings: ['first', 'second', 'third', 'fourth', 'fifth'],
+      warnings: ['first', 'second', 'third', 'fourth', 'fifth', 'sixth kept too'],
     })
     expect(Object.keys(summary)).not.toContain('audits')
   })

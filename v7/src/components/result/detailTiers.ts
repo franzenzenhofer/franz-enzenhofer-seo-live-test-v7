@@ -2,7 +2,6 @@ import { detailText } from './detailText'
 import { comparable, dedupeCandidates, representationsOf } from './detailDedupe'
 import type { Candidate } from './detailDedupe'
 
-import { messageContainsValue } from '@/shared/textMatch'
 import type { Result } from '@/shared/results'
 
 export type DetailEntry = { key: string; text: string }
@@ -30,7 +29,7 @@ const GUIDANCE_LABELS: Record<string, string> = {
 const LONG_TEXT = 100
 const SOURCE_KEY = 'sourceHtml'
 
-export const tierDetails = (details: Result['details'], snippet?: string | null, message?: string): TieredDetails => {
+export const tierDetails = (details: Result['details'], snippet?: string | null): TieredDetails => {
   const provenance: Provenance = {}
   const pool: Candidate[] = typeof snippet === 'string' && snippet.trim()
     ? [{ key: '', text: snippet, isSource: false }] : []
@@ -49,8 +48,7 @@ export const tierDetails = (details: Result['details'], snippet?: string | null,
     if (text.includes('\n') || text.length > LONG_TEXT) { pool.push({ key, text, isSource: false }); continue }
     measurements.push({ key, text })
   }
-  const seeds = typeof message === 'string' && message.trim() ? [message] : []
-  const survivors = dedupeCandidates(pool, seeds)
+  const survivors = dedupeCandidates(pool)
   let evidence = survivors.filter((entry) => !entry.isSource).map(({ key, text }) => ({ key, text }))
   let source = survivors.filter((entry) => entry.isSource).map(({ key, text }) => ({ key, text }))
   // A card whose only surviving value is its markup shows that markup as the evidence.
@@ -58,9 +56,8 @@ export const tierDetails = (details: Result['details'], snippet?: string | null,
   const keptInfos = survivors.flatMap(({ text }) => representationsOf(text))
   return {
     evidence,
-    guidance: guidance.filter((entry) => !messageContainsValue(message, entry.text)),
-    measurements: measurements.filter((entry) =>
-      !keptInfos.includes(comparable(entry.text)) && !messageContainsValue(message, entry.text)),
+    guidance,
+    measurements: measurements.filter((entry) => !keptInfos.includes(comparable(entry.text))),
     source,
     technical,
     provenance,

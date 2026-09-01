@@ -32,7 +32,8 @@ describe('Tripadvisor Vienna saved page', () => {
     const page = loadPage()
     const res = await hreflangRule.run(page as any, { globals: {} })
     expect((res.details as any)?.count).toBeGreaterThan(10)
-    expect((res.details as any)?.languages).toHaveLength(EVIDENCE_LIMIT)
+    // The full language set is carried; only the markup evidence is sampled.
+    expect(((res.details as any)?.languages as string[]).length).toBeGreaterThan(EVIDENCE_LIMIT)
     expect((res.details as any)?.truncated).toBe(true)
     expect(res.message.toLowerCase()).toContain('hreflang')
   })

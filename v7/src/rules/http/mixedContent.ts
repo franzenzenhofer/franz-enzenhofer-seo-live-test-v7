@@ -6,20 +6,15 @@ const LABEL = 'HTTP'
 const NAME = 'Mixed content'
 const RULE_ID = 'http:mixed-content'
 const SPEC = 'https://developer.mozilla.org/docs/Web/Security/Mixed_content'
-const SAMPLE_LIMIT = 3
 
 const selectors = ['script[src]', 'link[href]', 'img[src]', 'iframe[src]', 'video[src]', 'audio[src]', 'source[src]', 'embed[src]', 'object[data]', 'form[action]']
 const isHttp = (url: string | null | undefined) => typeof url === 'string' && url.trim().toLowerCase().startsWith('http://')
-const buildDetails = (nodes: Element[], paths: string[]) => {
-  const preview = nodes.slice(0, SAMPLE_LIMIT)
-  const snippet = preview.map(extractHtml).join('\n\n')
-  const omitted = nodes.length - preview.length
-  return {
-    snippet: omitted > 0 ? `${snippet}\n\n…${omitted} more resources omitted` : snippet,
-    domPaths: paths.slice(0, preview.length),
-    count: nodes.length,
-  }
-}
+const buildDetails = (nodes: Element[], paths: string[]) => ({
+  offenders: nodes.map((node, index) => ({ html: extractHtml(node), domPath: paths[index] || '' })),
+  snippet: nodes.map(extractHtml).join('\n\n'),
+  domPaths: paths,
+  count: nodes.length,
+})
 
 export const mixedContentRule: Rule = {
   id: RULE_ID,
@@ -58,7 +53,7 @@ export const mixedContentRule: Rule = {
         message: `${netOffenders.length} mixed-content resource${netOffenders.length === 1 ? '' : 's'} detected from network capture.`,
         type: 'error',
         priority: 90,
-        details: { reference: SPEC, resources: netOffenders.slice(0, SAMPLE_LIMIT), count: netOffenders.length },
+        details: { reference: SPEC, resources: netOffenders, count: netOffenders.length },
       }
     }
 
@@ -69,7 +64,7 @@ export const mixedContentRule: Rule = {
       message: `${offenders.length} mixed-content resource${offenders.length === 1 ? '' : 's'} loaded over HTTP on an HTTPS page.`,
       type: 'error',
       priority: 80,
-      details: { ...buildDetails(offenders, domPaths), reference: SPEC, fix: 'Serve all subresources over HTTPS or remove them.', networkResources: netOffenders.slice(0, SAMPLE_LIMIT), networkCount: netOffenders.length },
+      details: { ...buildDetails(offenders, domPaths), reference: SPEC, fix: 'Serve all subresources over HTTPS or remove them.', networkResources: netOffenders, networkCount: netOffenders.length },
     }
   },
 }

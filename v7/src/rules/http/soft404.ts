@@ -1,6 +1,9 @@
-import type { Rule } from '@/core/types'
+import type { Result, Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
-import { discardBody, hasHeaders, noHeadersResult } from '@/shared/http-utils'
+import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
+import { followRedirectChain } from '@/shared/redirectChain'
+import { formatRedirectChain } from '@/shared/redirectChainFormat'
+import { RedirectChainError } from '@/shared/redirectChainTypes'
 
 const LABEL = 'HTTP'
 const NAME = 'Soft 404 Probe'
@@ -16,6 +19,25 @@ const buildProbeUrl = (rawUrl: string): string => {
   const slug = `fake-url-for-soft-404-error-check-${Math.floor(Math.random() * 100000000000)}`
   u.pathname = `${dir.replace(/\/$/, '')}/${slug}`
   return u.toString()
+}
+
+const verdict = (status: number, redirected: boolean, loopOrCap: boolean): Pick<Result, 'message' | 'type' | 'priority'> => {
+  if (loopOrCap) {
+    return { message: 'Non-existing URL probe never resolved: the redirect chain loops or exceeds the hop cap.', type: 'error', priority: 40 }
+  }
+  if (status === 404 && !redirected) {
+    return { message: 'Non-existing URL returned HTTP 404 (expected).', type: 'ok', priority: 900 }
+  }
+  if (status === 410) {
+    return { message: 'Non-existing URL returned HTTP 410 (should be 404).', type: 'warn', priority: 150 }
+  }
+  if (status === 200) {
+    return { message: `Soft 404: Non-existing URL returned HTTP 200${redirected ? ' after redirect(s)' : ''} (should be 404).`, type: 'error', priority: 50 }
+  }
+  if (status === 404 && redirected) {
+    return { message: 'Non-existing URL returned HTTP 404 after redirect(s) (should be direct 404).', type: 'warn', priority: 250 }
+  }
+  return { message: `Soft 404: Non-existing URL returned HTTP ${status}${redirected ? ' after redirect(s)' : ''} (should be 404).`, type: 'error', priority: 120 }
 }
 
 export const soft404Rule: Rule = {
@@ -40,74 +62,39 @@ export const soft404Rule: Rule = {
     }
 
     try {
-      const res = await fetch(probeUrl, { redirect: 'follow' })
-      discardBody(res)
-      const status = res.status
-      const finalUrl = res.url || probeUrl
-      const redirected = res.redirected
+      const { chain } = await followRedirectChain(probeUrl)
+      const status = chain.finalStatus
+      const { finalUrl, redirected } = chain
+      const chainText = formatRedirectChain(chain)
       const snippet = extractSnippet(`${status} ${finalUrl}`, 200)
-
-      if (status === 404 && !redirected) {
-        return {
-          label: LABEL,
-          name: NAME,
-          message: `Non-existing URL returned HTTP 404 (expected).`,
-          type: 'ok',
-          priority: 900,
-          details: { probeUrl, finalUrl, status, redirected, snippet, reference: SPEC },
-        }
-      }
-
-      if (status === 410) {
-        return {
-          label: LABEL,
-          name: NAME,
-          message: `Non-existing URL returned HTTP 410 (should be 404).`,
-          type: 'warn',
-          priority: 150,
-          details: { probeUrl, finalUrl, status, redirected, snippet, reference: SPEC },
-        }
-      }
-
-      if (status === 200) {
-        return {
-          label: LABEL,
-          name: NAME,
-          message: `Soft 404: Non-existing URL returned HTTP 200${redirected ? ' after redirect(s)' : ''} (should be 404).`,
-          type: 'error',
-          priority: 50,
-          details: { probeUrl, finalUrl, status, redirected, snippet, reference: SPEC },
-        }
-      }
-
-      if (status === 404 && redirected) {
-        return {
-          label: LABEL,
-          name: NAME,
-          message: `Non-existing URL returned HTTP 404 after redirect(s) (should be direct 404).`,
-          type: 'warn',
-          priority: 250,
-          details: { probeUrl, finalUrl, status, redirected, snippet, reference: SPEC },
-        }
-      }
-
+      const base = verdict(status, redirected, chain.loop || chain.capped)
+      // Show the complete hop-by-hop chain right in the card whenever redirects were involved.
+      const message = redirected || chain.loop || chain.capped ? `${base.message}\n\nRedirect chain:\n${chainText}` : base.message
       return {
         label: LABEL,
         name: NAME,
-        message: `Soft 404: Non-existing URL returned HTTP ${status}${redirected ? ' after redirect(s)' : ''} (should be 404).`,
-        type: status >= 500 ? 'error' : 'error',
-        priority: 120,
-        details: { probeUrl, finalUrl, status, redirected, snippet, reference: SPEC },
+        message,
+        type: base.type,
+        priority: base.priority,
+        details: {
+          probeUrl, finalUrl, status, redirected,
+          redirectChain: chain, redirectChainText: chainText,
+          snippet, reference: SPEC,
+        },
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
+      const hops = error instanceof RedirectChainError ? error.hops : []
       return {
         label: LABEL,
         name: NAME,
         message: `Soft 404 probe failed: ${message}`,
         type: 'runtime_error',
         priority: 5,
-        details: { url: page.url, reference: SPEC },
+        details: {
+          url: page.url, probeUrl, reference: SPEC,
+          ...(hops.length ? { redirectChainHops: hops } : {}),
+        },
       }
     }
   },
