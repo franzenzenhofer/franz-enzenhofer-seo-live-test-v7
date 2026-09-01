@@ -26,6 +26,7 @@ type Props = {
 
 export const ResultCard = ({ result, index, displayIndex, isPinned, onTogglePin, isDisabled, onToggleDisable, defaultExpanded = false, tabId, logUi }: Props) => {
   const color = getResultColor(result.type)
+  const isPending = result.type === 'pending'
   const hasDetails = Boolean(result.details || result.what || result.ruleId || typeof result.priority === 'number')
   const [open, setOpen] = useState(hasDetails && defaultExpanded)
   const snippet = extractSnippet(result.details)
@@ -49,7 +50,7 @@ export const ResultCard = ({ result, index, displayIndex, isPinned, onTogglePin,
   }
 
   return (
-    <article id={typeof numberLabel === 'number' ? `result-${numberLabel}` : undefined} className={`${color.full} border rounded p-3 space-y-2`} data-testid="result-card">
+    <article id={typeof numberLabel === 'number' ? `result-${numberLabel}` : undefined} className={`${color.full} border rounded p-3 space-y-2 ${isPending ? 'animate-pending' : ''}`} data-testid="result-card">
       <ResultHeader
         result={result}
         isPinned={isPinned}

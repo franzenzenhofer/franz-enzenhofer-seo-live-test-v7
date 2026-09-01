@@ -40,12 +40,12 @@ export const resultColors = {
     full: 'bg-orange-50 border-orange-400 text-orange-900'
   },
   pending: {
-    bg: 'bg-sky-50',
-    border: 'border-sky-300',
-    text: 'text-sky-700',
-    dot: 'bg-sky-500',
-    badge: 'bg-sky-100 text-sky-700',
-    full: 'bg-sky-50 border-sky-300 text-sky-700'
+    bg: 'bg-violet-50',
+    border: 'border-violet-300',
+    text: 'text-violet-800',
+    dot: 'bg-violet-500',
+    badge: 'bg-violet-100 text-violet-800',
+    full: 'bg-violet-50 border-violet-300 text-violet-800'
   },
   disabled: {
     bg: 'bg-gray-50',

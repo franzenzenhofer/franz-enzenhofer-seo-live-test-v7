@@ -1,4 +1,6 @@
-import type { DomElementFact } from './domFacts.types'
+import type { DomElementFact, FactBucket } from './domFacts.types'
+
+export type { FactBucket }
 
 const MAX_ATTRIBUTES = 12
 const MAX_VALUE_LENGTH = 512
@@ -17,8 +19,6 @@ export const attributesOf = (element: Element | null): Array<[string, string]> =
   return attributes
 }
 
-export type FactBucket = 'head' | 'anchor' | 'resource'
-
 export const factBucket = (element: Element, doc: Document): FactBucket | null => {
   const tag = element.tagName.toLowerCase()
   if (doc.head?.contains(element) && HEAD_TAGS.has(tag)) return 'head'
@@ -36,4 +36,28 @@ export const elementFact = (element: Element, doc: Document): DomElementFact => 
     attrs: attributesOf(element),
     ...(text ? { text } : {}),
   }
+}
+
+const CRITICAL_LINK_REL = /(canonical|alternate|amphtml|prev|next|manifest)/i
+
+/**
+ * Elements a bounded audit may never drop: every head meta[name] is a possible
+ * robots directive (see parseRobotsDirectives), canonical/hreflang drive
+ * indexing rules, and an insecure resource is the whole point of mixed-content.
+ * Dropping one turns a rule's verdict into a false negative, so these bypass
+ * the sampling limits.
+ */
+export const isCriticalFact = (element: Element, bucket: FactBucket): boolean => {
+  const tag = element.tagName.toLowerCase()
+  if (bucket === 'head') {
+    if (tag === 'title' || tag === 'base') return true
+    if (tag === 'meta') return element.hasAttributes()
+    if (tag === 'link') return CRITICAL_LINK_REL.test(element.getAttribute('rel') || '')
+    return false
+  }
+  if (bucket === 'resource') {
+    const url = element.getAttribute('src') || element.getAttribute('href') || element.getAttribute('action') || ''
+    return url.startsWith('http://')
+  }
+  return false
 }

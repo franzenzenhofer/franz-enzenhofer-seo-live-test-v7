@@ -1,6 +1,7 @@
 import type { Ctx, Page, Result, Rule } from './types'
 import { createRuntimeError, emitChunk, enrichResult, logRuleResults } from './runHelpers'
-import { getRuleTimeoutMs } from './ruleTimeouts'
+import { DEFAULT_TIMEOUT_MS, getRuleTimeoutMs } from './ruleTimeouts'
+import { CANCELLATION_ERROR, runPool } from './rulePool'
 
 import { Logger } from '@/shared/logger'
 
@@ -16,9 +17,16 @@ type ExecOpts = {
   signal?: AbortSignal
 }
 
-const MAX_CONCURRENCY = 4
-export const CANCELLATION_ERROR = 'rule-run-cancelled'
+// Fast rules are pure DOM work (single-digit ms). Slow rules are network-bound
+// (PSI ~20s, GSC, crawlers). They get separate lanes so one PageSpeed run can
+// never starve the 120+ cheap rules queued behind it.
+const FAST_CONCURRENCY = 8
+const SLOW_CONCURRENCY = 4
 const TIMEOUT_ERROR = 'rule-timeout'
+
+export { CANCELLATION_ERROR }
+
+const isSlow = (rule: Rule) => getRuleTimeoutMs(rule) > DEFAULT_TIMEOUT_MS
 
 const withTimeout = <T>(promise: Promise<T>, ms: number, signal?: AbortSignal) =>
   new Promise<T>((resolve, reject) => {
@@ -60,21 +68,10 @@ const runTask = async (task: Task, opts: ExecOpts, total: number) => {
 export const runRuleQueue = async (opts: ExecOpts) => {
   const { tasks, signal } = opts
   if (!tasks.length) return
-  let cursor = 0
   const total = tasks.length
-  const next = () => (cursor < total ? tasks[cursor++] : null)
-  const worker = async () => {
-    while (true) {
-      if (signal?.aborted) throw new Error(CANCELLATION_ERROR)
-      const task = next()
-      if (!task) break
-      await runTask(task, opts, total)
-    }
-  }
-  const limit = Math.min(MAX_CONCURRENCY, total)
-  await Promise.all(Array.from({ length: limit }, worker)).catch((err) => {
-    if (err instanceof Error && err.message === CANCELLATION_ERROR) throw err
-    throw err
-  })
+  const run = (task: Task) => runTask(task, opts, total)
+  const lane = (slow: boolean, concurrency: number) =>
+    runPool({ tasks: tasks.filter((t) => isSlow(t.rule) === slow), concurrency, signal, run })
+  await Promise.all([lane(false, FAST_CONCURRENCY), lane(true, SLOW_CONCURRENCY)])
   if (signal?.aborted) throw new Error(CANCELLATION_ERROR)
 }

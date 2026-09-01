@@ -7,7 +7,7 @@ export default defineConfig({
     // Concurrency tuning for faster local feedback
     pool: 'threads',
     poolOptions: { threads: { minThreads: 4, maxThreads: 8 } },
-    include: ['tests/**/*.test.ts'],
+    include: ['tests/**/*.test.{ts,tsx}'],
     exclude: ['tests/e2e/**'],
     coverage: { provider: 'v8' },
   },
