@@ -1,4 +1,5 @@
 import type { Rule } from '@/core/types'
+import { parseHtmlDocument } from '@/shared/parseHtml'
 
 const LABEL = 'URL'
 const NAME = 'URL trailing slash consistency'
@@ -80,7 +81,7 @@ export const trailingSlashRule: Rule = {
       }
 
       const body = await res.text()
-      const doc = new DOMParser().parseFromString(body, 'text/html')
+      const doc = parseHtmlDocument(body, page.doc)
       const canonicalHref = doc.querySelector('link[rel~="canonical" i]')?.getAttribute('href') || ''
       if (!canonicalHref) {
         return {

@@ -36,7 +36,7 @@ export const mixedContentRule: Rule = {
     selectors.forEach((sel) => {
       doc.querySelectorAll(sel).forEach((el) => {
         const url = (el.getAttribute('src') || el.getAttribute('href') || el.getAttribute('data') || '').trim()
-        const action = el instanceof HTMLFormElement ? (el.getAttribute('action') || '').trim() : ''
+        const action = el.tagName.toLowerCase() === 'form' ? (el.getAttribute('action') || '').trim() : ''
         const candidate = sel.startsWith('form') ? action || url : url
         if (!candidate) return
         if (!isHttp(candidate)) return
