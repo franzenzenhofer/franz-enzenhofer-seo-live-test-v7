@@ -57,7 +57,7 @@ export const ReportResultsSection = ({ results, debugEnabled }: Props) => {
         tabId={null}
         logUi={undefined}
         sortMode={sortMode}
-        defaultExpanded={false}
+        defaultExpanded
       />
     </div>
   )

@@ -45,9 +45,9 @@ test.describe('live progress', () => {
     await side.screenshot({ path: `${SHOTS}/final.png`, fullPage: true })
 
     // Expanded-card check: the tiers (evidence once, compact measurements,
-    // folded technical, footer reference) are only visible with Details open.
+    // flat muted technical, footer reference) are only visible with Details open.
     const expandTargets: Array<[string, string]> = [
-      ['Meta description set.', 'expanded-meta-description.png'],
+      ['Meta description (', 'expanded-meta-description.png'],
       ['Canonical self-references', 'expanded-canonical.png'],
       ['Links: internal', 'expanded-internal-links.png'],
       ['HSTS', 'expanded-hsts.png'],
