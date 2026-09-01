@@ -1,3 +1,4 @@
+import { gscFetch } from '../googleFetch'
 import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
 import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../google-gsc-utils'
 
@@ -41,7 +42,7 @@ export const gscUrlInspectionRule: Rule = {
     const body = { inspectionUrl: page.url, siteUrl: derived.property, languageCode: 'en-US' }
     let response: Response
     try {
-      response = await fetch('https://searchconsole.googleapis.com/v1/urlInspection/index:inspect', {
+      response = await gscFetch('https://searchconsole.googleapis.com/v1/urlInspection/index:inspect', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
         body: JSON.stringify(body),
