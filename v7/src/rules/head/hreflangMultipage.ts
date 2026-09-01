@@ -1,4 +1,5 @@
 import type { Rule } from '@/core/types'
+import { discardBody } from '@/shared/http-utils'
 import { parseHtmlDocument } from '@/shared/parseHtml'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPaths } from '@/shared/dom-path'
@@ -63,6 +64,7 @@ export const hreflangMultipageRule: Rule = {
           const messages: { level: 'warn' | 'error'; text: string }[] = []
           if (res.redirected) messages.push({ level: 'warn', text: `'${hreflang}' URL triggers redirect.` })
           if (res.status !== 200) {
+            discardBody(res)
             messages.push({ level: 'error', text: `'${hreflang}' returns HTTP ${res.status}.` })
             return messages
           }

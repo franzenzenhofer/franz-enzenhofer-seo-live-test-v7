@@ -20,7 +20,15 @@ test.describe('append cadence', () => {
     }
     await page.waitForTimeout(45_000)
 
-    const out = await worker.evaluate(async (url) => {
+    // The MV3 service worker suspends after ~30s idle; wake it by opening an
+    // extension page, then re-acquire the live worker before evaluating.
+    const extensionId = worker.url().match(/^chrome-extension:\/\/([a-z]+)\//)?.[1]
+    const wakePage = await ctx.newPage()
+    await wakePage.goto(`chrome-extension://${extensionId}/src/sidepanel.html`).catch(() => {})
+    await wakePage.waitForTimeout(1_000)
+    const liveWorker = ctx.serviceWorkers()[0] || await ctx.waitForEvent('serviceworker', { timeout: 10_000 })
+
+    const out = await liveWorker.evaluate(async (url) => {
       const tab = (await chrome.tabs.query({})).find((t) => t.url === url)
       if (!tab?.id) return null
       const store = await chrome.storage.session.get(`logs:${tab.id}`)

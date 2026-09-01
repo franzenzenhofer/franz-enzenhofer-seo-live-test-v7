@@ -24,6 +24,7 @@ vi.mock('@/background/pipeline/store', () => ({
   addEvent: vi.fn().mockResolvedValue(undefined),
   setDomDone: vi.fn(),
   resetRun: vi.fn().mockResolvedValue(undefined),
+  peekRun: vi.fn(async () => storedRun),
   popRun: vi.fn(async () => {
     const r = storedRun
     storedRun = null

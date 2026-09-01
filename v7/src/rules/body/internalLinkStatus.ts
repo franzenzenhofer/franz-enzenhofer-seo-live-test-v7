@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { getDomPath } from '@/shared/dom-path'
+import { discardBody } from '@/shared/http-utils'
 
 const LABEL = 'BODY'
 const NAME = 'Internal link HTTP status'
@@ -44,7 +45,22 @@ export const internalLinkStatusRule: Rule = {
     mapped.forEach((entry) => { if (!unique.has(entry.url)) unique.set(entry.url, entry) })
     const candidates = Array.from(unique.values())
     const sampled = shuffle(candidates).slice(0, SAMPLE_SIZE)
+    // In the browser pipeline this rule sees a bounded fact document, not the
+    // real DOM: anchors are sampled. Totals must come from the collector's
+    // exact anchorCount, never from the sample.
+    const facts = page.staticFacts
+    const anchorsTruncated = !!facts && facts.truncatedBuckets.includes('anchor')
+    const pageAnchorCount = facts?.anchorCount
     if (!sampled.length) {
+      if (anchorsTruncated && (pageAnchorCount || 0) > 0) {
+        // The sample may hold only fragment/cross-host anchors (e.g. a nav bar)
+        // while the page's internal links fell outside the bounded capture.
+        const message = anchors.length
+          ? `No internal links among the ${anchors.length} captured anchors; the bounded capture of this ${pageAnchorCount}-anchor page cannot test internal links.`
+          : `Bounded DOM capture kept none of the page's ${pageAnchorCount} anchors, so internal links cannot be tested.`
+        return { label: LABEL, name: NAME, type: 'runtime_error', priority: 900, message,
+          details: { reference: SPEC, pageAnchorCount, capturedAnchors: anchors.length, anchorEvidenceTruncated: true } }
+      }
       return { label: LABEL, name: NAME, type: 'info', priority: 900, details: { reference: SPEC, totalInternal: 0 },
         message: 'No internal links found to test.' }
     }
@@ -52,17 +68,27 @@ export const internalLinkStatusRule: Rule = {
       const url = entry.url
       try {
         const res = await fetch(url, { redirect: 'follow' })
+        discardBody(res)
         return { url, status: res.status, domPath: getDomPath(entry.el) }
       } catch (e) { return { url, status: 0, error: e instanceof Error ? e.message : String(e), domPath: getDomPath(entry.el) } }
     }))
     const failures = checks.filter((c) => !c.status || c.status >= 400)
     const statusSummary = summarizeStatuses(checks)
     const type = failures.length ? 'error' : 'ok'
+    const scope = anchorsTruncated
+      ? `Sampled ${checks.length} of ${candidates.length} captured internal links (bounded capture of a page with ${pageAnchorCount} anchors).`
+      : failures.length
+        ? `Sampled ${checks.length} of ${candidates.length} internal links.`
+        : `Tested random sample of ${candidates.length} internal links.`
     const message = failures.length
-      ? `${failures.length}/${checks.length} links failed: ${failures.map((f) => `${f.status}`).join(', ')}. Sampled ${checks.length} of ${candidates.length} internal links.`
-      : `All ${checks.length} sampled links OK (${statusSummary}). Tested random sample of ${candidates.length} internal links.`
+      ? `${failures.length}/${checks.length} links failed: ${failures.map((f) => `${f.status}`).join(', ')}. ${scope}`
+      : `All ${checks.length} sampled links OK (${statusSummary}). ${scope}`
     const domPaths = sampled.map((entry) => getDomPath(entry.el)).filter((path) => path.length > 0)
     return { label: LABEL, name: NAME, message, type, priority: failures.length ? 150 : 850,
-      details: { checked: checks, failures, statusSummary, totalInternal: candidates.length, sampleSize: checks.length, domPaths, reference: SPEC } }
+      details: { checked: checks, failures, statusSummary,
+        ...(anchorsTruncated ? {} : { totalInternal: candidates.length }),
+        capturedInternal: candidates.length, sampleSize: checks.length,
+        ...(facts ? { pageAnchorCount, anchorEvidenceTruncated: anchorsTruncated } : {}),
+        domPaths, reference: SPEC } }
   },
 }

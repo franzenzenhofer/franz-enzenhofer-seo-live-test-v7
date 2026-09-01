@@ -7,6 +7,7 @@ import { enableAndOpenSidePanel } from './panel'
 import { registerCommandAndMenu } from './commands'
 import { initDevAutoReload } from './devReload'
 import { cleanupClosedTab } from './tabCleanup'
+import { resumePendingRun } from './pipeline/finalize'
 
 import { refreshIfPresent } from '@/shared/auth'
 import { rememberHttpTab } from '@/shared/tabMemory'
@@ -36,6 +37,8 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
     // ignore
   }
   rememberHttpTab(tabId).catch(() => {})
+  // A run captured while this tab was inactive is kept, not dropped; re-arm it.
+  resumePendingRun(tabId).catch(() => {})
 })
 
 chrome.tabs.onUpdated.addListener(async (tabId) => {

@@ -28,6 +28,7 @@ export type Page = {
   status?: number
   statusLine?: string
   headers?: Record<string, string>
+  headerSource?: 'events' | 'probe'
   headerChain?: Array<{ url: string; status?: number; statusLine?: string; location?: string; redirectUrl?: string; fromCache?: boolean }>
   fromCache?: boolean
   ip?: string

@@ -8,6 +8,9 @@ const SITES = [
   'https://orf.at/stories/3440788/', 'https://www.orf.at/', 'https://techcrunch.com/',
   'https://news.ycombinator.com/', 'https://en.wikipedia.org/wiki/SEO',
   'https://www.nytimes.com/', 'https://www.amazon.com/', 'https://www.theguardian.com/international',
+  // Multibyte shapes: UTF-8 bytes can be ~3x the UTF-16 char count.
+  'https://www3.nhk.or.jp/news/', 'https://www.asahi.com/', 'https://news.sina.com.cn/',
+  'https://www.naver.com/', 'https://lenta.ru/',
 ]
 
 const main = async () => {

@@ -1,4 +1,5 @@
 import type { Rule } from '@/core/types'
+import { discardBody } from '@/shared/http-utils'
 import { parseHtmlDocument } from '@/shared/parseHtml'
 
 const LABEL = 'URL'
@@ -55,6 +56,7 @@ export const trailingSlashRule: Rule = {
       const baseDetails = { tested: TESTED, originalUrl, variantUrl, finalUrl, status, redirected, reference: SPEC }
 
       if (status !== 200) {
+        discardBody(res)
         const type = status === 404 ? 'info' : status === 410 ? 'warn' : status === 302 || status >= 500 ? 'error' : 'warn'
         return {
           label: LABEL,
@@ -67,6 +69,7 @@ export const trailingSlashRule: Rule = {
       }
 
       if (redirected) {
+        discardBody(res)
         const matchesOriginal = normalize(finalUrl) === normalize(originalUrl)
         return {
           label: LABEL,

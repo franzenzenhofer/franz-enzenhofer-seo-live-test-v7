@@ -1,10 +1,8 @@
-import { runRulesOn } from '../rules/runner'
-import { determineTrigger } from '../rules/triggerDetect'
 import { clearTabSessionState } from '../tabCleanup'
 
-import { addEvent, popRun, setDomDone } from './store'
+import { addEvent, setDomDone } from './store'
 import { scheduleFinalize, onAlarm } from './alarms'
-import { hasNavAfterDom } from './runGuards'
+import { finalizeTab } from './finalize'
 
 import { log, logSystem, isValidTabId } from '@/shared/logs'
 import { Logger } from '@/shared/logger'
@@ -49,28 +47,4 @@ export const markDomPhase = async (tabId: number) => {
   await scheduleFinalize(tabId, 200)
 }
 
-onAlarm(async (tabId) => {
-  await Logger.logDirect(tabId, 'alarm', 'fire', { tabId })
-  const run = await popRun(tabId)
-  if (!run) {
-    await Logger.logDirect(tabId, 'alarm', 'no run', { reason: 'popRun returned null' })
-    return
-  }
-  if (hasNavAfterDom(run)) {
-    await Logger.logDirect(tabId, 'alarm', 'skip', { reason: 'nav-after-dom', events: run.ev.length })
-    return
-  }
-  const trigger = determineTrigger(run.ev)
-  const tab = await chrome.tabs.get(tabId).catch(() => null)
-  if (!tab?.active) {
-    await Logger.logDirect(tabId, 'alarm', 'skip', { reason: 'inactive-tab', triggeredBy: trigger })
-    return
-  }
-  await Logger.logDirect(tabId, 'alarm', 'execute', {
-    runId: run.id,
-    events: run.ev.length,
-    domDone: run.domDone,
-    triggeredBy: trigger,
-  })
-  await runRulesOn(tabId, run)
-})
+onAlarm((tabId) => finalizeTab(tabId).catch((error) => console.error('[collector] finalize failed', error)))

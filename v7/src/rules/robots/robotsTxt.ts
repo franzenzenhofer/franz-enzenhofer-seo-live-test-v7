@@ -1,4 +1,5 @@
 import type { Rule } from '@/core/types'
+import { fetchStatusTextOnce } from '@/shared/fetchOnce'
 import { extractSnippet } from '@/shared/html-utils'
 
 const LABEL = 'ROBOTS'
@@ -40,63 +41,63 @@ export const robotsTxtRule: Rule = {
         },
       }
     }
-    try {
-      const response = await fetch(robotsTxtUrl, { method: 'GET' })
-      const status = response.status
-      const robotsExists = response.ok
-      if (!robotsExists) {
-        return {
-          label: LABEL,
-          name: NAME,
-          message: `robots.txt not reachable (HTTP ${status})`,
-          type: 'warn',
-          priority: 300,
-          details: {
-            snippet: extractSnippet(`HTTP ${status}`),
-            robotsTxtUrl,
-            status,
-            robotsExists: false,
-            reference: SPEC,
-          },
-        }
-      }
-      const robotsTxt = await response.text()
-      const hasSitemap = /\n\s*sitemap\s*:/i.test(`\n${robotsTxt}`)
-      const sitemapCount = (robotsTxt.match(/\n\s*sitemap\s*:/gi) || []).length
-      const message = hasSitemap
-        ? `robots.txt exists with ${sitemapCount} Sitemap${sitemapCount > 1 ? 's' : ''}.`
-        : 'robots.txt exists (no Sitemaps declared).'
+    // Six robots rules run concurrently against the same robots.txt; the shared
+    // single-flight fetch collapses them onto one request per run.
+    const response = await fetchStatusTextOnce(robotsTxtUrl)
+    if (response === null) {
       return {
         label: LABEL,
         name: NAME,
-        message,
-        type: 'info',
-        priority: 800,
-        details: {
-          snippet: extractSnippet(robotsTxt, 150),
-          robotsTxt,
-          robotsTxtUrl,
-          status,
-          robotsExists: true,
-          hasSitemap,
-          sitemapCount,
-          reference: SPEC,
-        },
-      }
-    } catch (e) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: `robots.txt fetch failed: ${String(e)}`,
+        message: 'robots.txt fetch failed (network error or timeout)',
         type: 'warn',
         priority: 350,
         details: {
-          snippet: extractSnippet(String(e)),
+          snippet: extractSnippet('(fetch failed)'),
           robotsTxtUrl,
-          error: String(e),
           reference: SPEC,
         },
       }
+    }
+    const status = response.status
+    const robotsExists = response.ok
+    if (!robotsExists) {
+      return {
+        label: LABEL,
+        name: NAME,
+        message: `robots.txt not reachable (HTTP ${status})`,
+        type: 'warn',
+        priority: 300,
+        details: {
+          snippet: extractSnippet(`HTTP ${status}`),
+          robotsTxtUrl,
+          status,
+          robotsExists: false,
+          reference: SPEC,
+        },
+      }
+    }
+    const robotsTxt = response.text
+    const hasSitemap = /\n\s*sitemap\s*:/i.test(`\n${robotsTxt}`)
+    const sitemapCount = (robotsTxt.match(/\n\s*sitemap\s*:/gi) || []).length
+    const message = hasSitemap
+      ? `robots.txt exists with ${sitemapCount} Sitemap${sitemapCount > 1 ? 's' : ''}.`
+      : 'robots.txt exists (no Sitemaps declared).'
+    return {
+      label: LABEL,
+      name: NAME,
+      message,
+      type: 'info',
+      priority: 800,
+      details: {
+        snippet: extractSnippet(robotsTxt, 150),
+        robotsTxt,
+        robotsTxtUrl,
+        status,
+        robotsExists: true,
+        hasSitemap,
+        sitemapCount,
+        reference: SPEC,
+      },
     }
   },
 }
