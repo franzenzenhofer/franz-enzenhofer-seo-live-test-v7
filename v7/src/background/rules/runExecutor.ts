@@ -3,6 +3,7 @@ import * as ruleSupport from './support'
 import type { RuleResult } from './types'
 
 import { log } from '@/shared/logs'
+import { collectPhaseResults } from '@/shared/phaseResults'
 
 type ExecuteArgs = {
   tabId: number
@@ -18,7 +19,14 @@ export const executeRuleBatch = async ({ tabId, run, runState, key, pageUrl, sig
   const globals = await ruleSupport.buildRunGlobals(tabId, run, runState.runId, runTimestamp)
   const rules = await ruleSupport.getEnabledRules()
   const { enabled: enabledRules, ruleOverrides, timeoutMs, runIndexByRuleId } = ruleSupport.prepareRulesForRun(rules)
-  await ruleSupport.prepareResultsStorage(tabId, key, enabledRules, runState.runId, runIndexByRuleId)
+  // Static and idle rules already ran in the content script; their results ride
+  // in on the DOM phase events. Seed them as finished instead of marking them
+  // pending and only publishing at the final merge, which parked ~66 answered
+  // rules behind a 20-30 s PageSpeed call.
+  const settled = collectPhaseResults(run.ev as Array<{ t: string; d?: unknown }>)
+    .filter((r): r is typeof r & { ruleId: string } => typeof r.ruleId === 'string' && !!r.ruleId)
+    .map((r) => ({ ...r, runIdentifier: runState.runId, runIndex: runIndexByRuleId[r.ruleId] ?? r.runIndex }))
+  await ruleSupport.prepareResultsStorage(tabId, key, enabledRules, runState.runId, runIndexByRuleId, settled)
   const chunkSync = ruleSupport.createChunkSync(tabId, key, runState.runId)
   let aborted = false
   let hadError = false
