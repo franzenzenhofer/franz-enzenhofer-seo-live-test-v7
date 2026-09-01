@@ -25,34 +25,77 @@ describe('ResultDetails tiers', () => {
     expect(count(html, 'detail-evidence')).toBe(1)
   })
 
-  it('renders measurements as compact rows, not full-width pre blocks', () => {
+  it('renders measurements as compact labelled rows, not full-width boxes', () => {
     const html = renderToStaticMarkup(
       <ResultDetails details={{ count: 12, length: 58, hasNoindex: false, status: 200 }} />,
     )
     expect(html).toContain('detail-measurements')
-    expect(html).toContain('<dl')
-    expect(html).not.toContain('<pre')
-    expect(html).toContain('HAS NOINDEX')
+    expect(html).toContain('Has noindex:')
     expect(html).toContain('no')
+    expect(html).not.toContain('HAS NOINDEX')
+    expect(count(html, 'detail-evidence')).toBe(0)
   })
 
-  it('folds technical payloads away and keeps the spec link as a footer', () => {
+  it('renders technical payloads flat - no fold-outs inside the expanded card', () => {
+    const html = renderToStaticMarkup(
+      <ResultDetails details={{ httpHeaders: { server: 'Apache', vary: 'Origin' }, highlightSelectors: ['html > head > meta'] }} />,
+    )
+    expect(html).toContain('detail-technical')
+    expect(html).toContain('server: Apache')
+    expect(html).toContain('html &gt; head &gt; meta')
+    expect(html).not.toContain('<details')
+  })
+
+  it('shows the reference as its address with the domain visible, never a bare label', () => {
+    const url = 'https://developers.google.com/search/docs/crawling-indexing/supported-tags#meta-descriptions'
+    const html = renderToStaticMarkup(<ResultDetails details={{ reference: url, tested: 'Checked the rendered DOM.' }} />)
+    expect(html).toContain('detail-provenance')
+    expect(html).toContain(`href="${url}"`)
+    expect(html).toContain('developers.google.com/…/supported-tags#meta-descriptions')
+    expect(html).toContain('Checked the rendered DOM.')
+    expect(html).not.toContain('>Reference<')
+  })
+
+  it('gives diagnosis and remedy their own tier above measurements, with the fix emphasised', () => {
+    const html = renderToStaticMarkup(
+      <ResultDetails details={{ is: 'dateModified missing', should: 'Add dateModified to article schema', count: 2 }} />,
+    )
+    const guidanceAt = html.indexOf('detail-guidance')
+    const measurementsAt = html.indexOf('detail-measurements')
+    expect(guidanceAt).toBeGreaterThan(-1)
+    expect(guidanceAt).toBeLessThan(measurementsAt)
+    expect(html).toContain('Problem:')
+    expect(html).toContain('Fix:')
+    expect(html).toContain('Add dateModified to article schema')
+    expect(html).not.toContain('Is:')
+  })
+
+  it('never renders below the 12px scale', () => {
     const html = renderToStaticMarkup(
       <ResultDetails
-        details={{
-          httpHeaders: { server: 'Apache', vary: 'Origin' },
-          highlightSelectors: ['html > head > meta:nth-of-type(26)'],
-          reference: 'https://example.spec/doc',
-          tested: 'Checked the rendered DOM.',
-        }}
+        snippet={description}
+        details={{ is: 'x missing', should: 'add x', count: 1, sourceHtml: '<link href="https://a.example/b/c/d">', httpHeaders: { a: 'b' }, reference: 'https://a.example/b' }}
       />,
     )
-    expect(html).toContain('<details')
-    expect(html).toContain('server: Apache')
-    expect(html).toContain('detail-provenance')
-    expect(html).toContain('href="https://example.spec/doc"')
-    expect(html).toContain('Checked the rendered DOM.')
-    expect(html).not.toContain('>REFERENCE<')
+    expect(html).not.toMatch(/text-\[\d+px\]/)
+  })
+
+  it('renders an array of {url, status} results as one full line per hop, never JSON', () => {
+    const redirectChain = [
+      { url: 'https://orf.at/stories/3440788/fake-url-for-soft-404-check', status: 301, location: 'https://newsv2.orf.at/stories/3440788' },
+      { url: 'https://newsv2.orf.at/stories/3440788', status: 404 },
+    ]
+    const tiers = tierDetails({ redirectChain })
+    expect(tiers.evidence[0]?.text).toBe(
+      'https://orf.at/stories/3440788/fake-url-for-soft-404-check  301\nhttps://newsv2.orf.at/stories/3440788  404',
+    )
+  })
+
+  it('keeps long values complete in the expanded view - no truncation, no ellipsis', () => {
+    const robotsTxt = `User-agent: *\n${Array.from({ length: 40 }, (_, i) => `Disallow: /private-${i}/`).join('\n')}`
+    const html = renderToStaticMarkup(<ResultDetails details={{ robotsTxt }} />)
+    expect(html).toContain('/private-39/')
+    expect(html).not.toContain('…</')
   })
 
   it('keeps sourceHtml when it says more than the evidence', () => {
@@ -80,18 +123,24 @@ describe('ResultDetails tiers', () => {
     expect(tiers.evidence[0]?.text).toBe('robots: index, follow\ngooglebot: noarchive')
   })
 
+  it('drops evidence and measurements the verdict message already contains', () => {
+    const title = 'Stocker mit Plan fuer das Zukunftsdepot'
+    const tiers = tierDetails({ title }, `<title>${title}</title>`, `Title (39 chars): "${title}"`)
+    expect(tiers.evidence).toHaveLength(0)
+    expect(tiers.measurements).toHaveLength(0)
+  })
+
+  it('keeps evidence that is fuller than what the message quotes', () => {
+    const value = `${description} It even carries a second sentence the message cannot fit.`
+    const tiers = tierDetails({ description: value }, null, `Meta description: "${value.slice(0, 60)}…"`)
+    expect(tiers.evidence).toHaveLength(1)
+    expect(tiers.evidence[0]?.text).toBe(value)
+  })
+
   it('drops a short measurement that repeats the evidence value', () => {
     const tiers = tierDetails({ title: 'Short page title' }, 'Short page title')
     expect(tiers.evidence).toHaveLength(1)
     expect(tiers.measurements).toHaveLength(0)
-  })
-
-  it('never repeats a value the verdict message already quotes in full', () => {
-    const title = 'Stocker mit Plan fuer das Zukunftsdepot'
-    const tiers = tierDetails({ title }, `<title>${title}</title>`, `Title (39 chars): "${title}"`)
-    expect(tiers.evidence).toHaveLength(0)
-    const fuller = tierDetails({ description: 'A very long value where the message only quoted the first part of it' }, null, 'Description: "A very long value where the…"')
-    expect(fuller.evidence).toHaveLength(1)
   })
 
   it('renders nothing at all for empty details', () => {

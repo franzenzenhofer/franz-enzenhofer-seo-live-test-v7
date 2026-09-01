@@ -59,7 +59,8 @@ export const tierDetails = (details: Result['details'], snippet?: string | null,
   return {
     evidence,
     guidance: guidance.filter((entry) => !messageContainsValue(message, entry.text)),
-    measurements: measurements.filter((entry) => !keptInfos.includes(comparable(entry.text))),
+    measurements: measurements.filter((entry) =>
+      !keptInfos.includes(comparable(entry.text)) && !messageContainsValue(message, entry.text)),
     source,
     technical,
     provenance,
