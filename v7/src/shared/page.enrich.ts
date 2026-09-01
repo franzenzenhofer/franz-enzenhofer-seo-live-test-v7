@@ -1,5 +1,6 @@
 import { findMainHeaders } from './page.headers'
 import { domFactsToDocument } from './domFacts'
+import { collectPhaseResults } from './phaseResults'
 import type { DomPhaseFacts } from './domFacts'
 
 import type { Result } from '@/core/types'
@@ -13,8 +14,6 @@ type DomData = {
   results?: Result[]
 }
 
-type PhaseResultData = { phase?: 'static' | 'idle'; results?: Result[] }
-
 export const enrichFromEvents = (
   ev: EventRec[],
   makeDoc: (html: string) => Document,
@@ -26,8 +25,6 @@ export const enrichFromEvents = (
 
   const endData = endDomEvent?.d as DomData | undefined
   const idleData = idleDomEvent?.d as DomData | undefined
-  const resultChunks = ev.filter((event) => event.t === 'dom:phase_results')
-    .flatMap((event) => ((event.d as PhaseResultData | undefined)?.results || []))
   const staticHtml = (endData?.html || '').toString()
   const idleHtml = (idleData?.html || '').toString()
 
@@ -49,7 +46,7 @@ export const enrichFromEvents = (
     staticDoc, staticHtml,
     staticDomAvailable: Boolean(endData?.facts || staticHtml), idleDomAvailable: Boolean(idleData?.facts || idleHtml),
     staticFacts: endData?.facts, idleFacts: idleData?.facts,
-    phaseResults: [...(endData?.results || []), ...(idleData?.results || []), ...resultChunks],
+    phaseResults: collectPhaseResults(ev),
     resources: resourceLedger?.urls || resources,
     resourceCount: resourceLedger?.total ?? resources.length,
     resourceDropped: resourceLedger?.dropped ?? 0,

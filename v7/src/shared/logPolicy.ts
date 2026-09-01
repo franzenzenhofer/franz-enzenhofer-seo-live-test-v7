@@ -1,6 +1,6 @@
 import { STORAGE_KEYS } from './storage-keys'
 
-const IMPORTANT = /(warn|error|crash|abort|runner:(counts|done|persist-error|state-created|skip))/i
+const IMPORTANT = /(warn|error|crash|abort|runner:(counts|done|persist-error|state-created|skip|seed))/i
 
 export const shouldRetainLog = async (message: string): Promise<boolean> => {
   if (IMPORTANT.test(message)) return true
