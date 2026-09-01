@@ -14,6 +14,38 @@ const run = (ledger?: NavigationLedger | null) =>
   navigationPathRule.run(createMockPage() as any, { globals: { navigationLedger: ledger } })
 
 describe('http:navigation-path rule', () => {
+  it('exposes the full webRequest hop chain (URL, status, Location) in the shared shape', async () => {
+    const page = {
+      ...createMockPage(),
+      status: 200,
+      headerChain: [
+        { url: 'https://example.com/old', status: 301, redirectUrl: 'https://example.com/mid' },
+        { url: 'https://example.com/mid', status: 302, redirectUrl: 'https://example.com' },
+        { url: 'https://example.com', status: 200 },
+      ],
+    }
+    const ledger: NavigationLedger = {
+      tabId: 1,
+      currentUrl: 'https://example.com',
+      trace: [
+        { url: 'https://example.com/old', timestamp: 1, type: 'http_redirect', statusCode: 301 },
+        { url: 'https://example.com/mid', timestamp: 2, type: 'http_redirect', statusCode: 302 },
+        { url: 'https://example.com', timestamp: 3, type: 'load', statusCode: 200 },
+      ],
+    }
+    const result = await navigationPathRule.run(page as any, { globals: { navigationLedger: ledger } })
+    expect(result.type).toBe('error')
+    const chain = result.details?.['redirectChain'] as { hops: Array<{ url: string; status: number; location?: string }> }
+    expect(chain.hops).toEqual([
+      { url: 'https://example.com/old', status: 301, location: 'https://example.com/mid' },
+      { url: 'https://example.com/mid', status: 302, location: 'https://example.com/' },
+      { url: 'https://example.com', status: 200 },
+    ])
+    expect(result.message).toContain('HTTP 301 -> Location: https://example.com/mid')
+    expect(result.message).toContain('HTTP 302 -> Location: https://example.com/')
+    expect(result.details?.['redirectChainText']).toContain('FINAL STATUS HTTP 200')
+  })
+
   it('returns runtime_error when headers not captured', async () => {
     const result = await navigationPathRule.run(createMockPage({}) as any, { globals: { navigationLedger: null } })
     expect(result.type).toBe('runtime_error')

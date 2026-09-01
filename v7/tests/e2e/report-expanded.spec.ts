@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-import { DEV_EXTENSION_ID, findExtensionId, withExtension, readRunSnapshot } from './extensionHarness'
+import { DEV_EXTENSION_ID, findExtensionId, withExtension } from './extensionHarness'
 
 const TARGET = process.env.LT_TARGET_URL || 'https://orf.at/stories/3440788/'
 
@@ -12,12 +12,23 @@ test.describe('report view', () => {
     const { context: ctx, cleanup, userDataDir } = await withExtension()
     const page = await ctx.newPage()
     await page.goto(TARGET, { waitUntil: 'domcontentloaded' })
+    // Read the runIdentifier off the stored results, the way report.html itself
+    // resolves a run - readRunSnapshot matches on tab URL and returned nothing here.
+    const worker = ctx.serviceWorkers()[0] || await ctx.waitForEvent('serviceworker')
     let runId = ''
     for (let i = 0; i < 60; i++) {
-      const snap = await readRunSnapshot(ctx, TARGET)
-      if (snap && !snap.results.some((r) => r.type === 'pending')) { runId = snap.runId; break }
+      runId = await worker.evaluate(async () => {
+        const all = await chrome.storage.local.get(null)
+        const key = Object.keys(all).find((k) => k.startsWith('results:'))
+        if (!key) return ''
+        const rows = all[key] as Array<{ runIdentifier?: string; type?: string }>
+        if (!rows?.length || rows.some((r) => r.type === 'pending')) return ''
+        return rows.find((r) => r.runIdentifier)?.runIdentifier || ''
+      }).catch(() => '')
+      if (runId) break
       await page.waitForTimeout(500)
     }
+    expect(runId).not.toBe('')
     const id = await findExtensionId(ctx, userDataDir).catch(() => DEV_EXTENSION_ID)
     const report = await ctx.newPage()
     await report.setViewportSize({ width: 900, height: 1200 })
