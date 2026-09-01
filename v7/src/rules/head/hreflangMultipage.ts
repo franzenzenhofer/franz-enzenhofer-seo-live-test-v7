@@ -1,4 +1,5 @@
 import type { Rule } from '@/core/types'
+import { parseHtmlDocument } from '@/shared/parseHtml'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPaths } from '@/shared/dom-path'
 
@@ -66,7 +67,7 @@ export const hreflangMultipageRule: Rule = {
             return messages
           }
           const body = await res.text()
-          const dom = new DOMParser().parseFromString(body, 'text/html')
+          const dom = parseHtmlDocument(body, page.doc)
           const selfSelector = `link[rel~="alternate" i][hreflang="${hreflang}"][href="${href}"]`
           const backSelector = selfHreflang
             ? `link[rel~="alternate" i][hreflang="${selfHreflang}"][href="${canonical}"]`
