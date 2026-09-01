@@ -25,7 +25,7 @@ export const execFile = async (path: string, opts: Opts) => {
 }
 
 const output = async (url: string, rows: Array<{label:string;message:string;type:string}>, opts: Opts) => {
-  if ((opts.format || 'json') === 'html') {
-    const r = toHtml(url, rows); if (opts.out) await fs.writeFile(opts.out, r, 'utf8'); else process.stdout.write(r + '\n')
-  } else { process.stdout.write(JSON.stringify(rows, null, 2) + '\n') }
+  const body = (opts.format || 'json') === 'html' ? toHtml(url, rows) : JSON.stringify(rows, null, 2)
+  if (opts.out) await fs.writeFile(opts.out, body, 'utf8')
+  else process.stdout.write(body + '\n')
 }

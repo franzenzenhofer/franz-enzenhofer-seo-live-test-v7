@@ -6,6 +6,7 @@ import { Search } from './Search'
 import { TypeFilters } from './TypeFilters'
 import { useFilterParser } from './useFilterParser'
 import { FilterTips } from './FilterTips'
+import { RunProgress } from './RunProgress'
 import type { ResultSortMode } from './resultSort'
 
 import type { Result } from '@/shared/results'
@@ -30,6 +31,7 @@ export const ResultsSection = ({ show, setShow, query, setQuery, results, debugE
   const resetFilters = () => { setShow(() => createDefaultTypeVisibility()); setQuery('') }
   return (
     <div className="p-3 space-y-3">
+      <RunProgress results={results} />
       <Search onChange={setQuery} />
       {debugEnabled && <FilterTips />}
       <TypeFilters show={show} setShow={setShow} results={results} debugEnabled={debugEnabled} />

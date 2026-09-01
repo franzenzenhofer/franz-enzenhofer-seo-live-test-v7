@@ -1,3 +1,5 @@
+export type FactBucket = 'head' | 'anchor' | 'resource'
+
 export type DomPhase = 'static' | 'idle'
 
 export type DomElementFact = {
@@ -14,10 +16,13 @@ export type DomPhaseFacts = {
   textLength: number
   scriptCount: number
   blockingScriptCount: number
+  anchorCount: number
   parameterizedLinkCount: number
   parameterizedLinks: string[]
   parameterizedLinksTruncated: boolean
   elements: DomElementFact[]
   elementsTruncated: boolean
+  truncatedBuckets: FactBucket[]
+  criticalTruncated: boolean
   documentAttributes: Array<[string, string]>
 }

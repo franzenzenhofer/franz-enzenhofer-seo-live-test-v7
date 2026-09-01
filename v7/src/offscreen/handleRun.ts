@@ -53,7 +53,9 @@ export const handleRun = async (
   const offscreenRules = rules.filter((rule) => {
     if (rule.input !== 'context' && rule.input !== 'compare') return false
     if (!requiresCompleteDomFacts(rule.id)) return true
-    return !!page.staticFacts && !page.staticFacts.elementsTruncated
+    // Gate only on critical facts. A capped anchor/resource sample says nothing
+    // about whether this rule's head directives were captured.
+    return !!page.staticFacts && !page.staticFacts.criticalTruncated
   })
   const offscreenResults = await runAll(tabId, offscreenRules, page, { globals: globals || {} }, emitChunk, { signal })
   const results = mergeRunResults(rules, boundResults(page.phaseResults || []), boundResults(offscreenResults), runId)
