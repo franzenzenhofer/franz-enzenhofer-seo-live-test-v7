@@ -1,10 +1,12 @@
 import { handleRun, type RunPayload } from './handleRun'
+import { installProbeHopObserver } from './probeHops'
 
 import { Logger } from '@/shared/logger'
 import { installCrashNet } from '@/shared/crashNet'
 
 Logger.setContext('offscreen')
 installCrashNet('offscreen')
+installProbeHopObserver()
 
 const CONTROLLER_MAX_LIFETIME_MS = 90_000
 const controllers = new Map<string, { ac: AbortController; timer: ReturnType<typeof setTimeout> }>()

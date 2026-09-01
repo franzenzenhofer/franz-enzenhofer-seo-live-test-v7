@@ -35,15 +35,13 @@ describe('http:navigation-path rule', () => {
     }
     const result = await navigationPathRule.run(page as any, { globals: { navigationLedger: ledger } })
     expect(result.type).toBe('error')
-    const chain = result.details?.['redirectChain'] as { hops: Array<{ url: string; status: number; location?: string }> }
-    expect(chain.hops).toEqual([
-      { url: 'https://example.com/old', status: 301, location: 'https://example.com/mid' },
-      { url: 'https://example.com/mid', status: 302, location: 'https://example.com/' },
-      { url: 'https://example.com', status: 200 },
-    ])
-    expect(result.message).toContain('HTTP 301 -> Location: https://example.com/mid')
-    expect(result.message).toContain('HTTP 302 -> Location: https://example.com/')
-    expect(result.details?.['redirectChainText']).toContain('FINAL STATUS HTTP 200')
+    // The full webRequest hop chain renders once, in details.redirectChainText.
+    const chainText = result.details?.['redirectChainText'] as string
+    expect(chainText).toContain('HTTP 301 -> Location: https://example.com/mid')
+    expect(chainText).toContain('HTTP 302 -> Location: https://example.com/')
+    expect(chainText).toContain('FINAL STATUS HTTP 200')
+    expect(result.details?.['redirectChain']).toBeUndefined()
+    expect(result.message).not.toContain('HTTP 301 -> Location:')
   })
 
   it('returns runtime_error when headers not captured', async () => {

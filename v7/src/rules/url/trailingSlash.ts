@@ -2,7 +2,7 @@ import type { Rule } from '@/core/types'
 import { discardBody } from '@/shared/http-utils'
 import { parseHtmlDocument } from '@/shared/parseHtml'
 import { followRedirectChain } from '@/shared/redirectChain'
-import { formatRedirectChain } from '@/shared/redirectChainFormat'
+import { redirectChainDetails } from '@/shared/redirectChainFormat'
 import { RedirectChainError } from '@/shared/redirectChainTypes'
 
 const LABEL = 'URL'
@@ -56,22 +56,21 @@ export const trailingSlashRule: Rule = {
       const status = chain.finalStatus
       const finalUrl = chain.finalUrl
       const redirected = chain.redirected
-      const chainText = formatRedirectChain(chain)
-      const baseDetails = { tested: TESTED, originalUrl, variantUrl, finalUrl, status, redirected, redirectChain: chain, redirectChainText: chainText, reference: SPEC }
+      const baseDetails = { tested: TESTED, originalUrl, variantUrl, finalUrl, status, redirected, redirectCount: chain.redirectCount, ...redirectChainDetails(chain), reference: SPEC }
 
       if (chain.loop || chain.capped) {
         if (response) discardBody(response)
         const what = chain.loop ? 'enters a redirect loop' : `redirects more than ${chain.maxHops} times`
-        return { label: LABEL, message: `URL variant ${whatCase} trailing slash ${what}.\n\nRedirect chain:\n${chainText}`, type: 'error', name: NAME, priority: 110, details: baseDetails }
+        return { label: LABEL, message: `URL variant ${whatCase} trailing slash ${what}.`, type: 'error', name: NAME, priority: 110, details: baseDetails }
       }
 
       if (status !== 200) {
         if (response) discardBody(response)
         const type = status === 404 ? 'info' : status === 410 ? 'warn' : status === 302 || status >= 500 ? 'error' : 'warn'
-        const chainSuffix = redirected ? `\n\nRedirect chain:\n${chainText}` : ''
+        const afterHops = redirected ? ` after ${chain.redirectCount} redirect${chain.redirectCount === 1 ? '' : 's'}` : ''
         return {
           label: LABEL,
-          message: `URL variant ${whatCase} trailing slash ${variantUrl} returns HTTP ${status}${status === 404 ? ' (no duplicate-content variant)' : ''}.${chainSuffix}`,
+          message: `URL variant ${whatCase} trailing slash ${variantUrl} returns HTTP ${status}${afterHops}${status === 404 ? ' (no duplicate-content variant)' : ''}.`,
           type,
           name: NAME,
           priority: type === 'error' ? 150 : type === 'warn' ? 400 : 800,
@@ -84,10 +83,9 @@ export const trailingSlashRule: Rule = {
         const matchesOriginal = normalize(finalUrl) === normalize(originalUrl)
         return {
           label: LABEL,
-          message: (matchesOriginal
+          message: matchesOriginal
             ? `URL variant ${whatCase} trailing slash redirects to ${opposite} version (OK).`
-            : `URL variant ${whatCase} trailing slash redirects to ${finalUrl} (unexpected).`)
-            + `\n\nRedirect chain:\n${chainText}`,
+            : `URL variant ${whatCase} trailing slash redirects to ${finalUrl} (unexpected).`,
           type: matchesOriginal ? 'info' : 'error',
           name: NAME,
           priority: matchesOriginal ? 800 : 120,

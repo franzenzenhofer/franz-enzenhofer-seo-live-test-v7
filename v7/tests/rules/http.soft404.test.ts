@@ -2,8 +2,6 @@ import { afterEach, describe, it, expect, vi } from 'vitest'
 
 import { soft404Rule } from '@/rules/http/soft404'
 
-import type { RedirectChain } from '@/shared/redirectChainTypes'
-
 const page = (headers: Record<string, string> = { 'content-type': 'text/html' }) =>
   ({ html: '', url: 'https://ex.com/path/page', doc: new DOMParser().parseFromString('<p/>', 'text/html'), headers })
 
@@ -24,9 +22,9 @@ describe('rule: soft 404 probe', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ status: 404, type: 'basic', redirected: false, url: 'https://ex.com/fake' }))
     const r = await soft404Rule.run(page() as any, { globals: {} })
     expect(r.type).toBe('ok')
-    const chain = r.details?.['redirectChain'] as RedirectChain
-    expect(chain.finalStatus).toBe(404)
-    expect(chain.redirectCount).toBe(0)
+    expect(r.details?.['status']).toBe(404)
+    expect(r.details?.['redirectCount']).toBe(0)
+    expect(r.details?.['redirectChainText']).toContain('FINAL STATUS HTTP 404')
   })
 
   it('flags soft 404 when 200', async () => {
@@ -49,15 +47,16 @@ describe('rule: soft 404 probe', () => {
     vi.stubGlobal('fetch', fetchMock)
     const r = await soft404Rule.run(page() as any, { globals: {} })
     expect(r.type).toBe('warn')
-    expect(r.message).toContain('after redirect(s)')
-    // The full chain is visible in the message and in details - every hop, every status.
-    expect(r.message).toContain(probeOf(fetchMock))
-    expect(r.message).toContain('HTTP 301 -> Location: https://mirror.ex.com/step')
-    expect(r.message).toContain('HTTP 302 -> Location: https://mirror.ex.com/gone')
-    expect(r.message).toContain('FINAL STATUS HTTP 404')
-    const chain = r.details?.['redirectChain'] as RedirectChain
-    expect(chain.hops.map((h) => h.status)).toEqual([301, 302, 404])
-    expect(r.details?.['redirectChainText']).toContain('https://mirror.ex.com/gone')
+    // Short verdict with the measured hop count - the chain wall stays out of the message.
+    expect(r.message).toBe('Non-existing URL returned HTTP 404 after 2 redirects (should be direct 404).')
+    // The full chain - every hop, every status - renders once, in details.
+    const chainText = r.details?.['redirectChainText'] as string
+    expect(chainText).toContain(probeOf(fetchMock))
+    expect(chainText).toContain('HTTP 301 -> Location: https://mirror.ex.com/step')
+    expect(chainText).toContain('HTTP 302 -> Location: https://mirror.ex.com/gone')
+    expect(chainText).toContain('FINAL STATUS HTTP 404')
+    expect(r.details?.['redirectChain']).toBeUndefined()
+    expect(r.details?.['redirectCount']).toBe(2)
   })
 
   it('flags a redirect loop on the probe as an error', async () => {
@@ -72,8 +71,8 @@ describe('rule: soft 404 probe', () => {
     vi.stubGlobal('fetch', fetchMock)
     const r = await soft404Rule.run(page() as any, { globals: {} })
     expect(r.type).toBe('error')
-    expect(r.message).toContain('REDIRECT LOOP')
-    expect((r.details?.['redirectChain'] as RedirectChain).loop).toBe(true)
+    expect(r.message).toContain('the redirect chain loops')
+    expect(r.details?.['redirectChainText']).toContain('REDIRECT LOOP')
   })
 
   it('reports a failed probe loudly, never a passing verdict', async () => {

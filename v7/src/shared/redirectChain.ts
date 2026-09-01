@@ -1,6 +1,8 @@
 import { discardBody } from './http-utils'
 import { isRedirectStatus } from './http-constants'
 import { finalize, followHidden, hopFetch, newChain, stopWithNote } from './redirectChain.steps'
+import { followViaObserver } from './redirectChain.observed'
+import { getRedirectHopObserver } from './redirectChainObserver'
 import type { FollowOptions, FollowResult } from './redirectChainTypes'
 
 export const REDIRECT_MAX_HOPS = 10
@@ -17,6 +19,13 @@ export const followRedirectChain = async (startUrl: string, opts: FollowOptions 
   const maxHops = opts.maxHops ?? REDIRECT_MAX_HOPS
   const timeoutMs = opts.timeoutMs ?? REDIRECT_TIMEOUT_MS
   const fetchFn = opts.fetchFn ?? fetch
+  // In the extension a webRequest-backed observer exposes the real hops that
+  // MV3 fetch() hides; Node/CLI never registers one and keeps the walk below.
+  const observer = opts.observer === undefined ? getRedirectHopObserver() : opts.observer
+  if (observer) {
+    const observed = await followViaObserver(startUrl, { maxHops, timeoutMs, fetchFn, wantBody: opts.wantBody }, observer)
+    if (observed) return observed
+  }
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
   const chain = newChain(startUrl, maxHops)

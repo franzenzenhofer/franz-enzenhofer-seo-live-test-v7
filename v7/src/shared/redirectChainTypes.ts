@@ -38,6 +38,8 @@ export type FollowOptions = {
   /** Return the final Response with its body intact (caller must consume it). */
   wantBody?: boolean
   fetchFn?: typeof fetch
+  /** Hop observer override: null forces the plain fetch walk (Node/CLI path). */
+  observer?: RedirectHopObserver | null
 }
 
 export type FollowResult = { chain: RedirectChain; response?: Response }
@@ -51,4 +53,22 @@ export class RedirectChainError extends Error {
     this.name = 'RedirectChainError'
     this.hops = hops
   }
+}
+
+/** What a runtime hop observer captured for one probe request. */
+export type ObservedHops = {
+  hops: RedirectHop[]
+  /** True when a terminal event (completed/error) was seen before stop. */
+  done: boolean
+}
+
+/**
+ * Runtime-provided source of per-hop redirect data (chrome.webRequest in the
+ * extension). When one is registered, followRedirectChain() fetches with
+ * redirect:'follow' and reads the real hops from the observer instead of
+ * fetch(), which hides them (opaqueredirect) in MV3.
+ */
+export type RedirectHopObserver = {
+  start: (url: string) => Promise<string>
+  stop: (id: string) => Promise<ObservedHops>
 }

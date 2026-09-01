@@ -33,10 +33,13 @@ describe('rule: hreflang multipage', () => {
     }))
     const r = await hreflangMultipageRule.run({ html: pageHtml, url: 'https://example.com/page', doc: doc(pageHtml) } as any, { globals: {} })
     expect((r as any).type).toBe('warn')
-    expect((r as any).message).toContain("'de' URL triggers redirect")
-    expect((r as any).message).toContain('HTTP 301 -> Location: https://example.com/de-final')
-    const checked = (r as any).details.checked as Array<{ hreflang: string; redirectChain?: { hops: Array<{ status: number }> } }>
-    expect(checked[0]?.redirectChain?.hops.map((h) => h.status)).toEqual([301, 200])
+    expect((r as any).message).toContain("'de' URL redirects (1 hop) to https://example.com/de-final")
+    // The message stays a short verdict; the full hop chain lives in details.
+    expect((r as any).message).not.toContain('HTTP 301 -> Location:')
+    const checked = (r as any).details.checked as Array<{ hreflang: string; redirectChain?: unknown; redirectChainText?: string }>
+    expect(checked[0]?.redirectChain).toBeUndefined()
+    expect(checked[0]?.redirectChainText).toContain('HTTP 301 -> Location: https://example.com/de-final')
+    expect(checked[0]?.redirectChainText).toContain('FINAL STATUS HTTP 200')
   })
 
   it('passes when back-reference and self-reference exist', async () => {
