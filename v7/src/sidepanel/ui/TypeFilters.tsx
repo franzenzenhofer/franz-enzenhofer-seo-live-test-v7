@@ -1,8 +1,11 @@
 import type { MouseEvent } from 'react'
 
+import { TypeFilterChip } from './TypeFilterChip'
+
 import type { Result } from '@/shared/results'
-import { getResultColor, getResultLabel, resultTypeOrder } from '@/shared/colors'
+import { resultTypeOrder } from '@/shared/colors'
 import { computeResultCoverage } from '@/shared/resultCoverage'
+import { clearTypeFilter, isFiltered, soloType, toggleType } from '@/shared/typeFilterSelection'
 
 type Props = {
   show: Record<string, boolean>
@@ -10,6 +13,7 @@ type Props = {
   results: Result[]
   debugEnabled: boolean
 }
+
 export const TypeFilters = ({ show, setShow, results, debugEnabled }: Props) => {
   const counts = results.reduce((acc, r) => {
     acc[r.type] = (acc[r.type] || 0) + 1
@@ -17,6 +21,13 @@ export const TypeFilters = ({ show, setShow, results, debugEnabled }: Props) => 
   }, {} as Record<string, number>)
   const { totalRules, coveredRules, missingRules } = computeResultCoverage(results)
   const showMissingList = debugEnabled && missingRules.length > 0
+  const filtering = isFiltered(show)
+
+  const handle = (type: string) => (event: MouseEvent<HTMLButtonElement>) => {
+    if (event.altKey) { setShow(() => soloType(type)); return }
+    setShow((prev) => toggleType(prev, type))
+  }
+
   return (
     <>
       {debugEnabled && <div className="text-xs text-gray-600 flex items-center gap-3 mb-1">
@@ -24,35 +35,25 @@ export const TypeFilters = ({ show, setShow, results, debugEnabled }: Props) => 
         {missingRules.length > 0 && <span className="text-red-600 font-semibold">Missing {missingRules.length}</span>}
       </div>}
       <div className="flex items-center gap-2 flex-wrap">
-        {resultTypeOrder.map((type) => {
-          const count = counts[type] || 0
-          const colors = getResultColor(type)
-          const isActive = show[type]
-          const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-            if (event.altKey) {
-              setShow(() =>
-                resultTypeOrder.reduce<Record<string, boolean>>((acc, key) => {
-                  acc[key] = key === type
-                  return acc
-                }, {}),
-              )
-              return
-            }
-            setShow((prev) => ({ ...prev, [type]: !prev[type] }))
-          }
-          return (
-            <button
-              key={type}
-              className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium transition-all ${
-                isActive ? colors.badge : 'bg-gray-100 text-gray-500'
-              } ${isActive ? 'border-2 ' + colors.border : 'border-2 border-gray-200'}`}
-              onClick={handleClick}
-            >
-              <span>{getResultLabel(type)}</span>
-              <span className="font-semibold">{count}</span>
-            </button>
-          )
-        })}
+        {resultTypeOrder.map((type) => (
+          <TypeFilterChip
+            key={type}
+            type={type}
+            count={counts[type] || 0}
+            selected={Boolean(show[type])}
+            filtering={filtering}
+            onClick={handle(type)}
+          />
+        ))}
+        {filtering && (
+          <button
+            type="button"
+            onClick={() => setShow(() => clearTypeFilter())}
+            className="rounded px-2 py-0.5 text-xs font-medium text-violet-700 underline"
+          >
+            Show all
+          </button>
+        )}
       </div>
       {showMissingList && (
         <details className="mt-2 w-full rounded border border-red-100 bg-red-50 p-2 text-xs text-red-700">

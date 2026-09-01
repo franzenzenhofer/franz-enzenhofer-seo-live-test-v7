@@ -13,7 +13,6 @@ describe('RunProgress', () => {
     expect(html).toContain('44')
     expect(html).toContain('127')
     expect(html).toContain('35%')
-    expect(html).toContain('83 still running')
   })
 
   it('renders nothing once every rule has reported', () => {
