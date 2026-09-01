@@ -26,7 +26,9 @@ export const metaUnavailableAfterRule: Rule = {
   enabled: true,
   what: 'static',
   async run(page) {
-    if (!page.staticFacts || !page.idleFacts || page.staticFacts.elementsTruncated || page.idleFacts.elementsTruncated) {
+    // Only head meta facts are read below, and those are collected as critical,
+    // so a capped anchor/resource sample must not block the comparison.
+    if (!page.staticFacts || !page.idleFacts || page.staticFacts.criticalTruncated || page.idleFacts.criticalTruncated) {
       return {
         label: LABEL, name: NAME, type: 'runtime_error', priority: 900,
         message: 'Unavailable-after comparison requires complete bounded static and idle facts.',
