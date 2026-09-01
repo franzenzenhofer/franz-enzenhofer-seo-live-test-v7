@@ -5,8 +5,15 @@
 
 import { GSC_API_REFERENCE } from './google-utils'
 
+type GscProperty = { property: string; type: 'url-prefix' | 'domain' }
+
 // Session cache for GSC property derivation (per hostname)
-const propertyCache = new Map<string, { property: string; type: 'url-prefix' | 'domain' }>()
+const propertyCache = new Map<string, GscProperty>()
+
+// The cache only fills once derivation finishes, so the six GSC rules all start
+// together, all miss, and each pays up to two auth'd round trips (url-prefix
+// test, then domain fallback). Single-flight collapses them onto one.
+const inFlight = new Map<string, Promise<GscProperty | null>>()
 
 /**
  * Auto-derives GSC property from test URL
@@ -16,35 +23,41 @@ const propertyCache = new Map<string, { property: string; type: 'url-prefix' | '
 export const deriveGscProperty = async (
   url: string,
   token: string
-): Promise<{ property: string; type: 'url-prefix' | 'domain' } | null> => {
+): Promise<GscProperty | null> => {
+  const cacheKey = new URL(url).hostname
+  const cached = propertyCache.get(cacheKey)
+  if (cached) return cached
+  const pending = inFlight.get(cacheKey)
+  if (pending) return pending
+  const task = resolveGscProperty(url, token, cacheKey).finally(() => { inFlight.delete(cacheKey) })
+  inFlight.set(cacheKey, task)
+  return task
+}
+
+const resolveGscProperty = async (
+  url: string,
+  token: string,
+  cacheKey: string
+): Promise<GscProperty | null> => {
   const parsedUrl = new URL(url)
-  const cacheKey = parsedUrl.hostname
-
-  // Check cache first
-  if (propertyCache.has(cacheKey)) {
-    return propertyCache.get(cacheKey)!
-  }
-
-  // Try 1: URL prefix property (most specific, requires exact protocol)
   const urlPrefix = `${parsedUrl.origin}/`
-  const urlPrefixWorks = await testGscProperty(urlPrefix, token)
-  if (urlPrefixWorks) {
-    const result = { property: urlPrefix, type: 'url-prefix' as const }
-    propertyCache.set(cacheKey, result)
-    return result
-  }
+  const domainProperty = `sc-domain:${parsedUrl.hostname.replace(/^www\./, '')}`
 
-  // Try 2: Domain property (fallback, covers all protocols/subdomains)
-  const domain = parsedUrl.hostname.replace(/^www\./, '') // Remove www if present
-  const domainProperty = `sc-domain:${domain}`
-  const domainWorks = await testGscProperty(domainProperty, token)
-  if (domainWorks) {
-    const result = { property: domainProperty, type: 'domain' as const }
-    propertyCache.set(cacheKey, result)
-    return result
-  }
+  // Probed together, not in sequence: a domain-property account always fails the
+  // url-prefix test first, so testing serially paid that round trip before
+  // starting the one that works. url-prefix still wins when both are available.
+  const [urlPrefixWorks, domainWorks] = await Promise.all([
+    testGscProperty(urlPrefix, token),
+    testGscProperty(domainProperty, token),
+  ])
 
-  return null // Both failed
+  const resolved: GscProperty | null = urlPrefixWorks
+    ? { property: urlPrefix, type: 'url-prefix' }
+    : domainWorks
+      ? { property: domainProperty, type: 'domain' }
+      : null
+  if (resolved) propertyCache.set(cacheKey, resolved)
+  return resolved
 }
 
 /**
