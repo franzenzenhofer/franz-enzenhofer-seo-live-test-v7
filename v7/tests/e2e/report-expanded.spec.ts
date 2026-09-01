@@ -21,8 +21,10 @@ test.describe('report view', () => {
         const all = await chrome.storage.local.get(null)
         const key = Object.keys(all).find((k) => k.startsWith('results:'))
         if (!key) return ''
+        // A runIdentifier is enough to open the report; waiting for zero pending
+        // would mean waiting out PageSpeed, which is not what this test is about.
         const rows = all[key] as Array<{ runIdentifier?: string; type?: string }>
-        if (!rows?.length || rows.some((r) => r.type === 'pending')) return ''
+        if (!rows?.length) return ''
         return rows.find((r) => r.runIdentifier)?.runIdentifier || ''
       }).catch(() => '')
       if (runId) break
