@@ -11,8 +11,15 @@ import type { RegisteredRule } from '@/core/types'
 
 export type RunPayload = Run
 
-const applyRuleOverrides = (overrides?: Record<string, boolean>): RegisteredRule[] =>
-  registry.map((rule) => (typeof overrides?.[rule.id] === 'boolean' ? { ...rule, enabled: overrides[rule.id]! } : rule))
+// The background's override map is the authoritative rule set for a run: a rule
+// absent from it (e.g. debug rules while the Debug data setting is off) does not
+// take part at all - it must not run, and must not get a placeholder result.
+const applyRuleOverrides = (overrides?: Record<string, boolean>): RegisteredRule[] => {
+  if (!overrides) return [...registry]
+  return registry
+    .filter((rule) => typeof overrides[rule.id] === 'boolean')
+    .map((rule) => ({ ...rule, enabled: overrides[rule.id]! }))
+}
 
 export const handleRun = async (
   tabId: number,

@@ -6,6 +6,7 @@ import { test, expect, chromium, BrowserContext } from '@playwright/test'
 
 import { cleanupProfileDir, describeProfileChoice, prepareProfileDir } from '../../scripts/chrome-profile'
 import { browserExecutable } from './browserExecutable'
+import { extensionHeadless } from './extensionHarness'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -32,7 +33,7 @@ const withExtension = async (): Promise<ExtensionContext> => {
   if (!fs.existsSync(dist)) throw new Error('Build dist first (npm run build) before running e2e tests.')
   const profile = prepareProfileDir()
   console.info(`[e2e] Using ${describeProfileChoice(profile)}`)
-  const headless = process.env.PW_EXT_HEADLESS === '1'
+  const headless = extensionHeadless()
   const context = await chromium.launchPersistentContext(profile.userDataDir, {
     args: buildArgs(headless),
     headless,
