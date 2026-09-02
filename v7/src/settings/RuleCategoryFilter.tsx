@@ -1,22 +1,24 @@
-import { rulesInventory } from '@/rules/inventory'
+import type { RuleSummary } from '@/rules/inventory'
 
 const getCategory = (id: string) => id.split(':')[0] || 'other'
 
 export const RuleCategoryFilter = ({
+  rules,
   selected,
   onToggle,
   onClear
 }: {
+  rules: RuleSummary[]
   selected: Set<string>
   onToggle: (cat: string) => void
   onClear: () => void
 }) => {
-  const categories = [...new Set(rulesInventory.map(r => getCategory(r.id)))].sort()
+  const categories = [...new Set(rules.map(r => getCategory(r.id)))].sort()
 
   return (
     <div className="flex flex-wrap gap-2 mb-3">
       {categories.map(cat => {
-        const count = rulesInventory.filter(r => getCategory(r.id) === cat).length
+        const count = rules.filter(r => getCategory(r.id) === cat).length
         const isSelected = selected.has(cat)
 
         return (

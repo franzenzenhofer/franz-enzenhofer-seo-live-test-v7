@@ -26,11 +26,14 @@ const readExtensionIdFromPreferences = (profileDir: string): string | null => {
   return null
 }
 
+// Headless by default so e2e runs never pop up browser windows; PW_EXT_HEADLESS=0 forces headed.
+export const extensionHeadless = () => process.env.PW_EXT_HEADLESS !== '0'
+
 export const withExtension = async () => {
   if (!fs.existsSync(dist)) throw new Error('Build dist first (npm run build) before running e2e tests.')
   const profile = prepareProfileDir()
   console.info(`[e2e] Using ${describeProfileChoice(profile)}`)
-  const headless = process.env.PW_EXT_HEADLESS === '1'
+  const headless = extensionHeadless()
   const args = [
     '--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage',
     `--disable-extensions-except=${dist}`, `--load-extension=${dist}`,

@@ -5,6 +5,7 @@ import { test, expect, chromium, type BrowserContext } from '@playwright/test'
 
 import { cleanupProfileDir, describeProfileChoice, prepareProfileDir } from '../../scripts/chrome-profile'
 import { browserExecutable } from './browserExecutable'
+import { extensionHeadless } from './extensionHarness'
 
 const dist = path.resolve(new URL('../../dist', import.meta.url).pathname)
 
@@ -24,8 +25,7 @@ const withExtension = async (): Promise<{ context: BrowserContext; cleanup: () =
   if (!fs.existsSync(dist)) throw new Error('Build first: dist missing')
   const profile = prepareProfileDir()
   console.info(`[real-sites] Using ${describeProfileChoice(profile)}`)
-  // Default headed so chrome-extension:// URLs resolve. Override with PW_EXT_HEADLESS=1.
-  const headless = process.env['PW_EXT_HEADLESS'] === '1'
+  const headless = extensionHeadless()
   const context = await chromium.launchPersistentContext(profile.userDataDir, {
     args: buildArgs(headless), headless, executablePath: browserExecutable(),
   })

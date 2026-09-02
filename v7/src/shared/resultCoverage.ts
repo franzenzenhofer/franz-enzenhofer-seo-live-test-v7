@@ -1,5 +1,6 @@
 import type { Result } from './results'
 
+import { isDebugRuleId } from '@/rules/debugRules'
 import { rulesInventory, type RuleSummary } from '@/rules/inventory'
 
 export type CoverageSummary = {
@@ -18,10 +19,12 @@ export const computeResultCoverage = (results: Result[]): CoverageSummary => {
     if (result.name) seen.add(`name:${result.name.toLowerCase()}`)
   }
 
-  const missingRules = rulesInventory.filter((rule) => !seen.has(rule.id))
+  // Debug rules only count when they actually ran - they are never reported as missing
+  const relevantRules = rulesInventory.filter((rule) => !isDebugRuleId(rule.id) || seen.has(rule.id))
+  const missingRules = relevantRules.filter((rule) => !seen.has(rule.id))
 
   return {
-    totalRules: rulesInventory.length,
+    totalRules: relevantRules.length,
     coveredRules: seen.size,
     missingRules,
   }

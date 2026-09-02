@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 
+import { filterDebugResults } from '@/rules/debugRules'
 import { getActiveTabId } from '@/shared/chrome'
+import { useDebugFlag } from '@/shared/hooks/useDebugFlag'
 import { readResults, watchResults, filterResultsByRunId, latestRunId, type Result } from '@/shared/results'
 import { readRunMeta, watchRunMeta, type RunMeta } from '@/shared/runMeta'
 import { Logger } from '@/shared/logger'
@@ -52,8 +54,10 @@ export const useResultsSource = () => {
     void boot()
     return () => { cancelled = true; unsub?.() }
   }, [tabId, refreshKey])
+  const [debugEnabled] = useDebugFlag()
   const activeRunId = meta?.runId || latestRunId(rawItems) || undefined
-  const filtered = filterResultsByRunId(rawItems, activeRunId)
+  // Debug-rule results (incl. stale persisted ones) are hidden unless the "Debug data" setting is on
+  const filtered = filterDebugResults(filterResultsByRunId(rawItems, activeRunId), debugEnabled)
   useEffect(() => {
     if (!tabId || meta?.runId || !activeRunId) return
     Logger.logDirectSend(tabId, 'ui', 'results:derived-runid', { runId: activeRunId, source: 'results-only' })

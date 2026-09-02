@@ -38,7 +38,7 @@ Dynamic profiling is wired via `npm run audit` (gated by `EXT_AUDIT_SOAK` / `EXT
 | B1 heap-soak | growth over 120 s soak | -379 KB (shrunk via GC) | <= 1 MB / 10 min | PASS |
 | B2 perf-trace | worst long task on `example.com` | 0 ms | <= 50 ms | PASS |
 | B3 chaos | console errors / lastError leaks across 20 tabs | 0 / 0 | 0 / 0 | PASS |
-| visual | side panel renders 127/127 rules + no ErrorBoundary fallback | screenshot at `test-results/audit/sidepanel.png` | render-clean | PASS |
+| visual | side panel renders 125/125 rules by default (127/127 with Debug data enabled) + no ErrorBoundary fallback | screenshot at `test-results/audit/sidepanel.png` | render-clean | PASS |
 
 (Soak and tab counts here are from a substantial-but-not-final run; production runs scale via `EXT_AUDIT_SOAK` / `EXT_AUDIT_TABS` env.)
 

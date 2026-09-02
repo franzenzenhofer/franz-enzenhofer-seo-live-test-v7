@@ -3,7 +3,9 @@ import { useState } from 'react'
 import { RuleCategoryFilter } from './RuleCategoryFilter'
 import { RuleGridItem } from './RuleGridItem'
 
+import { isDebugRuleId } from '@/rules/debugRules'
 import { rulesInventory } from '@/rules/inventory'
+import { useDebugFlag } from '@/shared/hooks/useDebugFlag'
 
 type Flags = Record<string, boolean>
 
@@ -17,8 +19,11 @@ const getCategory = (id: string) => id.split(':')[0] || 'other'
 export const RuleToggles = ({ flags, updateFlags }: Props) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set())
+  const [debugEnabled] = useDebugFlag()
+  // Debug rules cannot run while "Debug data" is off, so their toggles are hidden too
+  const visibleRules = debugEnabled ? rulesInventory : rulesInventory.filter(r => !isDebugRuleId(r.id))
 
-  const filteredRules = rulesInventory.filter(rule => {
+  const filteredRules = visibleRules.filter(rule => {
     const q = searchQuery.toLowerCase()
     const matchesSearch = !q || rule.name.toLowerCase().includes(q) || rule.id.toLowerCase().includes(q)
     const matchesCategory = selectedCategories.size === 0 || selectedCategories.has(getCategory(rule.id))
@@ -38,20 +43,21 @@ export const RuleToggles = ({ flags, updateFlags }: Props) => {
 
       <input
         type="search"
-        placeholder={`Search ${rulesInventory.length} rules by name or ID...`}
+        placeholder={`Search ${visibleRules.length} rules by name or ID...`}
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         className="w-full px-4 py-2 border rounded-md mb-3 text-sm"
       />
 
       <RuleCategoryFilter
+        rules={visibleRules}
         selected={selectedCategories}
         onToggle={toggleCategory}
         onClear={() => setSelectedCategories(new Set())}
       />
 
       <p className="text-xs text-gray-600 mb-3">
-        Showing {filteredRules.length} of {rulesInventory.length} rules
+        Showing {filteredRules.length} of {visibleRules.length} rules
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[60vh] overflow-y-auto pr-1">
