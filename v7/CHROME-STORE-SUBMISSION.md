@@ -1,8 +1,10 @@
 # Chrome Web Store Submission Guide
 
-**In review:** 7.0.87 (2026-09-01) - auto-publish on approval
-**Currently published:** 7.0.38 (561 users)
-**Replaced:** 7.0.55, cancelled out of review and superseded by 7.0.87
+**Currently published:** 7.0.87 - approved and live, store listing updated
+September 2, 2026, 575 users
+**Nothing in review**
+**Replaced:** 7.0.38 (the previous live build) and 7.0.55, which was cancelled
+out of review and superseded by 7.0.87
 
 To replace a submission that is still pending review: the item page's overflow
 menu (the three dots beside "Submit for review") has **Cancel review**, which
@@ -10,7 +12,7 @@ returns the item to draft and re-enables both "Upload new package" and "Submit
 for review". It is not on the Status page or the Package tab, which is why it
 looks at first as though a pending submission cannot be withdrawn.
 
-**Last updated:** September 1, 2026
+**Last updated:** September 2, 2026
 
 ## Files to Upload
 
