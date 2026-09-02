@@ -23,6 +23,8 @@ test('runtime filtering shows only the current run results', async () => {
     await expect(panel.locator(`[title="${first!.runId}"]`)).toBeVisible()
     const firstRunResults = await panel.getByTestId('result-card').count()
     expect(firstRunResults).toBeGreaterThan(0)
+    // Debug rules are gated behind the Debug data setting - never visible by default
+    expect(await panel.getByText('DEBUG:', { exact: false }).count()).toBe(0)
 
     await page.bringToFront()
     await page.reload()
