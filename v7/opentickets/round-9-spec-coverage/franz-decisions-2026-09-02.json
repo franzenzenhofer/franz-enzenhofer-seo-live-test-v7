@@ -1,0 +1,7 @@
+{
+ "robots_cluster": "keep all three; fix parsing gaps instead (no merges)",
+ "http_psi_cluster": "delegated to Claude -> chosen: keep + upgrade (drop invented score in redirect-efficiency, teach alt-svc-other RFC 7838 'clear' + non-h2/h3 focus, threshold-grade psi:mobile-fcp-tbt)",
+ "article_pair": "MERGE ticket: one Article-presence rule = schema:article:present incl. BlogPosting; discover:article-structured-data keeps only unique Discover checks",
+ "debug_page_summary": "keep (not selected for merge)",
+ "franz_provenance_list": "confirmed as audited (18 rules)"
+}
