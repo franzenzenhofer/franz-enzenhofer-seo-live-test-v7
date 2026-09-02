@@ -4,7 +4,6 @@ import { extractHtml, extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
 import type { Rule } from '@/core/types'
 
-const SPEC = 'https://ogp.me/#metadata'
 const TESTED = 'Checked <meta property="og:title"> content presence and length.'
 
 export const ogTitleRule: Rule = {
@@ -12,10 +11,15 @@ export const ogTitleRule: Rule = {
   name: 'Open Graph Title',
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'standard',
+    references: ['https://ogp.me/#metadata'],
+    description: 'Checks <meta property="og:title"> presence and reports its content length as info.',
+  },
   run: async (page) => {
     const el = page.doc.querySelector(OG_SELECTORS.TITLE) as HTMLMetaElement|null
     if (!el || !el.content) {
-      return { label: 'HEAD', message: 'No og:title meta.', type: 'info', priority: 900, name: 'Open Graph Title', details: { tested: TESTED, reference: SPEC } }
+      return { label: 'HEAD', message: 'Missing og:title', type: 'warn', priority: 500, name: 'Open Graph Title', details: { tested: TESTED } }
     }
     const sourceHtml = extractHtml(el)
     return {
@@ -24,7 +28,7 @@ export const ogTitleRule: Rule = {
       type: 'info',
       priority: 760,
       name: 'Open Graph Title',
-      details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), ogTitle: el.content, tested: TESTED, reference: SPEC },
+      details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), ogTitle: el.content, tested: TESTED },
     }
   },
 }

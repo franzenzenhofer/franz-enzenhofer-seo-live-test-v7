@@ -21,9 +21,21 @@ describe('http:gzip rule', () => {
   })
 
   it('warns when encoding unsupported', async () => {
-    const result = await run({ 'content-encoding': 'zstd' })
+    const result = await run({ 'content-encoding': 'compress' })
     expect(result.message).toContain('Unsupported')
     expect(result.type).toBe('warn')
+  })
+
+  it('passes when zstd present (modern browsers support Zstandard)', async () => {
+    const result = await run({ 'content-encoding': 'zstd' })
+    expect(result.type).toBe('ok')
+    expect(result.message).toContain('zstd')
+  })
+
+  it('passes when deflate present (accepted by Lighthouse)', async () => {
+    const result = await run({ 'content-encoding': 'deflate' })
+    expect(result.type).toBe('ok')
+    expect(result.message).toContain('compressed')
   })
 
   it('passes when gzip present', async () => {

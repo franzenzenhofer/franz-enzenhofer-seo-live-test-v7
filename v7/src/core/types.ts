@@ -50,6 +50,12 @@ export type Page = {
   idleFacts?: DomPhaseFacts
 }
 export type Ctx = { globals: Record<string, unknown> }
+export type RuleProvenance = 'google' | 'standard' | 'franz' | 'general'
+export type RuleMeta = {
+  provenance: RuleProvenance
+  references: string[]
+  description?: string
+}
 export type Rule = {
   id: string
   input?: RuleInput
@@ -57,6 +63,7 @@ export type Rule = {
   enabled: boolean
   what?: string
   timeout?: { mode?: 'fast' | 'api' | 'multipage'; timeoutMs?: number }
+  meta: RuleMeta
   run: (page: Page, ctx: Ctx) => Promise<Result>
 }
 export type RegisteredRule = Rule & { input: RuleInput }

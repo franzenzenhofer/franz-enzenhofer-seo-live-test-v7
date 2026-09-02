@@ -12,7 +12,6 @@ const NAME = 'Hreflang Multipage Validation'
 const RULE_ID = 'head:hreflang-multipage'
 const SELECTOR_HEAD = 'head > link[rel~="alternate" i][hreflang][href]'
 const SELECTOR_ANY = 'link[rel~="alternate" i][hreflang][href]'
-const SPEC = 'https://developers.google.com/search/docs/specialty/international/localized-versions'
 const order = { info: 0, warn: 1, error: 2 }
 
 const upgrade = (current: 'info' | 'warn' | 'error', next: 'info' | 'warn' | 'error') =>
@@ -23,6 +22,14 @@ export const hreflangMultipageRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/specialty/international/localized-versions',
+      'https://developers.google.com/search/docs/crawling-indexing/http-network-errors',
+    ],
+    description: 'Fetches every hreflang alternate URL and validates HTTP status, redirect chains/loops, the target\'s self-reference, and the return (back-reference) link to this page\'s canonical.',
+  },
   async run(page) {
     let links = Array.from(page.doc.querySelectorAll(SELECTOR_HEAD)) as HTMLLinkElement[]
     const fallback = Array.from(page.doc.querySelectorAll(SELECTOR_ANY)) as HTMLLinkElement[]
@@ -30,7 +37,7 @@ export const hreflangMultipageRule: Rule = {
     if (!links.length) links = fallback
 
     if (!links.length) {
-      return { label: LABEL, name: NAME, message: 'No hreflang links to validate.', type: 'info', priority: 900, details: { reference: SPEC } }
+      return { label: LABEL, name: NAME, message: 'No hreflang links to validate.', type: 'info', priority: 900 }
     }
 
     const canonicalEl = (page.doc.querySelector('head > link[rel~="canonical" i]') || page.doc.querySelector('link[rel~="canonical" i]')) as HTMLLinkElement | null
@@ -89,12 +96,14 @@ export const hreflangMultipageRule: Rule = {
           }
           const body = response ? await response.text() : ''
           const dom = parseHtmlDocument(body, page.doc)
-          const selfSelector = `link[rel~="alternate" i][hreflang="${hreflang}"][href="${href}"]`
-          const backSelector = selfHreflang
-            ? `link[rel~="alternate" i][hreflang="${selfHreflang}"][href="${canonical}"]`
-            : `link[rel~="alternate" i][hreflang][href="${canonical}"]`
-          check.selfReference = !!dom.querySelector(selfSelector)
-          check.backReference = !!dom.querySelector(backSelector)
+          // Compare resolved URLs, not raw attribute strings: the spec requires
+          // mutual pointing, not byte-identical markup (relative form, host casing).
+          const base = chain.finalUrl || href
+          const alternateUrls = Array.from(dom.querySelectorAll(SELECTOR_ANY)).map((el) => {
+            try { return new URL((el.getAttribute('href') || '').trim(), base).toString() } catch { return '' }
+          })
+          check.selfReference = alternateUrls.includes(href)
+          check.backReference = alternateUrls.includes(canonical)
           if (!check.selfReference) check.issues.push({ level: 'error', text: `'${hreflang}' no self reference found.` })
           if (!check.backReference) check.issues.push({ level: 'error', text: `'${hreflang}' no back reference to canonical.` })
           return check
@@ -135,7 +144,6 @@ export const hreflangMultipageRule: Rule = {
           return copy
         }),
         issues,
-        reference: SPEC,
       },
     }
   },

@@ -42,6 +42,31 @@ describe('rule: hreflang multipage', () => {
     expect(checked[0]?.redirectChainText).toContain('FINAL STATUS HTTP 200')
   })
 
+  it('accepts equivalent (not byte-identical) URLs: relative hrefs and host casing on the target', async () => {
+    const pageHtml = `
+      <link rel="canonical" href="https://example.com/page">
+      <link rel="alternate" hreflang="en" href="https://example.com/page">
+      <link rel="alternate" hreflang="de" href="https://example.com/de">
+    `
+    // Target lists itself relatively and the back reference with an uppercase
+    // host: the same URLs per RFC 3986 normalization, so both must match.
+    const fetchedBody = `
+      <link rel="alternate" hreflang="de" href="/de">
+      <link rel="alternate" hreflang="en" href="https://EXAMPLE.com/page">
+    `
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      redirected: false,
+      status: 200,
+      url: 'https://example.com/de',
+      type: 'basic',
+      headers: new Headers(),
+      text: async () => fetchedBody,
+    } as any)))
+    const r = await hreflangMultipageRule.run({ html: pageHtml, url: 'https://example.com/page', doc: doc(pageHtml) } as any, { globals: {} })
+    expect((r as any).type).toBe('info')
+    expect((r as any).details.issues).toEqual([])
+  })
+
   it('passes when back-reference and self-reference exist', async () => {
     const pageHtml = `
       <link rel="canonical" href="https://example.com/page">

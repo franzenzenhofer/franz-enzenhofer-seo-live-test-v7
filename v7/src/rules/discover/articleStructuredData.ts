@@ -3,8 +3,6 @@ import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPaths } from '@/shared/dom-path'
 import { findType, parseLd } from '@/shared/structured'
 
-const SPEC = 'https://developers.google.com/search/docs/appearance/structured-data/article'
-
 const findArticle = (doc: Document) => {
   const nodes = parseLd(doc)
   const foundTypes = ['Article', 'NewsArticle'].filter((t) => findType(nodes, t.toLowerCase()).length > 0)
@@ -18,6 +16,14 @@ export const discoverArticleStructuredDataRule: Rule = {
   name: 'Article structured data',
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/appearance/structured-data/article',
+      'https://developers.google.com/search/docs/appearance/google-discover',
+    ],
+    description: 'Checks for JSON-LD Article/NewsArticle structured data (ok if present, warn if absent).',
+  },
   async run(page) {
     const result = findArticle(page.doc)
     const sourceHtml = extractHtmlFromList(result.scripts)
@@ -30,7 +36,7 @@ export const discoverArticleStructuredDataRule: Rule = {
           type: 'ok',
           priority: 800,
           name: 'Article structured data',
-          details: { foundTypes: result.foundTypes, sourceHtml, snippet: extractSnippet(sourceHtml), domPaths, reference: SPEC },
+          details: { foundTypes: result.foundTypes, sourceHtml, snippet: extractSnippet(sourceHtml), domPaths },
         }
       : {
           label: 'DISCOVER',
@@ -42,7 +48,6 @@ export const discoverArticleStructuredDataRule: Rule = {
             scriptsFound: result.scripts.length,
             tested: 'Searched for Article/NewsArticle JSON-LD scripts',
             domPaths,
-            reference: SPEC,
           },
         }
   },

@@ -1,5 +1,5 @@
 import { gscFetch } from '../googleFetch'
-import { extractGoogleCredentials, createNoTokenResult, GSC_API_REFERENCE } from '../google-utils'
+import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
 import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../google-gsc-utils'
 
 import type { Rule } from '@/core/types'
@@ -11,6 +11,14 @@ export const gscIsIndexedRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'gsc',
+  meta: {
+    provenance: 'franz',
+    references: [
+      'https://developers.google.com/webmaster-tools/v1/searchanalytics/query',
+      'https://developers.google.com/webmaster-tools/search-console-api-original/v3/how-tos/search_analytics',
+    ],
+    description: "Uses a Search Analytics query filtered to the exact page URL: impressions > 0 -> ok 'Indexed', 0 -> warn 'might not be indexed'.",
+  },
   async run(page, ctx) {
     const { token } = extractGoogleCredentials(ctx)
     if (!token) return createNoTokenResult()
@@ -29,14 +37,14 @@ export const gscIsIndexedRule: Rule = {
           type: 'warn',
           priority: 200,
           name: NAME,
-          details: { url: page.url, property, propertyType, status: r.status, reference: GSC_API_REFERENCE },
+          details: { url: page.url, property, propertyType, status: r.status },
         }
       }
       const j = await r.json() as { rows?: Array<{ clicks?: number, impressions?: number }> }
       const imp = (j.rows || []).reduce((a, x)=> a + (x.impressions || 0), 0)
       return imp > 0
-        ? { label: 'GSC', message: `Indexed (impressions ${imp})`, type: 'ok', priority: 800, name: NAME, details: { url: page.url, property, propertyType, impressions: imp, apiResponse: j, reference: GSC_API_REFERENCE } }
-        : { label: 'GSC', message: 'No impressions (might not be indexed)', type: 'warn', priority: 300, name: NAME, details: { url: page.url, property, propertyType, impressions: 0, apiResponse: j, reference: GSC_API_REFERENCE } }
+        ? { label: 'GSC', message: `Indexed (impressions ${imp})`, type: 'ok', priority: 800, name: NAME, details: { url: page.url, property, propertyType, impressions: imp, apiResponse: j } }
+        : { label: 'GSC', message: 'No impressions (might not be indexed)', type: 'warn', priority: 300, name: NAME, details: { url: page.url, property, propertyType, impressions: 0, apiResponse: j } }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       return {
@@ -45,7 +53,7 @@ export const gscIsIndexedRule: Rule = {
         type: 'runtime_error',
         name: NAME,
         priority: -1000,
-        details: { url: page.url, property, propertyType, reference: GSC_API_REFERENCE },
+        details: { url: page.url, property, propertyType },
       }
     }
   },

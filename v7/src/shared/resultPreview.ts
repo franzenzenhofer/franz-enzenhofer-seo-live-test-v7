@@ -4,7 +4,7 @@ export { attributeOf, normalizeText, textOf } from './textMatch'
 
 // Keys that describe the finding rather than the page: never a preview.
 const META_KEYS = new Set([
-  'reference', 'domPath', 'domPaths', 'domPathColors', 'tested', 'snippet',
+  'reference', 'provenance', 'domPath', 'domPaths', 'domPathColors', 'tested', 'snippet',
   'sourceHtml', 'apiResponse', 'strategy', 'url', 'checked', 'failures',
 ])
 

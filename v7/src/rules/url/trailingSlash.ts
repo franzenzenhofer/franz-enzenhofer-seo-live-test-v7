@@ -7,7 +7,6 @@ import { RedirectChainError } from '@/shared/redirectChainTypes'
 
 const LABEL = 'URL'
 const NAME = 'URL trailing slash consistency'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
 const TESTED = 'Fetched opposite trailing-slash variant with manual redirect following, checked the full hop chain and canonical alignment.'
 
 const normalize = (u: string) => {
@@ -38,14 +37,19 @@ export const trailingSlashRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: ['https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'],
+    description: 'Fetches the opposite trailing-slash variant and grades the outcome (redirect back = OK, canonical back = OK, 200 without canonical = warn, 404/410 = info).',
+  },
   async run(page) {
     let originalUrl: string; let variantUrl: string; let hasSlash = false
     try { ({ originalUrl, variantUrl, hasSlash } = buildVariant(page.url)) } catch {
-      return { label: LABEL, message: 'Invalid URL. Cannot evaluate trailing slash.', type: 'runtime_error', name: NAME, priority: 50, details: { tested: TESTED, url: page.url, reference: SPEC } }
+      return { label: LABEL, message: 'Invalid URL. Cannot evaluate trailing slash.', type: 'runtime_error', name: NAME, priority: 50, details: { tested: TESTED, url: page.url } }
     }
 
     if (new URL(originalUrl).pathname === '/') {
-      return { label: LABEL, message: 'Root path - trailing slash check not applicable.', type: 'info', name: NAME, priority: 900, details: { tested: TESTED, originalUrl, reference: SPEC } }
+      return { label: LABEL, message: 'Root path - trailing slash check not applicable.', type: 'info', name: NAME, priority: 900, details: { tested: TESTED, originalUrl } }
     }
 
     const whatCase = hasSlash ? 'without' : 'with'
@@ -56,7 +60,7 @@ export const trailingSlashRule: Rule = {
       const status = chain.finalStatus
       const finalUrl = chain.finalUrl
       const redirected = chain.redirected
-      const baseDetails = { tested: TESTED, originalUrl, variantUrl, finalUrl, status, redirected, redirectCount: chain.redirectCount, ...redirectChainDetails(chain), reference: SPEC }
+      const baseDetails = { tested: TESTED, originalUrl, variantUrl, finalUrl, status, redirected, redirectCount: chain.redirectCount, ...redirectChainDetails(chain) }
 
       if (chain.loop || chain.capped) {
         if (response) discardBody(response)
@@ -66,11 +70,11 @@ export const trailingSlashRule: Rule = {
 
       if (status !== 200) {
         if (response) discardBody(response)
-        const type = status === 404 ? 'info' : status === 410 ? 'warn' : status === 302 || status >= 500 ? 'error' : 'warn'
+        const type = status === 404 || status === 410 ? 'info' : status === 302 || status >= 500 ? 'error' : 'warn'
         const afterHops = redirected ? ` after ${chain.redirectCount} redirect${chain.redirectCount === 1 ? '' : 's'}` : ''
         return {
           label: LABEL,
-          message: `URL variant ${whatCase} trailing slash ${variantUrl} returns HTTP ${status}${afterHops}${status === 404 ? ' (no duplicate-content variant)' : ''}.`,
+          message: `URL variant ${whatCase} trailing slash ${variantUrl} returns HTTP ${status}${afterHops}${status === 404 || status === 410 ? ' (no duplicate-content variant)' : ''}.`,
           type,
           name: NAME,
           priority: type === 'error' ? 150 : type === 'warn' ? 400 : 800,
@@ -103,9 +107,9 @@ export const trailingSlashRule: Rule = {
         return {
           label: LABEL,
           message: `URL variant ${whatCase} trailing slash returned 200 but no canonical found.`,
-          type: 'error',
+          type: 'warn',
           name: NAME,
-          priority: 140,
+          priority: 350,
           details: { ...baseDetails, canonicalHref: null, snippet: body.slice(0, 500) },
         }
       }
@@ -140,7 +144,7 @@ export const trailingSlashRule: Rule = {
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error)
       const hops = error instanceof RedirectChainError ? error.hops : []
-      return { label: LABEL, message: `Trailing slash probe failed: ${msg}`, type: 'runtime_error', name: NAME, priority: 10, details: { tested: TESTED, originalUrl, variantUrl, reference: SPEC, ...(hops.length ? { redirectChainHops: hops } : {}) } }
+      return { label: LABEL, message: `Trailing slash probe failed: ${msg}`, type: 'runtime_error', name: NAME, priority: 10, details: { tested: TESTED, originalUrl, variantUrl, ...(hops.length ? { redirectChainHops: hops } : {}) } }
     }
   },
 }

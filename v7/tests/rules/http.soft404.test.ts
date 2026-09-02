@@ -27,13 +27,21 @@ describe('rule: soft 404 probe', () => {
     expect(r.details?.['redirectChainText']).toContain('FINAL STATUS HTTP 404')
   })
 
+  it('returns ok when non-existing URL returns 410 directly (equally valid not-found signal)', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ status: 410, type: 'basic', redirected: false, url: 'https://ex.com/fake' }))
+    const r = await soft404Rule.run(page() as any, { globals: {} })
+    expect(r.type).toBe('ok')
+    expect(r.message).toBe('Non-existing URL returned HTTP 410 (expected).')
+    expect(r.details?.['status']).toBe(410)
+  })
+
   it('flags soft 404 when 200', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ status: 200, type: 'basic', redirected: false, url: 'https://ex.com/fake' }))
     const r = await soft404Rule.run(page() as any, { globals: {} })
     expect(r.type).toBe('error')
   })
 
-  it('flags redirected 404 and shows the full hop chain', async () => {
+  it('reports redirected 404 as info and shows the full hop chain', async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input)
       if (url.includes('fake-url-for-soft-404')) {
@@ -46,9 +54,9 @@ describe('rule: soft 404 probe', () => {
     })
     vi.stubGlobal('fetch', fetchMock)
     const r = await soft404Rule.run(page() as any, { globals: {} })
-    expect(r.type).toBe('warn')
+    expect(r.type).toBe('info')
     // Short verdict with the measured hop count - the chain wall stays out of the message.
-    expect(r.message).toBe('Non-existing URL returned HTTP 404 after 2 redirects (should be direct 404).')
+    expect(r.message).toBe('Non-existing URL returned HTTP 404 after 2 redirects (should be a direct 404).')
     // The full chain - every hop, every status - renders once, in details.
     const chainText = r.details?.['redirectChainText'] as string
     expect(chainText).toContain(probeOf(fetchMock))

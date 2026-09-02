@@ -3,37 +3,57 @@ import { schemaProductRule } from '@/rules/schema/product'
 
 const D = (h: string) => new DOMParser().parseFromString(h,'text/html')
 
+const run = async (json: string) =>
+  schemaProductRule.run({ html:'', url:'https://ex.com', doc: D(`<script type="application/ld+json">${json}</script>`) } as any, { globals: {} })
+
 describe('schema: product', () => {
-  it('passes with all required fields', async () => {
-    const json = '<script type="application/ld+json">{"@type":"Product","name":"Test Product","offers":{"price":99.99,"priceCurrency":"USD"}}</script>'
-    const r = await schemaProductRule.run({ html:'', url:'https://ex.com', doc: D(json) } as any, { globals: {} })
+  it('passes with name and a complete offer', async () => {
+    const r = await run('{"@type":"Product","name":"Test Product","offers":{"price":99.99,"priceCurrency":"USD"}}')
     expect((r as any).type).toBe('ok')
   })
 
+  it('passes when offers is an array (common valid form)', async () => {
+    const r = await run('{"@type":"Product","name":"Test Product","offers":[{"price":99.99,"priceCurrency":"USD"}]}')
+    expect((r as any).type).toBe('ok')
+  })
+
+  it('passes with only aggregateRating (review|aggregateRating|offers are alternatives per Google)', async () => {
+    const r = await run('{"@type":"Product","name":"Test Product","aggregateRating":{"ratingValue":4.5,"ratingCount":12}}')
+    expect((r as any).type).toBe('ok')
+  })
+
+  it('passes with only review', async () => {
+    const r = await run('{"@type":"Product","name":"Test Product","review":{"reviewRating":{"ratingValue":5},"author":{"name":"Jo"}}}')
+    expect((r as any).type).toBe('ok')
+  })
+
+  it('accepts priceSpecification.price and AggregateOffer lowPrice', async () => {
+    const withSpec = await run('{"@type":"Product","name":"P","offers":{"priceSpecification":{"price":10,"priceCurrency":"EUR"}}}')
+    expect((withSpec as any).type).toBe('ok')
+    const withLow = await run('{"@type":"Product","name":"P","offers":{"@type":"AggregateOffer","lowPrice":5,"priceCurrency":"EUR"}}')
+    expect((withLow as any).type).toBe('ok')
+  })
+
   it('fails when name is missing', async () => {
-    const json = '<script type="application/ld+json">{"@type":"Product","offers":{"price":99.99,"priceCurrency":"USD"}}</script>'
-    const r = await schemaProductRule.run({ html:'', url:'https://ex.com', doc: D(json) } as any, { globals: {} })
+    const r = await run('{"@type":"Product","offers":{"price":99.99,"priceCurrency":"USD"}}')
     expect((r as any).type).toBe('warn')
     expect((r as any).message).toContain('name')
   })
 
-  it('fails when offers.price is missing', async () => {
-    const json = '<script type="application/ld+json">{"@type":"Product","name":"Test Product","offers":{"priceCurrency":"USD"}}</script>'
-    const r = await schemaProductRule.run({ html:'', url:'https://ex.com', doc: D(json) } as any, { globals: {} })
+  it('fails when an offer has no price in any accepted form', async () => {
+    const r = await run('{"@type":"Product","name":"Test Product","offers":{"priceCurrency":"USD"}}')
     expect((r as any).type).toBe('warn')
     expect((r as any).message).toContain('offers.price')
   })
 
-  it('fails when offers.priceCurrency is missing', async () => {
-    const json = '<script type="application/ld+json">{"@type":"Product","name":"Test Product","offers":{"price":99.99}}</script>'
-    const r = await schemaProductRule.run({ html:'', url:'https://ex.com', doc: D(json) } as any, { globals: {} })
-    expect((r as any).type).toBe('warn')
+  it('reports missing priceCurrency as info (recommended for snippets, required only for merchant listings)', async () => {
+    const r = await run('{"@type":"Product","name":"Test Product","offers":{"price":99.99}}')
+    expect((r as any).type).toBe('info')
     expect((r as any).message).toContain('offers.priceCurrency')
   })
 
   it('reports all missing fields', async () => {
-    const json = '<script type="application/ld+json">{"@type":"Product"}</script>'
-    const r = await schemaProductRule.run({ html:'', url:'https://ex.com', doc: D(json) } as any, { globals: {} })
+    const r = await run('{"@type":"Product"}')
     expect((r as any).type).toBe('warn')
     expect((r as any).message).toContain('missing')
   })
@@ -43,4 +63,3 @@ describe('schema: product', () => {
     expect((r as any).type).toBe('info')
   })
 })
-

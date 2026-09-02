@@ -29,7 +29,7 @@ export const toResultCopyPayload = (result: Result | null | undefined): string =
   const sourceHtml = typeof details['sourceHtml'] === 'string' ? details['sourceHtml'] : ''
   if (sourceHtml) lines.push('', codeBlock('Source HTML', sourceHtml, 'html'))
   const extraEntries = Object.entries(details).filter(
-    ([key]) => !['snippet', 'reference', 'sourceHtml', 'domPath', 'domPaths'].includes(key),
+    ([key]) => !['snippet', 'reference', 'provenance', 'sourceHtml', 'domPath', 'domPaths'].includes(key),
   )
   for (const [key, value] of extraEntries) {
     if (typeof value === 'string') {

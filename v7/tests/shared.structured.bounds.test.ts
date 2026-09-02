@@ -23,6 +23,7 @@ describe('bounded structured data', () => {
       id: 'stress:safe',
       name: 'Safe rule',
       enabled: true,
+      meta: { provenance: 'franz' as const, references: [] },
       async run() { return { name: 'Safe rule', label: 'STRESS', message: 'completed', type: 'ok' } },
     }
     const results = await runAll(0, [schemaArticlePresentRule, safeRule], {

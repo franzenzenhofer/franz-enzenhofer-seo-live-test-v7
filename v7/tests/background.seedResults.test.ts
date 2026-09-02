@@ -18,7 +18,7 @@ beforeEach(() => {
   })
 })
 
-const rule = (id: string): Rule => ({ id, name: id, enabled: true, what: 'static', run: async () => ({}) } as unknown as Rule)
+const rule = (id: string): Rule => ({ id, name: id, enabled: true, what: 'static', meta: { provenance: 'franz', references: [] }, run: async () => ({}) } as unknown as Rule)
 const rules = ['a:1', 'a:2', 'b:1', 'b:2'].map(rule)
 const idx = { 'a:1': 1, 'a:2': 2, 'b:1': 3, 'b:2': 4 }
 

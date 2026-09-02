@@ -3,13 +3,16 @@ import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPaths } from '@/shared/dom-path'
 import { sampleElements } from '@/shared/domEvidence'
 
-const SPEC = 'https://developer.mozilla.org/en-US/docs/Web/Performance/dns-prefetch'
-
 export const dnsPrefetchRule: Rule = {
   id: 'speed:dns-prefetch',
   name: 'rel=dns-prefetch',
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'standard',
+    references: ['https://html.spec.whatwg.org/multipage/links.html#link-type-dns-prefetch'],
+    description: 'Info-only count of <link rel="dns-prefetch"> elements with their target hrefs.',
+  },
   async run(page) {
     const links = page.doc.querySelectorAll('link[rel="dns-prefetch"]')
     const n = links.length
@@ -30,7 +33,6 @@ export const dnsPrefetchRule: Rule = {
         truncated: evidence.truncated,
         domPaths,
         tested: 'Queried <link rel="dns-prefetch">',
-        reference: SPEC,
       },
     }
   },

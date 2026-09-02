@@ -6,7 +6,6 @@ import { findRobotsTokens, parseDirectiveNumber } from '@/shared/robots-tokens'
 const LABEL = 'HEAD'
 const NAME = 'Robots nosnippet'
 const RULE_ID = 'head:robots-nosnippet'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#nosnippet'
 
 const summary = (tokens: { ua: string; token: string }[]) => tokens.map((t) => `${t.ua}:${t.token}`).join('; ')
 
@@ -15,6 +14,14 @@ export const robotsNosnippetRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#nosnippet',
+      'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#max-snippet',
+    ],
+    description: 'Warns when snippets are disabled via a nosnippet directive or max-snippet:0 in robots meta tags or X-Robots-Tag.',
+  },
   async run(page) {
     const directives = parseRobotsDirectives(page.doc, page.headers)
     const nosnippetMatches = findRobotsTokens(directives, 'nosnippet')
@@ -31,7 +38,6 @@ export const robotsNosnippetRule: Rule = {
         message: 'No nosnippet directive found.',
         type: 'info',
         priority: 900,
-        details: { reference: SPEC },
       }
     }
 
@@ -50,7 +56,6 @@ export const robotsNosnippetRule: Rule = {
         snippet,
         domPaths,
         matches,
-        reference: SPEC,
       },
     }
   },

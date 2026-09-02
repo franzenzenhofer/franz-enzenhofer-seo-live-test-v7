@@ -3,13 +3,19 @@ import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPaths } from '@/shared/dom-path'
 import { sampleElements } from '@/shared/domEvidence'
 
-const SPEC = 'https://web.dev/uses-rel-preload/'
-
 export const linkPreloadRule: Rule = {
   id: 'speed:link-preload',
   name: 'rel=preload links',
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'standard',
+    references: [
+      'https://html.spec.whatwg.org/multipage/links.html#link-type-preload',
+      'https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preload',
+    ],
+    description: 'Info-only count of <link rel="preload"> elements with their hrefs.',
+  },
   async run(page) {
     const links = page.doc.querySelectorAll('link[rel="preload"]')
     const { sample, total: n, shown, truncated } = sampleElements(links)
@@ -29,7 +35,6 @@ export const linkPreloadRule: Rule = {
         truncated,
         domPaths,
         tested: 'Queried <link rel="preload">',
-        reference: SPEC,
       },
     }
   },

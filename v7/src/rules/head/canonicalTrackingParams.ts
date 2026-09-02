@@ -5,7 +5,6 @@ import { getDomPath } from '@/shared/dom-path'
 const LABEL = 'HEAD'
 const NAME = 'Canonical tracking params'
 const RULE_ID = 'head:canonical-tracking-params'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
 
 const BAD_PARAMS = [
   'utm_source',
@@ -31,11 +30,19 @@ export const canonicalTrackingParamsRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'general',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls',
+      'https://developers.google.com/search/docs/crawling-indexing/url-structure',
+    ],
+    description: 'Warns when the canonical URL contains known tracking parameters (utm_*, gclid, fbclid, msclkid, etc., extensible via config); also warns on non-http(s) canonical schemes.',
+  },
   async run(page, ctx) {
     const linkEl = page.doc.querySelector('link[rel~="canonical" i]')
     const href = (linkEl?.getAttribute('href') || '').trim()
     if (!href) {
-      return { label: LABEL, name: NAME, message: 'No canonical link to inspect for tracking parameters.', type: 'info', priority: 850, details: { reference: SPEC } }
+      return { label: LABEL, name: NAME, message: 'No canonical link to inspect for tracking parameters.', type: 'info', priority: 850 }
     }
     const extraParams = Array.isArray((ctx.globals as { variables?: { canonicalTrackingParamsExtra?: unknown } }).variables?.canonicalTrackingParamsExtra)
       ? ((ctx.globals as { variables?: { canonicalTrackingParamsExtra?: unknown } }).variables?.canonicalTrackingParamsExtra as string[])
@@ -45,12 +52,12 @@ export const canonicalTrackingParamsRule: Rule = {
       const resolved = new URL(href, page.url)
       const protocol = resolved.protocol.toLowerCase()
       if (protocol !== 'http:' && protocol !== 'https:') {
-        return { label: LABEL, name: NAME, message: 'Canonical URL uses a non-HTTP scheme; use an http(s) URL.', type: 'warn', priority: 200, details: { canonicalUrl: resolved.toString(), reference: SPEC } }
+        return { label: LABEL, name: NAME, message: 'Canonical URL uses a non-HTTP scheme; use an http(s) URL.', type: 'warn', priority: 200, details: { canonicalUrl: resolved.toString() } }
       }
       const params = resolved.searchParams
       const offenders = paramList.filter((p) => params.has(p))
       if (!offenders.length) {
-        return { label: LABEL, name: NAME, message: 'Canonical URL has no tracking parameters.', type: 'ok', priority: 800, details: { canonicalUrl: resolved.toString(), checkedParams: paramList.length, reference: SPEC } }
+        return { label: LABEL, name: NAME, message: 'Canonical URL has no tracking parameters.', type: 'ok', priority: 800, details: { canonicalUrl: resolved.toString(), checkedParams: paramList.length } }
       }
       return {
         label: LABEL,
@@ -63,11 +70,10 @@ export const canonicalTrackingParamsRule: Rule = {
           offendingParams: offenders,
           snippet: extractSnippet(resolved.toString()),
           domPath: linkEl ? getDomPath(linkEl) : undefined,
-          reference: SPEC,
         },
       }
     } catch {
-      return { label: LABEL, name: NAME, message: 'Canonical URL invalid; cannot inspect tracking parameters.', type: 'warn', priority: 200, details: { canonicalUrl: href, reference: SPEC } }
+      return { label: LABEL, name: NAME, message: 'Canonical URL invalid; cannot inspect tracking parameters.', type: 'warn', priority: 200, details: { canonicalUrl: href } }
     }
   },
 }

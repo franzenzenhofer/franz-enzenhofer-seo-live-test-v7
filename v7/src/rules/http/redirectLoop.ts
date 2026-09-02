@@ -7,13 +7,21 @@ import { headerChainToRedirectChain } from '@/shared/redirectChainFromEvents'
 const LABEL = 'HTTP'
 const NAME = 'Redirect Loop Detection'
 const RULE_ID = 'http:redirect-loop'
-const SPEC = 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections#redirect_loops'
 
 export const redirectLoopRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'standard',
+    references: [
+      'https://www.rfc-editor.org/rfc/rfc9110.html#name-redirection-3xx',
+      'https://developers.google.com/search/docs/crawling-indexing/http-network-errors',
+    ],
+    description:
+      'Detects redirect loops by flagging any URL that appears more than once in the recorded navigation redirect trace.',
+  },
 
   async run(page, ctx): Promise<Result> {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
@@ -27,7 +35,7 @@ export const redirectLoopRule: Rule = {
         message: 'No navigation data available for loop detection.',
         type: 'info',
         priority: 900,
-        details: { reference: SPEC },
+        details: {},
       }
     }
 
@@ -49,7 +57,6 @@ export const redirectLoopRule: Rule = {
           trace,
           ...chainDetails,
           redirectCount: 0,
-          reference: SPEC,
         },
       }
     }
@@ -77,7 +84,6 @@ export const redirectLoopRule: Rule = {
           ...chainDetails,
           redirectCount: redirectTrace.length,
           uniqueUrlCount: urlCounts.size,
-          reference: SPEC,
         },
       }
     }
@@ -99,7 +105,6 @@ export const redirectLoopRule: Rule = {
         trace,
         ...chainDetails,
         loopUrls,
-        reference: SPEC,
       },
     }
   },

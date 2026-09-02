@@ -3,8 +3,6 @@ import { extractHtml, extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
 import { parseLd } from '@/shared/structured'
 
-const SPEC = 'https://developers.google.com/search/docs/appearance/structured-data/article#datepublished'
-
 type DateResult = { published: string; modified: string; element: Element | null }
 
 const findDates = (d: Document): DateResult => {
@@ -34,6 +32,14 @@ export const discoverPublishedTimeRule: Rule = {
   name: 'Published time',
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/appearance/structured-data/article',
+      'https://ogp.me/',
+    ],
+    description: 'Checks for a publish date via article:published_time/article:modified_time OG meta or JSON-LD datePublished/dateModified (ok if both, warn if either missing).',
+  },
   async run(page) {
     const { published, modified, element } = findDates(page.doc)
     const sourceHtml = extractHtml(element)
@@ -41,7 +47,6 @@ export const discoverPublishedTimeRule: Rule = {
       sourceHtml,
       snippet: extractSnippet(sourceHtml),
       domPath: getDomPath(element),
-      reference: SPEC,
       datePublished: published || undefined,
       dateModified: modified || undefined,
     }

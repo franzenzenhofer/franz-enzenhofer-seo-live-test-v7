@@ -6,7 +6,6 @@ import { sampleElements } from '@/shared/domEvidence'
 const LABEL = 'HEAD'
 const NAME = 'Meta Description'
 const RULE_ID = 'head-meta-description'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/supported-tags#meta-descriptions'
 const SELECTOR = 'meta[name="description"]'
 
 const cleanContent = (value: string | null | undefined) => (value || '').trim()
@@ -16,11 +15,19 @@ export const metaDescriptionRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/special-tags',
+      'https://developers.google.com/search/docs/appearance/snippet',
+    ],
+    description: 'Checks that exactly one non-empty meta[name=description] exists (warn on missing or empty, error on multiple).',
+  },
   run: async (page) => {
     const nodes = sampleElements(page.doc.querySelectorAll<HTMLMetaElement>(SELECTOR))
     const count = nodes.total
     if (!count) {
-      return { label: LABEL, message: 'No meta description found.', type: 'error', priority: 0, name: NAME, details: { reference: SPEC } }
+      return { label: LABEL, message: 'No meta description found.', type: 'warn', priority: 0, name: NAME, details: {} }
     }
     if (count > 1) {
       const combined = nodes.sample.map((node) => extractHtml(node)).join('\n')
@@ -30,7 +37,7 @@ export const metaDescriptionRule: Rule = {
         type: 'error',
         priority: 100,
         name: NAME,
-        details: { domPaths: getDomPaths(nodes.sample), snippet: combined, sourceHtml: combined, count, shown: nodes.shown, truncated: nodes.truncated, reference: SPEC },
+        details: { domPaths: getDomPaths(nodes.sample), snippet: combined, sourceHtml: combined, count, shown: nodes.shown, truncated: nodes.truncated },
       }
     }
     const node = nodes.sample[0]!
@@ -41,7 +48,7 @@ export const metaDescriptionRule: Rule = {
       message: empty
         ? 'Meta description is empty.'
         : `Meta description present (${description.length} characters).`,
-      type: empty ? 'error' : 'ok',
+      type: empty ? 'warn' : 'ok',
       priority: empty ? 100 : 760,
       name: NAME,
       details: {
@@ -50,7 +57,6 @@ export const metaDescriptionRule: Rule = {
         domPath: getDomPath(node),
         description,
         length: description.length,
-        reference: SPEC,
       },
     }
   },

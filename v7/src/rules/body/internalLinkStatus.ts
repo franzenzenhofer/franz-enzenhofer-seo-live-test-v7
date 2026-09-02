@@ -19,7 +19,6 @@ type LinkCheck = {
 const LABEL = 'BODY'
 const NAME = 'Internal link HTTP status'
 const RULE_ID = 'body:internal-link-status'
-const SPEC = 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status'
 const SAMPLE_SIZE = 5
 
 const isInternal = (href: string, base: URL) => {
@@ -40,10 +39,18 @@ const summarizeStatuses = (checks: { status: number }[]): string => {
 
 export const internalLinkStatusRule: Rule = {
   id: RULE_ID, name: NAME, enabled: true, what: 'static',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/http-network-errors',
+      'https://www.rfc-editor.org/rfc/rfc9110.html#name-client-error-4xx',
+    ],
+    description: 'Fetches a random sample of up to 5 unique internal links and errors when any returns status >=400, fails, loops, or exceeds the redirect cap; reports redirect chains.',
+  },
   async run(page) {
     let base: URL
     try { base = new URL(page.url) } catch {
-      return { label: LABEL, name: NAME, type: 'runtime_error', priority: 10, details: { reference: SPEC },
+      return { label: LABEL, name: NAME, type: 'runtime_error', priority: 10,
         message: 'Invalid page URL' }
     }
     const anchors = Array.from(page.doc.querySelectorAll<HTMLAnchorElement>('a[href]'))
@@ -73,9 +80,9 @@ export const internalLinkStatusRule: Rule = {
           ? `No internal links among the ${anchors.length} captured anchors; the bounded capture of this ${pageAnchorCount}-anchor page cannot test internal links.`
           : `Bounded DOM capture kept none of the page's ${pageAnchorCount} anchors, so internal links cannot be tested.`
         return { label: LABEL, name: NAME, type: 'runtime_error', priority: 900, message,
-          details: { reference: SPEC, pageAnchorCount, capturedAnchors: anchors.length, anchorEvidenceTruncated: true } }
+          details: { pageAnchorCount, capturedAnchors: anchors.length, anchorEvidenceTruncated: true } }
       }
-      return { label: LABEL, name: NAME, type: 'info', priority: 900, details: { reference: SPEC, totalInternal: 0 },
+      return { label: LABEL, name: NAME, type: 'info', priority: 900, details: { totalInternal: 0 },
         message: 'No internal links found to test.' }
     }
     const checks = await Promise.all(sampled.map(async (entry): Promise<LinkCheck> => {
@@ -124,6 +131,6 @@ export const internalLinkStatusRule: Rule = {
         ...(anchorsTruncated ? {} : { totalInternal: candidates.length }),
         capturedInternal: candidates.length, sampleSize: checks.length,
         ...(facts ? { pageAnchorCount, anchorEvidenceTruncated: anchorsTruncated } : {}),
-        domPaths, reference: SPEC } }
+        domPaths } }
   },
 }

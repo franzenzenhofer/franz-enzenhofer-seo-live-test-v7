@@ -13,16 +13,28 @@ describe('rule: canonical hreflang consistency', () => {
     expect(res.type).toBe('warn')
   })
 
-  it('warns when hreflang uses different host/protocol', async () => {
+  it('warns when hreflang uses HTTP while canonical is HTTPS', async () => {
     const res = await canonicalHreflangConsistencyRule.run(
       {
         html: '',
         url: 'https://ex.com/a',
-        doc: doc('<link rel="canonical" href="https://ex.com/a"><link rel="alternate" hreflang="en" href="http://other.com/a">'),
+        doc: doc('<link rel="canonical" href="https://ex.com/a"><link rel="alternate" hreflang="en" href="https://ex.com/a"><link rel="alternate" hreflang="de" href="http://ex.com/de/a">'),
       } as any,
       { globals: {} },
     )
     expect(res.type).toBe('warn')
+  })
+
+  it('accepts cross-domain hreflang alternates (alternate URLs need not share the domain)', async () => {
+    const res = await canonicalHreflangConsistencyRule.run(
+      {
+        html: '',
+        url: 'https://ex.com/a',
+        doc: doc('<link rel="canonical" href="https://ex.com/a"><link rel="alternate" hreflang="en" href="https://ex.com/a"><link rel="alternate" hreflang="de" href="https://ex.de/a">'),
+      } as any,
+      { globals: {} },
+    )
+    expect(res.type).toBe('ok')
   })
 
   it('ok when aligned', async () => {

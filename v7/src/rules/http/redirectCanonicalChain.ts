@@ -8,7 +8,6 @@ import { headerChainToRedirectChain } from '@/shared/redirectChainFromEvents'
 const LABEL = 'HTTP'
 const NAME = 'Redirect/Canonical chain'
 const RULE_ID = 'http:redirect-canonical-chain'
-const SPEC = 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections'
 
 const normalize = (u?: string): string => {
   if (!u) return ''
@@ -26,6 +25,14 @@ export const redirectCanonicalChainRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'general',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/301-redirects',
+      'https://developers.google.com/search/docs/crawling-indexing/http-network-errors',
+    ],
+    description: 'Renders the full observed redirect/History-API chain hop by hop with statuses, cache flags, and a canonical (OK/AWAY) note, always type info.',
+  },
   async run(page, ctx) {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const ledgerRaw = (ctx.globals as { navigationLedger?: unknown }).navigationLedger
@@ -37,7 +44,6 @@ export const redirectCanonicalChainRule: Rule = {
         message: 'No redirects or navigation chain captured.',
         type: 'info',
         priority: 900,
-        details: { reference: SPEC },
       }
     }
 
@@ -56,7 +62,7 @@ export const redirectCanonicalChainRule: Rule = {
         message: 'Direct load (no redirects or history updates).',
         type: 'info',
         priority: 850,
-        details: { trace, headerChain, ...chainDetails, reference: SPEC },
+        details: { trace, headerChain, ...chainDetails },
       }
     }
 
@@ -93,15 +99,15 @@ export const redirectCanonicalChainRule: Rule = {
 
     if (page.fromCache) parts.push('via cache')
 
-    const type: 'warn' | 'error' = redirectCount > 1 ? 'error' : 'warn'
-    const priority = redirectCount > 1 ? 150 : 400
-
+    // Redirects are Google's recommended consolidation mechanism and crawlers
+    // follow up to 10 hops; this rule only visualizes the chain, while
+    // hop-count judgment belongs to http:redirect-efficiency.
     return {
       label: LABEL,
       name: NAME,
       message: parts.join(' → '),
-      type,
-      priority,
+      type: 'info',
+      priority: 600,
       details: {
         trace,
         headerChain,
@@ -112,7 +118,6 @@ export const redirectCanonicalChainRule: Rule = {
         canonicalHref: canonicalNote || canonicalHref || null,
         domPath: canonicalDomPath || undefined,
         fromCache: page.fromCache ?? null,
-        reference: SPEC,
       },
     }
   },

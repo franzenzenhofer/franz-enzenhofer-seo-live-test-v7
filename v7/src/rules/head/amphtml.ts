@@ -7,13 +7,17 @@ const LABEL = 'HEAD'
 const NAME = 'AMP HTML Link'
 const RULE_ID = 'head:amphtml'
 const SELECTOR = 'head > link[rel~="amphtml" i]'
-const SPEC = 'https://developers.google.com/search/docs/appearance/amp'
 
 export const amphtmlRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'standard',
+    references: ['https://amp.dev/documentation/guides-and-tutorials/optimize-and-measure/discovery/'],
+    description: 'Detects link[rel=amphtml] in <head> and reports the linked AMP URL (info) or a missing href (warn).',
+  },
   async run(page) {
     const element = page.doc.querySelector(SELECTOR)
     const href = element?.getAttribute('href')?.trim() || ''
@@ -24,7 +28,7 @@ export const amphtmlRule: Rule = {
         message: 'No amphtml link present.',
         type: 'info',
         priority: 950,
-        details: { reference: SPEC },
+        details: {},
       }
     }
 
@@ -42,7 +46,6 @@ export const amphtmlRule: Rule = {
         domPath: getDomPath(element),
         href: href || '(empty)',
         validatorUrl: hasHref ? `https://validator.ampproject.org/#url=${href}` : undefined,
-        reference: SPEC,
       },
     }
   },

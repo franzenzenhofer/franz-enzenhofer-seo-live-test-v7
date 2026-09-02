@@ -3,13 +3,18 @@ import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPaths } from '@/shared/dom-path'
 import { sampleElements } from '@/shared/domEvidence'
 
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/qualify-outbound-links'
-
 export const nofollowRule: Rule = {
   id: 'body:nofollow',
   name: 'Nofollow Links',
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/qualify-outbound-links',
+    ],
+    description: 'Counts links whose rel token list contains nofollow and reports the count as info; ok when none exist.',
+  },
   async run(page) {
     const { sample, total, shown, truncated } = sampleElements(page.doc.querySelectorAll('a[rel~="nofollow"]'))
 
@@ -28,7 +33,6 @@ export const nofollowRule: Rule = {
           count: total,
           shown,
           truncated,
-          reference: SPEC,
         },
       }
     }
@@ -44,7 +48,6 @@ export const nofollowRule: Rule = {
         snippet: '',
         domPaths: [],
         tested: 'Checked <a> rel values for nofollow',
-        reference: SPEC,
       },
     }
   },

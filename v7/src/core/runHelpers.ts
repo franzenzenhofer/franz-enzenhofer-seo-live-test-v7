@@ -1,6 +1,14 @@
-import type { Result, Rule } from './types'
+import type { Result, ResultDetails, Rule } from './types'
 
 import { Logger } from '@/shared/logger'
+
+// Every result carries the rule's spec reference and provenance; values a rule
+// sets itself in details win over the injected defaults.
+export const metaDetails = (rule: Rule, details?: ResultDetails): ResultDetails => ({
+  ...(rule.meta.references[0] ? { reference: rule.meta.references[0] } : {}),
+  provenance: rule.meta.provenance,
+  ...details,
+})
 
 export const enrichResult = (res: Result, rule: Rule, runId: string | undefined, runIndex?: number): Result => ({
   ...res,
@@ -8,6 +16,7 @@ export const enrichResult = (res: Result, rule: Rule, runId: string | undefined,
   ruleId: res.ruleId ?? rule.id,
   runIdentifier: runId,
   runIndex: typeof runIndex === 'number' ? runIndex : res.runIndex,
+  details: metaDetails(rule, res.details),
 })
 
 export const emitChunk = async (emit: ((chunk: Result[]) => Promise<void> | void) | undefined, chunk: Result[]) => {
@@ -29,6 +38,7 @@ export const createDisabledResult = (rule: Rule, runId: string | undefined, runI
   runIdentifier: runId,
   priority: -3000,
   runIndex,
+  details: metaDetails(rule),
 })
 
 export const createRuntimeError = (rule: Rule, message: string, runId: string | undefined, runIndex?: number): Result => ({
@@ -41,6 +51,7 @@ export const createRuntimeError = (rule: Rule, message: string, runId: string | 
   runIdentifier: runId,
   runIndex,
   priority: -1000,
+  details: metaDetails(rule),
 })
 
 export const logRuleResults = (tabId: number, rule: Rule, ruleId: string, results: Result[], runIndex?: number) => {

@@ -5,7 +5,6 @@ import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 const LABEL = 'HTTP'
 const NAME = 'X-Cache Hit/Miss'
 const RULE_ID = 'http:x-cache'
-const SPEC = 'https://developer.fastly.com/reference/http/http-headers/X-Cache'
 
 const getCaseInsensitiveHeader = (headers: Record<string, string> | undefined, key: string): string => {
   if (!headers) return ''
@@ -17,6 +16,11 @@ export const xCacheRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'general',
+    references: ['https://www.fastly.com/documentation/reference/http/http-headers/X-Cache'],
+    description: "Reports the vendor X-Cache CDN debug header (info-only), classifying values containing 'hit'/'miss' as HIT/MISS.",
+  },
   async run(page) {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const xCacheHeader = getCaseInsensitiveHeader(page.headers, 'x-cache')
@@ -34,7 +38,6 @@ export const xCacheRule: Rule = {
           snippet: extractSnippet('(not present)'),
           xCacheHeader: '',
           hasXCache: false,
-          reference: SPEC,
         },
       }
     }
@@ -56,7 +59,6 @@ export const xCacheRule: Rule = {
         isHit,
         isMiss,
         cacheStatus,
-        reference: SPEC,
       },
     }
   },

@@ -6,13 +6,17 @@ import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 const LABEL = 'HTTP'
 const NAME = 'Alt-Svc Alternative Protocols'
 const RULE_ID = 'http:alt-svc-other'
-const SPEC = 'https://datatracker.ietf.org/doc/html/rfc7838'
 
 export const altSvcOtherProtocolsRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'standard',
+    references: ['https://www.rfc-editor.org/rfc/rfc7838.html#section-3'],
+    description: "Parses the Alt-Svc header, splits advertised ALPN protocol-ids into standard (h2/h3/h3-drafts) vs 'other', and reports the full list (info-only).",
+  },
   async run(page) {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     // 1. Extract Alt-Svc header value
@@ -20,6 +24,7 @@ export const altSvcOtherProtocolsRule: Rule = {
 
     // 2. Determine states (Binary Logic)
     const isPresent = altSvcHeader.length > 0
+    const altSvcClear = altSvcHeader.trim() === 'clear'
 
     // 3. Parse advertised protocols
     const protocols: string[] = []
@@ -44,6 +49,10 @@ export const altSvcOtherProtocolsRule: Rule = {
     if (!isPresent) {
       message = 'No Alt-Svc header found.'
       priority = 900
+    } else if (altSvcClear) {
+      // RFC 7838 section 3: the case-sensitive value 'clear' invalidates all alternatives
+      message = 'Alt-Svc: clear - origin invalidates all alternative services.'
+      priority = 820
     } else if (protocols.length === 0) {
       message = `Alt-Svc header present but no protocols parsed.`
       priority = 850
@@ -66,10 +75,10 @@ export const altSvcOtherProtocolsRule: Rule = {
         httpHeaders: page.headers || {},
         snippet: extractSnippet(altSvcHeader || '(not present)', 100),
         altSvcHeader,
+        altSvcClear,
         protocols,
         standardProtocols: protocols.filter((p) => standardProtocols.some((sp) => p.startsWith(sp))),
         otherProtocols,
-        reference: SPEC,
       },
     }
   },

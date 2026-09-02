@@ -2,14 +2,14 @@ import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
 
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag'
-
 const checkNoindex = (doc: Document, headers?: Record<string, string>) => {
   const metaEl = doc.querySelector('meta[name="robots"]')
   const robotsContent = (metaEl?.getAttribute('content') || '').trim()
   const robots = robotsContent.toLowerCase()
   const xr = (headers?.['x-robots-tag'] || '').toLowerCase()
-  const hasNoindex = /\bnoindex\b/.test(robots) || /\bnoindex\b/.test(xr)
+  // 'none' is equivalent to 'noindex, nofollow' per Google's robots-meta-tag doc
+  const noindexRe = /\b(?:noindex|none)\b/
+  const hasNoindex = noindexRe.test(robots) || noindexRe.test(xr)
 
   return { hasNoindex, element: metaEl, xRobots: xr, robotsContent }
 }
@@ -19,6 +19,14 @@ export const discoverIndexableRule: Rule = {
   name: 'Indexable',
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag',
+      'https://developers.google.com/search/docs/appearance/google-discover',
+    ],
+    description: 'Checks that the page carries no noindex in meta[name=robots] or the X-Robots-Tag header (ok if indexable, warn on noindex).',
+  },
   async run(page) {
     const result = checkNoindex(page.doc, page.headers)
     const sourceHtml = extractHtml(result.element)
@@ -34,7 +42,6 @@ export const discoverIndexableRule: Rule = {
             ...(result.robotsContent ? { robotsContent: result.robotsContent } : {}),
             ...(sourceHtml ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(result.element) } : {}),
             ...(result.xRobots ? { xRobotsTag: result.xRobots } : {}),
-            reference: SPEC,
           },
         }
       : {
@@ -47,7 +54,6 @@ export const discoverIndexableRule: Rule = {
             ...(result.robotsContent ? { robotsContent: result.robotsContent } : {}),
             ...(sourceHtml ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(result.element) } : {}),
             ...(result.xRobots ? { xRobotsTag: result.xRobots } : {}),
-            reference: SPEC,
           },
         }
   },

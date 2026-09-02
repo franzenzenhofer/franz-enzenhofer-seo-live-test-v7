@@ -6,13 +6,17 @@ import { findRobotsTokens, parseDirectiveNumber } from '@/shared/robots-tokens'
 const LABEL = 'HEAD'
 const NAME = 'Robots max-video-preview'
 const RULE_ID = 'head:robots-max-video-preview'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#max-video-preview'
 
 export const robotsMaxVideoPreviewRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: ['https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#max-video-preview'],
+    description: 'Reports max-video-preview directives and warns when the value is not a parseable integer >= -1.',
+  },
   async run(page) {
     const directives = parseRobotsDirectives(page.doc, page.headers)
     const matches = findRobotsTokens(directives, 'max-video-preview')
@@ -23,7 +27,6 @@ export const robotsMaxVideoPreviewRule: Rule = {
         message: 'No max-video-preview directive found.',
         type: 'info',
         priority: 905,
-        details: { reference: SPEC },
       }
     }
 
@@ -48,7 +51,6 @@ export const robotsMaxVideoPreviewRule: Rule = {
         domPaths,
         matches,
         parsed: parsed.map((entry) => ({ ...entry.match, ...entry.parsed })),
-        reference: SPEC,
       },
     }
   },

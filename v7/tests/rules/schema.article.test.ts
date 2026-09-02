@@ -30,26 +30,36 @@ describe('schema: article present', () => {
 })
 
 describe('schema: article required', () => {
-  it('passes with all required fields', async () => {
-    const json = '<script type="application/ld+json">{"@type":"Article","headline":"Test Headline","datePublished":"2024-01-01","image":"/img.jpg","author":{"name":"John Doe"}}</script>'
+  it('passes with all recommended fields', async () => {
+    const json = '<script type="application/ld+json">{"@type":"Article","headline":"Test Headline","datePublished":"2024-01-01","dateModified":"2024-01-02","image":"/img.jpg","author":{"name":"John Doe"}}</script>'
     const r = await schemaArticleRequiredRule.run({ html:'', url:'https://ex.com', doc: D(json) } as any, { globals: {} })
     expect((r as any).type).toBe('ok')
+    expect((r as any).message).toContain('recommended fields present')
   })
 
-  it('accepts dateModified instead of datePublished', async () => {
+  it('reports datePublished independently of dateModified', async () => {
     const json = '<script type="application/ld+json">{"@type":"Article","headline":"Test","dateModified":"2024-01-01","image":"/img.jpg","author":{"name":"John"}}</script>'
     const r = await schemaArticleRequiredRule.run({ html:'', url:'https://ex.com', doc: D(json) } as any, { globals: {} })
-    expect((r as any).type).toBe('ok')
+    expect((r as any).type).toBe('warn')
+    expect((r as any).message).toContain('datePublished')
+    expect((r as any).message).not.toContain('dateModified')
+  })
+
+  it('reports dateModified independently of datePublished', async () => {
+    const json = '<script type="application/ld+json">{"@type":"Article","headline":"Test","datePublished":"2024-01-01","image":"/img.jpg","author":{"name":"John"}}</script>'
+    const r = await schemaArticleRequiredRule.run({ html:'', url:'https://ex.com', doc: D(json) } as any, { globals: {} })
+    expect((r as any).type).toBe('warn')
+    expect((r as any).message).toContain('dateModified')
   })
 
   it('accepts author as string', async () => {
-    const json = '<script type="application/ld+json">{"@type":"Article","headline":"Test","datePublished":"2024-01-01","image":"/img.jpg","author":"John Doe"}</script>'
+    const json = '<script type="application/ld+json">{"@type":"Article","headline":"Test","datePublished":"2024-01-01","dateModified":"2024-01-02","image":"/img.jpg","author":"John Doe"}</script>'
     const r = await schemaArticleRequiredRule.run({ html:'', url:'https://ex.com', doc: D(json) } as any, { globals: {} })
     expect((r as any).type).toBe('ok')
   })
 
   it('fails when headline is missing', async () => {
-    const json = '<script type="application/ld+json">{"@type":"Article","datePublished":"2024-01-01","image":"/img.jpg","author":"John"}</script>'
+    const json = '<script type="application/ld+json">{"@type":"Article","datePublished":"2024-01-01","dateModified":"2024-01-02","image":"/img.jpg","author":"John"}</script>'
     const r = await schemaArticleRequiredRule.run({ html:'', url:'https://ex.com', doc: D(json) } as any, { globals: {} })
     expect((r as any).type).toBe('warn')
     expect((r as any).message).toContain('headline')
@@ -59,18 +69,19 @@ describe('schema: article required', () => {
     const json = '<script type="application/ld+json">{"@type":"Article","headline":"Test","image":"/img.jpg","author":"John"}</script>'
     const r = await schemaArticleRequiredRule.run({ html:'', url:'https://ex.com', doc: D(json) } as any, { globals: {} })
     expect((r as any).type).toBe('warn')
-    expect((r as any).message).toContain('datePublished|dateModified')
+    expect((r as any).message).toContain('datePublished')
+    expect((r as any).message).toContain('dateModified')
   })
 
   it('fails when image is missing', async () => {
-    const json = '<script type="application/ld+json">{"@type":"Article","headline":"Test","datePublished":"2024-01-01","author":"John"}</script>'
+    const json = '<script type="application/ld+json">{"@type":"Article","headline":"Test","datePublished":"2024-01-01","dateModified":"2024-01-02","author":"John"}</script>'
     const r = await schemaArticleRequiredRule.run({ html:'', url:'https://ex.com', doc: D(json) } as any, { globals: {} })
     expect((r as any).type).toBe('warn')
     expect((r as any).message).toContain('image')
   })
 
   it('fails when author.name is missing', async () => {
-    const json = '<script type="application/ld+json">{"@type":"Article","headline":"Test","datePublished":"2024-01-01","image":"/img.jpg","author":{}}</script>'
+    const json = '<script type="application/ld+json">{"@type":"Article","headline":"Test","datePublished":"2024-01-01","dateModified":"2024-01-02","image":"/img.jpg","author":{}}</script>'
     const r = await schemaArticleRequiredRule.run({ html:'', url:'https://ex.com', doc: D(json) } as any, { globals: {} })
     expect((r as any).type).toBe('warn')
     expect((r as any).message).toContain('author.name')

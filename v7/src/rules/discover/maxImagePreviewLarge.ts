@@ -2,8 +2,6 @@ import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
 
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#directives'
-
 const hasDirective = (s: string, dir: string) => new RegExp(`\\b${dir.replace(/[-]/g, '[-]')}\\b`, 'i').test(s)
 
 export const discoverMaxImagePreviewLargeRule: Rule = {
@@ -11,6 +9,14 @@ export const discoverMaxImagePreviewLargeRule: Rule = {
   name: 'max-image-preview:large',
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/appearance/google-discover',
+      'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag',
+    ],
+    description: 'Checks that max-image-preview:large is present in meta[name=robots] or X-Robots-Tag (ok if present, warn if not, framed as a Discover recommendation).',
+  },
   async run(page) {
     const metaEl = page.doc.querySelector('meta[name="robots"]')
     const meta = (metaEl?.getAttribute('content') || '').toLowerCase()
@@ -30,7 +36,6 @@ export const discoverMaxImagePreviewLargeRule: Rule = {
             ...(robotsContent ? { robotsContent } : {}),
             ...(sourceHtml ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(metaEl) } : {}),
             ...(xr ? { xRobotsTag: xr } : {}),
-            reference: SPEC,
           },
         }
       : {
@@ -39,7 +44,7 @@ export const discoverMaxImagePreviewLargeRule: Rule = {
           type: 'warn',
           priority: 400,
           name: 'max-image-preview:large',
-          details: { ...(robotsContent ? { robotsContent } : {}), ...(sourceHtml ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(metaEl) } : {}), reference: SPEC },
+          details: { ...(robotsContent ? { robotsContent } : {}), ...(sourceHtml ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(metaEl) } : {}) },
         }
   },
 }

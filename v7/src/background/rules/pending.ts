@@ -1,3 +1,4 @@
+import { metaDetails } from '@/core/runHelpers'
 import type { Result, Rule } from '@/core/types'
 
 const labelFor = (rule: Rule) => (rule.id.split(':')[0] || 'RULE').toUpperCase()
@@ -13,6 +14,7 @@ export const buildPendingResults = (rules: Rule[], runId: string, runIndexByRule
     runIdentifier: runId,
     priority: 5000,
     runIndex: runIndexByRuleId?.[rule.id] ?? idx + 1,
+    details: metaDetails(rule),
   }))
 
 export const buildRuleOverrides = (rules: Rule[]) =>

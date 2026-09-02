@@ -5,13 +5,19 @@ import { extractSnippet } from '@/shared/html-utils'
 const LABEL = 'ROBOTS'
 const NAME = 'robots.txt Complexity'
 const RULE_ID = 'robots:complexity'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots/intro'
 
 export const robotsComplexityRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'franz',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt',
+    ],
+    description: 'Informational count of Disallow, Allow, and Sitemap lines in robots.txt as a complexity indicator.',
+  },
   async run(page) {
     let origin = ''
     try {
@@ -23,7 +29,7 @@ export const robotsComplexityRule: Rule = {
         message: 'Invalid URL. Cannot fetch robots.txt.',
         type: 'info',
         priority: 900,
-        details: { reference: SPEC },
+        details: {},
       }
     }
     const robotsTxt = await fetchTextOnce(`${origin}/robots.txt`)
@@ -36,7 +42,6 @@ export const robotsComplexityRule: Rule = {
         priority: 850,
         details: {
           snippet: extractSnippet('(not reachable)'),
-          reference: SPEC,
         },
       }
     }
@@ -59,7 +64,6 @@ export const robotsComplexityRule: Rule = {
         allowCount,
         sitemapCount,
         totalRules,
-        reference: SPEC,
       },
     }
   },

@@ -4,13 +4,17 @@ import { parseRobotsDirectives } from '@/shared/robots'
 const LABEL = 'HEAD'
 const NAME = 'Robots meta list'
 const RULE_ID = 'head:robots-meta-list'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag'
 
 export const robotsMetaListRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: ['https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag'],
+    description: 'Info-only inventory listing every meta-source robots directive (all user agents) found in the head.',
+  },
   async run(page) {
     const directives = parseRobotsDirectives(page.doc).filter((d) => d.source === 'meta')
     if (!directives.length) {
@@ -20,7 +24,6 @@ export const robotsMetaListRule: Rule = {
         message: 'No robots meta tags present.',
         type: 'info',
         priority: 915,
-        details: { reference: SPEC },
       }
     }
 
@@ -35,7 +38,6 @@ export const robotsMetaListRule: Rule = {
       details: {
         directives,
         domPaths,
-        reference: SPEC,
       },
     }
   },

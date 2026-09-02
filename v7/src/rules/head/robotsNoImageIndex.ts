@@ -6,7 +6,6 @@ import { findRobotsTokens } from '@/shared/robots-tokens'
 const LABEL = 'HEAD'
 const NAME = 'Robots noimageindex'
 const RULE_ID = 'head:robots-noimageindex'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#noimageindex'
 
 const summary = (tokens: { ua: string; token: string }[]) => tokens.map((t) => `${t.ua}:${t.token}`).join('; ')
 
@@ -15,6 +14,11 @@ export const robotsNoImageIndexRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: ['https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#noimageindex'],
+    description: 'Warns when a noimageindex directive is present in robots meta tags or the X-Robots-Tag header.',
+  },
   async run(page) {
     const directives = parseRobotsDirectives(page.doc, page.headers)
     const matches = findRobotsTokens(directives, 'noimageindex')
@@ -25,7 +29,6 @@ export const robotsNoImageIndexRule: Rule = {
         message: 'No noimageindex directive found.',
         type: 'info',
         priority: 900,
-        details: { reference: SPEC },
       }
     }
 
@@ -44,7 +47,6 @@ export const robotsNoImageIndexRule: Rule = {
         snippet,
         domPaths,
         matches,
-        reference: SPEC,
       },
     }
   },

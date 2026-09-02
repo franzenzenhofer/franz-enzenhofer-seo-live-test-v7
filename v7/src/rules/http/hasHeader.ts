@@ -5,13 +5,18 @@ import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 const LABEL = 'HTTP'
 const NAME = 'HTTP Header Presence (Configurable)'
 const RULE_ID = 'http:has-header'
-const SPEC = 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers'
 
 export const hasHeaderRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'franz',
+    references: [],
+    description:
+      'User-configurable presence check: reads the comma-separated "http_has_header" variable and reports ok when all requested response headers are present, warn listing the missing ones otherwise.',
+  },
   async run(page, ctx) {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const vars = (ctx.globals as { variables?: Record<string, unknown> }).variables || {}
@@ -23,7 +28,7 @@ export const hasHeaderRule: Rule = {
         message: 'No headers configured. Set "http_has_header" variable (comma-separated list).',
         type: 'info',
         priority: 900,
-        details: { httpHeaders: page.headers || {}, reference: SPEC },
+        details: { httpHeaders: page.headers || {} },
       }
     }
     const requestedHeaders = raw.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
@@ -66,7 +71,6 @@ export const hasHeaderRule: Rule = {
         requestedHeaders,
         presentHeaders,
         missingHeaders,
-        reference: SPEC,
       },
     }
   },

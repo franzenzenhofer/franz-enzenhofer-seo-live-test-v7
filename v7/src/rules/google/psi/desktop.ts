@@ -1,4 +1,4 @@
-import { extractPSIKey, PSI_API_REFERENCE } from '../google-utils'
+import { extractPSIKey } from '../google-utils'
 
 import { psiScoreVerdict, summarizePSI } from './summary'
 
@@ -12,6 +12,15 @@ export const psiDesktopRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'psi',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/speed/docs/insights/v5/about',
+      'https://developer.chrome.com/docs/lighthouse/performance/performance-scoring',
+      'https://developers.google.com/speed/docs/insights/v5/get-started',
+    ],
+    description: 'Runs the PSI v5 API with strategy=desktop and grades the Lighthouse performance score.',
+  },
   async run(page, ctx) {
     const userKey = extractPSIKey(ctx)
     const key = getPSIKey(userKey)
@@ -19,6 +28,6 @@ export const psiDesktopRule: Rule = {
     const summary = summarizePSI(j, page.url, 'desktop')
     const verdict = psiScoreVerdict(summary.score)
     const msg = `Desktop performance: ${summary.score}/100 [View report](${summary.testUrl})`
-    return { label: 'PSI', message: msg, type: verdict.type, priority: verdict.priority, name: NAME, details: { ...summary, reference: PSI_API_REFERENCE } }
+    return { label: 'PSI', message: msg, type: verdict.type, priority: verdict.priority, name: NAME, details: { ...summary } }
   },
 }

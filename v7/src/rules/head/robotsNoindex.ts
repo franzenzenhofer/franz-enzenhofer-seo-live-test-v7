@@ -10,13 +10,17 @@ const LABEL = 'HEAD'
 const NAME = 'Meta Robots Noindex'
 const RULE_ID = 'head:robots-noindex'
 const SELECTOR = 'head > meta[name="robots"]'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag'
 
 export const robotsNoindexRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: ['https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag'],
+    description: 'Reads the single head > meta[name=robots] tag and warns when noindex/none/nofollow is present.',
+  },
   async run(page) {
     const directives = parseRobotsDirectives(page.doc)
     const elements = sampleElements(page.doc.querySelectorAll(SELECTOR))
@@ -27,7 +31,6 @@ export const robotsNoindexRule: Rule = {
         message: 'No robots meta tag found (page indexable).',
         type: 'info',
         priority: 900,
-        details: { reference: SPEC },
       }
     }
 
@@ -39,7 +42,7 @@ export const robotsNoindexRule: Rule = {
         message: 'Multiple robots meta tags — check for conflicting noindex/nofollow directives.',
         type: 'warn',
         priority: 150,
-        details: { sourceHtml: snippet, snippet: extractSnippet(snippet), domPaths: getDomPaths(elements.sample), count: elements.total, shown: elements.shown, truncated: elements.truncated, reference: SPEC },
+        details: { sourceHtml: snippet, snippet: extractSnippet(snippet), domPaths: getDomPaths(elements.sample), count: elements.total, shown: elements.shown, truncated: elements.truncated },
       }
     }
 
@@ -72,7 +75,6 @@ export const robotsNoindexRule: Rule = {
         directives: tokens,
         hasNoindex,
         hasNofollow,
-        reference: SPEC,
       },
     }
   },

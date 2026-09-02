@@ -23,11 +23,12 @@ describe('rule: canonical vs navigation', () => {
     expect(res.message).toContain('redirects')
   })
 
-  it('warns when canonical differs from final landing', async () => {
+  it('reports info when canonical points to a different preferred URL (documented rel=canonical use case)', async () => {
     const res = await canonicalNavConsistencyRule.run(
       { html: '', url: 'https://ex.com/final', doc: doc('<link rel="canonical" href="https://ex.com/other">') } as any,
       ctx([{ url: 'https://ex.com/final', type: 'load' }]) as any,
     )
-    expect(res.type).toBe('warn')
+    expect(res.type).toBe('info')
+    expect(res.message).toContain('different URL')
   })
 })

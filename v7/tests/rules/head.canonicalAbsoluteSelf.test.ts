@@ -27,6 +27,19 @@ describe('rules: canonical', () => {
     expect((r.details as any).matchesPageUrl).toBe(false)
   })
 
+  it('keeps the query string when detecting self-reference (different params are not self)', async () => {
+    const r = await canonicalRule.run({ html:'', url:'https://ex.com/products?category=shoes', doc: D('<link rel="canonical" href="https://ex.com/products?category=hats">') } as any, { globals: {} })
+    expect(r.type).toBe('warn')
+    expect(r.message).toContain('points to')
+    expect((r.details as any).matchesPageUrl).toBe(false)
+  })
+
+  it('self-references when the query string is identical', async () => {
+    const r = await canonicalRule.run({ html:'', url:'https://ex.com/products?category=shoes', doc: D('<link rel="canonical" href="https://ex.com/products?category=shoes">') } as any, { globals: {} })
+    expect(r.type).toBe('ok')
+    expect((r.details as any).matchesPageUrl).toBe(true)
+  })
+
   it('warns when canonical is outside head', async () => {
     const r = await canonicalRule.run({ html:'', url:'https://ex.com/a', doc: D('<body><link rel="canonical" href="https://ex.com/a"></body>') } as any, { globals: {} })
     expect(r.type).toBe('warn')

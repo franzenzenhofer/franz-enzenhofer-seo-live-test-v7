@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { JSDOM } from 'jsdom'
 
 import { registry } from '../src/rules/registry'
+import { metaDetails } from '@/core/runHelpers'
 
 const LONG_TIMEOUT = 120000
 
@@ -45,7 +46,9 @@ describe('Registry: details are provided for all rule results', () => {
 
           for (const r of results) {
             if (!r) continue
-            const hasDetails = r.details && Object.keys(r.details as Record<string, unknown>).length > 0
+            // Mirror production: the runner injects reference + provenance into every result
+            const injected = metaDetails(rule, r.details)
+            const hasDetails = injected && Object.keys(injected as Record<string, unknown>).length > 0
             if (!hasDetails) {
               violations.push({
                 ruleId: rule.id,

@@ -7,7 +7,6 @@ const LABEL = 'HEAD'
 const NAME = 'Twitter Card'
 const RULE_ID = 'head:twitter-card'
 const SELECTOR = 'head > meta[name="twitter:card"]'
-const SPEC = 'https://developer.x.com/en/docs/twitter-for-websites/cards/overview/abouts-cards'
 
 // Valid Twitter Card types per spec
 const VALID_CARD_TYPES = ['summary', 'summary_large_image', 'app', 'player']
@@ -17,6 +16,11 @@ export const twitterCardRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'general',
+    references: ['https://web.archive.org/web/20240526100043/https://developer.x.com/en/docs/twitter-for-websites/cards/overview/markup'],
+    description: 'Checks meta[name=twitter:card] presence and validates its value against {summary, summary_large_image, app, player}.',
+  },
   async run(page) {
     // 1. Query with precision selector
     const element = page.doc.querySelector(SELECTOR)
@@ -61,9 +65,8 @@ export const twitterCardRule: Rule = {
           cardType,
           isValidType,
           validCardTypes: VALID_CARD_TYPES,
-          reference: SPEC,
         }
-      : { validCardTypes: VALID_CARD_TYPES, reference: SPEC }
+      : { validCardTypes: VALID_CARD_TYPES }
 
     return {
       label: LABEL,

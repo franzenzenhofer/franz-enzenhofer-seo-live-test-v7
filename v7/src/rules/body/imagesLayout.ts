@@ -3,13 +3,21 @@ import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPaths } from '@/shared/dom-path'
 import { sampleElements, sampleMatchingElements } from '@/shared/domEvidence'
 
-const SPEC = 'https://web.dev/cls/#images-without-dimensions'
+const CSS_NOTE = 'Reserving the space with CSS aspect-ratio (or similar) is a spec-sanctioned alternative this static attribute check cannot verify.'
 
 export const imagesLayoutRule: Rule = {
   id: 'body:images-layout',
   name: 'Images missing dimensions',
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://web.dev/articles/optimize-cls#images-without-dimensions',
+      'https://web.dev/articles/cls',
+    ],
+    description: 'Warns when any img element lacks a width or height attribute (CLS prevention); ok when all images carry both.',
+  },
   async run(page) {
     const imgs = page.doc.querySelectorAll<HTMLImageElement>('img')
     const missing = sampleMatchingElements(imgs, (image) => !image.getAttribute('width') || !image.getAttribute('height'))
@@ -27,7 +35,7 @@ export const imagesLayoutRule: Rule = {
           snippet: extractSnippet(sourceHtml),
           domPaths: getDomPaths(missing.sample),
           count: missing.total, shown: missing.shown, truncated: missing.truncated,
-          reference: SPEC,
+          note: CSS_NOTE,
         },
       }
     }
@@ -47,7 +55,6 @@ export const imagesLayoutRule: Rule = {
         domPaths,
         count: all.total, shown: all.shown, truncated: all.truncated,
         tested: 'Checked <img> width/height attributes',
-        reference: SPEC,
       },
     }
   },

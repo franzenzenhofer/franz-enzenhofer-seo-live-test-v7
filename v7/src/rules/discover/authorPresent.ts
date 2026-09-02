@@ -3,8 +3,6 @@ import { extractHtml, extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
 import { parseLd } from '@/shared/structured'
 
-const SPEC = 'https://developers.google.com/search/docs/appearance/structured-data/article#author'
-
 const findAuthor = (d: Document) => {
   const metaEl = d.querySelector('meta[name="author"]')
   const metaContent = (metaEl?.getAttribute('content') || '').trim()
@@ -32,6 +30,14 @@ export const discoverAuthorPresentRule: Rule = {
   name: 'Author present',
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/appearance/structured-data/article',
+      'https://html.spec.whatwg.org/multipage/semantics.html#meta-author',
+    ],
+    description: 'Checks for an author via meta[name=author] or JSON-LD author/author.name (info if present, warn if absent).',
+  },
   async run(page) {
     const result = findAuthor(page.doc)
     const sourceHtml = extractHtml(result.element)
@@ -48,7 +54,6 @@ export const discoverAuthorPresentRule: Rule = {
             sourceHtml,
             snippet: extractSnippet(sourceHtml),
             domPath: getDomPath(result.element),
-            reference: SPEC,
           },
         }
       : {
@@ -57,7 +62,7 @@ export const discoverAuthorPresentRule: Rule = {
           type: 'warn',
           priority: 350,
           name: 'Author present',
-          details: { reference: SPEC },
+          details: {},
         }
   },
 }

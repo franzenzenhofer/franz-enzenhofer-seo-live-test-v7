@@ -5,7 +5,6 @@ import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../g
 import type { Rule } from '@/core/types'
 
 const NAME = 'GSC URL Inspection'
-const SPEC = 'https://developers.google.com/search/apis/indexing-api/v1/url-inspection'
 const LABEL = 'GSC'
 
 const relativeTime = (iso?: string | null) => {
@@ -32,6 +31,13 @@ export const gscUrlInspectionRule: Rule = {
   enabled: true,
   what: 'gsc',
   timeout: { mode: 'api' },
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/webmaster-tools/v1/urlInspection.index/inspect',
+    ],
+    description: 'Calls the Search Console URL Inspection API and reports coverageState/verdict/lastCrawlTime/referringUrls (ok on PASS, warn otherwise).',
+  },
   async run(page, ctx) {
     const { token } = extractGoogleCredentials(ctx)
     if (!token) return createNoTokenResult(LABEL, NAME)
@@ -55,7 +61,7 @@ export const gscUrlInspectionRule: Rule = {
         type: 'runtime_error',
         name: NAME,
         priority: -1000,
-        details: { property: derived.property, propertyType: derived.type, reference: SPEC },
+        details: { property: derived.property, propertyType: derived.type },
       }
     }
 
@@ -66,7 +72,7 @@ export const gscUrlInspectionRule: Rule = {
         type: 'warn',
         name: NAME,
         priority: 0,
-        details: { property: derived.property, propertyType: derived.type, status: response.status, reference: SPEC },
+        details: { property: derived.property, propertyType: derived.type, status: response.status },
       }
     }
 
@@ -85,7 +91,7 @@ export const gscUrlInspectionRule: Rule = {
         type: 'runtime_error',
         name: NAME,
         priority: -500,
-        details: { property: derived.property, propertyType: derived.type, reference: SPEC },
+        details: { property: derived.property, propertyType: derived.type },
       }
     }
 
@@ -113,7 +119,6 @@ export const gscUrlInspectionRule: Rule = {
         referringUrls,
         lastCrawlTime: lastCrawl,
         inspectionResultLink: data.inspectionResult?.inspectionResultLink || null,
-        reference: SPEC,
       },
     }
   },

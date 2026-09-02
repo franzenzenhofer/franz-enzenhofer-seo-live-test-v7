@@ -37,7 +37,7 @@ describe('result types and priorities match the finding', () => {
     expect(res.priority).toBeLessThanOrEqual(400)
   })
 
-  it('soft-404 redirect-to-404 is a warn, not an error', async () => {
+  it('soft-404 redirect-to-404 is an info, not an error', async () => {
     const orig = globalThis.fetch
     const hop = { status: 301, type: 'basic', redirected: false, url: 'https://ex.com/x', body: null, headers: new Headers({ location: 'https://ex.com/404' }) }
     const final = { status: 404, type: 'basic', redirected: false, url: 'https://ex.com/404', body: null, headers: new Headers() }
@@ -45,7 +45,8 @@ describe('result types and priorities match the finding', () => {
     globalThis.fetch = vi.fn().mockResolvedValueOnce(hop).mockResolvedValue(final)
     const res = await soft404Rule.run(page('', { headers: { a: '1' } }), ctx)
     globalThis.fetch = orig
-    expect(res.type).toBe('warn')
+    // Redirecting a non-existent URL to a page that returns 404 is proper 404 handling
+    expect(res.type).toBe('info')
   })
 
   it('missing compression is a warn, not an error', async () => {
@@ -67,7 +68,8 @@ describe('result types and priorities match the finding', () => {
   it('schema rules carry priorities and name specific missing fields', async () => {
     const html = '<script type="application/ld+json">{"@type":"Organization","name":"ACME"}</script>'
     const res = await schemaOrganizationRule.run(page(html), ctx)
-    expect(res.type).toBe('warn')
+    // Google documents no required Organization properties - missing logo/url are recommended (info)
+    expect(res.type).toBe('info')
     expect(typeof res.priority).toBe('number')
     expect(res.message).toMatch(/logo|url/)
     const absent = await schemaArticlePresentRule.run(page(''), ctx)

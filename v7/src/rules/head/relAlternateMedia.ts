@@ -8,18 +8,25 @@ const LABEL = 'HEAD'
 const NAME = 'Rel Alternate Media'
 const RULE_ID = 'head:rel-alternate-media'
 const SELECTOR = 'head > link[rel~="alternate" i][media][href]'
-const SPEC = 'https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel#alternate'
 
 export const relAlternateMediaRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/mobile/mobile-sites-mobile-first-indexing',
+      'https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel',
+    ],
+    description: 'Detects link[rel=alternate][media][href] annotations (separate mobile URL configuration) and warns when present.',
+  },
   async run(page) {
     const elements = sampleElements(page.doc.querySelectorAll(SELECTOR))
     const count = elements.total
     if (!count) {
-      return { label: LABEL, name: NAME, message: 'No rel=alternate media links found.', type: 'info', priority: 900, details: { reference: SPEC } }
+      return { label: LABEL, name: NAME, message: 'No rel=alternate media links found.', type: 'info', priority: 900, details: {} }
     }
 
     const mediaData = elements.sample.map((link) => ({
@@ -49,7 +56,6 @@ export const relAlternateMediaRule: Rule = {
         shown: elements.shown,
         truncated: elements.truncated,
         mediaData,
-        reference: SPEC,
       },
     }
   },

@@ -7,7 +7,7 @@ const page = {} as Page
 const ctx = { globals: {} } as never
 
 const mkRule = (id: string, what: string, ms: number, onDone: (id: string) => void): Rule => ({
-  id, name: id, enabled: true, what,
+  id, name: id, enabled: true, what, meta: { provenance: 'franz' as const, references: [] },
   async run(): Promise<Result> {
     await new Promise((r) => setTimeout(r, ms))
     onDone(id)
@@ -46,7 +46,7 @@ describe('ruleQueue lanes', () => {
     let peak = 0
     let active = 0
     const rules = ids.map((id) => ({
-      id, name: id, enabled: true, what: id.startsWith('psi') ? 'psi' : 'gsc',
+      id, name: id, enabled: true, what: id.startsWith('psi') ? 'psi' : 'gsc', meta: { provenance: 'franz' as const, references: [] },
       async run(): Promise<Result> {
         active++; peak = Math.max(peak, active)
         await new Promise((r) => setTimeout(r, 50))
@@ -64,7 +64,7 @@ describe('ruleQueue lanes', () => {
   it('runs slow rules concurrently in their own lane', async () => {
     const started: number[] = []
     const rules = ['psi:a', 'psi:b', 'psi:c'].map((id) => ({
-      id, name: id, enabled: true, what: 'psi',
+      id, name: id, enabled: true, what: 'psi', meta: { provenance: 'franz' as const, references: [] },
       async run(): Promise<Result> {
         started.push(Date.now())
         await new Promise((r) => setTimeout(r, 50))

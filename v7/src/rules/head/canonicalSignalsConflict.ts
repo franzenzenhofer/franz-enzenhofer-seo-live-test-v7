@@ -7,30 +7,28 @@ import { linkHeaderOf, parseHeaderCanonicals } from '@/shared/canonicalHeader'
 const LABEL = 'HEAD'
 const NAME = 'Canonical signals conflict'
 const RULE_ID = 'head:canonical-signals-conflict'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
 
 export const canonicalSignalsConflictRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls',
+      'https://www.rfc-editor.org/rfc/rfc6596',
+    ],
+    description: 'Compares HTML link canonical against HTTP header canonical: error when they point to different URLs, warn when both sources are set to the same URL.',
+  },
   async run(page) {
     const linkEl = page.doc.querySelector('link[rel~="canonical" i]')
     const htmlHref = (linkEl?.getAttribute('href') || '').trim()
     const htmlCanonical = htmlHref ? new URL(htmlHref, page.url).toString() : ''
     const headerVal = linkHeaderOf(page.headers)
+    // Multiple header canonicals are head:canonical-header's finding; compare
+    // against the first one here to avoid double-reporting the same defect.
     const headerCanonicals = parseHeaderCanonicals(headerVal)
-
-    if (headerCanonicals.length > 1) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: `Multiple rel="canonical" HTTP headers found (${headerCanonicals.length}); remove duplicates.`,
-        type: 'error',
-        priority: 100,
-        details: { header: headerVal, headerCanonicals, reference: SPEC },
-      }
-    }
     const headerCanonical = headerCanonicals[0] || ''
 
     if (!headerCanonical || !htmlCanonical) {
@@ -43,7 +41,6 @@ export const canonicalSignalsConflictRule: Rule = {
         details: {
           htmlCanonical: htmlCanonical || null,
           headerCanonical: headerCanonical || null,
-          reference: SPEC,
           domPath: linkEl ? getDomPath(linkEl) : undefined,
         },
       }
@@ -52,14 +49,16 @@ export const canonicalSignalsConflictRule: Rule = {
     const normalizedHtml = normalizeUrl(htmlCanonical)
     const normalizedHeader = normalizeUrl(headerCanonical)
     const matches = normalizedHtml === normalizedHeader
+    // Google: using both methods at once is supported but "more error prone" -
+    // a matching pair is a recommendation-level warn, differing URLs an error.
     return {
       label: LABEL,
       name: NAME,
       message: matches
-        ? 'Both HTML and HTTP canonicals set; remove one source to avoid conflicts.'
+        ? 'Both HTML and HTTP canonicals set to the same URL; choose one method to reduce error risk.'
         : 'HTML and HTTP canonicals conflict; they point to different URLs.',
-      type: 'error',
-      priority: matches ? 150 : 80,
+      type: matches ? 'warn' : 'error',
+      priority: matches ? 300 : 80,
       details: {
         htmlCanonical,
         headerCanonical,
@@ -69,7 +68,6 @@ export const canonicalSignalsConflictRule: Rule = {
         domPath: linkEl ? getDomPath(linkEl) : undefined,
         header: headerVal,
         snippet: linkEl ? extractSnippet(linkEl.outerHTML) : extractSnippet(htmlCanonical),
-        reference: SPEC,
       },
     }
   },

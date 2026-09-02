@@ -8,13 +8,18 @@ export const schemaArticleRequiredRule = createSchemaRule({
   name: 'Schema Article required fields',
   types: ['Article', 'NewsArticle', 'BlogPosting'],
   searchStrings: ['Article', 'BlogPosting'],
+  fieldsLabel: 'recommended', // Google: 'There are no required properties' - everything checked here is recommended
+  meta: {
+    provenance: 'google',
+    references: ['https://developers.google.com/search/docs/appearance/structured-data/article'],
+    description: 'Warns when an Article/NewsArticle/BlogPosting node lacks headline, image, author.name, or datePublished/dateModified.',
+  },
   validator: (n) => {
-    const req = ['headline']
-    const miss = missingPaths(n, req)
+    const miss = missingPaths(n, ['headline'])
 
-    // Check datePublished OR dateModified (either is acceptable)
-    const altOk = !!get(n, 'datePublished') || !!get(n, 'dateModified')
-    if (!altOk) miss.push('datePublished|dateModified')
+    // Google lists datePublished and dateModified as two separate recommended properties
+    if (!get(n, 'datePublished')) miss.push('datePublished')
+    if (!get(n, 'dateModified')) miss.push('dateModified')
 
     // Check image
     if (!get(n, 'image')) miss.push('image')
@@ -27,4 +32,3 @@ export const schemaArticleRequiredRule = createSchemaRule({
     return { ok: miss.length === 0, missing: miss }
   },
 })
-

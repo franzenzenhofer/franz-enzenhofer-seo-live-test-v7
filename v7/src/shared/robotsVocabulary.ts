@@ -61,6 +61,13 @@ const isStrongToken = (token: string): boolean => {
   return STRONG_TOKENS.has(key) || PREFIX_TOKENS.has(key)
 }
 
+// A directive key is a robots token name ('noindex', 'max-snippet', ...) - the
+// header parser needs this to tell 'max-snippet: 20' apart from a UA prefix.
+export const isRobotsDirectiveKey = (key: string): boolean => {
+  const normalized = key.trim().toLowerCase()
+  return VALUE_TOKENS.has(normalized) || PREFIX_TOKENS.has(normalized)
+}
+
 export const isRobotsMetaDirective = (name: string, content: string): boolean => {
   const ua = name.trim().toLowerCase()
   if (KNOWN_ROBOTS_UAS.has(ua)) return true

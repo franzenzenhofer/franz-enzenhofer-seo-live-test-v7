@@ -5,13 +5,20 @@ import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 const LABEL = 'HTTP'
 const NAME = 'HTTP/2 Advertised (Alt-Svc)'
 const RULE_ID = 'http:h2-advertised'
-const SPEC = 'https://datatracker.ietf.org/doc/html/rfc7838'
 
 export const http2AdvertisedRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'standard',
+    references: [
+      'https://www.rfc-editor.org/rfc/rfc7838.html#section-3',
+      'https://httpwg.org/specs/rfc9110.html#field.vary',
+    ],
+    description: 'Reports (info-only) whether the Alt-Svc header advertises an h2 alternative service.',
+  },
   async run(page) {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const altSvcHeader = page.headers?.['alt-svc']?.trim() || ''
@@ -33,7 +40,6 @@ export const http2AdvertisedRule: Rule = {
         snippet: extractSnippet(altSvcHeader || '(not present)'),
         altSvcHeader,
         advertisesHttp2,
-        reference: SPEC,
       },
     }
   },

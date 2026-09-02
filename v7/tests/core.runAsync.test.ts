@@ -21,6 +21,7 @@ describe('runAll async scheduler', () => {
     id,
     name: id,
     enabled: true,
+    meta: { provenance: 'franz' as const, references: [] },
     run: vi.fn(async () => {
       await new Promise((resolve) => setTimeout(resolve, delay))
       return { name: id, label: 'T', message: id, type: 'ok', ruleId: id }
@@ -41,7 +42,7 @@ describe('runAll async scheduler', () => {
       await new Promise((resolve) => setTimeout(resolve, 5000))
       return { name: 'slow', label: 'T', message: 'slow', type: 'ok', ruleId: 'slow' }
     })
-    const disabled: Rule = { id: 'disabled', name: 'disabled', enabled: false, run: vi.fn() as any }
+    const disabled: Rule = { id: 'disabled', name: 'disabled', enabled: false, meta: { provenance: 'franz', references: [] }, run: vi.fn() as any }
     const promise = runAll(1, [fast, disabled, slow], basePage as any, ctx)
     await vi.advanceTimersByTimeAsync(5000)
     const results = await promise

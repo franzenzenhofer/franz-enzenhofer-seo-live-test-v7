@@ -6,7 +6,6 @@ import { findRobotsTokens } from '@/shared/robots-tokens'
 const LABEL = 'HEAD'
 const NAME = 'Robots max-image-preview'
 const RULE_ID = 'head:robots-max-image-preview'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#max-image-preview'
 const ALLOWED = new Set(['none', 'standard', 'large'])
 
 export const robotsMaxImagePreviewRule: Rule = {
@@ -14,6 +13,11 @@ export const robotsMaxImagePreviewRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: ['https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#max-image-preview'],
+    description: 'Reports max-image-preview directives and warns when the value is not one of none/standard/large.',
+  },
   async run(page) {
     const directives = parseRobotsDirectives(page.doc, page.headers)
     const matches = findRobotsTokens(directives, 'max-image-preview')
@@ -24,7 +28,6 @@ export const robotsMaxImagePreviewRule: Rule = {
         message: 'No max-image-preview directive found.',
         type: 'info',
         priority: 905,
-        details: { reference: SPEC },
       }
     }
 
@@ -53,7 +56,6 @@ export const robotsMaxImagePreviewRule: Rule = {
         domPaths,
         parsed,
         allowedValues: Array.from(ALLOWED),
-        reference: SPEC,
       },
     }
   },
