@@ -7,20 +7,29 @@ import { headerChainToRedirectChain } from '@/shared/redirectChainFromEvents'
 const LABEL = 'HTTP'
 const NAME = 'Navigation Path Analysis'
 const RULE_ID = 'http:navigation-path'
-const SPEC = 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections'
 
 const buildResult = (
   message: string,
   type: Result['type'],
   priority: number,
   details: Record<string, unknown>,
-): Result => ({ label: LABEL, name: NAME, message, type, priority, details: { ...details, reference: SPEC } })
+): Result => ({ label: LABEL, name: NAME, message, type, priority, details })
 
 export const navigationPathRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/301-redirects',
+      'https://developer.chrome.com/docs/lighthouse/performance/redirects',
+      'https://www.rfc-editor.org/rfc/rfc9110.html#name-redirection-3xx',
+    ],
+    description:
+      'Analyzes the full navigation path (loads, HTTP redirects, client redirects, history API) and grades it: direct load ok, client redirect error, chain >1 hop error, temporary redirect warn, single permanent HTTP -> HTTPS redirect ok, other single permanent redirect info.',
+  },
 
   async run(page, ctx): Promise<Result> {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
@@ -101,17 +110,17 @@ export const navigationPathRule: Rule = {
 
     if (hasMixedHttp) {
       return buildResult(
-        `HTTP → HTTPS redirect (${redirectCount} hop${redirectCount > 1 ? 's' : ''}).\n\n${chainDesc}`,
-        'warn',
-        250,
-        { trace, redirectCount, ...chainDetails, issue: 'mixed_content' },
+        `HTTP → HTTPS permanent redirect (${redirectCount} hop${redirectCount > 1 ? 's' : ''}) - recommended setup.\n\n${chainDesc}`,
+        'ok',
+        750,
+        { trace, redirectCount, ...chainDetails, issue: 'http_to_https_redirect' },
       )
     }
 
     return buildResult(
-      `Single redirect (${redirectCount} hop).\n\n${chainDesc}`,
-      'warn',
-      300,
+      `Single permanent redirect (${redirectCount} hop).\n\n${chainDesc}`,
+      'info',
+      700,
       { trace, redirectCount, ...chainDetails },
     )
   },

@@ -5,7 +5,6 @@ import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 const LABEL = 'HTTP'
 const NAME = 'HTTP Status'
 const RULE_ID = 'http-status'
-const SPEC = 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status'
 
 const classify = (s?: number) => {
   if (!s) return { type: 'warn', message: 'Status unknown', priority: 100, statusClass: 'Unknown' }
@@ -23,6 +22,15 @@ export const httpStatusRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/http-network-errors',
+      'https://www.rfc-editor.org/rfc/rfc9110.html#name-status-codes',
+    ],
+    description:
+      "Classifies the main document's HTTP status code: 2xx ok, 3xx info, 4xx/5xx error, missing status warn.",
+  },
   run: async (page) => {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const status = page.status
@@ -38,7 +46,6 @@ export const httpStatusRule: Rule = {
         snippet: extractSnippet(String(status || 'unknown')),
         status,
         statusClass: c.statusClass,
-        reference: SPEC,
       },
     }
   },

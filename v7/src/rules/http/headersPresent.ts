@@ -3,13 +3,18 @@ import type { Rule } from '@/core/types'
 const LABEL = 'HTTP'
 const NAME = 'HTTP Header Captured'
 const RULE_ID = 'http:headers-present'
-const SPEC = 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers'
 
 export const headersPresentRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'franz',
+    references: [],
+    description:
+      'Diagnostic meta-check: warns when no HTTP response headers were captured for the page load (e.g. served from cache, so header-dependent rules cannot run), otherwise reports the captured header count as info.',
+  },
   async run(page) {
     const headerCount = Object.keys(page.headers || {}).length
     if (!headerCount) {
@@ -19,7 +24,7 @@ export const headersPresentRule: Rule = {
         message: 'No HTTP headers captured. Page may have been served from cache; header-dependent checks might fail.',
         type: 'warn',
         priority: 350,
-        details: { httpHeaders: page.headers || {}, headerCount, status: page.status, fromCache: page.fromCache ?? null, reference: SPEC },
+        details: { httpHeaders: page.headers || {}, headerCount, status: page.status, fromCache: page.fromCache ?? null },
       }
     }
     return {
@@ -28,7 +33,7 @@ export const headersPresentRule: Rule = {
       message: `${headerCount} HTTP response headers captured${typeof page.status === 'number' ? ` (HTTP ${page.status})` : ''}.`,
       type: 'info',
       priority: 900,
-      details: { httpHeaders: page.headers || {}, headerCount, status: page.status, fromCache: page.fromCache ?? null, reference: SPEC },
+      details: { httpHeaders: page.headers || {}, headerCount, status: page.status, fromCache: page.fromCache ?? null },
     }
   },
 }

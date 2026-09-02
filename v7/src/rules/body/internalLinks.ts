@@ -5,7 +5,6 @@ import { EVIDENCE_LIMIT } from '@/shared/domEvidence'
 
 const LABEL = 'BODY'
 const NAME = 'Internal links count'
-const SPEC = 'https://developers.google.com/search/docs/fundamentals/seo-starter-guide#site-hierarchy'
 const TESTED = 'Counted all <a href> elements and categorized them by same-host vs cross-host destinations.'
 
 const sameHost = (base: string, href: string) => {
@@ -23,6 +22,13 @@ export const internalLinksRule: Rule = {
   name: 'Internal links count',
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'franz',
+    references: [
+      'https://developers.google.com/search/docs/fundamentals/seo-starter-guide',
+    ],
+    description: 'Counts anchors with href, split into same-host (internal) vs cross-host (external), always reported as info.',
+  },
   async run(page) {
     const anchors = page.doc.querySelectorAll<HTMLAnchorElement>('a[href]')
     const internalLinks: HTMLAnchorElement[] = []
@@ -60,7 +66,6 @@ export const internalLinksRule: Rule = {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),
         tested: TESTED,
-        reference: SPEC,
         internalCount,
         externalCount,
         shown: internalLinks.length + externalLinks.length,

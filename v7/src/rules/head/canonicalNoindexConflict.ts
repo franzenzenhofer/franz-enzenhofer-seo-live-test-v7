@@ -6,14 +6,14 @@ import { linkHeaderOf, parseHeaderCanonicals } from '@/shared/canonicalHeader'
 const LABEL = 'HEAD'
 const NAME = 'Canonical + noindex conflict'
 const RULE_ID = 'head:canonical-noindex-conflict'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
-const ROBOTS_SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag'
 
+// X-Robots-Tag values may carry an optional user-agent prefix per rule
+// ("googlebot: noindex"); strip it before comparing tokens.
 const parseTokens = (val: string | undefined | null) =>
   (val || '')
     .toLowerCase()
     .split(/[,;]/)
-    .map((t) => t.trim())
+    .map((t) => t.trim().replace(/^[a-z0-9_*-]+\s*:\s*/, '').trim())
     .filter(Boolean)
 
 export const canonicalNoindexConflictRule: Rule = {
@@ -21,13 +21,23 @@ export const canonicalNoindexConflictRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls',
+      'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag',
+    ],
+    description: 'Warns when a canonical (HTML or HTTP header) coexists with noindex (meta robots or X-Robots-Tag) - conflicting signals.',
+  },
   async run(page) {
     const linkEl = page.doc.querySelector('link[rel~="canonical" i]')
     const htmlCanonical = (linkEl?.getAttribute('href') || '').trim()
     const headerCanonicals = parseHeaderCanonicals(linkHeaderOf(page.headers))
     const hasCanonical = !!htmlCanonical || headerCanonicals.length > 0
 
-    const robotsMeta = page.doc.querySelector('head > meta[name="robots"]')
+    // Meta names are case-insensitive to Google, and crawler-scoped metas
+    // (name="googlebot") carry the same rules as name="robots".
+    const robotsMeta = page.doc.querySelector('head > meta[name="robots" i], head > meta[name="googlebot" i]')
     const robotsTokens = parseTokens(robotsMeta?.getAttribute('content'))
     const hasNoindexMeta = robotsTokens.includes('noindex')
 
@@ -52,8 +62,6 @@ export const canonicalNoindexConflictRule: Rule = {
           xRobots: xRobotsRaw || null,
           hasNoindexMeta,
           hasNoindexHeader,
-          reference: SPEC,
-          secondaryReference: ROBOTS_SPEC,
           snippet: extractSnippet(robotsMeta?.outerHTML || xRobotsRaw || ''),
         },
       }
@@ -66,7 +74,6 @@ export const canonicalNoindexConflictRule: Rule = {
       type: 'info',
       priority: 900,
       details: {
-        reference: SPEC,
         ...(htmlCanonical ? { htmlCanonical } : {}),
         ...(headerCanonicals.length ? { headerCanonicals } : {}),
         hasCanonical,

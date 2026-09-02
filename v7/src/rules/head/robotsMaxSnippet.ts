@@ -6,13 +6,17 @@ import { findRobotsTokens, parseDirectiveNumber } from '@/shared/robots-tokens'
 const LABEL = 'HEAD'
 const NAME = 'Robots max-snippet'
 const RULE_ID = 'head:robots-max-snippet'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#max-snippet'
 
 export const robotsMaxSnippetRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: ['https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#max-snippet'],
+    description: 'Reports max-snippet directives and warns when the value is not a parseable integer >= -1.',
+  },
   async run(page) {
     const directives = parseRobotsDirectives(page.doc, page.headers)
     const matches = findRobotsTokens(directives, 'max-snippet')
@@ -23,7 +27,6 @@ export const robotsMaxSnippetRule: Rule = {
         message: 'No max-snippet directive found.',
         type: 'info',
         priority: 905,
-        details: { reference: SPEC },
       }
     }
 
@@ -48,7 +51,6 @@ export const robotsMaxSnippetRule: Rule = {
         domPaths,
         matches,
         parsed: parsed.map((entry) => ({ ...entry.match, ...entry.parsed })),
-        reference: SPEC,
       },
     }
   },

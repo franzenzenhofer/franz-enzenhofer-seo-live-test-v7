@@ -86,7 +86,7 @@ describe('http:navigation-path rule', () => {
     expect(result.details?.redirectCount).toBe(0)
   })
 
-  it('returns warn for single permanent redirect', async () => {
+  it('returns ok for single permanent HTTP → HTTPS redirect (recommended setup)', async () => {
     const ledger: NavigationLedger = {
       tabId: 1,
       currentUrl: 'https://example.com',
@@ -106,8 +106,34 @@ describe('http:navigation-path rule', () => {
       ],
     }
     const result = await run(ledger)
-    expect(result.type).toBe('warn')
+    expect(result.type).toBe('ok')
     expect(result.message).toContain('HTTP → HTTPS')
+    expect(result.details?.issue).toBe('http_to_https_redirect')
+    expect(result.details?.redirectCount).toBe(1)
+  })
+
+  it('returns info for a generic single permanent redirect', async () => {
+    const ledger: NavigationLedger = {
+      tabId: 1,
+      currentUrl: 'https://example.com/new',
+      trace: [
+        {
+          url: 'https://example.com/old',
+          timestamp: Date.now(),
+          type: 'http_redirect',
+          statusCode: 301,
+        },
+        {
+          url: 'https://example.com/new',
+          timestamp: Date.now(),
+          type: 'load',
+          statusCode: 200,
+        },
+      ],
+    }
+    const result = await run(ledger)
+    expect(result.type).toBe('info')
+    expect(result.message).toContain('Single permanent redirect')
     expect(result.details?.redirectCount).toBe(1)
   })
 
@@ -290,6 +316,5 @@ describe('http:navigation-path rule', () => {
     const result = await run(ledger)
     expect(result.details?.trace).toBeDefined()
     expect(result.details?.trace).toHaveLength(1)
-    expect(result.details?.reference).toBeDefined()
   })
 })

@@ -9,7 +9,6 @@ import type { RedirectChain } from '@/shared/redirectChainTypes'
 const LABEL = 'HTTP'
 const NAME = 'Soft 404 Probe'
 const RULE_ID = 'http:soft-404'
-const SPEC = 'https://support.google.com/webmasters/answer/181708?hl=en'
 
 const buildProbeUrl = (rawUrl: string): string => {
   const u = new URL(rawUrl)
@@ -36,17 +35,15 @@ const verdict = (chain: RedirectChain): Pick<Result, 'message' | 'type' | 'prior
     const what = chain.loop ? 'loops' : `exceeds the ${chain.maxHops}-hop cap`
     return { message: `Non-existing URL probe never resolved: the redirect chain ${what}.`, type: 'error', priority: 40 }
   }
-  if (status === 404 && !chain.redirected) {
-    return { message: 'Non-existing URL returned HTTP 404 (expected).', type: 'ok', priority: 900 }
-  }
-  if (status === 410) {
-    return { message: `Non-existing URL returned HTTP 410${after} (should be 404).`, type: 'warn', priority: 150 }
+  // Google treats all 4xx except 429 the same: content doesn't exist. 410 is as valid as 404.
+  if ((status === 404 || status === 410) && !chain.redirected) {
+    return { message: `Non-existing URL returned HTTP ${status} (expected).`, type: 'ok', priority: 900 }
   }
   if (status === 200) {
     return { message: `Soft 404: Non-existing URL returned HTTP 200${after} (should be 404).`, type: 'error', priority: 50 }
   }
-  if (status === 404) {
-    return { message: `Non-existing URL returned HTTP 404${after} (should be direct 404).`, type: 'warn', priority: 250 }
+  if (status === 404 || status === 410) {
+    return { message: `Non-existing URL returned HTTP ${status}${after} (should be a direct ${status}).`, type: 'info', priority: 700 }
   }
   return { message: `Soft 404: Non-existing URL returned HTTP ${status}${after} (should be 404).`, type: 'error', priority: 120 }
 }
@@ -56,6 +53,15 @@ export const soft404Rule: Rule = {
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/http-network-errors#soft-404-errors',
+      'https://developers.google.com/search/docs/crawling-indexing/http-network-errors',
+    ],
+    description:
+      "Probes a randomly generated non-existent URL in the page's directory and expects a direct HTTP 404 or 410; flags 200 (or other non-4xx) responses as soft 404.",
+  },
   async run(page) {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     let probeUrl: string
@@ -68,7 +74,7 @@ export const soft404Rule: Rule = {
         message: 'Cannot build probe URL for soft 404 check.',
         type: 'runtime_error',
         priority: 10,
-        details: { url: page.url, reference: SPEC },
+        details: { url: page.url },
       }
     }
 
@@ -88,7 +94,7 @@ export const soft404Rule: Rule = {
         details: {
           probeUrl, finalUrl, status, redirected, redirectCount: chain.redirectCount,
           ...redirectChainDetails(chain),
-          snippet, reference: SPEC,
+          snippet,
         },
       }
     } catch (error) {
@@ -101,7 +107,7 @@ export const soft404Rule: Rule = {
         type: 'runtime_error',
         priority: 5,
         details: {
-          url: page.url, probeUrl, reference: SPEC,
+          url: page.url, probeUrl,
           ...(hops.length ? { redirectChainHops: hops } : {}),
         },
       }

@@ -3,7 +3,6 @@ import type { Rule } from '@/core/types'
 const LABEL = 'DOM'
 const NAME = 'Parameterized links (static vs idle)'
 const RULE_ID = 'dom:parameterized-links-diff'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
 
 const normalize = (hrefs: string[], base: URL) => hrefs.flatMap((href) => {
   try {
@@ -19,12 +18,20 @@ export const parameterizedLinksDiffRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls',
+      'https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics',
+    ],
+    description: 'Compares same-host parameterized links between static and idle DOM and warns when JavaScript adds or removes them.',
+  },
   async run(page) {
     let base: URL
     try {
       base = new URL(page.url)
     } catch {
-      return { label: LABEL, name: NAME, message: 'Invalid page URL', type: 'runtime_error', priority: 10, details: { reference: SPEC } }
+      return { label: LABEL, name: NAME, message: 'Invalid page URL', type: 'runtime_error', priority: 10 }
     }
     if (!page.staticFacts || !page.idleFacts) {
       return {
@@ -33,7 +40,7 @@ export const parameterizedLinksDiffRule: Rule = {
         message: 'Static and idle DOM facts are required for an exact comparison.',
         type: 'runtime_error',
         priority: 900,
-        details: { staticAvailable: !!page.staticFacts, idleAvailable: !!page.idleFacts, reference: SPEC },
+        details: { staticAvailable: !!page.staticFacts, idleAvailable: !!page.idleFacts },
       }
     }
     if (page.staticFacts.parameterizedLinksTruncated || page.idleFacts.parameterizedLinksTruncated) {
@@ -44,7 +51,6 @@ export const parameterizedLinksDiffRule: Rule = {
           staticTotal: page.staticFacts.parameterizedLinkCount,
           idleTotal: page.idleFacts.parameterizedLinkCount,
           truncated: true,
-          reference: SPEC,
         },
       }
     }
@@ -68,7 +74,6 @@ export const parameterizedLinksDiffRule: Rule = {
         idleLinks: idleUrls,
         staticOnly,
         idleOnly,
-        reference: SPEC,
       },
     }
   },

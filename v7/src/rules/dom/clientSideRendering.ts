@@ -1,12 +1,15 @@
 import type { Rule } from '@/core/types'
 
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics'
-
 export const clientSideRenderingRule: Rule = {
   id: 'dom:client-side-rendering',
   name: 'Client-side rendering heuristic',
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: ['https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics'],
+    description: 'Heuristic comparing static vs idle DOM text length (and script counts) to detect client-side rendered content.',
+  },
   async run(page) {
     const staticFacts = page.staticFacts
     const idleFacts = page.idleFacts
@@ -14,7 +17,7 @@ export const clientSideRenderingRule: Rule = {
       return {
         label: 'DOM', name: 'Client-side rendering heuristic', type: 'runtime_error', priority: 900,
         message: 'Static and idle DOM facts are required for client-side rendering analysis.',
-        details: { staticAvailable: !!staticFacts, idleAvailable: !!idleFacts, reference: SPEC },
+        details: { staticAvailable: !!staticFacts, idleAvailable: !!idleFacts },
       }
     }
     const addedText = Math.max(0, idleFacts.textLength - staticFacts.textLength)
@@ -34,7 +37,6 @@ export const clientSideRenderingRule: Rule = {
         staticScriptCount: staticFacts.scriptCount,
         staticBlockingScriptCount: staticFacts.blockingScriptCount,
         hydrated,
-        reference: SPEC,
       },
     }
   },

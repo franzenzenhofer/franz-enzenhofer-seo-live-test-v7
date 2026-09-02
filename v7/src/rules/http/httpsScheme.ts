@@ -5,13 +5,20 @@ import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 const LABEL = 'HTTP'
 const NAME = 'HTTPS Scheme'
 const RULE_ID = 'http:https-scheme'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/https'
 
 export const httpsSchemeRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://web.dev/articles/enable-https',
+      'https://web.dev/articles/why-https-matters',
+    ],
+    description: 'Checks whether the page URL uses the https: scheme; ok if HTTPS, warn otherwise.',
+  },
   async run(page) {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     let protocol = ''
@@ -38,7 +45,6 @@ export const httpsSchemeRule: Rule = {
         url: page.url,
         protocol,
         isHttps,
-        reference: SPEC,
       },
     }
   },

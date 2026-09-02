@@ -27,7 +27,7 @@ describe('rule: www/non-www canonical redirect', () => {
     expect(r.message).toContain('Single-hop')
   })
 
-  it('errors when canonical swaps host without redirect', async () => {
+  it('warns when canonical swaps host without redirect (canonical-only resolution is supported but weaker)', async () => {
     const ledger = {
       tabId: 1,
       currentUrl: 'https://www.example.com/page',
@@ -44,8 +44,31 @@ describe('rule: www/non-www canonical redirect', () => {
     }
 
     const r = await canonicalHostRedirectRule.run(page as any, { globals: { navigationLedger: ledger } })
-    expect(r.type).toBe('error')
+    expect(r.type).toBe('warn')
     expect(r.message).toContain('Canonical points to the alternate host')
+  })
+
+  it('warns (not errors) on multi-hop permanent redirect chain', async () => {
+    const ledger = {
+      tabId: 1,
+      currentUrl: 'https://example.com/',
+      trace: [
+        { url: 'http://www.example.com/', timestamp: 1, type: 'http_redirect', statusCode: 301, statusText: '301' },
+        { url: 'https://www.example.com/', timestamp: 2, type: 'http_redirect', statusCode: 301, statusText: '301' },
+        { url: 'https://example.com/', timestamp: 3, type: 'load', statusCode: 200, statusText: '200' },
+      ],
+    }
+
+    const page = {
+      html: '',
+      url: 'https://example.com/',
+      doc: D('<html><head></head><body></body></html>'),
+      headers: { 'content-type': 'text/html' },
+    }
+
+    const r = await canonicalHostRedirectRule.run(page as any, { globals: { navigationLedger: ledger } })
+    expect(r.type).toBe('warn')
+    expect(r.message).toContain('redirect')
   })
 
   it('errors on temporary www/non-www redirect', async () => {

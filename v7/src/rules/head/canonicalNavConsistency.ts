@@ -7,7 +7,6 @@ import { headerChainToRedirectChain } from '@/shared/redirectChainFromEvents'
 const LABEL = 'HEAD'
 const NAME = 'Canonical vs navigation'
 const RULE_ID = 'head:canonical-nav-consistency'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
 
 type NavHop = { url?: string; type?: string }
 type NavLedger = { trace: NavHop[] }
@@ -24,18 +23,27 @@ export const canonicalNavConsistencyRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/301-redirects',
+      'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls',
+      'https://developers.google.com/search/docs/crawling-indexing/http-network-errors',
+    ],
+    description: 'Compares the canonical URL to the observed navigation/redirect chain: warns when the canonical equals a URL that redirected, informs when the canonical points elsewhere.',
+  },
   async run(page, ctx) {
     const el = page.doc.querySelector('link[rel~="canonical" i]')
     const href = (el?.getAttribute('href') || '').trim()
     const domPath = getDomPath(el)
     if (!href) {
-      return { label: LABEL, name: NAME, message: 'No canonical link to compare against navigation chain.', type: 'info', priority: 900, details: { reference: SPEC, domPath: domPath || undefined } }
+      return { label: LABEL, name: NAME, message: 'No canonical link to compare against navigation chain.', type: 'info', priority: 900, details: { domPath: domPath || undefined } }
     }
     let canonicalResolved = ''
     try {
       canonicalResolved = new URL(href, page.url).toString()
     } catch {
-      return { label: LABEL, name: NAME, message: 'Canonical URL invalid; cannot compare to navigation.', type: 'warn', priority: 200, details: { canonicalUrl: href, reference: SPEC, domPath } }
+      return { label: LABEL, name: NAME, message: 'Canonical URL invalid; cannot compare to navigation.', type: 'warn', priority: 200, details: { canonicalUrl: href, domPath } }
     }
 
     // Full hop-by-hop main-document chain (URL, status, Location) from webRequest.
@@ -51,7 +59,7 @@ export const canonicalNavConsistencyRule: Rule = {
     const normFirst = normalizeUrl(firstUrl || '')
 
     if (!redirectCount && normCanonical === normFinal) {
-      return { label: LABEL, name: NAME, message: 'Canonical aligns with final URL.', type: 'ok', priority: 850, details: { canonicalUrl: canonicalResolved, finalUrl, ...chainDetails, reference: SPEC, domPath } }
+      return { label: LABEL, name: NAME, message: 'Canonical aligns with final URL.', type: 'ok', priority: 850, details: { canonicalUrl: canonicalResolved, finalUrl, ...chainDetails, domPath } }
     }
 
     if (redirectCount > 0 && normCanonical === normFirst && normFinal !== normCanonical) {
@@ -61,21 +69,23 @@ export const canonicalNavConsistencyRule: Rule = {
         message: 'Canonical points to a URL that redirects; update canonical to the final landing URL.',
         type: 'warn',
         priority: 180,
-        details: { canonicalUrl: canonicalResolved, finalUrl, redirectCount, trace, ...chainDetails, reference: SPEC, domPath },
+        details: { canonicalUrl: canonicalResolved, finalUrl, redirectCount, trace, ...chainDetails, domPath },
       }
     }
 
+    // A canonical pointing to a different preferred URL is the documented use
+    // case of rel=canonical, not a conflicting signal - report it as info.
     if (normCanonical !== normFinal) {
       return {
         label: LABEL,
         name: NAME,
-        message: `Canonical URL (${canonicalResolved}) differs from final landing URL (${finalUrl}). Align them to avoid conflicting signals.`,
-        type: 'warn',
-        priority: 220,
-        details: { canonicalUrl: canonicalResolved, finalUrl, redirectCount, trace, ...chainDetails, reference: SPEC, domPath },
+        message: `Canonical URL (${canonicalResolved}) points to a different URL than the final landing URL (${finalUrl}).`,
+        type: 'info',
+        priority: 600,
+        details: { canonicalUrl: canonicalResolved, finalUrl, redirectCount, trace, ...chainDetails, domPath },
       }
     }
 
-    return { label: LABEL, name: NAME, message: 'Canonical aligns with navigation.', type: 'ok', priority: 800, details: { canonicalUrl: canonicalResolved, finalUrl, redirectCount, ...chainDetails, reference: SPEC, domPath } }
+    return { label: LABEL, name: NAME, message: 'Canonical aligns with navigation.', type: 'ok', priority: 800, details: { canonicalUrl: canonicalResolved, finalUrl, redirectCount, ...chainDetails, domPath } }
   },
 }

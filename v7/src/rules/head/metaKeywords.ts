@@ -9,13 +9,20 @@ const LABEL = 'HEAD'
 const NAME = 'Meta Keywords (Deprecated)'
 const RULE_ID = 'head:meta-keywords'
 const SELECTOR = 'head > meta[name="keywords"]'
-const SPEC = 'https://developers.google.com/search/blog/2009/09/google-does-not-use-keywords-meta-tag'
 
 export const metaKeywordsRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/special-tags',
+      'https://developers.google.com/search/blog/2009/09/google-does-not-use-keywords-meta-tag',
+    ],
+    description: 'Flags any meta[name=keywords] tag as deprecated/unnecessary (warn) and confirms its absence (info).',
+  },
   async run(page) {
     const elements = sampleElements(page.doc.querySelectorAll(SELECTOR))
     if (elements.total === 0) {
@@ -25,7 +32,7 @@ export const metaKeywordsRule: Rule = {
         message: 'No meta keywords tag (recommended).',
         type: 'info',
         priority: 980,
-        details: { reference: SPEC },
+        details: {},
       }
     }
 
@@ -37,7 +44,7 @@ export const metaKeywordsRule: Rule = {
         message: 'Multiple meta keywords tags found (deprecated, remove).',
         type: 'warn',
         priority: 300,
-        details: { sourceHtml: snippet, snippet: extractSnippet(snippet), domPaths: getDomPaths(elements.sample), count: elements.total, shown: elements.shown, truncated: elements.truncated, reference: SPEC },
+        details: { sourceHtml: snippet, snippet: extractSnippet(snippet), domPaths: getDomPaths(elements.sample), count: elements.total, shown: elements.shown, truncated: elements.truncated },
       }
     }
 
@@ -63,7 +70,6 @@ export const metaKeywordsRule: Rule = {
         count: keywords.total,
         shown: keywords.shown,
         truncated: keywords.truncated,
-        reference: SPEC,
       },
     }
   },

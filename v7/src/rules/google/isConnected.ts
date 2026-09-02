@@ -5,10 +5,14 @@ export const googleIsConnectedRule: Rule = {
   name: 'Google auth connected',
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'franz',
+    references: [],
+    description: 'Reports whether a Google OAuth access token is present in the extension session (gates the GSC/PSI rule family).',
+  },
   async run(_page, ctx) {
     const token = (ctx.globals as { googleApiAccessToken?: string | null }).googleApiAccessToken || null
     const tested = 'Checked chrome session globals for googleApiAccessToken to confirm OAuth session status.'
-    const reference = 'https://developers.google.com/identity/protocols/oauth2'
 
     return token
       ? {
@@ -17,7 +21,7 @@ export const googleIsConnectedRule: Rule = {
           type: 'ok',
           priority: 850,
           name: 'Google auth connected',
-          details: { tested, tokenPresent: true, reference },
+          details: { tested, tokenPresent: true },
         }
       : {
           label: 'GOOGLE',
@@ -25,7 +29,7 @@ export const googleIsConnectedRule: Rule = {
           type: 'info',
           priority: 900,
           name: 'Google auth connected',
-          details: { tested, tokenPresent: false, reference },
+          details: { tested, tokenPresent: false },
         }
   },
 }

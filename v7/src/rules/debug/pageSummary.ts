@@ -2,13 +2,16 @@ import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
 
-const SPEC = 'https://html.spec.whatwg.org/multipage/semantics.html#the-title-element'
-
 export const pageSummaryRule: Rule = {
   id: 'debug:page-summary',
   name: 'Page summary (debug)',
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'franz',
+    references: [],
+    description: 'Info-only one-line debug summary: title text, header count, resource count.',
+  },
   async run(page) {
     const titleEl = page.doc.querySelector('title')
     const t = (titleEl?.textContent || '').trim()
@@ -29,7 +32,6 @@ export const pageSummaryRule: Rule = {
         domPath: getDomPath(titleEl),
         headers: page.headers,
         resourceCount: res,
-        reference: SPEC,
       },
     }
   },

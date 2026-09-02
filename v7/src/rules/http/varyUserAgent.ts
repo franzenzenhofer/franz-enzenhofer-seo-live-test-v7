@@ -5,13 +5,21 @@ import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 const LABEL = 'HTTP'
 const NAME = 'Vary: User-Agent'
 const RULE_ID = 'http:vary-user-agent'
-const SPEC = 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Vary'
 
 export const varyUserAgentRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/mobile/mobile-sites-mobile-first-indexing',
+      'https://httpwg.org/specs/rfc9110.html#field.vary',
+      'https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Vary',
+    ],
+    description: 'Reports (info-only) whether the Vary response header includes User-Agent, relevant for dynamic-serving mobile configurations.',
+  },
   async run(page) {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const varyHeader = page.headers?.['vary']?.trim() || ''
@@ -35,7 +43,6 @@ export const varyUserAgentRule: Rule = {
         varyHeader,
         includesUserAgent,
         hasVary,
-        reference: SPEC,
       },
     }
   },

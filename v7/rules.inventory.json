@@ -3,762 +3,1339 @@
     "id": "http:alt-svc-other",
     "name": "Alt-Svc Alternative Protocols",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "standard",
+    "references": [
+      "https://www.rfc-editor.org/rfc/rfc7838.html#section-3"
+    ]
   },
   {
     "id": "google:amp-cache-url",
     "name": "AMP Cache URL",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "standard",
+    "references": [
+      "https://amp.dev/documentation/guides-and-tutorials/learn/amp-caches-and-cors/amp-cache-urls/"
+    ]
   },
   {
     "id": "head:amphtml",
     "name": "AMP HTML Link",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "standard",
+    "references": [
+      "https://amp.dev/documentation/guides-and-tutorials/optimize-and-measure/discovery/"
+    ]
   },
   {
     "id": "discover:article-structured-data",
     "name": "Article structured data",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/structured-data/article",
+      "https://developers.google.com/search/docs/appearance/google-discover"
+    ]
   },
   {
     "id": "discover:author",
     "name": "Author present",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/structured-data/article",
+      "https://html.spec.whatwg.org/multipage/semantics.html#meta-author"
+    ]
   },
   {
     "id": "speed:blocking-scripts",
     "name": "Blocking scripts in head",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developer.chrome.com/docs/lighthouse/performance/render-blocking-resources",
+      "https://html.spec.whatwg.org/multipage/scripting.html#attr-script-defer"
+    ]
   },
   {
     "id": "head:brand-in-title",
     "name": "Brand in Title",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "franz",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/title-link"
+    ]
   },
   {
     "id": "http:cache-delivery",
     "name": "Cache Delivery (Age Header)",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "standard",
+    "references": [
+      "https://www.rfc-editor.org/rfc/rfc9111.html#section-5.1",
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Age"
+    ]
   },
   {
     "id": "head:canonical-noindex-conflict",
     "name": "Canonical + noindex conflict",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag"
+    ]
   },
   {
     "id": "head:canonical-hreflang-consistency",
     "name": "Canonical hreflang consistency",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/specialty/international/localized-versions",
+      "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+    ]
   },
   {
     "id": "head:canonical-header",
     "name": "Canonical HTTP header",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",
+      "https://www.rfc-editor.org/rfc/rfc6596"
+    ]
   },
   {
     "id": "head:canonical-https-preference",
     "name": "Canonical HTTPS preference",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+    ]
   },
   {
     "id": "head-canonical",
     "name": "Canonical Link",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",
+      "https://www.rfc-editor.org/rfc/rfc6596",
+      "https://developers.google.com/search/docs/crawling-indexing/url-structure"
+    ]
   },
   {
     "id": "head:canonical-signals-conflict",
     "name": "Canonical signals conflict",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",
+      "https://www.rfc-editor.org/rfc/rfc6596"
+    ]
   },
   {
     "id": "head:canonical-tracking-params",
     "name": "Canonical tracking params",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "general",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",
+      "https://developers.google.com/search/docs/crawling-indexing/url-structure"
+    ]
   },
   {
     "id": "head:canonical-nav-consistency",
     "name": "Canonical vs navigation",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/301-redirects",
+      "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",
+      "https://developers.google.com/search/docs/crawling-indexing/http-network-errors"
+    ]
   },
   {
     "id": "dom:client-side-rendering",
     "name": "Client-side rendering heuristic",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics"
+    ]
   },
   {
     "id": "http:common-mobile-setup",
     "name": "Common Mobile Setup",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/mobile/mobile-sites-mobile-first-indexing",
+      "https://web.dev/articles/responsive-web-design-basics"
+    ]
   },
   {
     "id": "dom:data-nosnippet",
     "name": "Data-nosnippet usage",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#data-nosnippet-attr"
+    ]
   },
   {
     "id": "gsc:directory-worldwide",
     "name": "Directory worldwide analytics",
     "enabledByDefault": true,
-    "what": "gsc"
+    "what": "gsc",
+    "provenance": "franz",
+    "references": [
+      "https://developers.google.com/webmaster-tools/v1/searchanalytics/query"
+    ]
   },
   {
     "id": "dom:node-count",
     "name": "DOM node count",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "franz",
+    "references": [
+      "https://developer.chrome.com/docs/lighthouse/performance/dom-size"
+    ]
   },
   {
     "id": "dom:node-depth",
     "name": "DOM node depth",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "franz",
+    "references": [
+      "https://developer.chrome.com/docs/lighthouse/performance/dom-size"
+    ]
   },
   {
     "id": "speed:first-paint",
     "name": "First Paint",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "general",
+    "references": [
+      "https://www.w3.org/TR/paint-timing/",
+      "https://web.dev/articles/fcp"
+    ]
   },
   {
     "id": "google:is-connected",
     "name": "Google auth connected",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "franz",
+    "references": []
   },
   {
     "id": "robots:googlebot-url-check",
     "name": "Googlebot URL allowed",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt",
+      "https://www.rfc-editor.org/rfc/rfc9309.html#section-2.2.1"
+    ]
   },
   {
     "id": "gsc:url-inspection",
     "name": "GSC URL Inspection",
     "enabledByDefault": true,
-    "what": "gsc"
+    "what": "gsc",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/webmaster-tools/v1/urlInspection.index/inspect"
+    ]
   },
   {
     "id": "http:gzip",
     "name": "Gzip/Brotli Compression",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://developer.chrome.com/docs/lighthouse/performance/uses-text-compression",
+      "https://www.iana.org/assignments/http-parameters/http-parameters.xhtml#content-coding",
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Encoding",
+      "https://caniuse.com/zstd"
+    ]
   },
   {
     "id": "body:h1",
     "name": "H1 Present",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "general",
+    "references": [
+      "https://html.spec.whatwg.org/multipage/sections.html#headings-and-outlines-2",
+      "https://developers.google.com/search/docs/fundamentals/seo-starter-guide"
+    ]
   },
   {
     "id": "discover:headline-length",
     "name": "Headline length",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/google-discover",
+      "https://developers.google.com/search/docs/appearance/structured-data/article"
+    ]
   },
   {
     "id": "url:history-state-update",
     "name": "History state update detected",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics",
+      "https://developer.mozilla.org/en-US/docs/Web/API/History_API"
+    ]
   },
   {
     "id": "head-hreflang",
     "name": "Hreflang Links",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/specialty/international/localized-versions"
+    ]
   },
   {
     "id": "head:hreflang-multipage",
     "name": "Hreflang Multipage Validation",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/specialty/international/localized-versions",
+      "https://developers.google.com/search/docs/crawling-indexing/http-network-errors"
+    ]
   },
   {
     "id": "head:hreflang-values",
     "name": "Hreflang values",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/specialty/international/localized-versions"
+    ]
   },
   {
     "id": "http:headers-present",
     "name": "HTTP Header Captured",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "franz",
+    "references": []
   },
   {
     "id": "http:has-header",
     "name": "HTTP Header Presence (Configurable)",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "franz",
+    "references": []
   },
   {
     "id": "http-status",
     "name": "HTTP Status",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/http-network-errors",
+      "https://www.rfc-editor.org/rfc/rfc9110.html#name-status-codes"
+    ]
   },
   {
     "id": "http:h2-advertised",
     "name": "HTTP/2 Advertised (Alt-Svc)",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "standard",
+    "references": [
+      "https://www.rfc-editor.org/rfc/rfc7838.html#section-3",
+      "https://httpwg.org/specs/rfc9110.html#field.vary"
+    ]
   },
   {
     "id": "http:h3-advertised",
     "name": "HTTP/3 Advertised (Alt-Svc)",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "standard",
+    "references": [
+      "https://www.rfc-editor.org/rfc/rfc9114.html#section-3.1.1",
+      "https://www.rfc-editor.org/rfc/rfc7838.html#section-3"
+    ]
   },
   {
     "id": "http:https-scheme",
     "name": "HTTPS Scheme",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://web.dev/articles/enable-https",
+      "https://web.dev/articles/why-https-matters"
+    ]
   },
   {
     "id": "body:images-lazy",
     "name": "Images lazy-loading",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://web.dev/articles/browser-level-image-lazy-loading"
+    ]
   },
   {
     "id": "body:images-layout",
     "name": "Images missing dimensions",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://web.dev/articles/optimize-cls#images-without-dimensions",
+      "https://web.dev/articles/cls"
+    ]
   },
   {
     "id": "discover:indexable",
     "name": "Indexable",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag",
+      "https://developers.google.com/search/docs/appearance/google-discover"
+    ]
   },
   {
     "id": "body:internal-link-status",
     "name": "Internal link HTTP status",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/http-network-errors",
+      "https://www.rfc-editor.org/rfc/rfc9110.html#name-client-error-4xx"
+    ]
   },
   {
     "id": "body:internal-links",
     "name": "Internal links count",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "franz",
+    "references": [
+      "https://developers.google.com/search/docs/fundamentals/seo-starter-guide"
+    ]
   },
   {
     "id": "gsc:is-indexed",
     "name": "Is indexed (via impressions)",
     "enabledByDefault": true,
-    "what": "gsc"
+    "what": "gsc",
+    "provenance": "franz",
+    "references": [
+      "https://developers.google.com/webmaster-tools/v1/searchanalytics/query",
+      "https://developers.google.com/webmaster-tools/search-console-api-original/v3/how-tos/search_analytics"
+    ]
   },
   {
     "id": "discover:og-image-large",
     "name": "Large OG image (metadata)",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/google-discover",
+      "https://ogp.me/"
+    ]
   },
   {
     "id": "dom:ldjson",
     "name": "LD+JSON presence",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "standard",
+    "references": [
+      "https://www.w3.org/TR/json-ld/",
+      "https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data"
+    ]
   },
   {
     "id": "http:link-header",
     "name": "Link Header",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "standard",
+    "references": [
+      "https://www.rfc-editor.org/rfc/rfc8288",
+      "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+    ]
   },
   {
     "id": "a11y:linked-images-alt",
     "name": "Linked images need alt or text",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "standard",
+    "references": [
+      "https://html.spec.whatwg.org/multipage/images.html#a-link-or-button-containing-nothing-but-the-image",
+      "https://html.spec.whatwg.org/multipage/images.html#alt",
+      "https://developers.google.com/search/docs/appearance/google-images"
+    ]
   },
   {
     "id": "body:parameterized-links",
     "name": "Links with query params",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/crawling-managing-faceted-navigation",
+      "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+    ]
   },
   {
     "id": "discover:max-image-preview-large",
     "name": "max-image-preview:large",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/google-discover",
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag"
+    ]
   },
   {
     "id": "head:meta-charset",
     "name": "Meta Charset",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "standard",
+    "references": [
+      "https://html.spec.whatwg.org/multipage/semantics.html#attr-meta-charset"
+    ]
   },
   {
     "id": "head-meta-description",
     "name": "Meta Description",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/special-tags",
+      "https://developers.google.com/search/docs/appearance/snippet"
+    ]
   },
   {
     "id": "head:meta-googlebot",
     "name": "Meta Googlebot",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag"
+    ]
   },
   {
     "id": "head:meta-keywords",
     "name": "Meta Keywords (Deprecated)",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/special-tags",
+      "https://developers.google.com/search/blog/2009/09/google-does-not-use-keywords-meta-tag"
+    ]
   },
   {
     "id": "head:meta-other-robots",
     "name": "Meta other robots",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag"
+    ]
   },
   {
     "id": "head:robots-noindex",
     "name": "Meta Robots Noindex",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag"
+    ]
   },
   {
     "id": "head:unavailable-after",
     "name": "Meta Unavailable After",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#unavailable_after"
+    ]
   },
   {
     "id": "head:meta-viewport",
     "name": "Meta Viewport",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developer.chrome.com/docs/lighthouse/pwa/viewport"
+    ]
   },
   {
     "id": "http:mixed-content",
     "name": "Mixed content",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "standard",
+    "references": [
+      "https://www.w3.org/TR/mixed-content/",
+      "https://developer.chrome.com/docs/lighthouse/performance/redirects"
+    ]
   },
   {
     "id": "http:navigation-path",
     "name": "Navigation Path Analysis",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/301-redirects",
+      "https://developer.chrome.com/docs/lighthouse/performance/redirects",
+      "https://www.rfc-editor.org/rfc/rfc9110.html#name-redirection-3xx"
+    ]
   },
   {
     "id": "http:negotiated-protocol",
     "name": "Negotiated Network Protocol",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://developer.chrome.com/docs/lighthouse/best-practices/uses-http2",
+      "https://developer.mozilla.org/en-US/docs/Web/API/PerformanceResourceTiming/nextHopProtocol"
+    ]
   },
   {
     "id": "body:nofollow",
     "name": "Nofollow Links",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/qualify-outbound-links"
+    ]
   },
   {
     "id": "og:description",
     "name": "Open Graph Description",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "standard",
+    "references": [
+      "https://ogp.me/#metadata"
+    ]
   },
   {
     "id": "og:image",
     "name": "Open Graph Image",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "standard",
+    "references": [
+      "https://ogp.me/#metadata"
+    ]
   },
   {
     "id": "og-title",
     "name": "Open Graph Title",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "standard",
+    "references": [
+      "https://ogp.me/#metadata"
+    ]
   },
   {
     "id": "og:url",
     "name": "Open Graph URL",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "standard",
+    "references": [
+      "https://ogp.me/#metadata"
+    ]
   },
   {
     "id": "debug:page-object",
     "name": "Page object snapshot",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "franz",
+    "references": []
   },
   {
     "id": "debug:page-summary",
     "name": "Page summary (debug)",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "franz",
+    "references": []
   },
   {
     "id": "gsc:page-worldwide",
     "name": "Page worldwide analytics",
     "enabledByDefault": true,
-    "what": "gsc"
+    "what": "gsc",
+    "provenance": "franz",
+    "references": [
+      "https://developers.google.com/webmaster-tools/v1/searchanalytics/query"
+    ]
   },
   {
     "id": "dom:parameterized-links-diff",
     "name": "Parameterized links (static vs idle)",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",
+      "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics"
+    ]
   },
   {
     "id": "discover:primary-language",
     "name": "Primary language set",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "standard",
+    "references": [
+      "https://html.spec.whatwg.org/multipage/dom.html#attr-lang",
+      "https://dequeuniversity.com/rules/axe/4.4/html-has-lang"
+    ]
   },
   {
     "id": "discover:published-time",
     "name": "Published time",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/structured-data/article",
+      "https://ogp.me/"
+    ]
   },
   {
     "id": "http:redirect-efficiency",
     "name": "Redirect Efficiency Score",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "general",
+    "references": [
+      "https://developer.chrome.com/docs/lighthouse/performance/redirects",
+      "https://developers.google.com/search/docs/crawling-indexing/301-redirects"
+    ]
   },
   {
     "id": "http:redirect-loop",
     "name": "Redirect Loop Detection",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "standard",
+    "references": [
+      "https://www.rfc-editor.org/rfc/rfc9110.html#name-redirection-3xx",
+      "https://developers.google.com/search/docs/crawling-indexing/http-network-errors"
+    ]
   },
   {
     "id": "http:redirect-canonical-chain",
     "name": "Redirect/Canonical chain",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "general",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/301-redirects",
+      "https://developers.google.com/search/docs/crawling-indexing/http-network-errors"
+    ]
   },
   {
     "id": "head:rel-alternate-media",
     "name": "Rel Alternate Media",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/mobile/mobile-sites-mobile-first-indexing",
+      "https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel"
+    ]
   },
   {
     "id": "speed:dns-prefetch",
     "name": "rel=dns-prefetch",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "standard",
+    "references": [
+      "https://html.spec.whatwg.org/multipage/links.html#link-type-dns-prefetch"
+    ]
   },
   {
     "id": "speed:preconnect",
     "name": "rel=preconnect",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "standard",
+    "references": [
+      "https://html.spec.whatwg.org/multipage/links.html#link-type-preconnect",
+      "https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect"
+    ]
   },
   {
     "id": "speed:link-preload",
     "name": "rel=preload links",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "standard",
+    "references": [
+      "https://html.spec.whatwg.org/multipage/links.html#link-type-preload",
+      "https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preload"
+    ]
   },
   {
     "id": "head:robots-agent-conflicts",
     "name": "Robots agent conflicts",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag"
+    ]
   },
   {
     "id": "head:robots-max-image-preview",
     "name": "Robots max-image-preview",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#max-image-preview"
+    ]
   },
   {
     "id": "head:robots-max-snippet",
     "name": "Robots max-snippet",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#max-snippet"
+    ]
   },
   {
     "id": "head:robots-max-video-preview",
     "name": "Robots max-video-preview",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#max-video-preview"
+    ]
   },
   {
     "id": "head-robots-meta",
     "name": "Robots Meta",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag"
+    ]
   },
   {
     "id": "head:robots-meta-list",
     "name": "Robots meta list",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag"
+    ]
   },
   {
     "id": "head:robots-noimageindex",
     "name": "Robots noimageindex",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#noimageindex"
+    ]
   },
   {
     "id": "head:robots-nosnippet",
     "name": "Robots nosnippet",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#nosnippet",
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#max-snippet"
+    ]
   },
   {
     "id": "robots:blocked-resources",
     "name": "robots.txt Blocked Resources",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt",
+      "https://www.rfc-editor.org/rfc/rfc9309.html#section-2.2.1",
+      "https://developers.google.com/search/docs/crawling-indexing/robots/intro"
+    ]
   },
   {
     "id": "robots:complexity",
     "name": "robots.txt Complexity",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "franz",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt"
+    ]
   },
   {
     "id": "robots-exists",
     "name": "robots.txt Exists",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt",
+      "https://developers.google.com/search/docs/crawling-indexing/robots/intro",
+      "https://www.rfc-editor.org/rfc/rfc9309.html#section-2.3.1"
+    ]
   },
   {
     "id": "robots:sitemap-reference",
     "name": "robots.txt Sitemap reference",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap",
+      "https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt"
+    ]
   },
   {
     "id": "robots:size",
     "name": "robots.txt size",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt",
+      "https://www.rfc-editor.org/rfc/rfc9309.html#section-2.5"
+    ]
   },
   {
     "id": "schema:article:present",
     "name": "Schema Article present",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/structured-data/article"
+    ]
   },
   {
     "id": "schema:article:required",
     "name": "Schema Article required fields",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/structured-data/article"
+    ]
   },
   {
     "id": "schema:breadcrumb:positions",
     "name": "Schema Breadcrumb positions",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/structured-data/breadcrumb"
+    ]
   },
   {
     "id": "schema:breadcrumb",
     "name": "Schema BreadcrumbList",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/structured-data/breadcrumb"
+    ]
   },
   {
     "id": "schema:event",
     "name": "Schema Event",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/structured-data/event"
+    ]
   },
   {
     "id": "schema:faq",
     "name": "Schema FAQPage",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/updates#removing-faq-rich-result"
+    ]
   },
   {
     "id": "schema:howto",
     "name": "Schema HowTo",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/updates#how-to-deprecation"
+    ]
   },
   {
     "id": "schema:jobposting",
     "name": "Schema JobPosting",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/structured-data/job-posting"
+    ]
   },
   {
     "id": "schema:organization",
     "name": "Schema Organization/LocalBusiness",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/structured-data/organization",
+      "https://developers.google.com/search/docs/appearance/structured-data/local-business"
+    ]
   },
   {
     "id": "schema:product",
     "name": "Schema Product",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/structured-data/product-snippet",
+      "https://developers.google.com/search/docs/appearance/structured-data/product"
+    ]
   },
   {
     "id": "schema:recipe",
     "name": "Schema Recipe",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/structured-data/recipe"
+    ]
   },
   {
     "id": "schema:video",
     "name": "Schema VideoObject",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/structured-data/video"
+    ]
   },
   {
     "id": "schema:website-searchaction",
     "name": "Schema WebSite SearchAction",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/updates#bye-sitelinkbox"
+    ]
   },
   {
     "id": "http:security-headers",
     "name": "Security Headers",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "general",
+    "references": [
+      "https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html",
+      "https://web.dev/articles/security-headers"
+    ]
   },
   {
     "id": "head:title",
     "name": "SEO Title Length",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "general",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/title-link"
+    ]
   },
   {
     "id": "head-title",
     "name": "SEO Title Present",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/title-link",
+      "https://html.spec.whatwg.org/multipage/semantics.html#the-title-element"
+    ]
   },
   {
     "id": "http:from-cache",
     "name": "Served from Browser Cache",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "franz",
+    "references": [
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching"
+    ]
   },
   {
     "id": "head:shortlink",
     "name": "Shortlink",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "franz",
+    "references": [
+      "https://developer.wordpress.org/reference/functions/wp_get_shortlink/"
+    ]
   },
   {
     "id": "http:soft-404",
     "name": "Soft 404 Probe",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/http-network-errors#soft-404-errors",
+      "https://developers.google.com/search/docs/crawling-indexing/http-network-errors"
+    ]
   },
   {
     "id": "http:hsts",
     "name": "Strict-Transport-Security (HSTS)",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "general",
+    "references": [
+      "https://www.rfc-editor.org/rfc/rfc6797",
+      "https://hstspreload.org/",
+      "https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html",
+      "https://web.dev/articles/security-headers"
+    ]
   },
   {
     "id": "gsc:top-queries-of-page",
     "name": "Top queries of page",
     "enabledByDefault": true,
-    "what": "gsc"
+    "what": "gsc",
+    "provenance": "franz",
+    "references": [
+      "https://developers.google.com/webmaster-tools/v1/searchanalytics/query",
+      "https://developers.google.com/webmaster-tools/search-console-api-original/v3/how-tos/search_analytics"
+    ]
   },
   {
     "id": "dom:top-words",
     "name": "Top words",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "franz",
+    "references": []
   },
   {
     "id": "head:twitter-card",
     "name": "Twitter Card",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "general",
+    "references": [
+      "https://web.archive.org/web/20240526100043/https://developer.x.com/en/docs/twitter-for-websites/cards/overview/markup"
+    ]
   },
   {
     "id": "body:unsecure-input",
     "name": "Unsecure input over HTTP",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "general",
+    "references": [
+      "https://www.chromium.org/Home/chromium-security/marking-http-as-non-secure/",
+      "https://developer.mozilla.org/en-US/docs/Web/Security/Insecure_passwords"
+    ]
   },
   {
     "id": "url:trailing-slash",
     "name": "URL trailing slash consistency",
     "enabledByDefault": true,
-    "what": "static"
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+    ]
   },
   {
     "id": "psi:desktop",
     "name": "V5 Desktop score",
     "enabledByDefault": true,
-    "what": "psi"
+    "what": "psi",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/speed/docs/insights/v5/about",
+      "https://developer.chrome.com/docs/lighthouse/performance/performance-scoring",
+      "https://developers.google.com/speed/docs/insights/v5/get-started"
+    ]
   },
   {
     "id": "psi:mobile-fcp-tbt",
     "name": "V5 Mobile FCP/TBT",
     "enabledByDefault": true,
-    "what": "psi"
+    "what": "psi",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/speed/docs/insights/v5/about",
+      "https://web.dev/articles/fcp",
+      "https://web.dev/articles/tbt"
+    ]
   },
   {
     "id": "psi:mobile",
     "name": "V5 Mobile score",
     "enabledByDefault": true,
-    "what": "psi"
+    "what": "psi",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/speed/docs/insights/v5/about",
+      "https://developer.chrome.com/docs/lighthouse/performance/performance-scoring",
+      "https://developers.google.com/speed/docs/insights/v5/get-started"
+    ]
   },
   {
     "id": "http:vary-user-agent",
     "name": "Vary: User-Agent",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/mobile/mobile-sites-mobile-first-indexing",
+      "https://httpwg.org/specs/rfc9110.html#field.vary",
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Vary"
+    ]
   },
   {
     "id": "gsc:property-available",
     "name": "Webproperty available",
     "enabledByDefault": true,
-    "what": "gsc"
+    "what": "gsc",
+    "provenance": "franz",
+    "references": [
+      "https://developers.google.com/webmaster-tools/v1/urlInspection.index/inspect"
+    ]
   },
   {
     "id": "http:canonical-host-redirect",
     "name": "WWW/Non-WWW Canonical Redirect",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/301-redirects",
+      "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",
+      "https://developers.google.com/search/docs/crawling-indexing/http-network-errors"
+    ]
   },
   {
     "id": "http:x-cache",
     "name": "X-Cache Hit/Miss",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "general",
+    "references": [
+      "https://www.fastly.com/documentation/reference/http/http-headers/X-Cache"
+    ]
   },
   {
     "id": "http:unavailable-after",
     "name": "X-Robots unavailable_after",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#xrobotstag",
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#unavailable_after"
+    ]
   },
   {
     "id": "http:x-robots",
     "name": "X-Robots-Tag",
     "enabledByDefault": true,
-    "what": "http"
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#xrobotstag"
+    ]
   }
 ]

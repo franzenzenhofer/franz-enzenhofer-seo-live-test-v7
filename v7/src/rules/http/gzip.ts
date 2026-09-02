@@ -6,15 +6,14 @@ import { normalizeUrl } from '@/shared/url-utils'
 const LABEL = 'HTTP'
 const NAME = 'Gzip/Brotli Compression'
 const RULE_ID = 'http:gzip'
-const SPEC = 'https://developer.mozilla.org/de/docs/Web/HTTP/Reference/Headers/Content-Encoding'
 
-const KNOWN_ENCODINGS: Record<string, { note: string; modern: boolean }> = {
-  br: { note: 'Brotli (modern, recommended)', modern: true },
-  gzip: { note: 'Gzip (widely supported, recommended)', modern: true },
-  deflate: { note: 'Deflate (legacy, avoid for cross-vendor issues)', modern: false },
-  compress: { note: 'LZW compress (obsolete)', modern: false },
-  zstd: { note: 'Zstandard (emerging, not widely supported in browsers yet)', modern: false },
-  identity: { note: 'identity (no compression)', modern: false },
+const KNOWN_ENCODINGS: Record<string, { note: string; accepted: boolean }> = {
+  br: { note: 'Brotli (modern, recommended)', accepted: true },
+  gzip: { note: 'Gzip (widely supported, recommended)', accepted: true },
+  zstd: { note: 'Zstandard (modern; Chrome/Edge 123+, Firefox 126+, Safari 26+)', accepted: true },
+  deflate: { note: 'Deflate (legacy but accepted; prefer gzip or Brotli)', accepted: true },
+  compress: { note: 'LZW compress (obsolete)', accepted: false },
+  identity: { note: 'identity (no compression)', accepted: false },
 }
 
 const parseEncodings = (encodingHeader: string | null | undefined) =>
@@ -44,6 +43,16 @@ export const gzipRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developer.chrome.com/docs/lighthouse/performance/uses-text-compression',
+      'https://www.iana.org/assignments/http-parameters/http-parameters.xhtml#content-coding',
+      'https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Encoding',
+      'https://caniuse.com/zstd',
+    ],
+    description: "Checks the main document's Content-Encoding header, passing on gzip/br/zstd/deflate, warning when absent or when only an obsolete coding is used (with a HEAD re-probe when captured headers look like an asset).",
+  },
   async run(page) {
     let headers = normalizeHeaders(page.headers)
     const docIsHtml = page.doc?.documentElement?.nodeName?.toLowerCase() === 'html'
@@ -67,8 +76,8 @@ export const gzipRule: Rule = {
 
     const encodingHeader = headers['content-encoding'] || ''
     const encodings = parseEncodings(encodingHeader)
-    const details = encodings.map((enc) => ({ encoding: enc, ...(KNOWN_ENCODINGS[enc] || { note: 'Unknown encoding', modern: false }) }))
-    const hasModern = encodings.some((e) => e === 'br' || e === 'gzip')
+    const details = encodings.map((enc) => ({ encoding: enc, ...(KNOWN_ENCODINGS[enc] || { note: 'Unknown encoding', accepted: false }) }))
+    const hasAccepted = encodings.some((e) => KNOWN_ENCODINGS[e]?.accepted === true)
 
     if (!encodings.length) {
       return {
@@ -86,12 +95,11 @@ export const gzipRule: Rule = {
           encodings,
           notes: details,
           headerSource,
-          reference: SPEC,
         },
       }
     }
 
-    if (hasModern) {
+    if (hasAccepted) {
       return {
         label: LABEL,
         name: NAME,
@@ -107,14 +115,13 @@ export const gzipRule: Rule = {
           encodings,
           notes: details,
           headerSource,
-          reference: SPEC,
         },
       }
     }
     return {
       label: LABEL,
       name: NAME,
-      message: `Unsupported content-encoding: ${encodings.join(', ')}. Use gzip or Brotli.`,
+      message: `Unsupported content-encoding: ${encodings.join(', ')}. Use gzip, Brotli, or Zstandard.`,
       type: 'warn',
       priority: 150,
       details: {
@@ -126,7 +133,6 @@ export const gzipRule: Rule = {
         encodings,
         notes: details,
         headerSource,
-        reference: SPEC,
       },
     }
   },

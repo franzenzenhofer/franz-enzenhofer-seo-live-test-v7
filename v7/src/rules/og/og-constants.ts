@@ -4,7 +4,7 @@
  */
 
 export const OG_SELECTORS = {
-  TITLE: 'meta[property="og:title"]',
+  TITLE: 'meta[property="og:title"], meta[name="og:title"]',
   DESCRIPTION: 'meta[property="og:description"], meta[name="og:description"]',
   URL: 'meta[property="og:url"], meta[name="og:url"]',
   IMAGE: 'meta[property="og:image"], meta[name="og:image"]',

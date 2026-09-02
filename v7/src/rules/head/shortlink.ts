@@ -6,13 +6,17 @@ const LABEL = 'HEAD'
 const NAME = 'Shortlink'
 const RULE_ID = 'head:shortlink'
 const SELECTOR = 'head > link[rel~="shortlink" i]'
-const SPEC = 'https://developer.wordpress.org/reference/functions/wp_get_shortlink/'
 
 export const shortlinkRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'franz',
+    references: ['https://developer.wordpress.org/reference/functions/wp_get_shortlink/'],
+    description: 'Detects link[rel=shortlink] in <head>, resolves its href, and surfaces non-self shortlinks as an alternate-URL warning.',
+  },
   async run(page) {
     const linkEl = page.doc.querySelector(SELECTOR)
     const href = linkEl?.getAttribute('href')?.trim() || ''
@@ -25,7 +29,7 @@ export const shortlinkRule: Rule = {
         message: 'No shortlink detected.',
         type: 'info',
         priority: 950,
-        details: { reference: SPEC, hasShortlink: false },
+        details: { hasShortlink: false },
       }
     }
     const sourceHtml = extractHtml(linkEl)
@@ -42,7 +46,6 @@ export const shortlinkRule: Rule = {
           domPath: getDomPath(linkEl),
           href,
           hasShortlink,
-          reference: SPEC,
         },
       }
     }
@@ -63,7 +66,6 @@ export const shortlinkRule: Rule = {
         domPath: getDomPath(linkEl),
         href: resolved,
         hasShortlink,
-        reference: SPEC,
       },
     }
   },

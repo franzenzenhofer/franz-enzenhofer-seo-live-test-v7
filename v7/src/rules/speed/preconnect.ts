@@ -3,13 +3,19 @@ import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPaths } from '@/shared/dom-path'
 import { sampleElements } from '@/shared/domEvidence'
 
-const SPEC = 'https://web.dev/uses-rel-preconnect/'
-
 export const preconnectRule: Rule = {
   id: 'speed:preconnect',
   name: 'rel=preconnect',
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'standard',
+    references: [
+      'https://html.spec.whatwg.org/multipage/links.html#link-type-preconnect',
+      'https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect',
+    ],
+    description: 'Info-only count of <link rel="preconnect"> elements with their hrefs.',
+  },
   async run(page) {
     const links = page.doc.querySelectorAll('link[rel="preconnect"]')
     const n = links.length
@@ -30,7 +36,6 @@ export const preconnectRule: Rule = {
         truncated: evidence.truncated,
         domPaths,
         tested: 'Queried <link rel="preconnect">',
-        reference: SPEC,
       },
     }
   },

@@ -56,13 +56,3 @@ export const get = (o: unknown, path: string): unknown => {
   return cur
 }
 
-export const docs = (key: string) => {
-  const base = 'https://developers.google.com/search/docs/appearance/structured-data'
-  const map: Record<string, string> = {
-    article: `${base}/article`, product: `${base}/product`, faq: `${base}/faqpage`, howto: `${base}/how-to`,
-    recipe: `${base}/recipe`, event: `${base}/event`, jobposting: `${base}/job-posting`, video: `${base}/video`,
-    breadcrumb: `${base}/breadcrumb`, organization: `${base}/logo`, localbusiness: `${base}/local-business`,
-    website: `${base}/sitelinks-searchbox`, review: `${base}/review-snippet`,
-  }
-  return map[key.toLowerCase()] || base
-}

@@ -1,5 +1,5 @@
 import { gscFetch } from '../googleFetch'
-import { extractGoogleCredentials, createNoTokenResult, GSC_API_REFERENCE } from '../google-utils'
+import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
 import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../google-gsc-utils'
 
 import type { Rule } from '@/core/types'
@@ -11,6 +11,13 @@ export const gscDirectoryWorldwideRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'gsc',
+  meta: {
+    provenance: 'franz',
+    references: [
+      'https://developers.google.com/webmaster-tools/v1/searchanalytics/query',
+    ],
+    description: "Reports total Search Analytics impressions for pages in the current URL's directory (page-contains filter, aggregate query) as an info result.",
+  },
   async run(page, ctx) {
     const { token } = extractGoogleCredentials(ctx)
     if (!token) return createNoTokenResult()
@@ -20,7 +27,7 @@ export const gscDirectoryWorldwideRule: Rule = {
 
     const { property, type: propertyType } = derived
     const dir = page.url.replace(/\/?[^/]*$/, '/')
-    const body = { startDate: '2020-01-01', endDate: '2099-12-31', dimensions: ['page'], dimensionFilterGroups: [{ groupType: 'and', filters: [{ dimension: 'page', operator: 'contains', expression: dir }] }], rowLimit: 10 }
+    const body = { startDate: '2020-01-01', endDate: '2099-12-31', dimensionFilterGroups: [{ groupType: 'and', filters: [{ dimension: 'page', operator: 'contains', expression: dir }] }] }
     try {
       const r = await gscFetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(property)}/searchAnalytics/query`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify(body) })
       if (!r.ok) {
@@ -30,7 +37,7 @@ export const gscDirectoryWorldwideRule: Rule = {
           type: 'warn',
           priority: 200,
           name: NAME,
-          details: { url: page.url, property, propertyType, status: r.status, reference: GSC_API_REFERENCE },
+          details: { url: page.url, property, propertyType, status: r.status },
         }
       }
       const j = await r.json() as { rows?: Array<{ clicks?: number, impressions?: number }> }
@@ -41,7 +48,7 @@ export const gscDirectoryWorldwideRule: Rule = {
         type: 'info',
         priority: 750,
         name: NAME,
-        details: { url: page.url, property, propertyType, directory: dir, impressions: imp, apiResponse: j, reference: GSC_API_REFERENCE },
+        details: { url: page.url, property, propertyType, directory: dir, impressions: imp, apiResponse: j },
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
@@ -51,7 +58,7 @@ export const gscDirectoryWorldwideRule: Rule = {
         type: 'runtime_error',
         name: NAME,
         priority: -1000,
-        details: { url: page.url, property, propertyType, directory: dir, reference: GSC_API_REFERENCE },
+        details: { url: page.url, property, propertyType, directory: dir },
       }
     }
   },

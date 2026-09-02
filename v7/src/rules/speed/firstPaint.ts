@@ -3,54 +3,70 @@ import type { Rule } from '@/core/types'
 const LABEL = 'SPEED'
 const NAME = 'First Paint'
 const RULE_ID = 'speed:first-paint'
-const SPEC = 'https://developer.mozilla.org/en-US/docs/Web/API/PerformancePaintTiming'
-const WARN_THRESHOLD_MS = 700
-const ERROR_THRESHOLD_MS = 1400
+// FCP thresholds per https://web.dev/articles/fcp: good <= 1.8s, poor > 3.0s.
+const FCP_WARN_THRESHOLD_MS = 1800
+const FCP_ERROR_THRESHOLD_MS = 3000
 
 export const firstPaintRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'general',
+    references: ['https://www.w3.org/TR/paint-timing/', 'https://web.dev/articles/fcp'],
+    description: 'Grades first contentful paint per web.dev thresholds: ok <=1800ms, warn 1800-3000ms, error >3000ms; info when only first paint or no timing is available.',
+  },
   async run(page) {
     const firstPaint = page.navigationTiming?.firstPaint ?? null
     const firstContentfulPaint = page.navigationTiming?.firstContentfulPaint ?? null
 
-    if (firstPaint === null || firstPaint === undefined) {
+    if (firstPaint === null && firstContentfulPaint === null) {
       return {
         label: LABEL,
         name: NAME,
         message: 'Paint timing not available.',
         type: 'info',
         priority: 900,
-        details: { reference: SPEC },
+        details: { tested: 'Performance paint timing entries' },
       }
     }
 
-    const rounded = Math.round(firstPaint)
+    const roundedFp = firstPaint !== null ? Math.round(firstPaint) : null
+    if (firstContentfulPaint === null) {
+      return {
+        label: LABEL,
+        name: NAME,
+        message: `Time to first paint: ${roundedFp}ms (no first-contentful-paint recorded; no official thresholds exist for first paint).`,
+        type: 'info',
+        priority: 750,
+        details: { firstPaint: roundedFp, firstContentfulPaint: null, tested: 'Performance paint timing entries' },
+      }
+    }
+
+    const rounded = Math.round(firstContentfulPaint)
     if (rounded <= 0) {
       return {
         label: LABEL,
         name: NAME,
-        message: 'First paint timing could not be calculated.',
+        message: 'First contentful paint timing could not be calculated.',
         type: 'runtime_error',
         priority: 10,
-        details: { firstPaint, firstContentfulPaint, reference: SPEC },
+        details: { firstPaint: roundedFp, firstContentfulPaint, tested: 'Performance paint timing entries' },
       }
     }
 
-    const type = rounded > ERROR_THRESHOLD_MS ? 'error' : rounded > WARN_THRESHOLD_MS ? 'warn' : 'ok'
+    const type = rounded > FCP_ERROR_THRESHOLD_MS ? 'error' : rounded > FCP_WARN_THRESHOLD_MS ? 'warn' : 'ok'
     const priority = type === 'error' ? 120 : type === 'warn' ? 400 : 850
     return {
       label: LABEL,
       name: NAME,
-      message: `Time to first paint: ${rounded}ms.`,
+      message: `First contentful paint: ${rounded}ms (good <= ${FCP_WARN_THRESHOLD_MS}ms, poor > ${FCP_ERROR_THRESHOLD_MS}ms).`,
       type,
       priority,
       details: {
-        firstPaint: rounded,
-        firstContentfulPaint: firstContentfulPaint !== null && firstContentfulPaint !== undefined ? Math.round(firstContentfulPaint) : null,
-        reference: SPEC,
+        firstPaint: roundedFp,
+        firstContentfulPaint: rounded,
         tested: 'Performance paint timing entries',
       },
     }

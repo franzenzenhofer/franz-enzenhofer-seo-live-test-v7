@@ -6,7 +6,6 @@ import { extractSnippet } from '@/shared/html-utils'
 const LABEL = 'ROBOTS'
 const NAME = 'robots.txt Blocked Resources'
 const RULE_ID = 'robots:blocked-resources'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots/intro'
 
 const sameHost = (a: string, b: string) => {
   try {
@@ -21,6 +20,15 @@ export const robotsBlockedResourcesRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt',
+      'https://www.rfc-editor.org/rfc/rfc9309.html#section-2.2.1',
+      'https://developers.google.com/search/docs/crawling-indexing/robots/intro',
+    ],
+    description: 'Checks every same-host subresource the page loaded against robots.txt for Googlebot and warns when any is disallowed.',
+  },
   async run(page) {
     const list = page.resources || []
     const resourceCount = list.length
@@ -34,7 +42,6 @@ export const robotsBlockedResourcesRule: Rule = {
         details: {
           snippet: extractSnippet('(no resources)'),
           resourceCount: 0,
-          reference: SPEC,
         },
       }
     }
@@ -51,7 +58,6 @@ export const robotsBlockedResourcesRule: Rule = {
         details: {
           snippet: extractSnippet('(robots.txt not reachable)'),
           resourceCount,
-          reference: SPEC,
         },
       }
     }
@@ -63,9 +69,9 @@ export const robotsBlockedResourcesRule: Rule = {
       if (!sameHost(page.url, resourceUrl)) continue
       sameHostCount++
       const result = parse(robotsTxt, resourceUrl, userAgent) as Record<string, unknown>
-      const allowed = Boolean(result['allowed'])
-      const disallowed = Boolean(result['disallowed'])
-      if (!allowed || disallowed) blockedResources.push(resourceUrl)
+      // The parser already resolves an equal-specificity allow/disallow tie to
+      // allowed (least restrictive rule wins), so only its verdict counts here.
+      if (!result['allowed']) blockedResources.push(resourceUrl)
     }
     const blockedCount = blockedResources.length
     // Cross-host resources answer to their own hosts' robots.txt files, so
@@ -77,7 +83,7 @@ export const robotsBlockedResourcesRule: Rule = {
       return {
         label: LABEL, name: NAME, type: 'info', priority: 850,
         message: `No same-host resources to check against robots.txt${crossHostNote}.`,
-        details: { snippet: extractSnippet(robotsTxt, 150), robotsTxt, resourceCount, sameHostCount, crossHostCount, userAgent, reference: SPEC },
+        details: { snippet: extractSnippet(robotsTxt, 150), robotsTxt, resourceCount, sameHostCount, crossHostCount, userAgent },
       }
     }
     const message = hasBlockedResources
@@ -100,7 +106,6 @@ export const robotsBlockedResourcesRule: Rule = {
         ...(blockedResources.length ? { blockedResources } : {}),
         hasBlockedResources,
         userAgent,
-        reference: SPEC,
       },
     }
   },

@@ -48,6 +48,26 @@ describe('rule: trailing slash', () => {
     expect(r.details?.['redirectChainText']).toContain('FINAL URL https://other.com/')
   })
 
+  it('treats a 410 variant like 404 - info, no duplicate-content variant', async () => {
+    vi.stubGlobal('fetch', scriptFetch({
+      'https://ex.com/a/': { status: 410 },
+    }))
+    const p = { html: '', url: 'https://ex.com/a', doc: D('<html></html>') }
+    const r = await trailingSlashRule.run(p as any, { globals: {} })
+    expect(r.type).toBe('info')
+    expect(r.message).toContain('no duplicate-content variant')
+  })
+
+  it('warns (not errors) when the variant returns 200 without a canonical', async () => {
+    vi.stubGlobal('fetch', scriptFetch({
+      'https://ex.com/a/': { status: 200, body: '<p>duplicate</p>' },
+    }))
+    const p = { html: '', url: 'https://ex.com/a', doc: D('<html></html>') }
+    const r = await trailingSlashRule.run(p as any, { globals: {} })
+    expect(r.type).toBe('warn')
+    expect(r.message).toContain('no canonical found')
+  })
+
   it('errors on a redirect loop of the variant', async () => {
     vi.stubGlobal('fetch', scriptFetch({
       'https://ex.com/a/': { status: 301, location: 'https://ex.com/b' },

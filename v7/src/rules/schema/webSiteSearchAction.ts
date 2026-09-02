@@ -31,6 +31,13 @@ export const schemaWebSiteSearchActionRule = createSchemaRule({
   name: 'Schema WebSite SearchAction',
   types: 'WebSite',
   searchStrings: ['WebSite', 'SearchAction'],
+  meta: {
+    provenance: 'google',
+    references: ['https://developers.google.com/search/updates#bye-sitelinkbox'],
+    description: 'Warns when a WebSite node lacks a SearchAction potentialAction with a {search_term_string} target and query-input.',
+  },
+  deprecated: 'The sitelinks search box is no longer available in Google Search results (documentation removed Nov 2024).',
+  reference: 'https://developers.google.com/search/updates#bye-sitelinkbox',
   validator: (n) => {
     const missing: string[] = []
     const action = findSearchAction(n['potentialAction'])

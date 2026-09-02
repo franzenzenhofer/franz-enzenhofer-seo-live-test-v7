@@ -1,4 +1,4 @@
-import { extractGoogleCredentials, createNoTokenResult, GSC_API_REFERENCE } from '../google-utils'
+import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
 import { deriveGscProperty } from '../google-gsc-utils'
 
 import type { Rule } from '@/core/types'
@@ -10,6 +10,13 @@ export const gscPropertyAvailableRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'gsc',
+  meta: {
+    provenance: 'franz',
+    references: [
+      'https://developers.google.com/webmaster-tools/v1/urlInspection.index/inspect',
+    ],
+    description: 'Verifies the signed-in Google account has a Search Console property (URL-prefix or sc-domain) covering the tested URL.',
+  },
   async run(page, ctx) {
     const { token } = extractGoogleCredentials(ctx)
     if (!token) return createNoTokenResult()
@@ -31,7 +38,6 @@ export const gscPropertyAvailableRule: Rule = {
           hostname: parsedUrl.hostname,
           triedUrlPrefix: `${parsedUrl.origin}/`,
           triedDomain: `sc-domain:${domain}`,
-          reference: GSC_API_REFERENCE,
         },
       }
     }
@@ -46,7 +52,6 @@ export const gscPropertyAvailableRule: Rule = {
         url: page.url,
         property,
         propertyType,
-        reference: GSC_API_REFERENCE,
       },
     }
   },

@@ -38,7 +38,8 @@ export const normalizeUrl = (url: string): string => {
   try {
     const u = new URL(url)
     u.hash = ''
-    u.search = ''
+    // The query string stays: ?a=1 and ?a=2 are different pages for canonical
+    // and navigation comparisons; only the fragment is client-side-only.
     u.pathname = u.pathname
       .replace(/\/index\.(html?)$/i, '/')
       .replace(/([^/])$/, '$1')

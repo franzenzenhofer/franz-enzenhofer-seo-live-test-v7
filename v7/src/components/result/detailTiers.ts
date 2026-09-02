@@ -6,7 +6,7 @@ import type { Result } from '@/shared/results'
 
 export type DetailEntry = { key: string; text: string }
 export type GuidanceEntry = DetailEntry & { label: string }
-export type Provenance = { reference?: string; tested?: string }
+export type Provenance = { reference?: string; tested?: string; provenance?: string }
 export type TieredDetails = {
   evidence: DetailEntry[]
   guidance: GuidanceEntry[]
@@ -39,6 +39,7 @@ export const tierDetails = (details: Result['details'], snippet?: string | null)
   for (const [key, value] of Object.entries(details ?? {})) {
     if (key === 'reference' && typeof value === 'string') { provenance.reference = value; continue }
     if (key === 'tested' && typeof value === 'string') { provenance.tested = value; continue }
+    if (key === 'provenance' && typeof value === 'string') { provenance.provenance = value; continue }
     const text = detailText(value)
     if (!text) continue
     const label = GUIDANCE_LABELS[key]

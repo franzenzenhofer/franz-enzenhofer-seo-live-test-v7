@@ -2,7 +2,6 @@ import type { Rule } from '@/core/types'
 
 const LABEL = 'URL'
 const NAME = 'History state update detected'
-const SPEC = 'https://developer.mozilla.org/docs/Web/API/History_API'
 const TESTED = 'Inspected navigation event ledger for history.pushState usage without a corresponding document commit.'
 
 export const historyStateUpdateRule: Rule = {
@@ -10,6 +9,14 @@ export const historyStateUpdateRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics',
+      'https://developer.mozilla.org/en-US/docs/Web/API/History_API',
+    ],
+    description: 'Detects SPA navigation by finding history.pushState events in the navigation ledger without a corresponding document commit (info-only).',
+  },
   async run(_page, ctx) {
     const ev = ((ctx.globals as { events?: Array<{ t?: string }> }).events) || []
     const hasHistory = ev.some((e) => e && e.t === 'nav:history')
@@ -25,7 +32,6 @@ export const historyStateUpdateRule: Rule = {
         tested: TESTED,
         historyEvents: hasHistory,
         commitEvents: hadCommit,
-        reference: SPEC,
       },
     }
   },

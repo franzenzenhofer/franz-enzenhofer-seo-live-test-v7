@@ -5,13 +5,20 @@ import { sampleElements } from '@/shared/domEvidence'
 
 const LABEL = 'HEAD'
 const NAME = 'SEO Title Present'
-const SPEC = 'https://developers.google.com/search/docs/appearance/title-link'
 
 export const titleRule: Rule = {
   id: 'head-title',
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/appearance/title-link',
+      'https://html.spec.whatwg.org/multipage/semantics.html#the-title-element',
+    ],
+    description: 'Checks that exactly one non-empty <title> element exists in <head> (error on missing, multiple, or empty).',
+  },
   run: async (page) => {
     const nodes = sampleElements(page.doc.querySelectorAll('head > title'))
     const count = nodes.total
@@ -48,7 +55,6 @@ export const titleRule: Rule = {
         shown: nodes.shown,
         truncated: nodes.truncated,
         domPath: getDomPath(first ?? null),
-        reference: SPEC,
       },
     }
   },

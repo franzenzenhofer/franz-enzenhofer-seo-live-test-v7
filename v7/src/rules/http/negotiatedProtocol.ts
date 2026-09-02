@@ -4,7 +4,6 @@ import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 const LABEL = 'HTTP'
 const NAME = 'Negotiated Network Protocol'
 const RULE_ID = 'http:negotiated-protocol'
-const SPEC = 'https://developer.mozilla.org/en-US/docs/Web/API/PerformanceNavigationTiming/nextHopProtocol'
 
 const isHttp3 = (proto: string) => /^h3\b|^hq\b|quic/i.test(proto)
 const isHttp2 = (proto: string) => /^h2\b/i.test(proto)
@@ -15,11 +14,19 @@ export const negotiatedProtocolRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developer.chrome.com/docs/lighthouse/best-practices/uses-http2',
+      'https://developer.mozilla.org/en-US/docs/Web/API/PerformanceResourceTiming/nextHopProtocol',
+    ],
+    description: 'Reports the actually negotiated network protocol from navigationTiming.nextHopProtocol: ok for h3/h2, error for HTTPS pages still on HTTP/1.x, info otherwise.',
+  },
   async run(page) {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const proto = page.navigationTiming?.nextHopProtocol || ''
     const isHttps = page.url.startsWith('https:')
-    const details = { navigationTiming: page.navigationTiming || null, url: page.url, nextHopProtocol: proto, reference: SPEC }
+    const details = { navigationTiming: page.navigationTiming || null, url: page.url, nextHopProtocol: proto }
     if (!proto) {
       return { label: LABEL, name: NAME, type: 'info', priority: 900, details,
         message: 'Network protocol not captured (nextHopProtocol unavailable).' }

@@ -9,6 +9,7 @@ const rule = (id: string, input: Rule['input']): Rule => ({
   input,
   name: id,
   enabled: true,
+  meta: { provenance: 'franz' as const, references: [] },
   run: vi.fn(async () => ({ name: id, label: id, message: id, type: 'ok' })),
 })
 

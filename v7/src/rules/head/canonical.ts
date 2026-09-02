@@ -6,26 +6,30 @@ import { isAbsoluteUrl, normalizeUrl } from '@/shared/url-utils'
 
 const LABEL = 'HEAD'
 const NAME = 'Canonical Link'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
 
+// Self-reference comparison must keep the query string: parameters can change
+// content (Google url-structure guidance), so /a?x=1 vs /a?x=2 is NOT a self
+// reference even though the shared normalizeUrl equates them.
 export const canonicalRule: Rule = {
   id: 'head-canonical',
   name: 'Canonical Link',
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls',
+      'https://www.rfc-editor.org/rfc/rfc6596',
+      'https://developers.google.com/search/docs/crawling-indexing/url-structure',
+    ],
+    description: 'Checks the rel=canonical link element: presence, uniqueness, in-<head> placement, non-empty href, no fragment, absolute URL, and whether it self-references the page URL.',
+  },
   run: async (page) => {
     const elements = sampleElements(page.doc.querySelectorAll<HTMLLinkElement>('link[rel~="canonical" i]'))
     const count = elements.total
 
     if (count === 0) {
-      return {
-        label: LABEL,
-        message: 'No canonical link found in <head>.',
-        type: 'warn',
-        name: NAME,
-        priority: 400,
-        details: { reference: SPEC, canonicalUrl: null, count },
-      }
+      return { label: LABEL, message: 'No canonical link found in <head>.', type: 'warn', name: NAME, priority: 400, details: { canonicalUrl: null, count } }
     }
 
     if (count > 1) {
@@ -36,7 +40,7 @@ export const canonicalRule: Rule = {
         type: 'error',
         priority: 200,
         name: NAME,
-        details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPaths: getDomPaths(elements.sample), hrefs: elements.sample.map((el) => (el.getAttribute('href') || '').trim()), reference: SPEC, count, shown: elements.shown, truncated: elements.truncated },
+        details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPaths: getDomPaths(elements.sample), hrefs: elements.sample.map((el) => (el.getAttribute('href') || '').trim()), count, shown: elements.shown, truncated: elements.truncated },
       }
     }
 
@@ -50,7 +54,7 @@ export const canonicalRule: Rule = {
         type: 'warn',
         priority: 250,
         name: NAME,
-        details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), href, reference: SPEC },
+        details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), href },
       }
     }
 
@@ -61,7 +65,7 @@ export const canonicalRule: Rule = {
         type: 'warn',
         priority: 300,
         name: NAME,
-        details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), href, reference: SPEC, count },
+        details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), href, count },
       }
     }
 
@@ -73,7 +77,7 @@ export const canonicalRule: Rule = {
           type: 'warn',
           priority: 250,
           name: NAME,
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), href, reference: SPEC, count },
+          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), href, count },
         }
       }
 
@@ -117,7 +121,6 @@ export const canonicalRule: Rule = {
           matchesPageUrl,
           isAbsolute,
           count,
-          reference: SPEC,
         },
       }
     } catch {
@@ -127,7 +130,7 @@ export const canonicalRule: Rule = {
         type: 'warn',
         priority: 150,
         name: NAME,
-        details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), href, reference: SPEC, count },
+        details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), href, count },
       }
     }
   },

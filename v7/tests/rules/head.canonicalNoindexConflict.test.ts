@@ -23,6 +23,30 @@ describe('rule: canonical + noindex conflict', () => {
     expect(res.type).toBe('warn')
   })
 
+  it('warns on case-variant meta name (Robots) - meta names are case-insensitive', async () => {
+    const res = await canonicalNoindexConflictRule.run(
+      { html: '', url: 'https://ex.com', doc: doc('<link rel="canonical" href="https://ex.com/"><meta name="Robots" content="noindex">'), headers: {} } as any,
+      { globals: {} } as any,
+    )
+    expect(res.type).toBe('warn')
+  })
+
+  it('warns on googlebot-scoped meta noindex', async () => {
+    const res = await canonicalNoindexConflictRule.run(
+      { html: '', url: 'https://ex.com', doc: doc('<link rel="canonical" href="https://ex.com/"><meta name="googlebot" content="noindex">'), headers: {} } as any,
+      { globals: {} } as any,
+    )
+    expect(res.type).toBe('warn')
+  })
+
+  it('warns on user-agent-scoped X-Robots-Tag noindex', async () => {
+    const res = await canonicalNoindexConflictRule.run(
+      { html: '', url: 'https://ex.com', doc: doc('<link rel="canonical" href="https://ex.com/">'), headers: { 'x-robots-tag': 'googlebot: noindex' } } as any,
+      ctx() as any,
+    )
+    expect(res.type).toBe('warn')
+  })
+
   it('info when no conflict', async () => {
     const res = await canonicalNoindexConflictRule.run(
       { html: '', url: 'https://ex.com', doc: doc('<link rel="canonical" href="https://ex.com/">'), headers: {} } as any,

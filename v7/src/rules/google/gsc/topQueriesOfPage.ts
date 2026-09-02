@@ -1,5 +1,5 @@
 import { gscFetch } from '../googleFetch'
-import { extractGoogleCredentials, createNoTokenResult, GSC_API_REFERENCE } from '../google-utils'
+import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
 import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../google-gsc-utils'
 
 import type { Rule } from '@/core/types'
@@ -11,6 +11,14 @@ export const gscTopQueriesOfPageRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'gsc',
+  meta: {
+    provenance: 'franz',
+    references: [
+      'https://developers.google.com/webmaster-tools/v1/searchanalytics/query',
+      'https://developers.google.com/webmaster-tools/search-console-api-original/v3/how-tos/search_analytics',
+    ],
+    description: 'Lists the top Search Analytics queries (with impressions) for the exact page URL as an info result.',
+  },
   async run(page, ctx) {
     const { token } = extractGoogleCredentials(ctx)
     if (!token) return createNoTokenResult()
@@ -29,7 +37,7 @@ export const gscTopQueriesOfPageRule: Rule = {
           type: 'warn',
           priority: 200,
           name: NAME,
-          details: { url: page.url, property, propertyType, status: r.status, reference: GSC_API_REFERENCE },
+          details: { url: page.url, property, propertyType, status: r.status },
         }
       }
       const j = await r.json() as { rows?: Array<{ keys?: string[], clicks?: number, impressions?: number }> }
@@ -40,7 +48,7 @@ export const gscTopQueriesOfPageRule: Rule = {
         type: 'info',
         priority: 750,
         name: NAME,
-        details: { url: page.url, property, propertyType, topQueries: j.rows, apiResponse: j, reference: GSC_API_REFERENCE },
+        details: { url: page.url, property, propertyType, topQueries: j.rows, apiResponse: j },
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
@@ -50,7 +58,7 @@ export const gscTopQueriesOfPageRule: Rule = {
         type: 'runtime_error',
         name: NAME,
         priority: -1000,
-        details: { url: page.url, property, propertyType, reference: GSC_API_REFERENCE },
+        details: { url: page.url, property, propertyType },
       }
     }
   },

@@ -1,6 +1,7 @@
 import { getDomPath } from './dom-path'
 import { extractHtml } from './html-utils'
 import { sampleDelimitedTokens } from './boundedTokens'
+import { splitXRobotsSegments } from './robotsHeader'
 import { isRobotsMetaDirective } from './robotsVocabulary'
 import type { RobotsDirective } from './robots.types'
 
@@ -42,16 +43,11 @@ const parseHeader = (headers?: Record<string, string>): RobotsDirective[] => {
   if (!headers) return []
   const raw = headers['x-robots-tag'] || headers['X-Robots-Tag']
   if (!raw) return []
-  // X-Robots-Tag can appear multiple times; split on commas unless namespaced
-  // Allowed formats: "noindex, nofollow", "googlebot: noindex", "bingbot: noindex, nofollow"
-  const scanned = sampleDelimitedTokens(raw, ',', [], 1_001)
-  if (scanned.total > 1_000) throw new Error('X-Robots-Tag directives exceed the bounded contract')
-  const parts = scanned.values
+  // Formats: "noindex, nofollow", "googlebot: noindex, nofollow" (agent scoped),
+  // "max-snippet: 20" (valued directive, NOT an agent), RFC dates kept intact.
+  const { segments } = splitXRobotsSegments(raw)
   const directives: RobotsDirective[] = []
-  parts.forEach((part, idx) => {
-    const m = /^([a-z0-9_-]+)\s*:\s*(.+)$/i.exec(part)
-    const ua = (m?.[1] || 'robots').toLowerCase()
-    const value = (m?.[2] || part).trim()
+  segments.forEach(({ ua, value }, idx) => {
     const scan = scanTokens(value)
     directives.push({
       ua,

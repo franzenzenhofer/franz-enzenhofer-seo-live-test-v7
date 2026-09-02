@@ -7,7 +7,6 @@ const LABEL = 'HEAD'
 const NAME = 'Brand in Title'
 const RULE_ID = 'head:brand-in-title'
 const SELECTOR = 'head > title'
-const SPEC = 'https://developers.google.com/search/docs/appearance/title-link'
 
 const inferBrandFromUrl = (url: string): { brand: string; host: string } => {
   try {
@@ -26,6 +25,11 @@ export const brandInTitleRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'franz',
+    references: ['https://developers.google.com/search/docs/appearance/title-link'],
+    description: 'Checks whether the configured brand (or longest hostname label as fallback) appears case-insensitively in the <title>.',
+  },
   async run(page, ctx) {
     // 1. Extract brand from configuration (user-defined variable) or infer from hostname
     const variables = (ctx.globals as { variables?: Record<string, unknown> }).variables || {}
@@ -41,7 +45,7 @@ export const brandInTitleRule: Rule = {
         message: 'Could not determine brand; set "brand" in settings.',
         type: 'info',
         priority: 900,
-        details: { reference: SPEC, brandSource, host },
+        details: { brandSource, host },
       }
     }
 
@@ -71,9 +75,8 @@ export const brandInTitleRule: Rule = {
           hasBrand,
           brandSource,
           host,
-          reference: SPEC,
         }
-      : { brand, brandSource, host, reference: SPEC }
+      : { brand, brandSource, host }
 
     return {
       label: LABEL,

@@ -51,7 +51,6 @@ describe('verdicts carry the judged value', () => {
       page('<head><meta name="viewport" content="width=device-width, initial-scale=1"></head>'),
       ctx,
     )
-    expect(res.message).not.toContain('width=device-width')
     expect(res.details?.['content']).toBe('width=device-width, initial-scale=1')
   })
 

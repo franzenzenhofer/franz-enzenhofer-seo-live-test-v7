@@ -4,7 +4,6 @@ import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 const LABEL = 'HTTP'
 const NAME = 'Served from Browser Cache'
 const RULE_ID = 'http:from-cache'
-const SPEC = 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching'
 
 const isFromCache = (page: { fromCache?: boolean }, events: unknown): boolean | null => {
   if (typeof page.fromCache === 'boolean') return page.fromCache
@@ -18,6 +17,11 @@ export const fromCacheRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'franz',
+    references: ['https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching'],
+    description: 'Warns when the analyzed document was delivered from the browser (private) cache - making captured HTTP-header checks unreliable - and recommends a hard reload; info otherwise.',
+  },
   async run(page, ctx) {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const events = (ctx.globals as { events?: unknown }).events
@@ -29,7 +33,7 @@ export const fromCacheRule: Rule = {
         message: 'Page delivered via browser cache. Some HTTP header checks may be unreliable. Try Shift+Reload.',
         type: 'warn',
         priority: 150,
-        details: { fromCache: true, httpHeaders: page.headers || {}, reference: SPEC },
+        details: { fromCache: true, httpHeaders: page.headers || {} },
       }
     }
     return {
@@ -38,7 +42,7 @@ export const fromCacheRule: Rule = {
       message: cached === false ? 'Served from network (not browser cache).' : 'Cache delivery status unknown.',
       type: 'info',
       priority: 850,
-      details: { fromCache: cached, httpHeaders: page.headers || {}, reference: SPEC },
+      details: { fromCache: cached, httpHeaders: page.headers || {} },
     }
   },
 }

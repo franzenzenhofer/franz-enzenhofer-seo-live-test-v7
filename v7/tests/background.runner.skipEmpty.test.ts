@@ -60,8 +60,8 @@ describe('runner: chunked results', () => {
       ]
     })
     const getEnabledSpy = vi.spyOn(support, 'getEnabledRules').mockResolvedValue([
-      { id: 'rule-a', name: 'Rule A', enabled: true, what: 'static', run: vi.fn() } as any,
-      { id: 'rule-b', name: 'Rule B', enabled: true, what: 'static', run: vi.fn() } as any,
+      { id: 'rule-a', name: 'Rule A', enabled: true, what: 'static', meta: { provenance: 'franz', references: [] }, run: vi.fn() } as any,
+      { id: 'rule-b', name: 'Rule B', enabled: true, what: 'static', meta: { provenance: 'franz', references: [] }, run: vi.fn() } as any,
     ])
     const run = { id: 1, ev: [{ t: 'dom:document_idle', d: { html: '<html><body></body></html>' } }] } as any
     await runRulesOn(7, run)

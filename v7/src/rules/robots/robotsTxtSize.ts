@@ -5,7 +5,6 @@ import { extractSnippet } from '@/shared/html-utils'
 const LABEL = 'ROBOTS'
 const NAME = 'robots.txt size'
 const RULE_ID = 'robots:size'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots/intro'
 const MAX_BYTES = 512000
 const BYTES_PER_KIB = 1024
 
@@ -16,22 +15,30 @@ export const robotsTxtSizeRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt',
+      'https://www.rfc-editor.org/rfc/rfc9309.html#section-2.5',
+    ],
+    description: 'Measures robots.txt byte size and warns when it exceeds 512000 bytes (500 KiB).',
+  },
   async run(page) {
     let origin = ''
     try {
       const url = new URL(page.url)
       if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-        return { label: LABEL, name: NAME, message: `Skipped: ${url.protocol} URL`, type: 'info', priority: 900, details: { protocol: url.protocol, reference: SPEC } }
+        return { label: LABEL, name: NAME, message: `Skipped: ${url.protocol} URL`, type: 'info', priority: 900, details: { protocol: url.protocol } }
       }
       origin = url.origin
     } catch {
-      return { label: LABEL, name: NAME, message: 'Invalid URL. Cannot fetch robots.txt.', type: 'info', priority: 900, details: { reference: SPEC } }
+      return { label: LABEL, name: NAME, message: 'Invalid URL. Cannot fetch robots.txt.', type: 'info', priority: 900, details: {} }
     }
 
     const robotsTxtUrl = `${origin}/robots.txt`
     const robotsTxt = await fetchTextOnce(robotsTxtUrl)
     if (robotsTxt === null) {
-      return { label: LABEL, name: NAME, message: 'robots.txt not reachable.', type: 'info', priority: 850, details: { robotsTxtUrl, reference: SPEC } }
+      return { label: LABEL, name: NAME, message: 'robots.txt not reachable.', type: 'info', priority: 850, details: { robotsTxtUrl } }
     }
 
     const bytes = new TextEncoder().encode(robotsTxt).length
@@ -55,7 +62,6 @@ export const robotsTxtSizeRule: Rule = {
         limitKiB,
         robotsTxtUrl,
         snippet: extractSnippet(robotsTxt, 150),
-        reference: SPEC,
       },
     }
   },

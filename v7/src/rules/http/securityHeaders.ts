@@ -5,8 +5,7 @@ import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 const LABEL = 'HTTP'
 const NAME = 'Security Headers'
 const RULE_ID = 'http:security-headers'
-const SPEC = 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#security'
-const REQUIRED_HEADERS = [
+const RECOMMENDED_HEADERS = [
   'content-security-policy',
   'x-content-type-options',
   'referrer-policy',
@@ -19,12 +18,21 @@ export const securityHeadersRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'general',
+    references: [
+      'https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html',
+      'https://web.dev/articles/security-headers',
+    ],
+    description:
+      'Checks presence of five security response headers (content-security-policy, x-content-type-options, referrer-policy, permissions-policy, cross-origin-resource-policy); ok when all present, info listing the missing ones otherwise.',
+  },
   async run(page) {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     const headers = page.headers || {}
     const presentHeaders: string[] = []
     const missingHeaders: string[] = []
-    REQUIRED_HEADERS.forEach((headerName) => {
+    RECOMMENDED_HEADERS.forEach((headerName) => {
       if (headers[headerName]) {
         presentHeaders.push(headerName)
       } else {
@@ -33,7 +41,7 @@ export const securityHeadersRule: Rule = {
     })
     const allPresent = missingHeaders.length === 0
     const message = allPresent
-      ? `All ${REQUIRED_HEADERS.length} security headers present.`
+      ? `All ${RECOMMENDED_HEADERS.length} security headers present.`
       : `Missing ${missingHeaders.length} security header${missingHeaders.length > 1 ? 's' : ''}: ${missingHeaders.join(', ')}`
     return {
       label: LABEL,
@@ -44,13 +52,11 @@ export const securityHeadersRule: Rule = {
       details: {
         httpHeaders: headers,
         snippet: extractSnippet(missingHeaders.join(', ') || 'all present'),
-        requiredHeaders: REQUIRED_HEADERS,
+        recommendedHeaders: RECOMMENDED_HEADERS,
         presentHeaders,
         missingHeaders,
         allPresent,
-        reference: SPEC,
       },
     }
   },
 }
-

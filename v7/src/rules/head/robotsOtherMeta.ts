@@ -4,19 +4,23 @@ import { parseRobotsDirectives } from '@/shared/robots'
 const LABEL = 'HEAD'
 const NAME = 'Meta other robots'
 const RULE_ID = 'head:meta-other-robots'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag'
 
 export const robotsOtherMetaRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: ['https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag'],
+    description: 'Lists agent-specific robots meta tags whose name is neither robots nor googlebot, warning when any carries noindex/nofollow.',
+  },
   async run(page) {
     const directives = parseRobotsDirectives(page.doc, page.headers).filter(
       (d) => d.source === 'meta' && d.ua !== 'robots' && d.ua !== 'googlebot'
     )
     if (!directives.length) {
-      return { label: LABEL, name: NAME, message: 'No agent-specific robots meta tags.', type: 'info', priority: 910, details: { reference: SPEC } }
+      return { label: LABEL, name: NAME, message: 'No agent-specific robots meta tags.', type: 'info', priority: 910 }
     }
 
     const summary = directives
@@ -36,7 +40,6 @@ export const robotsOtherMetaRule: Rule = {
         hasNoindex,
         hasNofollow,
         domPaths,
-        reference: SPEC,
       },
     }
   },

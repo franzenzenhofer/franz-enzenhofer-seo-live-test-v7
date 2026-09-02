@@ -5,13 +5,20 @@ import { linkHeaderOf, parseHeaderCanonicals } from '@/shared/canonicalHeader'
 const LABEL = 'HEAD'
 const NAME = 'Canonical HTTP header'
 const RULE_ID = 'head:canonical-header'
-const SPEC = 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'
 
 export const canonicalHeaderRule: Rule = {
   id: RULE_ID,
   name: NAME,
   enabled: true,
   what: 'http',
+  meta: {
+    provenance: 'google',
+    references: [
+      'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls',
+      'https://www.rfc-editor.org/rfc/rfc6596',
+    ],
+    description: 'Parses the HTTP Link header for rel=canonical: info when absent, ok for exactly one, error for multiple header canonicals.',
+  },
   async run(page) {
     const headerVal = linkHeaderOf(page.headers)
     const canonicals = parseHeaderCanonicals(headerVal)
@@ -22,7 +29,6 @@ export const canonicalHeaderRule: Rule = {
         message: 'No rel="canonical" HTTP header found.',
         type: 'info',
         priority: 600,
-        details: { reference: SPEC },
       }
     }
     if (canonicals.length > 1) {
@@ -32,7 +38,7 @@ export const canonicalHeaderRule: Rule = {
         message: `Multiple rel="canonical" HTTP headers found (${canonicals.length}); keep exactly one.`,
         type: 'error',
         priority: 120,
-        details: { header: headerVal, canonicalUrls: canonicals, snippet: extractSnippet(headerVal), reference: SPEC },
+        details: { header: headerVal, canonicalUrls: canonicals, snippet: extractSnippet(headerVal) },
       }
     }
     const canonical = canonicals[0]
@@ -46,7 +52,6 @@ export const canonicalHeaderRule: Rule = {
         header: headerVal,
         canonicalUrl: canonical,
         snippet: extractSnippet(headerVal),
-        reference: SPEC,
       },
     }
   },

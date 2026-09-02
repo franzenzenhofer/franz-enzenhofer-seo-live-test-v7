@@ -17,7 +17,8 @@ export const topWords = (root: Node | null, limit = 5): Array<[string, number]> 
       word = ''
     }
     for (const char of node.nodeValue || '') {
-      if (/[a-z0-9]/i.test(char)) word = word.length < 100 ? word + char.toLowerCase() : word
+      // Unicode-aware: letters and digits in any script count (German umlauts etc.)
+      if (/[\p{L}\p{N}]/u.test(char)) word = word.length < 100 ? word + char.toLowerCase() : word
       else flush()
     }
     flush()

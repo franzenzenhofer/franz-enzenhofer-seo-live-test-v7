@@ -8,7 +8,6 @@ const LABEL = 'HEAD'
 const NAME = 'Hreflang Links'
 const RULE_ID = 'head-hreflang'
 const SELECTOR = 'head > link[rel~="alternate" i][hreflang]'
-const SPEC = 'https://developers.google.com/search/docs/specialty/international/localized-versions'
 // Full attribute capture for every hreflang link, bounded only by the
 // content-script phase-message byte budget (stated via hreflangDataTruncated).
 const PAIR_LIMIT = 200
@@ -18,6 +17,11 @@ export const hreflangRule: Rule = {
   name: NAME,
   enabled: true,
   what: 'static',
+  meta: {
+    provenance: 'google',
+    references: ['https://developers.google.com/search/docs/specialty/international/localized-versions'],
+    description: 'Inventories head > link[rel=alternate][hreflang] elements: count, language list, and full hreflang/href pairs, always type info.',
+  },
   run: async (page) => {
     const all = page.doc.querySelectorAll(SELECTOR)
     const elements = sampleElements(all)
@@ -60,9 +64,8 @@ export const hreflangRule: Rule = {
             languages,
             hreflangData,
             hreflangDataTruncated: count > hreflangData.length,
-            reference: SPEC,
           }
-        : { reference: SPEC },
+        : undefined,
     }
   },
 }
