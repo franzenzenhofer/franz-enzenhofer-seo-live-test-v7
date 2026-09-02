@@ -70,6 +70,6 @@ The static guarantees the C-task changes lock in:
 - unit tests: 460/460 passing
 - E2E (Playwright, real Chrome with extension loaded, `--load-extension=v7/dist`): 6/6 passing
 - `npm run audit` (B1/B2/B3): 3/3 within budget
-- Visual: headed-Chrome side-panel screenshot inspected, all 127 rules visible, no crash UI
+- Visual: side-panel screenshot inspected, 125 rules visible by default (127 with Debug data enabled), no crash UI
 - Build: `npm run build:dev` produces a valid `dist/manifest.json` with correct OAuth config and the documented extension ID `jbnaibigcohjfefpfocphcjeliohhold`
 - Atomic commits: 13 commits on `franz/live-test` (11 C-tasks + Phase B + Phase D + visual), each preceded by typecheck/lint/test in the husky pre-commit

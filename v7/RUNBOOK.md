@@ -44,6 +44,14 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
 3. If the value originates from outside the extension (file import, network response, user-pasted text), define a Zod schema in `src/shared/schemas.ts` and call `.safeParse` at the read point.
 4. Use the typed facade in `src/shared/storage-ops.ts` (`loggedStorageGet` / `loggedStorageSet`). The facade already wraps `set` in `withQuotaRetry` (3 attempts, exponential backoff on quota-shaped errors) and emits storage telemetry counters.
 
+## Add a new rule
+
+1. Create the rule file in `src/rules/<category>/`, register it in `src/rules/registry.ts`, add the test at `tests/rules/<category>.<ruleName>.test.ts`.
+2. Every rule MUST declare `meta: { provenance, references }` (`src/core/types.ts`). `provenance` is `'google'` (Google documentation), `'standard'` (RFC/WHATWG/W3C/schema.org/ogp.me/amp.dev), `'franz'` (Franz Enzenhofer best practice - the only provenance allowed an empty references list), or `'general'` (industry best practice). References are full https URLs, primary/most-authoritative first, and you must have actually fetched and read each one - the static test `tests/rules/registry.meta.test.ts` enforces meta on all 127+ rules with per-provenance host allowlists, zero skips.
+3. Do NOT hand-write `details.reference` - the runner injects `details.reference = meta.references[0]` and `details.provenance` into every result (pending/disabled/runtime_error included) via `metaDetails` in `src/core/runHelpers.ts`. Only set `details.reference` explicitly when one specific result intentionally cites a different URL than the primary reference.
+4. Debug rules (`debug:` id prefix) run and render only while the "Debug data" setting (`ui:debug`) is on - they are filtered out of `getEnabledRules()`, `readPhaseExecution()`, the sidepanel results, coverage, and the settings rule grid (see `src/rules/debugRules.ts`).
+5. After changing rules, regenerate the inventory: `npx tsx scripts/export-rules.ts`.
+
 ## Add a new content script
 
 1. Update `src/manifest.parts.ts`. Prefer narrow `matches:` patterns; `<all_urls>` requires explicit justification because Chrome recompiles content scripts in every tab they match.
