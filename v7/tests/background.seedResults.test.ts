@@ -1,21 +1,30 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 import { prepareResultsStorage } from '@/background/rules/seedResults'
+import { startSession, finishSession } from '@/background/rules/sessions'
 import type { Rule } from '@/core/types'
 
 const store: Record<string, unknown> = {}
+const session: Record<string, unknown> = {}
 
-beforeEach(() => {
+beforeEach(async () => {
   Object.keys(store).forEach((k) => delete store[k])
+  Object.keys(session).forEach((k) => delete session[k])
   vi.stubGlobal('chrome', {
     storage: {
       local: {
         get: async (k: string) => ({ [k]: store[k] }),
         set: async (o: Record<string, unknown>) => { Object.assign(store, o) },
       },
-      session: { get: async () => ({}), set: async () => {} },
+      session: {
+        get: async (k: string) => ({ [k]: session[k] }),
+        set: async (o: Record<string, unknown>) => { Object.assign(session, o) },
+        remove: async (k: string) => { delete session[k] },
+      },
     },
   })
+  // Seeding only writes for the tab's active run - start one, as the runner does.
+  await startSession(1, 'run-1')
 })
 
 const rule = (id: string): Rule => ({ id, name: id, enabled: true, what: 'static', meta: { provenance: 'franz', references: [] }, run: async () => ({}) } as unknown as Rule)
@@ -46,6 +55,12 @@ describe('prepareResultsStorage', () => {
     expect(byId.get('a:2')).toBe('warn')
     expect(byId.get('b:1')).toBe('pending')
     expect(byId.get('b:2')).toBe('pending')
+  })
+
+  it('writes nothing once the run is no longer the active session', async () => {
+    await finishSession(1, 'completed', 'run-1')
+    await prepareResultsStorage(1, 'results:1', rules, 'run-1', idx)
+    expect(store['results:1']).toBeUndefined()
   })
 
   it('never emits a rule twice', async () => {

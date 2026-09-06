@@ -1,11 +1,10 @@
-import { walkNodes } from './domFacts.walk'
+import { walkContentText } from './contentText'
 
 const MAX_UNIQUE_WORDS = 20_000
 
 export const topWords = (root: Node | null, limit = 5): Array<[string, number]> => {
   const frequencies = new Map<string, number>()
-  walkNodes(root, (node) => {
-    if (node.nodeType !== 3) return
+  walkContentText(root, (text) => {
     let word = ''
     const flush = () => {
       if (word.length >= 4) {
@@ -16,7 +15,7 @@ export const topWords = (root: Node | null, limit = 5): Array<[string, number]> 
       }
       word = ''
     }
-    for (const char of node.nodeValue || '') {
+    for (const char of text) {
       // Unicode-aware: letters and digits in any script count (German umlauts etc.)
       if (/[\p{L}\p{N}]/u.test(char)) word = word.length < 100 ? word + char.toLowerCase() : word
       else flush()

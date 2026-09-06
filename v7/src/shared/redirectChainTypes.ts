@@ -33,6 +33,8 @@ export type RedirectChain = {
 }
 
 export type FollowOptions = {
+  signal?: AbortSignal
+  maxBodyBytes?: number
   maxHops?: number
   timeoutMs?: number
   /** Return the final Response with its body intact (caller must consume it). */

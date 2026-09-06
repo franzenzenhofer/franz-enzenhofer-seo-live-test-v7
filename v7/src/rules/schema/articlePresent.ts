@@ -10,5 +10,6 @@ export const schemaArticlePresentRule = createSchemaRule({
     references: ['https://developers.google.com/search/docs/appearance/structured-data/article'],
     description: 'Checks whether Article/NewsArticle/BlogPosting JSON-LD is present (ok if found, info if absent).',
   },
+  presenceOnly: true,
   validator: () => true, // Presence check only
 })

@@ -18,7 +18,7 @@ export const robotsMaxVideoPreviewRule: Rule = {
     description: 'Reports max-video-preview directives and warns when the value is not a parseable integer >= -1.',
   },
   async run(page) {
-    const directives = parseRobotsDirectives(page.doc, page.headers)
+    const directives = parseRobotsDirectives(page.doc, page.headers, page.responseHeaderFields)
     const matches = findRobotsTokens(directives, 'max-video-preview')
     if (matches.length === 0) {
       return {

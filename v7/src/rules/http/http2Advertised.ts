@@ -28,7 +28,7 @@ export const http2AdvertisedRule: Rule = {
       ? `Alt-Svc advertises HTTP/2: ${altSvcHeader}`
       : altSvcHeader
         ? `Alt-Svc present but no HTTP/2: ${altSvcHeader}`
-        : 'No Alt-Svc header. HTTP/2 not advertised.'
+        : 'No Alt-Svc advertisement captured. This does not determine HTTP/2 support; see the negotiated protocol.'
     return {
       label: LABEL,
       name: NAME,
@@ -44,4 +44,3 @@ export const http2AdvertisedRule: Rule = {
     }
   },
 }
-

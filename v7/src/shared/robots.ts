@@ -39,13 +39,12 @@ const parseMeta = (doc: Document): RobotsDirective[] => {
   return directives
 }
 
-const parseHeader = (headers?: Record<string, string>): RobotsDirective[] => {
-  if (!headers) return []
-  const raw = headers['x-robots-tag'] || headers['X-Robots-Tag']
-  if (!raw) return []
+const parseHeader = (headers?: Record<string, string>, fields?: Array<[string, string]>): RobotsDirective[] => {
+  const values = fields?.filter(([name]) => name.toLowerCase() === 'x-robots-tag').map(([, value]) => value)
+    ?? Object.entries(headers || {}).filter(([name]) => name.toLowerCase() === 'x-robots-tag').map(([, value]) => value)
   // Formats: "noindex, nofollow", "googlebot: noindex, nofollow" (agent scoped),
   // "max-snippet: 20" (valued directive, NOT an agent), RFC dates kept intact.
-  const { segments } = splitXRobotsSegments(raw)
+  const segments = values.flatMap((value) => splitXRobotsSegments(value).segments)
   const directives: RobotsDirective[] = []
   segments.forEach(({ ua, value }, idx) => {
     const scan = scanTokens(value)
@@ -64,9 +63,9 @@ const parseHeader = (headers?: Record<string, string>): RobotsDirective[] => {
   return directives
 }
 
-export const parseRobotsDirectives = (doc: Document, headers?: Record<string, string>): RobotsDirective[] => [
+export const parseRobotsDirectives = (doc: Document, headers?: Record<string, string>, fields?: Array<[string, string]>): RobotsDirective[] => [
   ...parseMeta(doc),
-  ...parseHeader(headers),
+  ...parseHeader(headers, fields),
 ]
 
 export const groupByUa = (directives: RobotsDirective[]): Record<string, RobotsDirective[]> => {

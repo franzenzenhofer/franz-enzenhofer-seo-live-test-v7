@@ -6,10 +6,16 @@ const P = (proto?: string, url = 'https://ex.com', headers: Record<string, strin
   ({ html: '', url, doc: new DOMParser().parseFromString('<p/>', 'text/html'), navigationTiming: { nextHopProtocol: proto || '' }, headers })
 
 describe('rule: negotiated protocol', () => {
-  it('returns runtime_error when headers not captured', async () => {
+  it('reads the protocol from navigation timing, not from response headers', async () => {
     const r = await negotiatedProtocolRule.run(P('h2', 'https://ex.com', {}) as any, { globals: {} })
-    expect(r.type).toBe('runtime_error')
-    expect(r.message).toContain('Hard Reload')
+    expect(r.type).toBe('ok')
+    expect(r.details?.nextHopProtocol).toBe('h2')
+  })
+
+  it('says the protocol was not captured when navigation timing has none', async () => {
+    const r = await negotiatedProtocolRule.run(P('') as any, { globals: {} })
+    expect(r.type).toBe('info')
+    expect(r.message).toContain('not captured')
   })
 
   it('errors when HTTPS negotiates http/1.1 (outdated)', async () => {

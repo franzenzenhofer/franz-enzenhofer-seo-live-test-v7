@@ -43,7 +43,14 @@ describe('run sessions', () => {
 
   it('finishes session as completed', async () => {
     await startSession(5, 'run-5')
-    await finishSession(5, 'completed')
+    expect(await finishSession(5, 'completed', 'run-5')).toBe('run-5')
     expect(await isSessionActive(5, 'run-5')).toBe(false)
+  })
+
+  it('refuses to finish a session under a different run id', async () => {
+    await startSession(7, 'run-a')
+    expect(await finishSession(7, 'completed', 'run-old')).toBeNull()
+    // Run A stays active: a superseded run's cleanup must not settle it.
+    expect(await isSessionActive(7, 'run-a')).toBe(true)
   })
 })

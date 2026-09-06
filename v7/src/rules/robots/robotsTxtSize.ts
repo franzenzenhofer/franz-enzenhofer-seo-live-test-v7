@@ -1,5 +1,5 @@
 import type { Rule } from '@/core/types'
-import { fetchTextOnce } from '@/shared/fetchOnce'
+import { fetchStatusTextOnce } from '@/shared/fetchOnce'
 import { extractSnippet } from '@/shared/html-utils'
 
 const LABEL = 'ROBOTS'
@@ -21,9 +21,9 @@ export const robotsTxtSizeRule: Rule = {
       'https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt',
       'https://www.rfc-editor.org/rfc/rfc9309.html#section-2.5',
     ],
-    description: 'Measures robots.txt byte size and warns when it exceeds 512000 bytes (500 KiB).',
+    description: 'Measures robots.txt byte size and warns when it reaches the 512000 byte (500 KiB) limit Google reads; content past the limit is ignored by Google and not fetched here.',
   },
-  async run(page) {
+  async run(page, ctx) {
     let origin = ''
     try {
       const url = new URL(page.url)
@@ -36,17 +36,19 @@ export const robotsTxtSizeRule: Rule = {
     }
 
     const robotsTxtUrl = `${origin}/robots.txt`
-    const robotsTxt = await fetchTextOnce(robotsTxtUrl)
-    if (robotsTxt === null) {
-      return { label: LABEL, name: NAME, message: 'robots.txt not reachable.', type: 'info', priority: 850, details: { robotsTxtUrl } }
+    const fetched = await fetchStatusTextOnce(robotsTxtUrl, 1500, ctx.signal)
+    if (!fetched?.ok) {
+      return { label: LABEL, name: NAME, message: 'robots.txt not reachable.', type: 'info', priority: 850, details: { robotsTxtUrl, status: fetched?.status } }
     }
 
-    const bytes = new TextEncoder().encode(robotsTxt).length
+    // The shared probe stops at exactly the limit Google reads, so an oversize
+    // file is known to be "at least" that big - its real size is not measured.
+    const bytes = fetched.bytes
+    const exceeds = fetched.truncated
     const sizeKiB = toKiB(bytes)
     const limitKiB = toKiB(MAX_BYTES)
-    const exceeds = bytes > MAX_BYTES
     const message = exceeds
-      ? `robots.txt is ${sizeKiB} KiB (exceeds ${limitKiB} KiB limit).`
+      ? `robots.txt is larger than the ${limitKiB} KiB limit; Google ignores everything after the first ${limitKiB} KiB.`
       : `robots.txt size ${sizeKiB} KiB within ${limitKiB} KiB limit.`
 
     return {
@@ -57,11 +59,13 @@ export const robotsTxtSizeRule: Rule = {
       priority: exceeds ? 220 : 820,
       details: {
         bytes,
+        bytesRead: bytes,
+        truncatedAtLimit: exceeds,
         sizeKiB,
         limitBytes: MAX_BYTES,
         limitKiB,
         robotsTxtUrl,
-        snippet: extractSnippet(robotsTxt, 150),
+        snippet: extractSnippet(fetched.text, 150),
       },
     }
   },

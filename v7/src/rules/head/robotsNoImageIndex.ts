@@ -20,7 +20,7 @@ export const robotsNoImageIndexRule: Rule = {
     description: 'Warns when a noimageindex directive is present in robots meta tags or the X-Robots-Tag header.',
   },
   async run(page) {
-    const directives = parseRobotsDirectives(page.doc, page.headers)
+    const directives = parseRobotsDirectives(page.doc, page.headers, page.responseHeaderFields)
     const matches = findRobotsTokens(directives, 'noimageindex')
     if (matches.length === 0) {
       return {

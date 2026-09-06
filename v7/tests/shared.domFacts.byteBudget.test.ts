@@ -3,10 +3,12 @@ import { describe, it, expect } from 'vitest'
 import { collectDomFacts } from '@/shared/domFacts.collect'
 import { validatePhaseMessage } from '@/shared/phaseContract'
 
+import { phaseCompletion } from './helpers/phaseMessage'
+
 const makeDoc = (html: string) => new DOMParser().parseFromString(html, 'text/html')
 const contract = (html: string) => {
   const facts = collectDomFacts(makeDoc(html), 'static')
-  return { facts, check: validatePhaseMessage('document_end', { facts, url: 'https://ex.test/', capturedAt: 0, navTiming: null }) }
+  return { facts, check: validatePhaseMessage('document_end', phaseCompletion(facts)) }
 }
 
 // The background silently rejects any phase message above 32 KB. The collector

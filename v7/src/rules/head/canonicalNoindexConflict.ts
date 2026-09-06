@@ -2,19 +2,11 @@ import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
 import { linkHeaderOf, parseHeaderCanonicals } from '@/shared/canonicalHeader'
+import { pageEffectiveRobots } from '@/shared/effectiveRobots'
 
 const LABEL = 'HEAD'
 const NAME = 'Canonical + noindex conflict'
 const RULE_ID = 'head:canonical-noindex-conflict'
-
-// X-Robots-Tag values may carry an optional user-agent prefix per rule
-// ("googlebot: noindex"); strip it before comparing tokens.
-const parseTokens = (val: string | undefined | null) =>
-  (val || '')
-    .toLowerCase()
-    .split(/[,;]/)
-    .map((t) => t.trim().replace(/^[a-z0-9_*-]+\s*:\s*/, '').trim())
-    .filter(Boolean)
 
 export const canonicalNoindexConflictRule: Rule = {
   id: RULE_ID,
@@ -38,12 +30,10 @@ export const canonicalNoindexConflictRule: Rule = {
     // Meta names are case-insensitive to Google, and crawler-scoped metas
     // (name="googlebot") carry the same rules as name="robots".
     const robotsMeta = page.doc.querySelector('head > meta[name="robots" i], head > meta[name="googlebot" i]')
-    const robotsTokens = parseTokens(robotsMeta?.getAttribute('content'))
-    const hasNoindexMeta = robotsTokens.includes('noindex')
-
+    const effective = pageEffectiveRobots(page)
+    const hasNoindexMeta = effective.directives.some((directive) => directive.source === 'meta' && directive.hasNoindex)
     const xRobotsRaw = page.headers?.['x-robots-tag'] || ''
-    const xRobotsTokens = parseTokens(xRobotsRaw)
-    const hasNoindexHeader = xRobotsTokens.includes('noindex')
+    const hasNoindexHeader = effective.directives.some((directive) => directive.source === 'header' && directive.hasNoindex)
 
     const hasNoindex = hasNoindexMeta || hasNoindexHeader
 
@@ -62,6 +52,7 @@ export const canonicalNoindexConflictRule: Rule = {
           xRobots: xRobotsRaw || null,
           hasNoindexMeta,
           hasNoindexHeader,
+          effective,
           snippet: extractSnippet(robotsMeta?.outerHTML || xRobotsRaw || ''),
         },
       }
@@ -78,6 +69,7 @@ export const canonicalNoindexConflictRule: Rule = {
         ...(headerCanonicals.length ? { headerCanonicals } : {}),
         hasCanonical,
         hasNoindex,
+        effective,
         robotsMetaPresent: !!robotsMeta,
       },
     }

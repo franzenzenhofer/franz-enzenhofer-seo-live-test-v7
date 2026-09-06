@@ -19,7 +19,7 @@ export const summarizePSI = (result: PSIResult, url: string, strategy: Strategy)
   const base = {
     url,
     strategy,
-    score: typeof scoreRaw === 'number' ? Math.round(scoreRaw * 100) : 0,
+    score: typeof scoreRaw === 'number' && Number.isFinite(scoreRaw) ? Math.round(scoreRaw * 100) : undefined,
     fcpMs: pick('first-contentful-paint'),
     lcpMs: pick('largest-contentful-paint'),
     tbtMs: pick('total-blocking-time'),
@@ -29,6 +29,7 @@ export const summarizePSI = (result: PSIResult, url: string, strategy: Strategy)
     finalDisplayedUrl: finalUrl,
     testUrl,
     userAgent: lighthouse.userAgent,
+    runtimeError: lighthouse.runtimeError,
   }
 
   const warnings = Array.isArray(lighthouse.runWarnings)

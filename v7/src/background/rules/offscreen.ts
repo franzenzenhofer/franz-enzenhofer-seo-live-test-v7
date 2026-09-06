@@ -21,6 +21,7 @@ export const runInOffscreen = async <T>(
   return new Promise((resolve, reject) => {
     const id = Math.random().toString(36).slice(2)
     let settled = false
+    let timeout: ReturnType<typeof setTimeout> | undefined
     const cleanup = () => {
       clearTimeout(timeout)
       chrome.runtime.onMessage.removeListener(onMsg)
@@ -42,7 +43,7 @@ export const runInOffscreen = async <T>(
     }
     if (options.signal?.aborted) return onAbort()
     options.signal?.addEventListener('abort', onAbort, { once: true })
-    const timeout = setTimeout(() => {
+    timeout = setTimeout(() => {
       requestCancel('timeout')
       fail(new Error('offscreen-timeout'))
     }, timeoutMs)

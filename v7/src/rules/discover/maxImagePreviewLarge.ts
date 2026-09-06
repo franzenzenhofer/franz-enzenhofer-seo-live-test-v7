@@ -1,8 +1,7 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
-
-const hasDirective = (s: string, dir: string) => new RegExp(`\\b${dir.replace(/[-]/g, '[-]')}\\b`, 'i').test(s)
+import { pageEffectiveRobots } from '@/shared/effectiveRobots'
 
 export const discoverMaxImagePreviewLargeRule: Rule = {
   id: 'discover:max-image-preview-large',
@@ -19,20 +18,20 @@ export const discoverMaxImagePreviewLargeRule: Rule = {
   },
   async run(page) {
     const metaEl = page.doc.querySelector('meta[name="robots"]')
-    const meta = (metaEl?.getAttribute('content') || '').toLowerCase()
     const xr = (page.headers?.['x-robots-tag'] || '').toLowerCase()
-    const ok = hasDirective(meta, 'max-image-preview:large') || hasDirective(xr, 'max-image-preview:large')
+    const effective = pageEffectiveRobots(page)
+    const ok = effective.maxImagePreview === 'large' && !effective.noimageindex
     const sourceHtml = extractHtml(metaEl)
     const robotsContent = (metaEl?.getAttribute('content') || '').trim()
 
     return ok
       ? {
           label: 'DISCOVER',
-          message: 'max-image-preview:large present',
+          message: 'Effective Googlebot max-image-preview:large',
           type: 'ok',
           priority: 800,
           name: 'max-image-preview:large',
-          details: {
+          details: { effective,
             ...(robotsContent ? { robotsContent } : {}),
             ...(sourceHtml ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(metaEl) } : {}),
             ...(xr ? { xRobotsTag: xr } : {}),
@@ -40,11 +39,11 @@ export const discoverMaxImagePreviewLargeRule: Rule = {
         }
       : {
           label: 'DISCOVER',
-          message: 'max-image-preview:large not present (recommended for Google Discover)',
+          message: 'Large image previews are not effectively enabled for Googlebot (recommended for Google Discover)',
           type: 'warn',
           priority: 400,
           name: 'max-image-preview:large',
-          details: { ...(robotsContent ? { robotsContent } : {}), ...(sourceHtml ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(metaEl) } : {}) },
+          details: { effective, ...(robotsContent ? { robotsContent } : {}), ...(sourceHtml ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(metaEl) } : {}) },
         }
   },
 }

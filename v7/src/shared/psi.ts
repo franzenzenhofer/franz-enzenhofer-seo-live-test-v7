@@ -3,12 +3,13 @@ import { PSIResponse } from './schemas.js'
 export type PSIResult = {
   lighthouseResult?: {
     audits?: Record<string, { numericValue?: number }>
-    categories?: { performance?: { score?: number } }
+    categories?: { performance?: { score?: number | null } }
     fetchTime?: string
     finalDisplayedUrl?: string
     finalUrl?: string
     runWarnings?: string[]
     userAgent?: string
+    runtimeError?: { code?: string; message?: string }
   }
 }
 

@@ -1,18 +1,7 @@
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
-
-const checkNoindex = (doc: Document, headers?: Record<string, string>) => {
-  const metaEl = doc.querySelector('meta[name="robots"]')
-  const robotsContent = (metaEl?.getAttribute('content') || '').trim()
-  const robots = robotsContent.toLowerCase()
-  const xr = (headers?.['x-robots-tag'] || '').toLowerCase()
-  // 'none' is equivalent to 'noindex, nofollow' per Google's robots-meta-tag doc
-  const noindexRe = /\b(?:noindex|none)\b/
-  const hasNoindex = noindexRe.test(robots) || noindexRe.test(xr)
-
-  return { hasNoindex, element: metaEl, xRobots: xr, robotsContent }
-}
+import { pageEffectiveRobots } from '@/shared/effectiveRobots'
 
 export const discoverIndexableRule: Rule = {
   id: 'discover:indexable',
@@ -28,7 +17,10 @@ export const discoverIndexableRule: Rule = {
     description: 'Checks that the page carries no noindex in meta[name=robots] or the X-Robots-Tag header (ok if indexable, warn on noindex).',
   },
   async run(page) {
-    const result = checkNoindex(page.doc, page.headers)
+    const effective = pageEffectiveRobots(page)
+    const result = { hasNoindex: effective.noindex, element: page.doc.querySelector('meta[name="robots" i]'),
+      robotsContent: effective.directives.filter((entry) => entry.source === 'meta').map((entry) => entry.value).join('; '),
+      xRobots: effective.directives.filter((entry) => entry.source === 'header').map((entry) => entry.value).join('; ') }
     const sourceHtml = extractHtml(result.element)
 
     return result.hasNoindex
@@ -38,7 +30,7 @@ export const discoverIndexableRule: Rule = {
           type: 'warn',
           priority: 150,
           name: 'Indexable',
-          details: {
+          details: { effective,
             ...(result.robotsContent ? { robotsContent: result.robotsContent } : {}),
             ...(sourceHtml ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(result.element) } : {}),
             ...(result.xRobots ? { xRobotsTag: result.xRobots } : {}),
@@ -46,11 +38,11 @@ export const discoverIndexableRule: Rule = {
         }
       : {
           label: 'DISCOVER',
-          message: 'Indexable (no noindex in robots meta or X-Robots-Tag)',
+          message: 'No effective noindex directive for Googlebot; this alone does not establish indexability',
           type: 'ok',
           priority: 850,
           name: 'Indexable',
-          details: {
+          details: { effective,
             ...(result.robotsContent ? { robotsContent: result.robotsContent } : {}),
             ...(sourceHtml ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(result.element) } : {}),
             ...(result.xRobots ? { xRobotsTag: result.xRobots } : {}),

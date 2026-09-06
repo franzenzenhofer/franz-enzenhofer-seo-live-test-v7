@@ -23,16 +23,22 @@ export type Page = {
   html: string                 // caller-provided HTML; empty in the compact browser pipeline
   staticHtml?: string          // optional caller-provided static HTML
   url: string
+  baseUri?: string
   doc: Document                // caller DOM or compact static-fact document
   staticDoc?: Document         // alias of doc for context rules
   status?: number
   statusLine?: string
   headers?: Record<string, string>
+  responseHeaderFields?: Array<[string, string]>
   headerSource?: 'events' | 'probe'
+  /** URL the event headers were received for (may differ from url after a history change). */
+  headerUrl?: string
   headerChain?: Array<{ url: string; status?: number; statusLine?: string; location?: string; redirectUrl?: string; fromCache?: boolean }>
   fromCache?: boolean
   ip?: string
   navigationTiming?: { nextHopProtocol?: string | null; transferSize?: number; encodedBodySize?: number; decodedBodySize?: number; type?: string | null; firstPaint?: number | null; firstContentfulPaint?: number | null }
+  resourceFacts?: import('@/shared/resourceFacts').ResourceFact[]
+  resourceCoverage?: { events: number; completed: number; retained: number; dropped: number; truncated: boolean }
   resources?: string[]
   resourceCount?: number
   resourceDropped?: number
@@ -49,7 +55,7 @@ export type Page = {
   staticFacts?: DomPhaseFacts
   idleFacts?: DomPhaseFacts
 }
-export type Ctx = { globals: Record<string, unknown> }
+export type Ctx = { globals: Record<string, unknown>; signal?: AbortSignal }
 export type RuleProvenance = 'google' | 'standard' | 'franz' | 'general'
 export type RuleMeta = {
   provenance: RuleProvenance

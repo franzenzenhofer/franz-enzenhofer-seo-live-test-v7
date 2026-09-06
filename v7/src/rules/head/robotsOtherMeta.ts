@@ -16,7 +16,7 @@ export const robotsOtherMetaRule: Rule = {
     description: 'Lists agent-specific robots meta tags whose name is neither robots nor googlebot, warning when any carries noindex/nofollow.',
   },
   async run(page) {
-    const directives = parseRobotsDirectives(page.doc, page.headers).filter(
+    const directives = parseRobotsDirectives(page.doc, page.headers, page.responseHeaderFields).filter(
       (d) => d.source === 'meta' && d.ua !== 'robots' && d.ua !== 'googlebot'
     )
     if (!directives.length) {

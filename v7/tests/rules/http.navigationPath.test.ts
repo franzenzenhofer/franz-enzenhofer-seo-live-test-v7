@@ -34,7 +34,9 @@ describe('http:navigation-path rule', () => {
       ],
     }
     const result = await navigationPathRule.run(page as any, { globals: { navigationLedger: ledger } })
-    expect(result.type).toBe('error')
+    // Googlebot follows up to 10 hops, so a chain is a crawl/performance warning,
+    // not a broken page: https://developers.google.com/search/docs/crawling-indexing/301-redirects
+    expect(result.type).toBe('warn')
     // The full webRequest hop chain renders once, in details.redirectChainText.
     const chainText = result.details?.['redirectChainText'] as string
     expect(chainText).toContain('HTTP 301 -> Location: https://example.com/mid')
@@ -238,7 +240,7 @@ describe('http:navigation-path rule', () => {
       ],
     }
     const result = await run(ledger)
-    expect(result.type).toBe('error')
+    expect(result.type).toBe('warn')
     expect(result.details?.issue).toBe('long_chain')
     expect(result.details?.redirectCount).toBe(2)
   })
@@ -268,7 +270,7 @@ describe('http:navigation-path rule', () => {
     expect(result.details?.issue).toBe('client_redirect')
   })
 
-  it('returns error for redirect chain (multiple hops)', async () => {
+  it('returns warn for redirect chain (multiple hops)', async () => {
     const ledger: NavigationLedger = {
       tabId: 1,
       currentUrl: 'https://example.com/final',
@@ -294,7 +296,7 @@ describe('http:navigation-path rule', () => {
       ],
     }
     const result = await run(ledger)
-    expect(result.type).toBe('error')
+    expect(result.type).toBe('warn')
     expect(result.message).toContain('Redirect chain')
     expect(result.details?.redirectCount).toBe(2)
     expect(result.details?.issue).toBe('long_chain')

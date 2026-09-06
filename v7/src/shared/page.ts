@@ -1,3 +1,4 @@
+import { abortScope } from './abort'
 import { enrichFromEvents } from './page.enrich'
 import { discardBody, hasHeaders } from './http-utils'
 
@@ -6,12 +7,19 @@ import type { EventRec } from '@/background/pipeline/types'
 import type { ResourceLedger } from '@/background/pipeline/types'
 
 type Head = { status?: number; headers?: Record<string, string> }
+export type Probe = (url: string, signal?: AbortSignal) => Promise<Head>
 
-const head = async (url: string): Promise<Head> => {
+const PROBE_TIMEOUT_MS = 5_000
+
+// Every rule waits on this probe before it runs, so it must be bounded in time
+// and must stop the moment the run is cancelled.
+const head: Probe = async (url, signal) => {
+  const scope = abortScope(PROBE_TIMEOUT_MS, signal, 'Page header probe timed out')
   try {
-    let r = await fetch(url, { method: 'HEAD', redirect: 'follow' })
+    let r = await fetch(url, { method: 'HEAD', redirect: 'follow', signal: scope.signal })
     if (r.status === 405 || r.status === 501) {
-      try { r = await fetch(url, { method: 'GET', redirect: 'follow' }) } catch { /* ignore */ }
+      discardBody(r)
+      try { r = await fetch(url, { method: 'GET', redirect: 'follow', signal: scope.signal }) } catch { /* ignore */ }
     }
     discardBody(r)
     const h: Record<string, string> = {}
@@ -19,6 +27,8 @@ const head = async (url: string): Promise<Head> => {
     return { status: r.status, headers: h }
   } catch {
     return {}
+  } finally {
+    scope.dispose()
   }
 }
 
@@ -26,10 +36,11 @@ export const pageFromHtml = async (
   html: string,
   url: string,
   makeDoc: (html: string) => Document,
-  probe: (u: string) => Promise<Head> = head,
+  probe: Probe = head,
+  signal?: AbortSignal,
 ): Promise<Page> => {
   const doc = makeDoc(html)
-  const { status, headers } = await probe(url)
+  const { status, headers } = await probe(url, signal)
   return { html, url, doc, status, headers, headerSource: hasHeaders(headers) ? 'probe' : undefined }
 }
 
@@ -37,8 +48,9 @@ export const pageFromEvents = async (
   ev: EventRec[],
   makeDoc: (html: string) => Document,
   getHref: () => string,
-  probe: (u: string) => Promise<Head> = head,
+  probe: Probe = head,
   resources?: ResourceLedger,
+  signal?: AbortSignal,
 ): Promise<Page> => {
   const p0 = enrichFromEvents(ev, makeDoc, getHref, resources)
   const extra = p0.extra as Partial<Page> & { headerChain?: unknown; headers?: Record<string, string> }
@@ -48,7 +60,7 @@ export const pageFromEvents = async (
   // navigation events already captured main-frame headers and status, its result
   // was ignored anyway - skip the request instead of paying a round trip per run.
   const needsProbe = !(hasMainHeaders && eventHeaders && typeof extra.status === 'number')
-  const probed = needsProbe ? await probe(p0.url) : {}
+  const probed = needsProbe ? await probe(p0.url, signal) : {}
   const base: Page = {
     html: p0.html,
     url: p0.url,

@@ -9,7 +9,7 @@ import { sampleDelimitedTokens } from '@/shared/boundedTokens'
 const LABEL = 'HEAD'
 const NAME = 'Meta Robots Noindex'
 const RULE_ID = 'head:robots-noindex'
-const SELECTOR = 'head > meta[name="robots"]'
+const SELECTOR = 'head > meta[name="robots" i]'
 
 export const robotsNoindexRule: Rule = {
   id: RULE_ID,
@@ -28,7 +28,7 @@ export const robotsNoindexRule: Rule = {
       return {
         label: LABEL,
         name: NAME,
-        message: 'No robots meta tag found (page indexable).',
+        message: 'No generic robots meta tag found; other indexability signals are checked separately.',
         type: 'info',
         priority: 900,
       }
@@ -58,7 +58,7 @@ export const robotsNoindexRule: Rule = {
     let message = 'robots: ' + (content || '(empty)')
     if (hasNoindex || hasNofollow) {
       type = 'warn'
-      message += ' (page will NOT be indexed)'
+      message += hasNoindex ? ' (noindex directive)' : ' (nofollow directive; indexing is not disabled)'
     }
 
     return {

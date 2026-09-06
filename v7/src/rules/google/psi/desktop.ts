@@ -26,6 +26,7 @@ export const psiDesktopRule: Rule = {
     const key = getPSIKey(userKey)
     const j = await runPSI(page.url, 'desktop', key)
     const summary = summarizePSI(j, page.url, 'desktop')
+    if (summary.score === undefined) return { label: 'PSI', name: NAME, message: 'Desktop performance score unavailable.', type: 'info', priority: 900, details: { ...summary } }
     const verdict = psiScoreVerdict(summary.score)
     const msg = `Desktop performance: ${summary.score}/100 [View report](${summary.testUrl})`
     return { label: 'PSI', message: msg, type: verdict.type, priority: verdict.priority, name: NAME, details: { ...summary } }

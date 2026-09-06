@@ -15,8 +15,8 @@ describe('Page shape completeness', () => {
     const events = [
       { t: 'nav:before', u: base },
       { t: 'nav:commit', u: url },
-      { t: 'req:headers', u: url, h: { Status: '200', 'Content-Type': 'text/html; charset=utf-8' } },
-      { t: 'req:done', u: url, s: 200 },
+      { t: 'req:mainHeaders', u: url, h: { Status: '200', 'Content-Type': 'text/html; charset=utf-8' } },
+      { t: 'req:mainDone', u: url, s: 200 },
       { t: 'req:headers', u: 'https://a.example/img.png', h: { Status: '200' } },
       { t: 'dom:DOMContentLoaded', d: { html: dcl } },
       { t: 'dom:document_end', d: { html: end } },

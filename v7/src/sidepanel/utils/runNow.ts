@@ -5,6 +5,7 @@ import { hardRefreshTab } from '@/shared/hardRefresh'
 import { clearRunMeta } from '@/shared/runMeta'
 import { isAbsoluteUrl, isValidUrl } from '@/shared/url-utils'
 import { isRestrictedUrl } from '@/shared/tabMemory'
+import { requestManualAudit } from '@/shared/auditIntent'
 
 const normalizeRunUrl = (raw?: string) => {
   const trimmed = (raw || '').trim()
@@ -34,6 +35,7 @@ export const executeRunNow = async (url?: string) => {
   await log(tabId, '========== NEW TEST RUN STARTED ==========')
 
   await Promise.all([clearResults(tabId), clearRunMeta(tabId)])
+  await requestManualAudit(tabId)
 
   // Hard refresh will trigger DOM capture and rule execution automatically
   await hardRefreshTab(tabId, normalizedUrl)

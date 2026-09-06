@@ -4,7 +4,11 @@ import { describe, it, expect, vi } from 'vitest'
 // @ts-expect-error test shim
 globalThis.chrome = { storage: { local: { get: vi.fn(async ()=> ({ 'ui:autoRun': false })) } } }
 
-vi.mock('@/background/pipeline/collector', () => ({ pushEvent: vi.fn().mockResolvedValue(undefined), markDomPhase: vi.fn() }))
+vi.mock('@/background/pipeline/collector', () => ({
+  pushEvent: vi.fn().mockResolvedValue(undefined),
+  markDomPhase: vi.fn(),
+  flushCollection: vi.fn().mockResolvedValue(undefined),
+}))
 
 import { handleMessage } from '@/background/listeners/messages'
 import * as collector from '@/background/pipeline/collector'
@@ -18,14 +22,12 @@ describe('messages: autoRun toggle', () => {
     expect(md).not.toHaveBeenCalled()
   })
 
-  it('allows DOM audits only for the active sender tab', () => {
-    const activeReply = vi.fn()
-    const inactiveReply = vi.fn()
-
-    handleMessage({ type: 'audit:eligibility' }, { tab: { id: 3, active: true } } as any, activeReply)
-    handleMessage({ type: 'audit:eligibility' }, { tab: { id: 4, active: false } } as any, inactiveReply)
-
-    expect(activeReply).toHaveBeenCalledWith({ allowed: true })
-    expect(inactiveReply).toHaveBeenCalledWith({ allowed: false })
+  it('routes eligibility questions to the authorization check', async () => {
+    // Authorization itself is covered by background.auditAccess.test.ts; here
+    // the point is that the message never bypasses it.
+    const reply = vi.fn()
+    handleMessage({ type: 'audit:eligibility' }, { tab: { id: 3, active: true } } as any, reply)
+    await new Promise((r) => setTimeout(r, 0))
+    expect(reply).toHaveBeenCalledWith({ allowed: false })
   })
 })

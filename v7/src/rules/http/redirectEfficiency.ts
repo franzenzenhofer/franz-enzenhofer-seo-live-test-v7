@@ -5,7 +5,7 @@ import { redirectChainDetails } from '@/shared/redirectChainFormat'
 import { headerChainToRedirectChain } from '@/shared/redirectChainFromEvents'
 
 const LABEL = 'HTTP'
-const NAME = 'Redirect Efficiency Score'
+const NAME = 'Observed Redirect Efficiency'
 const RULE_ID = 'http:redirect-efficiency'
 
 export const redirectEfficiencyRule: Rule = {

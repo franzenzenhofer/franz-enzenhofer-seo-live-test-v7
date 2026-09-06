@@ -2,6 +2,8 @@ import { gscFetch } from '../googleFetch'
 import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
 import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../google-gsc-utils'
 
+import { inspectionResponse, inspectionDetails } from './inspectionData'
+
 import type { Rule } from '@/core/types'
 
 const NAME = 'GSC URL Inspection'
@@ -76,12 +78,9 @@ export const gscUrlInspectionRule: Rule = {
       }
     }
 
-    const data = await response.json() as {
-      inspectionResult?: {
-        inspectionResultLink?: string
-        indexStatusResult?: { verdict?: string; coverageState?: string; referringUrls?: string[]; lastCrawlTime?: string }
-      }
-    }
+    const parsed = inspectionResponse.safeParse(await response.json())
+    if (!parsed.success) return { label: LABEL, name: NAME, type: 'runtime_error', priority: 0, message: 'URL Inspection response was malformed.' }
+    const data = parsed.data
 
     const indexStatus = data.inspectionResult?.indexStatusResult
     if (!indexStatus) {
@@ -119,6 +118,7 @@ export const gscUrlInspectionRule: Rule = {
         referringUrls,
         lastCrawlTime: lastCrawl,
         inspectionResultLink: data.inspectionResult?.inspectionResultLink || null,
+        ...inspectionDetails(data.inspectionResult!),
       },
     }
   },

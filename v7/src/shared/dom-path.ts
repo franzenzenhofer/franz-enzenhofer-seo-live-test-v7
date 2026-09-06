@@ -30,14 +30,16 @@ export const getDomPath = (element: Element | null): string => {
 
     const parent: Element | null = current.parentElement
     if (parent) {
-      let sameTag = 0
-      let position = 0
-      for (let index = 0; index < parent.children.length; index++) {
-        const sibling = parent.children.item(index)
-        if (!sibling) continue
-        if (sibling.nodeName !== current.nodeName) continue
-        sameTag++
-        if (sibling === current) position = sameTag
+      // Sibling links, not an indexed children[] scan: a live HTMLCollection
+      // lookup per index turns one path on a 20,000-child parent into
+      // hundreds of millions of operations.
+      let position = 1
+      let sameTag = 1
+      for (let sibling = current.previousElementSibling; sibling; sibling = sibling.previousElementSibling) {
+        if (sibling.nodeName === current.nodeName) { position++; sameTag++ }
+      }
+      for (let sibling = current.nextElementSibling; sibling; sibling = sibling.nextElementSibling) {
+        if (sibling.nodeName === current.nodeName) sameTag++
       }
       if (sameTag > 1) selector += `:nth-of-type(${position})`
     }

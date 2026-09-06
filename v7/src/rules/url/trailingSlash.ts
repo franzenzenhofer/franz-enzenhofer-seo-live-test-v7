@@ -4,6 +4,7 @@ import { parseHtmlDocument } from '@/shared/parseHtml'
 import { followRedirectChain } from '@/shared/redirectChain'
 import { redirectChainDetails } from '@/shared/redirectChainFormat'
 import { RedirectChainError } from '@/shared/redirectChainTypes'
+import { HTML_RESPONSE_BYTES, readResponseText } from '@/shared/responseBody'
 
 const LABEL = 'URL'
 const NAME = 'URL trailing slash consistency'
@@ -42,7 +43,7 @@ export const trailingSlashRule: Rule = {
     references: ['https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'],
     description: 'Fetches the opposite trailing-slash variant and grades the outcome (redirect back = OK, canonical back = OK, 200 without canonical = warn, 404/410 = info).',
   },
-  async run(page) {
+  async run(page, ctx) {
     let originalUrl: string; let variantUrl: string; let hasSlash = false
     try { ({ originalUrl, variantUrl, hasSlash } = buildVariant(page.url)) } catch {
       return { label: LABEL, message: 'Invalid URL. Cannot evaluate trailing slash.', type: 'runtime_error', name: NAME, priority: 50, details: { tested: TESTED, url: page.url } }
@@ -56,7 +57,7 @@ export const trailingSlashRule: Rule = {
     const opposite = hasSlash ? 'with' : 'without'
 
     try {
-      const { chain, response } = await followRedirectChain(variantUrl, { wantBody: true })
+      const { chain, response } = await followRedirectChain(variantUrl, { wantBody: true, signal: ctx.signal })
       const status = chain.finalStatus
       const finalUrl = chain.finalUrl
       const redirected = chain.redirected
@@ -100,7 +101,7 @@ export const trailingSlashRule: Rule = {
       if (!response) {
         return { label: LABEL, message: `URL variant ${whatCase} trailing slash returned HTTP 200 but the response body was not available.`, type: 'runtime_error', name: NAME, priority: 10, details: baseDetails }
       }
-      const body = await response.text()
+      const body = await readResponseText(response, { signal: ctx.signal, maxBytes: HTML_RESPONSE_BYTES })
       const doc = parseHtmlDocument(body, page.doc)
       const canonicalHref = doc.querySelector('link[rel~="canonical" i]')?.getAttribute('href') || ''
       if (!canonicalHref) {

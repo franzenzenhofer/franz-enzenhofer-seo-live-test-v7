@@ -13,7 +13,10 @@ describe('rule: client-side rendering heuristic', () => {
     const page = { staticFacts: facts('static', 20, 6), idleFacts: facts('idle', 200, 6) }
     const result = await clientSideRenderingRule.run(page as any, { globals: {} })
 
-    expect(result.message).toContain('changed visible text by 180')
+    expect(result.message).toContain('180 characters added, 0 removed')
+    // The rule compares two JavaScript-enabled lifecycle observations - it never
+    // claims a source-HTML or JavaScript-disabled comparison.
+    expect(result.message).not.toContain('JavaScript-disabled')
     expect(result.details?.['hydrated']).toBe(true)
   })
 

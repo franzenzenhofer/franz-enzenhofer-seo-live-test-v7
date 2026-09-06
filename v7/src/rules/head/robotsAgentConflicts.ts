@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
 import { parseRobotsDirectives, groupByUa } from '@/shared/robots'
 import type { RobotsDirective } from '@/shared/robots'
+import { resolveEffectiveRobots } from '@/shared/effectiveRobots'
 
 const LABEL = 'HEAD'
 const NAME = 'Robots agent conflicts'
@@ -35,7 +36,7 @@ export const robotsAgentConflictsRule: Rule = {
     description: 'Compares robots directives (meta and X-Robots-Tag) across user agents, warning when an explicit index/follow/all token opposes a global noindex/nofollow (or vice versa) and noting nonstandard agent names.',
   },
   async run(page) {
-    const directives = parseRobotsDirectives(page.doc, page.headers)
+    const directives = parseRobotsDirectives(page.doc, page.headers, page.responseHeaderFields)
     if (!directives.length) {
       return { label: LABEL, name: NAME, message: 'No robots directives found.', type: 'info', priority: 920 }
     }
@@ -49,12 +50,14 @@ export const robotsAgentConflictsRule: Rule = {
     const globalExplicitFollow = hasExplicitToken(robotsGlobal, ['follow', 'all'])
 
     const conflicts: Array<{ ua: string; directive: string }> = []
-    const effective: Record<string, { noindex: boolean; nofollow: boolean }> = {}
+    const effective: Record<string, { noindex: boolean; nofollow: boolean }> = {
+      googlebot: resolveEffectiveRobots(directives),
+    }
     Object.entries(byUa).forEach(([ua, list]) => {
       if (ua === 'robots') return
       const uaNoindex = list.some((d) => d.hasNoindex)
       const uaNofollow = list.some((d) => d.hasNofollow)
-      effective[ua] = { noindex: globalNoindex || uaNoindex, nofollow: globalNofollow || uaNofollow }
+      effective[ua] = resolveEffectiveRobots(directives, ua)
       if (!hasGlobal) return
       if (globalNoindex && hasExplicitToken(list, ['index', 'all'])) conflicts.push({ ua, directive: 'index vs global noindex' })
       if (globalExplicitIndex && uaNoindex) conflicts.push({ ua, directive: 'ua noindex vs global index' })

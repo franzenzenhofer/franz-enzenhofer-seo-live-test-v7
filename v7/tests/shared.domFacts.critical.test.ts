@@ -52,11 +52,12 @@ describe('domFacts critical elements', () => {
 describe('domFacts stays inside the phase message contract', () => {
   it('keeps a pathological head within the 32 KB phase budget', async () => {
     const { validatePhaseMessage } = await import('@/shared/phaseContract')
+    const { phaseCompletion } = await import('./helpers/phaseMessage')
     const head = Array.from({ length: 400 }, (_, i) => `<meta name="n${i}" content="${'x'.repeat(300)}">`).join('')
     const body = Array.from({ length: 500 }, (_, i) => `<a href="/a${i}">l</a><img src="https://x.test/${i}.png">`).join('')
     const doc = makeDoc(`<!doctype html><html><head><title>T</title>${head}</head><body>${body}</body></html>`)
     const facts = collectDomFacts(doc, 'static')
-    const check = validatePhaseMessage('document_end', { facts, url: 'https://x.test/', capturedAt: 0, navTiming: null })
+    const check = validatePhaseMessage('document_end', phaseCompletion(facts, 'https://x.test/'))
     expect(check.ok).toBe(true)
     expect(facts.criticalTruncated).toBe(true)
   })

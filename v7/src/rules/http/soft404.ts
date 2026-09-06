@@ -36,16 +36,29 @@ const verdict = (chain: RedirectChain): Pick<Result, 'message' | 'type' | 'prior
     return { message: `Non-existing URL probe never resolved: the redirect chain ${what}.`, type: 'error', priority: 40 }
   }
   // Google treats all 4xx except 429 the same: content doesn't exist. 410 is as valid as 404.
-  if ((status === 404 || status === 410) && !chain.redirected) {
-    return { message: `Non-existing URL returned HTTP ${status} (expected).`, type: 'ok', priority: 900 }
+  if (status === 404 || status === 410) {
+    return chain.redirected
+      ? { message: `Non-existing URL returned HTTP ${status}${after} (should be a direct ${status}).`, type: 'info', priority: 700 }
+      : { message: `Non-existing URL returned HTTP ${status} (expected).`, type: 'ok', priority: 900 }
   }
   if (status === 200) {
     return { message: `Soft 404: Non-existing URL returned HTTP 200${after} (should be 404).`, type: 'error', priority: 50 }
   }
-  if (status === 404 || status === 410) {
-    return { message: `Non-existing URL returned HTTP ${status}${after} (should be a direct ${status}).`, type: 'info', priority: 700 }
+  // A rate limit or a server error says nothing about how this site handles a
+  // missing URL. Reporting either as a soft 404 would be an invented finding.
+  if (status === 429) {
+    return { message: `Soft 404 probe inconclusive: the non-existing URL answered HTTP 429 (rate limited)${after}.`, type: 'warn', priority: 600 }
   }
-  return { message: `Soft 404: Non-existing URL returned HTTP ${status}${after} (should be 404).`, type: 'error', priority: 120 }
+  if (status >= 500) {
+    return { message: `Soft 404 probe inconclusive: the non-existing URL answered HTTP ${status} (server error)${after}.`, type: 'warn', priority: 600 }
+  }
+  if (status >= 400) {
+    return { message: `Non-existing URL returned HTTP ${status}${after}; like any 4xx this tells Google the content does not exist.`, type: 'ok', priority: 850 }
+  }
+  if (status >= 300) {
+    return { message: `Soft 404 probe inconclusive: the non-existing URL answered HTTP ${status} and the redirect could not be followed.`, type: 'warn', priority: 600 }
+  }
+  return { message: `Soft 404 probe inconclusive: the non-existing URL answered HTTP ${status || 'no response'}${after}.`, type: 'warn', priority: 600 }
 }
 
 export const soft404Rule: Rule = {
@@ -60,9 +73,9 @@ export const soft404Rule: Rule = {
       'https://developers.google.com/search/docs/crawling-indexing/http-network-errors',
     ],
     description:
-      "Probes a randomly generated non-existent URL in the page's directory and expects a direct HTTP 404 or 410; flags 200 (or other non-4xx) responses as soft 404.",
+      "Probes a randomly generated non-existent URL in the page's directory and expects a direct HTTP 404 or 410. A 200 is reported as a soft 404; a rate limit, server error or unfollowable redirect is reported as inconclusive, never as a finding.",
   },
-  async run(page) {
+  async run(page, ctx) {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     let probeUrl: string
     try {
@@ -79,7 +92,7 @@ export const soft404Rule: Rule = {
     }
 
     try {
-      const { chain } = await followRedirectChain(probeUrl)
+      const { chain } = await followRedirectChain(probeUrl, { signal: ctx.signal })
       const status = chain.finalStatus
       const { finalUrl, redirected } = chain
       const snippet = extractSnippet(`${status} ${finalUrl}`, 200)

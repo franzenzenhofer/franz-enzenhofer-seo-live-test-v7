@@ -7,7 +7,7 @@ const doc = () => new DOMParser().parseFromString('<p/>', 'text/html')
 describe('rule: robots blocked resources counts', () => {
   afterEach(() => vi.restoreAllMocks())
 
-  it('does not claim cross-host resources were checked against robots.txt', async () => {
+  it('does not claim cross-origin resources were checked against robots.txt', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, text: async () => 'User-agent: *\nDisallow:' }))
     const page = {
       html: '',
@@ -27,7 +27,7 @@ describe('rule: robots blocked resources counts', () => {
     // must not claim all 5 were verified as allowed.
     expect(r.message).not.toContain('All 5 resources')
     expect(r.message).toContain('2')
-    expect(r.details?.['sameHostCount']).toBe(2)
-    expect(r.details?.['crossHostCount']).toBe(3)
+    expect(r.details?.['sameOriginCount']).toBe(2)
+    expect(r.details?.['crossOriginCount']).toBe(3)
   })
 })

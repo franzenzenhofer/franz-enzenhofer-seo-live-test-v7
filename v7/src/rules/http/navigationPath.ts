@@ -28,7 +28,7 @@ export const navigationPathRule: Rule = {
       'https://www.rfc-editor.org/rfc/rfc9110.html#name-redirection-3xx',
     ],
     description:
-      'Analyzes the full navigation path (loads, HTTP redirects, client redirects, history API) and grades it: direct load ok, client redirect error, chain >1 hop error, temporary redirect warn, single permanent HTTP -> HTTPS redirect ok, other single permanent redirect info.',
+      'Analyzes the full navigation path (loads, HTTP redirects, client redirects, history API) and grades it: direct load ok, client redirect error, chain >1 hop warn (Googlebot follows up to 10 hops), temporary redirect warn, single permanent HTTP -> HTTPS redirect ok, other single permanent redirect info.',
   },
 
   async run(page, ctx): Promise<Result> {
@@ -92,8 +92,8 @@ export const navigationPathRule: Rule = {
     if (redirectCount > 1) {
       return buildResult(
         `Redirect chain (${redirectCount} hops) - Performance impact.\n\n${chainDesc}`,
-        'error',
-        150,
+        'warn',
+        200,
         { trace, redirectCount, ...chainDetails, issue: 'long_chain' },
       )
     }

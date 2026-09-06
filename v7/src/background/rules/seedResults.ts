@@ -1,5 +1,6 @@
 import { buildPendingResults } from './pending'
 import type { RuleResult } from './types'
+import { withActiveSession } from './sessions'
 
 import type { Rule } from '@/core/types'
 import { cleanupOldResults } from '@/shared/results'
@@ -17,7 +18,7 @@ export const prepareResultsStorage = async (
   runId: string,
   runIndexByRuleId: Record<string, number>,
   settled: RuleResult[] = [],
-) => {
+) => withActiveSession(tabId, runId, async () => {
   const { [key]: existingResults } = await chrome.storage.local.get(key)
   const cleaned = cleanupOldResults((existingResults as RuleResult[]) || [], 2)
   await log(tabId, `runner:cleanup tab=${tabId} runId=${runId} kept=${cleaned.length} from previous runs`)
@@ -27,4 +28,4 @@ export const prepareResultsStorage = async (
   if (!combined.length) return
   await chrome.storage.local.set({ [key]: combined })
   await log(tabId, `runner:seed tab=${tabId} runId=${runId} pending=${pending.length} settled=${settled.length} total=${combined.length}`)
-}
+})

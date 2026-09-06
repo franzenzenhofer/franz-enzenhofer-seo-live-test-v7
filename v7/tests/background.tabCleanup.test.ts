@@ -18,11 +18,18 @@ describe('tab cleanup', () => {
     Object.keys(state).forEach((key) => delete state[key])
     remove.mockClear()
     // @ts-expect-error test shim
-    globalThis.chrome = { storage: { local: {
-      get: vi.fn(async (key: string) => ({ [key]: state[key] })),
-      set: vi.fn(async (value: Record<string, unknown>) => { Object.assign(state, value) }),
-      remove,
-    } } }
+    globalThis.chrome = { storage: {
+      local: {
+        get: vi.fn(async (key: string) => ({ [key]: state[key] })),
+        set: vi.fn(async (value: Record<string, unknown>) => { Object.assign(state, value) }),
+        remove,
+      },
+      session: {
+        get: vi.fn(async (key: string) => ({ [key]: undefined })),
+        set: vi.fn(async () => {}),
+        remove: vi.fn(async () => {}),
+      },
+    } }
   })
 
   it('keeps a bounded LRU of closed-tab result keys', async () => {

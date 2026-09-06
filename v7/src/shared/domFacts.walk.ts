@@ -1,6 +1,6 @@
 type Visit = (node: Node, depth: number) => void
 
-export const walkNodes = (root: Node | null, visit: Visit) => {
+export const walkNodes = (root: Node | null, visit: Visit, descend: (node: Node) => boolean = () => true) => {
   if (!root) return { count: 0, maxDepth: 0 }
   let current: Node | null = root
   let depth = 1
@@ -10,7 +10,7 @@ export const walkNodes = (root: Node | null, visit: Visit) => {
     visit(current, depth)
     count++
     maxDepth = Math.max(maxDepth, depth)
-    if (current.firstChild) {
+    if (current.firstChild && descend(current)) {
       current = current.firstChild
       depth++
       continue

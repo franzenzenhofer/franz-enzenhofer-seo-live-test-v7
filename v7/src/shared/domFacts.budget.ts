@@ -13,6 +13,10 @@ export const ANCHOR_FACT_BYTE_BUDGET = 2_000
 // major news/commerce sites) and every one of them can carry an indexing
 // directive, so head gets a sub-budget that fits whole heads.
 export const HEAD_FACT_BYTE_BUDGET = 20_000
+// The intensive internal-link status check needs its candidate URLs to survive
+// the same 32 KB phase message, so it reserves half of the anchor pool BEFORE
+// display anchor evidence is collected. The other half still shows real anchors.
+export const INTERNAL_LINK_CANDIDATE_BYTE_BUDGET = 1_000
 export const PARAMETERIZED_LINK_LIMIT = 12
 export const BUCKET_LIMITS: Record<FactBucket, number> = { head: 150, anchor: 10, resource: 20 }
 

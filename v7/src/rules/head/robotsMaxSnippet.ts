@@ -18,7 +18,7 @@ export const robotsMaxSnippetRule: Rule = {
     description: 'Reports max-snippet directives and warns when the value is not a parseable integer >= -1.',
   },
   async run(page) {
-    const directives = parseRobotsDirectives(page.doc, page.headers)
+    const directives = parseRobotsDirectives(page.doc, page.headers, page.responseHeaderFields)
     const matches = findRobotsTokens(directives, 'max-snippet')
     if (matches.length === 0) {
       return {

@@ -2,6 +2,7 @@ import type { Ctx, Page, Result, Rule } from './types'
 import { createRuntimeError, emitChunk, enrichResult, logRuleResults } from './runHelpers'
 import { DEFAULT_TIMEOUT_MS, getRuleTimeoutMs } from './ruleTimeouts'
 import { CANCELLATION_ERROR, runPool } from './rulePool'
+import { runWithDeadline, TIMEOUT_ERROR } from './ruleDeadline'
 
 import { Logger } from '@/shared/logger'
 
@@ -26,21 +27,10 @@ type ExecOpts = {
 // user for no reason.
 const FAST_CONCURRENCY = 8
 const SLOW_CONCURRENCY = 10
-const TIMEOUT_ERROR = 'rule-timeout'
 
 export { CANCELLATION_ERROR }
 
 const isSlow = (rule: Rule) => getRuleTimeoutMs(rule) > DEFAULT_TIMEOUT_MS
-
-const withTimeout = <T>(promise: Promise<T>, ms: number, signal?: AbortSignal) =>
-  new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(TIMEOUT_ERROR)), ms)
-    const cleanup = () => { clearTimeout(timer); signal?.removeEventListener('abort', onAbort) }
-    const onAbort = () => { cleanup(); reject(new Error(CANCELLATION_ERROR)) }
-    if (signal?.aborted) { cleanup(); reject(new Error(CANCELLATION_ERROR)); return }
-    signal?.addEventListener('abort', onAbort, { once: true })
-    promise.then((val) => { cleanup(); resolve(val) }).catch((err) => { cleanup(); reject(err) })
-  })
 
 const runTask = async (task: Task, opts: ExecOpts, total: number) => {
   const { rule, slot, runIndex } = task
@@ -50,7 +40,7 @@ const runTask = async (task: Task, opts: ExecOpts, total: number) => {
   const started = performance.now()
   const timeoutMs = getRuleTimeoutMs(rule)
   try {
-    const result = await withTimeout(rule.run(page, ctx), timeoutMs, signal)
+    const result = await runWithDeadline(rule, page, ctx, { timeoutMs, signal })
     const duration = (performance.now() - started).toFixed(2)
     logRuleResults(tabId, rule, ruleId, [result], runIndex)
     Logger.logDirectSend(tabId, 'rule', 'done', { id: rule.id, name: rule.name, ruleId, duration: `${duration}ms`, results: 1 })

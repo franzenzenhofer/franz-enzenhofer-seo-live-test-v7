@@ -43,7 +43,8 @@ describe('summarizePSI', () => {
 
   it('defaults missing metrics safely', () => {
     const summary = summarizePSI({}, 'https://example.com', 'desktop')
-    expect(summary.score).toBe(0)
+    // A missing score is unknown, never a real zero.
+    expect(summary.score).toBeUndefined()
     expect(summary.url).toBe('https://example.com')
     expect(summary.strategy).toBe('desktop')
   })
