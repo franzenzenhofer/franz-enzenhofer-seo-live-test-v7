@@ -20,7 +20,7 @@ describe('rule: common mobile setup', () => {
       P('<html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head></html>') as any,
       { globals: {} },
     )
-    expect((r as any).type).toBe('ok')
+    expect((r as any).type).toBe('info')
     expect((r as any).details.hasTouchIcon).toBe(false)
     expect((r as any).details.viewportContent).toContain('width=device-width')
   })
@@ -29,7 +29,7 @@ describe('rule: common mobile setup', () => {
       P('<html><head><meta name="viewport" content="width=device-width"><link rel="apple-touch-icon" href="/i.png"></head></html>') as any,
       { globals: {} },
     )
-    expect((r as any).type).toBe('ok')
+    expect((r as any).type).toBe('info')
     expect((r as any).details.hasTouchIcon).toBe(true)
   })
 })

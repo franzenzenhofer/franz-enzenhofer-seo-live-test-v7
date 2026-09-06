@@ -5,14 +5,7 @@
 // the crawler obeys ONLY the most specific matching user-agent group(s); the
 // global (*) group applies only when no specific group matches, never merged.
 
-const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-
-const matchesPath = (path: string, rule: string) => {
-  const v = rule.trim(); if (!v) return false
-  let rx = '^' + escapeRe(v).replace(/\*/g, '.*')
-  if (!rx.endsWith('$') && !v.endsWith('*')) rx += '.*'
-  return new RegExp(rx).test(path)
-}
+import { normalizeRobotsPath, robotsPathMatches } from './robotsPath'
 
 type Group = { uas: string[]; rules: Array<{ key: string; val: string }> }
 
@@ -20,7 +13,7 @@ type Group = { uas: string[]; rules: Array<{ key: string; val: string }> }
 // case-insensitive prefix of the crawler's product token ('googlebot' matches
 // Googlebot-News); a bare substring like 'bot' does NOT match Googlebot.
 const matchLength = (groupUa: string, token: string): number => {
-  const g = groupUa.toLowerCase().trim()
+  const g = groupUa.toLowerCase().trim().split(/[/*]/)[0] || ''
   if (!g || g === '*') return -1
   return token.startsWith(g) ? g.length : -1
 }
@@ -29,7 +22,7 @@ const parseGroups = (txt: string): Group[] => {
   const groups: Group[] = []
   let current: Group | null = null
   let lastKey = ''
-  for (const raw of txt.split('\n')) {
+  for (const raw of txt.split(/\r\n|\r|\n/)) {
     let line = raw.trim(); if (!line || line.startsWith('#')) continue
     if (line.includes('#')) line = line.slice(0, line.indexOf('#')).trim()
     const i = line.indexOf(':'); if (i === -1) continue
@@ -39,7 +32,7 @@ const parseGroups = (txt: string): Group[] => {
       else { current = { uas: [val], rules: [] }; groups.push(current) }
       lastKey = 'user-agent'; continue
     }
-    if (key === 'disallow' || key === 'allow' || key === 'noindex') {
+    if (key === 'disallow' || key === 'allow') {
       lastKey = key
       if (current) current.rules.push({ key, val })
     }
@@ -57,16 +50,16 @@ const selectGroups = (groups: Group[], ua: string): Group[] => {
 
 export default function parseRobots(txt: string, url: string, ua = 'Googlebot') {
   const p = (() => { try { const u = new URL(url); return u.pathname + u.search } catch { return '/' } })()
-  let best = -1, hasAllow = false, hasDisallow = false, hasNoindex = false
+  let best = -1, hasAllow = false, hasDisallow = false
   for (const group of selectGroups(parseGroups(txt), ua)) {
     for (const { key, val } of group.rules) {
-      if (!matchesPath(p, val)) continue
-      const prio = val.trim().length
+      if (!robotsPathMatches(p, val)) continue
+      const prio = normalizeRobotsPath(val.trim()).length
       if (prio > best) { best = prio; hasAllow = hasDisallow = false }
-      if (prio === best) { if (key === 'allow') hasAllow = true; if (key === 'disallow') hasDisallow = true; if (key === 'noindex') hasNoindex = true }
+      if (prio === best) { if (key === 'allow') hasAllow = true; if (key === 'disallow') hasDisallow = true }
     }
   }
   const disallowed = best >= 0 && hasDisallow
   const allowed = !disallowed || hasAllow
-  return { allowed, disallowed, noindex: hasNoindex }
+  return { allowed, disallowed, noindex: false }
 }

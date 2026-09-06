@@ -2,6 +2,7 @@ import type { RegisteredRule, Rule, RuleInput } from '@/core/types'
 
 const COMPARE = new Set([
   'dom:client-side-rendering',
+  'dom:seo-phase-changes',
   'dom:parameterized-links-diff',
   'head:unavailable-after',
 ])

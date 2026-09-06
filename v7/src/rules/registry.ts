@@ -125,6 +125,9 @@ import { discoverHeadlineLengthRule } from './discover/headlineLength'
 import { discoverIndexableRule } from './discover/indexable'
 import { discoverOgImageLargeRule } from './discover/ogImageLarge'
 import { discoverPrimaryLanguageRule } from './discover/primaryLanguage'
+import { seoPhaseChangesRule } from './dom/seoPhaseChanges'
+import { robotsNoindexUnsupportedRule } from './robots/noindexUnsupported'
+import { resourceDeliveryRule } from './http/resourceDelivery'
 import { registerRule } from './ruleInputs'
 
 import type { Rule } from '@/core/types'
@@ -194,10 +197,12 @@ const rules: Rule[] = [
   relAlternateMediaRule,
   ampCacheUrlRule,
   robotsBlockedResourcesRule,
+  resourceDeliveryRule,
   trailingSlashRule,
   nodeCountRule,
   nodeDepthRule,
   clientSideRenderingRule,
+  seoPhaseChangesRule,
   linkPreloadRule,
   blockingScriptsRule,
   preconnectRule,
@@ -227,6 +232,7 @@ const rules: Rule[] = [
   googlebotUrlCheckRule,
   robotsSitemapReferenceRule,
   robotsComplexityRule,
+  robotsNoindexUnsupportedRule,
   psiMobileRule,
   psiDesktopRule,
   psiMobileFcpTbtRule,

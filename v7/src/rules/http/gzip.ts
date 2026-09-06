@@ -27,9 +27,9 @@ const isHtmlLike = (headers: Record<string, string>) => {
 }
 const normalizeHeaders = (headers?: Record<string, string>): Record<string, string> =>
   Object.fromEntries(Object.entries(headers || {}).map(([k, v]) => [k.toLowerCase(), v]))
-const fetchHeadHeaders = async (url: string) => {
+const fetchHeadHeaders = async (url: string, signal?: AbortSignal) => {
   try {
-    const r = await fetch(url, { method: 'HEAD', redirect: 'follow' })
+    const r = await fetch(url, { method: 'HEAD', redirect: 'follow', signal })
     const h: Record<string, string> = {}
     r.headers.forEach((v, k) => { h[k.toLowerCase()] = v })
     return h
@@ -53,7 +53,7 @@ export const gzipRule: Rule = {
     ],
     description: "Checks the main document's Content-Encoding header, passing on gzip/br/zstd/deflate, warning when absent or when only an obsolete coding is used (with a HEAD re-probe when captured headers look like an asset).",
   },
-  async run(page) {
+  async run(page, ctx) {
     let headers = normalizeHeaders(page.headers)
     const docIsHtml = page.doc?.documentElement?.nodeName?.toLowerCase() === 'html'
     const chainLastUrl = page.headerChain?.[page.headerChain.length - 1]?.url
@@ -66,7 +66,7 @@ export const gzipRule: Rule = {
     let headerSource: 'captured' | 'probe' = 'captured'
 
     if (shouldProbe) {
-      const probed = await fetchHeadHeaders(page.url)
+      const probed = await fetchHeadHeaders(page.url, ctx.signal)
       if (hasHeaders(probed)) {
         headers = normalizeHeaders(probed)
         headerSource = 'probe'

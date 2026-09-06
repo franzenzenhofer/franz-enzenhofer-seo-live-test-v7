@@ -33,7 +33,7 @@ export const robotsSitemapReferenceRule: Rule = {
     ],
     description: 'Lists Sitemap: URLs declared in robots.txt; ok when fully qualified URLs are declared, warn on relative or malformed values, info when none are declared (other submission methods exist).',
   },
-  async run(page) {
+  async run(page, ctx) {
     let origin = ''
     try {
       const url = new URL(page.url)
@@ -51,7 +51,7 @@ export const robotsSitemapReferenceRule: Rule = {
     } catch {
       return { label: LABEL, message: 'Invalid URL', type: 'info', priority: 900, name: NAME, details: { url: page.url } }
     }
-    const txt = await fetchTextOnce(`${origin}/robots.txt`)
+    const txt = await fetchTextOnce(`${origin}/robots.txt`, 1500, ctx.signal)
     if (!txt)
       return {
         label: LABEL,

@@ -38,7 +38,7 @@ export const finalizeTab = async (tabId: number) => {
     await Logger.logDirect(tabId, 'alarm', 'skip-kept', { reason: 'inactive-tab', triggeredBy: trigger })
     return
   }
-  const popped = await popRun(tabId)
+  const popped = await popRun(tabId, run.id)
   if (!popped) {
     await Logger.logDirect(tabId, 'alarm', 'no run', { reason: 'consumed by concurrent finalize' })
     return

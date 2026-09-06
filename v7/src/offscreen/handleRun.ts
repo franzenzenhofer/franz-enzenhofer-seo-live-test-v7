@@ -41,7 +41,7 @@ export const handleRun = async (
   const makeDoc = (html: string) => new DOMParser().parseFromString(html, 'text/html')
 
   Logger.logDirectSend(tabId, 'page', 'build start', { events: run.ev.length })
-  const page = await pageFromEvents(run.ev, makeDoc, () => pageUrl || 'about:blank', undefined, run.resources)
+  const page = await pageFromEvents(run.ev, makeDoc, () => pageUrl || 'about:blank', undefined, run.resources, signal)
   Logger.logDirectSend(tabId, 'page', 'build done', {
     url: page.url,
     staticNodes: page.staticFacts?.nodeCount || 0,

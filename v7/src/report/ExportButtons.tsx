@@ -1,4 +1,5 @@
 import { toHtml } from '@/cli/report'
+import { useCopyFeedback } from '@/components/result/useCopyFeedback'
 import type { Result } from '@/shared/results'
 
 const fallbackDownload = (name: string, data: string, type: string) => {
@@ -10,29 +11,21 @@ const fallbackDownload = (name: string, data: string, type: string) => {
   setTimeout(() => URL.revokeObjectURL(a.href), 0)
 }
 
-export const ReportExportButtons = ({
-  url,
-  results,
-}: {
-  url: string
-  results: Result[]
-}) => {
-  const copy = async (label: string, text: string, type: string) => {
-    try {
-      await navigator.clipboard.writeText(text)
-    } catch (err) {
-      console.warn(`[report] clipboard copy failed for ${label}`, err)
-      fallbackDownload(`live-test.${type === 'application/json' ? 'json' : 'html'}`, text, type)
-    }
+const ExportButton = ({ label, text, mime }: { label: 'JSON' | 'HTML'; text: string; mime: string }) => {
+  const { copied, copy } = useCopyFeedback()
+  const exportText = async () => {
+    if (!await copy(text)) fallbackDownload(`live-test.${label.toLowerCase()}`, text, mime)
   }
+  return <button type="button" aria-live="polite" className={`border px-2 py-1 text-xs rounded transition-colors ${copied ? 'border-green-600 bg-green-50 text-green-800' : 'hover:bg-gray-50'}`} onClick={exportText}>
+    {copied ? `✓ ${label} copied` : `Copy ${label}`}
+  </button>
+}
 
-  const copyJson = () => copy('json', JSON.stringify(results, null, 2), 'application/json')
-  const copyHtml = () => copy('html', toHtml(url, results), 'text/html')
-
+export const ReportExportButtons = ({ url, results }: { url: string; results: Result[] }) => {
   return (
     <div className="flex gap-2">
-      <button className="border px-2 py-1 text-xs rounded" onClick={copyJson}>Copy JSON</button>
-      <button className="border px-2 py-1 text-xs rounded" onClick={copyHtml}>Copy HTML</button>
+      <ExportButton label="JSON" text={JSON.stringify(results, null, 2)} mime="application/json" />
+      <ExportButton label="HTML" text={toHtml(url, results)} mime="text/html" />
     </div>
   )
 }

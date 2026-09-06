@@ -19,7 +19,7 @@ export const robotsMaxImagePreviewRule: Rule = {
     description: 'Reports max-image-preview directives and warns when the value is not one of none/standard/large.',
   },
   async run(page) {
-    const directives = parseRobotsDirectives(page.doc, page.headers)
+    const directives = parseRobotsDirectives(page.doc, page.headers, page.responseHeaderFields)
     const matches = findRobotsTokens(directives, 'max-image-preview')
     if (matches.length === 0) {
       return {

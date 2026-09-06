@@ -28,7 +28,7 @@ export const http3AdvertisedRule: Rule = {
       ? `Alt-Svc advertises HTTP/3: ${altSvcHeader}`
       : altSvcHeader
         ? `Alt-Svc present but no HTTP/3: ${altSvcHeader}`
-        : 'No Alt-Svc header. HTTP/3 not advertised.'
+        : 'No Alt-Svc advertisement captured. HTTP/3 capability is undetermined; see the negotiated protocol.'
     return {
       label: LABEL,
       name: NAME,
@@ -44,4 +44,3 @@ export const http3AdvertisedRule: Rule = {
     }
   },
 }
-

@@ -43,7 +43,7 @@ export const commonMobileSetupRule: Rule = {
       message: hasTouchIcon
         ? 'Meta viewport present (apple-touch-icon also present).'
         : 'Meta viewport present (apple-touch-icon missing - an Apple home-screen convention, not a Google signal).',
-      type: 'ok',
+      type: 'info',
       priority: 750,
       details: {
         sourceHtml: extractHtml(viewportEl),

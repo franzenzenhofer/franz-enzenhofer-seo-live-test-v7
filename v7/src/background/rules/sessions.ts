@@ -1,78 +1,54 @@
-import type { RunStatus } from '@/shared/runStatus'
+import { clearSession, getSession, saveSession, serializeSession, type SessionStatus } from './sessionStore'
 
-type SessionStatus = Exclude<RunStatus, 'pending'>
-type SessionRecord = {
-  tabId: number
-  runId: string
-  status: SessionStatus
-  startedAt: string
-  reason?: string
-  controller: AbortController
-}
+export { getSession }
 
-const KEY = (tabId: number) => `run-session:${tabId}`
-const sessions = new Map<number, SessionRecord>()
+/**
+ * Claims the tab for `runId`. Returns null when a NEWER run already owns the
+ * tab: an older finalize that resolved its page URL late must never supersede
+ * (and thereby abort) the run that overtook it.
+ */
+export const startSession = (tabId: number, runId: string, generation = Date.now()) =>
+  serializeSession(tabId, async (): Promise<AbortSignal | null> => {
+    const previous = await getSession(tabId)
+    if (previous && previous.generation > generation) return null
+    if (previous) {
+      previous.reason = 'superseded'
+      previous.controller.abort('superseded')
+    }
+    const session = {
+      tabId,
+      runId,
+      generation,
+      status: 'running' as const,
+      startedAt: new Date().toISOString(),
+      controller: new AbortController(),
+    }
+    await saveSession(tabId, session)
+    return session.controller.signal
+  })
 
-const persist = async (tabId: number, snapshot?: Omit<SessionRecord, 'controller'>) => {
-  const key = KEY(tabId)
-  if (snapshot) {
-    const { runId, status, startedAt, reason } = snapshot
-    await chrome.storage.session.set({ [key]: { runId, status, startedAt, reason: reason || null } })
-  } else {
-    await chrome.storage.session.remove(key)
-  }
-}
-
-export const getSession = async (tabId: number): Promise<SessionRecord | null> => {
-  if (sessions.has(tabId)) return sessions.get(tabId)!
-  const key = KEY(tabId)
-  const data = await chrome.storage.session.get(key)
-  if (!data[key]) return null
-  const stored = data[key] as Omit<SessionRecord, 'controller'>
-  const session: SessionRecord = { ...stored, tabId, controller: new AbortController() }
-  sessions.set(tabId, session)
-  return session
-}
-
-export const startSession = async (tabId: number, runId: string) => {
-  const previous = await getSession(tabId)
-  if (previous) {
-    previous.status = 'aborted'
-    previous.reason = 'superseded'
-    previous.controller.abort()
-    sessions.delete(tabId)
-  }
-  const session: SessionRecord = {
-    tabId,
-    runId,
-    status: 'running',
-    startedAt: new Date().toISOString(),
-    controller: new AbortController(),
-  }
-  sessions.set(tabId, session)
-  await persist(tabId, session)
-  return session.controller.signal
-}
-
-export const abortSession = async (tabId: number, reason = 'aborted') => {
+// Aborting drops the record: the tab is gone or navigating away, and nothing
+// may write under that identity again.
+export const abortSession = (tabId: number, reason = 'aborted') => serializeSession(tabId, async () => {
   const session = await getSession(tabId)
   if (!session) return null
-  session.status = 'aborted'
-  session.reason = reason
-  session.controller.abort()
-  sessions.delete(tabId)
-  await persist(tabId)
+  session.controller.abort(reason)
+  await clearSession(tabId)
   return session.runId
-}
+})
 
-export const finishSession = async (tabId: number, status: Exclude<SessionStatus, 'running'>) => {
+// Finishing keeps the terminal status readable, and - because it is no longer
+// 'running' - withActiveSession rejects every late write from that run.
+export const finishSession = (tabId: number, status: Exclude<SessionStatus, 'running'>, runId: string) => serializeSession(tabId, async () => {
   const session = await getSession(tabId)
-  if (!session) return null
+  if (!session || session.runId !== runId) return null
   session.status = status
-  sessions.delete(tabId)
-  await persist(tabId)
+  await saveSession(tabId, session)
   return session.runId
-}
+})
+
+export const withActiveSession = <T>(tabId: number, runId: string, task: () => Promise<T>) =>
+  serializeSession(tabId, async () => await isSessionActive(tabId, runId) ? task() : undefined)
 
 export const isSessionActive = async (tabId: number, runId?: string) => {
   const current = await getSession(tabId)

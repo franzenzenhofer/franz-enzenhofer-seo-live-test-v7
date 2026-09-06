@@ -2,14 +2,17 @@ import parse from '@/vendor/robots'
 import type { Rule } from '@/core/types'
 import { fetchStatusTextOnce } from '@/shared/fetchOnce'
 import { extractSnippet } from '@/shared/html-utils'
+import { robotsPolicyState } from '@/shared/robotsPolicy'
 
 const LABEL = 'ROBOTS'
 const NAME = 'robots.txt Blocked Resources'
 const RULE_ID = 'robots:blocked-resources'
 
-const sameHost = (a: string, b: string) => {
+// Matching is by ORIGIN: robots.txt is scheme+host+port scoped, so
+// https://x.test and http://x.test answer to different files.
+const sameOrigin = (a: string, b: string) => {
   try {
-    return new URL(a).host === new URL(b).host
+    return new URL(a).origin === new URL(b).origin
   } catch {
     return false
   }
@@ -27,9 +30,9 @@ export const robotsBlockedResourcesRule: Rule = {
       'https://www.rfc-editor.org/rfc/rfc9309.html#section-2.2.1',
       'https://developers.google.com/search/docs/crawling-indexing/robots/intro',
     ],
-    description: 'Checks every same-host subresource the page loaded against robots.txt for Googlebot and warns when any is disallowed.',
+    description: 'Checks every retained same-origin subresource the page loaded against robots.txt for Googlebot and warns when any is disallowed; discloses when the resource ledger was truncated.',
   },
-  async run(page) {
+  async run(page, ctx) {
     const list = page.resources || []
     const resourceCount = list.length
     if (!resourceCount) {
@@ -45,10 +48,16 @@ export const robotsBlockedResourcesRule: Rule = {
         },
       }
     }
+    // The ledger is bounded: a verdict may only speak for the URLs it retained.
+    const coverage = page.resourceCoverage || null
+    const coverageNote = coverage?.truncated
+      ? ` Evidence covers ${coverage.retained} retained URLs; ${coverage.dropped} observations were not retained and are unchecked.`
+      : ''
     const base = new URL(page.url)
     // Shared single-flight fetch: all robots rules reuse one robots.txt request per run.
-    const r = await fetchStatusTextOnce(`${base.origin}/robots.txt`)
-    if (!r || !r.ok) {
+    const r = await fetchStatusTextOnce(`${base.origin}/robots.txt`, 1500, ctx.signal)
+    const policy = robotsPolicyState(r)
+    if (policy === 'unknown') {
       return {
         label: LABEL,
         name: NAME,
@@ -61,13 +70,13 @@ export const robotsBlockedResourcesRule: Rule = {
         },
       }
     }
-    const robotsTxt = r.text
+    const robotsTxt = policy === 'allow' ? '' : r?.text || ''
     const userAgent = 'Googlebot'
     const blockedResources: string[] = []
-    let sameHostCount = 0
+    let sameOriginCount = 0
     for (const resourceUrl of list) {
-      if (!sameHost(page.url, resourceUrl)) continue
-      sameHostCount++
+      if (!sameOrigin(page.url, resourceUrl)) continue
+      sameOriginCount++
       const result = parse(robotsTxt, resourceUrl, userAgent) as Record<string, unknown>
       // The parser already resolves an equal-specificity allow/disallow tie to
       // allowed (least restrictive rule wins), so only its verdict counts here.
@@ -76,19 +85,19 @@ export const robotsBlockedResourcesRule: Rule = {
     const blockedCount = blockedResources.length
     // Cross-host resources answer to their own hosts' robots.txt files, so
     // the verdict may only speak for the same-host resources it checked.
-    const crossHostCount = resourceCount - sameHostCount
-    const crossHostNote = crossHostCount ? ` (${crossHostCount} cross-host not governed by this robots.txt)` : ''
+    const crossOriginCount = resourceCount - sameOriginCount
+    const crossOriginNote = crossOriginCount ? ` (${crossOriginCount} cross-origin, governed by their own robots.txt)` : ''
     const hasBlockedResources = blockedCount > 0
-    if (!sameHostCount) {
+    if (!sameOriginCount) {
       return {
         label: LABEL, name: NAME, type: 'info', priority: 850,
-        message: `No same-host resources to check against robots.txt${crossHostNote}.`,
-        details: { snippet: extractSnippet(robotsTxt, 150), robotsTxt, resourceCount, sameHostCount, crossHostCount, userAgent },
+        message: `No same-origin resources to check against robots.txt${crossOriginNote}.`,
+        details: { snippet: extractSnippet(robotsTxt, 150), robotsTxt, resourceCount, sameOriginCount, crossOriginCount, userAgent, coverage },
       }
     }
     const message = hasBlockedResources
-      ? `${blockedCount} of ${sameHostCount} same-host resource${sameHostCount > 1 ? 's' : ''} disallowed by robots.txt for ${userAgent}`
-      : `No blocked resources. All ${sameHostCount} same-host resources allowed for ${userAgent}${crossHostNote}.`
+      ? `${blockedCount} of ${sameOriginCount} same-origin resource${sameOriginCount > 1 ? 's' : ''} disallowed by robots.txt for ${userAgent}.${coverageNote}`
+      : `All ${sameOriginCount} retained same-origin resources allowed for ${userAgent}${crossOriginNote}.${coverageNote}`
     return {
       label: LABEL,
       name: NAME,
@@ -99,13 +108,15 @@ export const robotsBlockedResourcesRule: Rule = {
         snippet: extractSnippet(robotsTxt, 150),
         robotsTxt,
         resourceCount,
-        sameHostCount,
-        crossHostCount,
+        sameOriginCount,
+        crossOriginCount,
         blockedCount,
-        allowedCount: sameHostCount - blockedCount,
+        allowedCount: sameOriginCount - blockedCount,
         ...(blockedResources.length ? { blockedResources } : {}),
         hasBlockedResources,
         userAgent,
+        resourceDropped: page.resourceDropped || 0,
+        coverage,
       },
     }
   },

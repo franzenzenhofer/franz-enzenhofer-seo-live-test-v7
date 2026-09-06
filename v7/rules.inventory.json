@@ -309,6 +309,17 @@
     ]
   },
   {
+    "id": "gsc:is-indexed",
+    "name": "Historical search impressions",
+    "enabledByDefault": true,
+    "what": "gsc",
+    "provenance": "franz",
+    "references": [
+      "https://developers.google.com/webmaster-tools/v1/searchanalytics/query",
+      "https://developers.google.com/webmaster-tools/search-console-api-original/v3/how-tos/search_analytics"
+    ]
+  },
+  {
     "id": "url:history-state-update",
     "name": "History state update detected",
     "enabledByDefault": true,
@@ -461,17 +472,6 @@
     "provenance": "franz",
     "references": [
       "https://developers.google.com/search/docs/fundamentals/seo-starter-guide"
-    ]
-  },
-  {
-    "id": "gsc:is-indexed",
-    "name": "Is indexed (via impressions)",
-    "enabledByDefault": true,
-    "what": "gsc",
-    "provenance": "franz",
-    "references": [
-      "https://developers.google.com/webmaster-tools/v1/searchanalytics/query",
-      "https://developers.google.com/webmaster-tools/search-console-api-original/v3/how-tos/search_analytics"
     ]
   },
   {
@@ -668,6 +668,29 @@
     ]
   },
   {
+    "id": "http:redirect-efficiency",
+    "name": "Observed Redirect Efficiency",
+    "enabledByDefault": true,
+    "what": "http",
+    "provenance": "general",
+    "references": [
+      "https://developer.chrome.com/docs/lighthouse/performance/redirects",
+      "https://developers.google.com/search/docs/crawling-indexing/301-redirects"
+    ]
+  },
+  {
+    "id": "http:resource-delivery",
+    "name": "Observed resource delivery",
+    "enabledByDefault": true,
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/http-network-errors",
+      "https://developer.chrome.com/docs/lighthouse/performance/uses-text-compression",
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching"
+    ]
+  },
+  {
     "id": "og:description",
     "name": "Open Graph Description",
     "enabledByDefault": true,
@@ -764,17 +787,6 @@
     "references": [
       "https://developers.google.com/search/docs/appearance/structured-data/article",
       "https://ogp.me/"
-    ]
-  },
-  {
-    "id": "http:redirect-efficiency",
-    "name": "Redirect Efficiency Score",
-    "enabledByDefault": true,
-    "what": "http",
-    "provenance": "general",
-    "references": [
-      "https://developer.chrome.com/docs/lighthouse/performance/redirects",
-      "https://developers.google.com/search/docs/crawling-indexing/301-redirects"
     ]
   },
   {
@@ -1123,6 +1135,16 @@
     ]
   },
   {
+    "id": "dom:seo-phase-changes",
+    "name": "SEO elements across DOM phases",
+    "enabledByDefault": true,
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics"
+    ]
+  },
+  {
     "id": "head:title",
     "name": "SEO Title Length",
     "enabledByDefault": true,
@@ -1225,6 +1247,16 @@
     "references": [
       "https://www.chromium.org/Home/chromium-security/marking-http-as-non-secure/",
       "https://developer.mozilla.org/en-US/docs/Web/Security/Insecure_passwords"
+    ]
+  },
+  {
+    "id": "robots:noindex-unsupported",
+    "name": "Unsupported robots.txt noindex",
+    "enabledByDefault": true,
+    "what": "http",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/crawling/docs/robots-txt/robots-txt-spec#syntax"
     ]
   },
   {

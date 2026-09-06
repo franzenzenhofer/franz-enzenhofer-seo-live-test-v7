@@ -4,7 +4,7 @@ import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../g
 
 import type { Rule } from '@/core/types'
 
-const NAME = 'Is indexed (via impressions)'
+const NAME = 'Historical search impressions'
 
 export const gscIsIndexedRule: Rule = {
   id: 'gsc:is-indexed',
@@ -42,9 +42,8 @@ export const gscIsIndexedRule: Rule = {
       }
       const j = await r.json() as { rows?: Array<{ clicks?: number, impressions?: number }> }
       const imp = (j.rows || []).reduce((a, x)=> a + (x.impressions || 0), 0)
-      return imp > 0
-        ? { label: 'GSC', message: `Indexed (impressions ${imp})`, type: 'ok', priority: 800, name: NAME, details: { url: page.url, property, propertyType, impressions: imp, apiResponse: j } }
-        : { label: 'GSC', message: 'No impressions (might not be indexed)', type: 'warn', priority: 300, name: NAME, details: { url: page.url, property, propertyType, impressions: 0, apiResponse: j } }
+      return { label: 'GSC', message: imp > 0 ? `Historical search impressions: ${imp}; this does not establish current indexing.` : 'No search impressions reported; indexing state cannot be inferred from this.',
+        type: 'info', priority: 800, name: NAME, details: { url: page.url, property, propertyType, impressions: imp, apiResponse: j } }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       return {

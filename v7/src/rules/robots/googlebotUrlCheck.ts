@@ -1,6 +1,7 @@
 import parse from '@/vendor/robots'
 import type { Rule } from '@/core/types'
-import { fetchTextOnce } from '@/shared/fetchOnce'
+import { fetchStatusTextOnce } from '@/shared/fetchOnce'
+import { robotsPolicyState } from '@/shared/robotsPolicy'
 
 const LABEL = 'ROBOTS'
 const NAME = 'Googlebot URL allowed'
@@ -19,23 +20,25 @@ export const googlebotUrlCheckRule: Rule = {
     ],
     description: 'Parses robots.txt and reports whether Googlebot may crawl the current URL (ok when allowed, error when disallowed).',
   },
-  async run(page) {
+  async run(page, ctx) {
     let origin = ''
     try {
       origin = new URL(page.url).origin
     } catch {
       return { label: LABEL, message: 'Invalid URL', type: 'info', priority: 900, name: NAME, details: { url: page.url } }
     }
-    const txt = await fetchTextOnce(`${origin}/robots.txt`)
-    if (!txt)
+    const response = await fetchStatusTextOnce(`${origin}/robots.txt`, 1500, ctx.signal)
+    const state = robotsPolicyState(response)
+    if (state === 'unknown')
       return {
         label: LABEL,
-        message: 'robots.txt not reachable',
+        message: 'robots.txt unavailable; current crawl permission cannot be determined.',
         type: 'info',
         priority: 850,
         name: NAME,
         details: { origin, robotsTxt: '' },
       }
+    const txt = state === 'allow' ? '' : response?.text || ''
     const res = parse(txt, page.url, USER_AGENT) as Record<string, unknown>
     const allowed = Boolean(res['allowed'])
     return {
@@ -46,7 +49,8 @@ export const googlebotUrlCheckRule: Rule = {
       type: allowed ? 'ok' : 'error',
       priority: allowed ? 800 : 60,
       name: NAME,
-      details: { url: page.url, userAgent: USER_AGENT, allowed, robotsTxt: txt },
+      details: { url: page.url, userAgent: USER_AGENT, allowed, robotsTxt: txt, status: response?.status,
+        agents: Object.fromEntries(['Googlebot', 'Googlebot-News', 'Googlebot-Image'].map((agent) => [agent, parse(txt, page.url, agent).allowed])) },
     }
   },
 }

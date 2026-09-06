@@ -2,7 +2,7 @@ import type { Rule } from '@/core/types'
 import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPaths } from '@/shared/dom-path'
 import { sampleElements } from '@/shared/domEvidence'
-import { parseLd } from '@/shared/structured'
+import { parseLdDetails } from '@/shared/structured'
 
 const TESTED = 'Searched for <script type="application/ld+json"> nodes and counted all instances.'
 
@@ -23,16 +23,17 @@ export const ldjsonRule: Rule = {
     const { sample, total, shown, truncated } = sampleElements(page.doc.querySelectorAll('script[type="application/ld+json"]'))
     const sourceHtml = extractHtmlFromList(sample)
     const domPaths = getDomPaths(sample)
-    const types = [...new Set(parseLd(page.doc).map((node) => String(node['@type'] || '')).filter(Boolean))]
+    const parsed = parseLdDetails(page.doc)
+    const types = [...new Set(parsed.entries.map(({ node }) => String(node['@type'] || '')).filter(Boolean))]
 
     return total
       ? {
           label: 'DOM',
-          message: `ld+json blocks: ${total}`,
-          type: 'info',
+          message: `ld+json blocks: ${total}${parsed.errorCount ? `; ${parsed.errorCount} JSON parse errors` : ''}`,
+          type: parsed.errorCount ? 'warn' : 'info',
           priority: 750,
           name: 'LD+JSON presence',
-          details: { types, sourceHtml, snippet: extractSnippet(sourceHtml), count: total, shown, truncated, domPaths, tested: TESTED },
+          details: { types, sourceHtml, snippet: extractSnippet(sourceHtml), count: total, shown, truncated, domPaths, tested: TESTED, parseErrors: parsed.errors, parseErrorCount: parsed.errorCount },
         }
       : { label: 'DOM', message: 'No ld+json', type: 'info', priority: 900, name: 'LD+JSON presence', details: { tested: TESTED } }
   },

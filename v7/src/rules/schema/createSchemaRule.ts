@@ -1,5 +1,5 @@
 import type { Rule, RuleMeta } from '@/core/types'
-import { parseLd, findType } from '@/shared/structured'
+import { parseLdDetails, findType } from '@/shared/structured'
 import { extractHtml, extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
 
@@ -29,6 +29,7 @@ export interface SchemaRuleConfig {
   meta: RuleMeta                // provenance + spec references (injected into every result by the runner)
   searchStrings?: string[]      // Optional: custom strings to search for in script tags
   fieldsLabel?: string          // Optional: default label for the checked field set (default 'required')
+  presenceOnly?: boolean
   deprecated?: string           // Optional: Google retired the feature - every found-branch result is info + this note
   reference?: string            // Optional: details.reference override when it must differ from meta.references[0]
 }
@@ -39,96 +40,46 @@ export interface SchemaRuleConfig {
  */
 export function createSchemaRule(config: SchemaRuleConfig): Rule {
   const types = Array.isArray(config.types) ? config.types : [config.types]
-  const typesLower = types.map(t => t.toLowerCase())
-  const searchStrings = config.searchStrings || types
-  const tested = `Parsed LD+JSON scripts, matched type(s): ${types.join(', ')}, and validated ${config.fieldsLabel || 'required'} fields.`
-  const extras = {
-    ...(config.reference ? { reference: config.reference } : {}),
-    ...(config.deprecated ? { note: config.deprecated } : {}),
-  }
-
+  const tested = config.presenceOnly ? `Checked JSON-LD presence for ${types.join(', ')}; fields were not validated.`
+    : `Checked every matching JSON-LD entity for the listed ${config.fieldsLabel || 'required'} fields; this is not full semantic validation.`
   return {
-    id: config.id,
-    name: config.name,
-    enabled: true,
-    what: 'static',
-    meta: config.meta,
+    id: config.id, name: config.name, enabled: true, what: 'static', meta: config.meta,
     async run(page) {
-      const scripts = page.doc.querySelectorAll('script[type="application/ld+json"]')
-      const nodes = parseLd(page.doc)
-
-      // Find first matching node across all supported types
-      let n: Record<string, unknown> | undefined
-      for (const typeL of typesLower) {
-        const found = findType(nodes, typeL)[0]
-        if (found) {
-          n = found
-          break
-        }
+      const parsed = parseLdDetails(page.doc)
+      const matches = parsed.entries.filter(({ node }) => types.some((type) => findType([node], type).length))
+      const extras = { tested, types, parseErrorCount: parsed.errorCount,
+        ...(config.reference ? { reference: config.reference } : {}),
+        ...(config.deprecated ? { note: config.deprecated } : {}) }
+      if (!matches.length) return {
+        label: 'SCHEMA', name: config.name, type: 'info', priority: 920,
+        message: `No ${types[0]} JSON-LD${parsed.errorCount ? ' identified in successfully parsed blocks' : ''}`,
+        details: { ...extras, parseErrors: parsed.errors },
       }
-
-      if (!n) {
-        return {
-          label: 'SCHEMA',
-          message: `No ${types[0]} JSON-LD`,
-          type: 'info',
-          priority: 920,
-          name: config.name,
-          details: { tested, types, ...extras },
-        }
-      }
-
-      // Run validation
-      const result = config.validator(n)
-      const validation: SchemaValidationResult = typeof result === 'boolean'
-        ? { ok: result }
-        : result
-
-      // Find the script tag containing this schema
-      let script: Element | null = null
-      for (let index = 0; index < scripts.length; index++) {
-        const candidate = scripts.item(index)
-        if (!candidate) continue
-        if (!searchStrings.some((value) => candidate.textContent?.includes(value))) continue
-        script = candidate
-        break
-      }
-      const sourceHtml = extractHtml(script)
-
-      // Build message around the type actually found on the page.
-      const rawType = n['@type']
-      const foundType = typeof rawType === 'string' && rawType.trim() ? rawType.trim() : types[0]
+      const checks = matches.map((entry) => {
+        const result = config.validator(entry.node)
+        const validation: SchemaValidationResult = typeof result === 'boolean' ? { ok: result } : result
+        return { ...entry, validation }
+      })
+      const failures = checks.filter(({ validation }) => !validation.ok)
+      const selected = failures[0] || checks[0]!
+      const validation = selected.validation
+      const foundType = String(selected.node['@type'] || types[0])
       const fieldsLabel = validation.fieldsLabel || config.fieldsLabel || 'required'
-      let message: string
-      if (validation.ok) {
-        message = `${foundType} structured data found and ${fieldsLabel} fields present.`
-      } else if (validation.missing && validation.missing.length > 0) {
-        message = `${foundType} missing: ${validation.missing.join(', ')}`
-      } else {
-        message = `${foundType} missing ${fieldsLabel} fields.`
-      }
-      if (config.deprecated) message = `${message} ${config.deprecated}`
-
-      const failType = validation.failType || 'warn'
-      const type = config.deprecated ? 'info' : validation.ok ? 'ok' : failType
-      const priority = validation.ok ? 800 : failType === 'info' || config.deprecated ? 900 : 250
-      const baseDetails = {
-        tested,
-        types,
-        foundType,
-        ...extras,
-        ...(validation.missing?.length ? { missing: validation.missing } : {}),
-      }
-
+      let message = config.presenceOnly ? `${foundType} structured data present (presence check only).`
+        : failures.length ? `${foundType} missing: ${validation.missing?.join(', ') || `${fieldsLabel} fields`}`
+          : `${foundType} structured data found and ${fieldsLabel} fields present.`
+      if (checks.length > 1) message += ` Checked ${checks.length} entities; ${failures.length} with field issues.`
+      if (config.deprecated) message += ` ${config.deprecated}`
+      const failType = failures.some(({ validation: v }) => (v.failType || 'warn') === 'warn') ? 'warn' : 'info'
+      const type = config.deprecated ? 'info' : failures.length ? failType : 'ok'
+      const sourceHtml = extractHtml(selected.script)
       return {
-        label: 'SCHEMA',
-        message,
-        type,
-        priority,
-        name: config.name,
-        details: script
-          ? { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(script), ...baseDetails }
-          : baseDetails,
+        label: 'SCHEMA', name: config.name, message, type, priority: type === 'warn' ? 250 : 800,
+        details: { ...extras, foundType, sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(selected.script),
+          ...(validation.missing?.length ? { missing: validation.missing } : {}),
+          entityCount: matches.length, issueCount: failures.length,
+          entityIssues: failures.slice(0, 10).map(({ node, scriptIndex, validation: v }) => ({ scriptIndex, id: node['@id'], missing: v.missing })),
+          issuesTruncated: failures.length > 10 },
       }
     },
   }

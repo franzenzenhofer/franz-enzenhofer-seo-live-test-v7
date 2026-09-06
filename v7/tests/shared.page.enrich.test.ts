@@ -11,8 +11,8 @@ describe('pageFromEvents enrich', () => {
     const events = [
       { t: 'nav:before', u: 'https://a.example/x' },
       { t: 'nav:commit', u: 'https://a.example/x' },
-      { t: 'req:headers', u: 'https://a.example/x', h: { Status: '200', 'Content-Type': 'text/html' } },
-      { t: 'req:done', u: 'https://a.example/x', s: 200 },
+      { t: 'req:mainHeaders', u: 'https://a.example/x', h: { Status: '200', 'Content-Type': 'text/html' } },
+      { t: 'req:mainDone', u: 'https://a.example/x', s: 200 },
       { t: 'req:headers', u: 'https://a.example/r.png', h: { Status: '200' } },
       { t: 'dom:DOMContentLoaded', d: { html: '<!doctype html><title>DCL</title>' } },
       { t: 'dom:document_end', d: { html: htmlEnd } },

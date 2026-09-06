@@ -1,4 +1,5 @@
 import { discardBody } from './http-utils'
+import { abortScope, throwIfAborted } from './abort'
 import { chainFailure } from './redirectChain.steps'
 import { chainFromObservedHops } from './redirectChain.fromHops'
 import type { FollowResult, ObservedHops, RedirectChain, RedirectHopObserver } from './redirectChainTypes'
@@ -7,7 +8,7 @@ const OBSERVER_EMPTY_NOTE =
   'The request redirected but no per-hop data was observable (webRequest captured no events for this probe), '
   + 'so intermediate statuses and Location targets are unavailable. Only the final response is shown.'
 
-type Bounds = { maxHops: number; timeoutMs: number; fetchFn: typeof fetch; wantBody?: boolean }
+type Bounds = { maxHops: number; timeoutMs: number; fetchFn: typeof fetch; wantBody?: boolean; signal?: AbortSignal }
 
 const stopSafely = async (observer: RedirectHopObserver, id: string): Promise<ObservedHops> => {
   try {
@@ -37,25 +38,25 @@ const settle = (chain: RedirectChain, res: Response | undefined, wantBody?: bool
 export const followViaObserver = async (
   startUrl: string, bounds: Bounds, observer: RedirectHopObserver,
 ): Promise<FollowResult | null> => {
+  throwIfAborted(bounds.signal)
   let id: string
   try {
     id = await observer.start(startUrl)
   } catch {
     return null
   }
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), bounds.timeoutMs)
+  const scope = abortScope(bounds.timeoutMs, bounds.signal)
   // Call as a free function - a member call would rebind `this` and make the
   // browser's fetch throw "Illegal invocation".
   const { fetchFn } = bounds
   let res: Response | undefined
   let fetchError: unknown
   try {
-    res = await fetchFn(startUrl, { redirect: 'follow', signal: controller.signal })
+    res = await fetchFn(startUrl, { redirect: 'follow', signal: scope.signal })
   } catch (error) {
     fetchError = error
   } finally {
-    clearTimeout(timer)
+    scope.dispose()
   }
   const observed = await stopSafely(observer, id)
   if (observed.hops.length) {
@@ -63,10 +64,10 @@ export const followViaObserver = async (
     const chain = chainFromObservedHops(startUrl, observed.hops, bounds.maxHops, final)
     // A loop or cap explains the failed follow fetch (ERR_TOO_MANY_REDIRECTS).
     if (chain.loop || chain.capped) return settle(chain, res, bounds.wantBody)
-    if (fetchError) throw chainFailure(fetchError, controller.signal.aborted, startUrl, bounds.timeoutMs, chain.hops)
+    if (fetchError) throw chainFailure(fetchError, scope.signal.aborted, startUrl, bounds.timeoutMs, chain.hops)
     return settle(chain, res, bounds.wantBody)
   }
-  if (fetchError || !res) throw chainFailure(fetchError, controller.signal.aborted, startUrl, bounds.timeoutMs, [])
+  if (fetchError || !res) throw chainFailure(fetchError, scope.signal.aborted, startUrl, bounds.timeoutMs, [])
   const chain = chainFromObservedHops(startUrl, [], bounds.maxHops, { url: res.url || startUrl, status: res.status })
   if (res.redirected) {
     chain.redirected = true

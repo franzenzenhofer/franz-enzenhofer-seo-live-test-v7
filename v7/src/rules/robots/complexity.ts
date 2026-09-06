@@ -18,7 +18,7 @@ export const robotsComplexityRule: Rule = {
     ],
     description: 'Informational count of Disallow, Allow, and Sitemap lines in robots.txt as a complexity indicator.',
   },
-  async run(page) {
+  async run(page, ctx) {
     let origin = ''
     try {
       origin = new URL(page.url).origin
@@ -32,7 +32,7 @@ export const robotsComplexityRule: Rule = {
         details: {},
       }
     }
-    const robotsTxt = await fetchTextOnce(`${origin}/robots.txt`)
+    const robotsTxt = await fetchTextOnce(`${origin}/robots.txt`, 1500, ctx.signal)
     if (!robotsTxt) {
       return {
         label: LABEL,

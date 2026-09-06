@@ -14,7 +14,11 @@ describe('bounded DOM facts', () => {
 
     expect(facts).not.toHaveProperty('html')
     expect(new TextEncoder().encode(payload).length).toBeLessThan(32_000)
-    expect(payload).not.toContain('large text large text large text')
+    // The exact text length travels as a counter; the text itself only as a
+    // bounded excerpt, so a 55,000-character body cannot ride along.
+    expect(facts.textLength).toBe(55_007)
+    expect(facts.content?.excerpt.length).toBeLessThanOrEqual(160)
+    expect(payload.length).toBeLessThan(2_000)
     expect(restored.title).toBe('Static')
     expect(restored.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe('https://example.com/')
   })

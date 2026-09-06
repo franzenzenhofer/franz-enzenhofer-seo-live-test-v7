@@ -6,10 +6,10 @@
 | --- | --- | --- |
 | `static` | Live `document_end` DOM | Title, description, robots, canonical, hreflang, Open Graph, H1, internal/parameterized links, blocking scripts, preload, preconnect, DNS prefetch, and other default DOM/head rules |
 | `idle` | Live `document_idle` DOM | Keywords, viewport, alternate media, nofollow, image checks, insecure inputs, LD+JSON/schema, Discover DOM checks, top words, node count/depth, AMP cache URL, and first paint |
-| `compare` | Offscreen over typed static/idle facts | Client-side rendering, parameterized-link differences, and unavailable-after comparison |
-| `context` | Offscreen over network/navigation data and compact static facts | HTTP, URL, robots.txt, PSI, GSC, Google connection, debug summaries, multipage and canonical/navigation checks |
+| `compare` | Offscreen over typed static/idle facts | Client-side rendering, SEO element fingerprints across phases, parameterized-link differences, and unavailable-after comparison |
+| `context` | Offscreen over network/navigation data and compact static facts | HTTP, URL, robots.txt (including the separate unsupported-`noindex` report), observed resource delivery, PSI, GSC, Google connection, debug summaries, multipage and canonical/navigation checks |
 
-Static and idle phases never substitute for one another. Missing facts produce a rule-scoped `runtime_error`. A comparison that needs an exact set also returns unavailable when its sampled evidence is truncated; it never reports equality from incomplete data.
+Both phases observe a JavaScript-enabled live document. Neither is raw source HTML nor a JavaScript-disabled rendering, and no rule may claim otherwise. Static and idle phases never substitute for one another. Missing facts produce a rule-scoped `runtime_error`. A comparison that needs an exact set also returns unavailable when its sampled evidence is truncated; it never reports equality from incomplete data.
 
 Displayed evidence is sampled, while finding counts and severities remain exact. Evidence details disclose `total` or `count`, `shown`, and `truncated` where sampling occurs. Context rules that require a complete compact DOM are skipped when fact buckets truncate and receive an explicit unavailable result during final merging.
 

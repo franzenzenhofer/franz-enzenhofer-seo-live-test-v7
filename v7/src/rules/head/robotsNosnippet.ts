@@ -23,7 +23,7 @@ export const robotsNosnippetRule: Rule = {
     description: 'Warns when snippets are disabled via a nosnippet directive or max-snippet:0 in robots meta tags or X-Robots-Tag.',
   },
   async run(page) {
-    const directives = parseRobotsDirectives(page.doc, page.headers)
+    const directives = parseRobotsDirectives(page.doc, page.headers, page.responseHeaderFields)
     const nosnippetMatches = findRobotsTokens(directives, 'nosnippet')
     const maxSnippetMatches = findRobotsTokens(directives, 'max-snippet')
     const zeroSnippet = maxSnippetMatches.filter((match) => {

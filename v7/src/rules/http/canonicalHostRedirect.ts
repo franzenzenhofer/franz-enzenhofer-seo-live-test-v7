@@ -132,8 +132,8 @@ export const canonicalHostRedirectRule: Rule = {
     }
 
     return buildResult(
-      'No www/non-www redirect observed (current host assumed canonical). Ensure the alternate host redirects in a single permanent hop.',
-      'ok',
+      'No www/non-www redirect observed. The alternate host was not requested by this navigation check; host canonicalization is untested.',
+      'info',
       800,
       chained({ firstUrl, finalUrl, trace, httpRedirects: httpRedirects.length }),
     )

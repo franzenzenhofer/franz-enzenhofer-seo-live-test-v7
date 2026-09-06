@@ -1,60 +1,54 @@
 import { incr } from './telemetry'
+import { abortScope, throwIfAborted } from './abort'
+import { readBoundedText } from './responseBody'
+import { createSingleFlight } from './singleFlight'
+import { noteProbeResponse, withSiteProbe } from './siteProbeQueue'
 
-export type FetchOnceResult = { status: number; ok: boolean; text: string }
-
-// Promise-cached (single-flight): concurrent callers of the same URL share one
-// request. Successes stay cached for a short TTL; failures are evicted once
-// settled so a transient network error is not frozen for the document lifetime.
-type Entry = { ts: number; promise: Promise<FetchOnceResult | null> }
-const cache = new Map<string, Entry>()
+// Google stops reading robots.txt at 500 KiB and ignores the rest, so the
+// shared probe keeps exactly that much and says when more existed.
+export const FETCH_ONCE_MAX_BYTES = 512_000
+export type FetchOnceResult = {
+  status: number; ok: boolean; text: string; bytes: number; truncated: boolean
+  url?: string; headers?: Record<string, string>
+}
 const DEFAULT_TIMEOUT_MS = 1500
-const SUCCESS_TTL_MS = 5 * 60_000
+const shared = createSingleFlight<FetchOnceResult | null>(5 * 60_000, (result) => result !== null && result.status !== 429 && result.status !== 503)
 
 const isValidHttpUrl = (url: string): boolean => {
-  try {
-    const u = new URL(url)
-    return u.protocol === 'http:' || u.protocol === 'https:'
-  } catch {
-    return false
-  }
+  try { return ['http:', 'https:'].includes(new URL(url).protocol) } catch { return false }
 }
 
-const fetchWithTimeout = async (url: string, timeoutMs: number): Promise<FetchOnceResult | null> => {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), timeoutMs)
-  try {
-    const res = await fetch(url, { signal: controller.signal })
-    if (!res.ok) incr('fetch.fail')
-    const text = await res.text()
-    return { status: res.status, ok: res.ok, text }
-  } catch {
-    incr('fetch.fail')
-    return null
-  } finally {
-    clearTimeout(timer)
-  }
-}
+const fetchWithTimeout = (url: string, timeoutMs: number, signal: AbortSignal) =>
+  withSiteProbe(url, signal, async (): Promise<FetchOnceResult | null> => {
+    const scope = abortScope(timeoutMs, signal)
+    try {
+      throwIfAborted(scope.signal)
+      const res = await fetch(url, { signal: scope.signal })
+      noteProbeResponse(url, res)
+      if (!res.ok) incr('fetch.fail')
+      const body = await readBoundedText(res, { signal: scope.signal, maxBytes: FETCH_ONCE_MAX_BYTES })
+      const headers: Record<string, string> = {}
+      res.headers?.forEach?.((value, key) => { headers[key.toLowerCase()] = value })
+      return { status: res.status, ok: res.ok, text: body.text, bytes: body.bytes, truncated: body.truncated,
+        ...(res.url ? { url: res.url } : {}), ...(Object.keys(headers).length ? { headers } : {}) }
+    } catch {
+      throwIfAborted(signal)
+      incr('fetch.fail')
+      return null
+    } finally { scope.dispose() }
+  })
 
-export const fetchStatusTextOnce = (url: string, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<FetchOnceResult | null> => {
+export const fetchStatusTextOnce = (url: string, timeoutMs = DEFAULT_TIMEOUT_MS, signal?: AbortSignal): Promise<FetchOnceResult | null> => {
+  // Loud on the console: a blocked scheme (chrome://, file://, ...) is a caller
+  // bug, not a network condition, and silently returning null would hide it.
   if (!isValidHttpUrl(url)) {
     console.error(`[fetchTextOnce] Invalid URL blocked: ${url}`)
     return Promise.resolve(null)
   }
-  const entry = cache.get(url)
-  if (entry && Date.now() - entry.ts < SUCCESS_TTL_MS) return entry.promise
-  const promise = fetchWithTimeout(url, timeoutMs)
-  const fresh: Entry = { ts: Date.now(), promise }
-  cache.set(url, fresh)
-  promise
-    .then((result) => {
-      if (result === null && cache.get(url) === fresh) cache.delete(url)
-      return result
-    })
-    .catch(() => { if (cache.get(url) === fresh) cache.delete(url) })
-  return promise
+  return shared(url, (sharedSignal) => fetchWithTimeout(url, timeoutMs, sharedSignal), signal)
 }
 
-export const fetchTextOnce = async (url: string, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<string | null> => {
-  const result = await fetchStatusTextOnce(url, timeoutMs)
+export const fetchTextOnce = async (url: string, timeoutMs = DEFAULT_TIMEOUT_MS, signal?: AbortSignal): Promise<string | null> => {
+  const result = await fetchStatusTextOnce(url, timeoutMs, signal)
   return result && result.ok ? result.text : null
 }

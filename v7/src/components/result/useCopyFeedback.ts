@@ -7,19 +7,23 @@ const CONFIRM_MS = 2000
  * header copy button and "Copy filtered"). Confirmation only appears when the
  * clipboard write actually succeeded.
  */
-export const useCopyFeedback = (): { copied: boolean; copy: (value: string) => Promise<void> } => {
+export const useCopyFeedback = (): { copied: boolean; copy: (value: string) => Promise<boolean> } => {
   const [copied, setCopied] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout>>()
   useEffect(() => () => clearTimeout(timer.current), [])
-  const copy = async (value: string): Promise<void> => {
-    if (!value) return
+  const copy = async (value: string): Promise<boolean> => {
+    setCopied(false)
+    clearTimeout(timer.current)
+    if (!value) return false
     try {
       await navigator.clipboard.writeText(value)
       setCopied(true)
       clearTimeout(timer.current)
       timer.current = setTimeout(() => setCopied(false), CONFIRM_MS)
+      return true
     } catch {
       /* copy failed: never claim "Copied" */
+      return false
     }
   }
   return { copied, copy }

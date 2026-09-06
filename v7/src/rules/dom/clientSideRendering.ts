@@ -8,7 +8,7 @@ export const clientSideRenderingRule: Rule = {
   meta: {
     provenance: 'google',
     references: ['https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics'],
-    description: 'Heuristic comparing static vs idle DOM text length (and script counts) to detect client-side rendered content.',
+    description: 'Compares content summaries at document_end and document_idle. These are JavaScript-enabled lifecycle observations, not source HTML or a JavaScript-disabled test.',
   },
   async run(page) {
     const staticFacts = page.staticFacts
@@ -21,19 +21,28 @@ export const clientSideRenderingRule: Rule = {
       }
     }
     const addedText = Math.max(0, idleFacts.textLength - staticFacts.textLength)
+    const removedText = Math.max(0, staticFacts.textLength - idleFacts.textLength)
+    const contentChanged = staticFacts.content && idleFacts.content
+      ? staticFacts.content.fingerprint !== idleFacts.content.fingerprint : undefined
     const hydrated = addedText >= 40 && idleFacts.textLength >= staticFacts.textLength * 1.25
     const scriptHeavy = staticFacts.scriptCount > 5 || staticFacts.blockingScriptCount > 0
-    const possible = hydrated || (staticFacts.textLength < 40 && scriptHeavy)
+    const possible = hydrated || removedText > 0 || contentChanged || (staticFacts.textLength < 40 && scriptHeavy)
     return {
       label: 'DOM', name: 'Client-side rendering heuristic', type: 'info',
       priority: possible ? 500 : 850,
       message: possible
-        ? `Client rendering changed visible text by ${addedText} characters between static and idle phases.`
-        : 'No material client-rendered text change detected between static and idle phases.',
+        ? `Content differs between document_end and document_idle: ${addedText} characters added, ${removedText} removed (net length changes).`
+        : 'No material content-text growth detected between document_end and document_idle; this is not a JavaScript-disabled test.',
       details: {
         staticTextLength: staticFacts.textLength,
         idleTextLength: idleFacts.textLength,
         addedText,
+        removedText,
+        contentChanged,
+        staticContent: staticFacts.content,
+        idleContent: idleFacts.content,
+        growthThreshold: { minimumCharacters: 40, minimumRatio: 1.25 },
+        tested: 'Normalized content lengths and order-sensitive text fingerprints from JavaScript-enabled lifecycle observations; CSS visibility is not established.',
         staticScriptCount: staticFacts.scriptCount,
         staticBlockingScriptCount: staticFacts.blockingScriptCount,
         hydrated,

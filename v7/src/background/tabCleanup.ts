@@ -6,6 +6,7 @@ import { abortSession } from './rules/sessions'
 import { clearLogsFromSession } from '@/shared/logStore'
 import { runMetaKey } from '@/shared/runMeta'
 import { STORAGE_KEYS } from '@/shared/storage-keys'
+import { auditDocumentKey } from '@/shared/auditIntent'
 
 export const CLOSED_TAB_LIMIT = 20
 
@@ -26,6 +27,7 @@ export const clearTabSessionState = async (tabId: number, reason: string): Promi
     clearLogsFromSession(tabId),
     clearLedger(tabId),
     clearPendingResults(tabId),
+    chrome.storage.session.remove(auditDocumentKey(tabId)),
   ])
 }
 

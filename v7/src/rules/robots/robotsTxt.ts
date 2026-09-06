@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
-import { fetchStatusTextOnce } from '@/shared/fetchOnce'
+import { fetchStatusTextOnce, type FetchOnceResult } from '@/shared/fetchOnce'
+import { robotsPolicyState } from '@/shared/robotsPolicy'
 import { extractSnippet } from '@/shared/html-utils'
 
 const LABEL = 'ROBOTS'
@@ -22,7 +23,9 @@ const getRobotsTxtUrl = (pageUrl: string): string => {
 
 // Google treats all 4xx errors except 429 as if no robots.txt exists (allow-all);
 // 429 and 5xx count as unreachable: crawling pauses and complete disallow may be assumed.
-const isNoRobotsStatus = (status: number) => status >= 400 && status < 500 && status !== 429
+// One shared reading of robots.txt fetch status across every robots rule.
+const isNoRobotsStatus = (status: number, response: FetchOnceResult) =>
+  robotsPolicyState({ ...response, status, ok: false }) === 'allow'
 
 export const robotsTxtRule: Rule = {
   id: RULE_ID,
@@ -38,7 +41,7 @@ export const robotsTxtRule: Rule = {
     ],
     description: 'Fetches origin/robots.txt and branches on status class: 2xx exists (info), 4xx except 429 counts as no robots.txt - all crawling allowed (info), 429/5xx/network failure counts as unreachable - Googlebot pauses crawling and may assume complete disallow (warn).',
   },
-  run: async (page) => {
+  run: async (page, ctx) => {
     const robotsTxtUrl = getRobotsTxtUrl(page.url)
     if (!robotsTxtUrl) {
       return {
@@ -54,7 +57,7 @@ export const robotsTxtRule: Rule = {
     }
     // Six robots rules run concurrently against the same robots.txt; the shared
     // single-flight fetch collapses them onto one request per run.
-    const response = await fetchStatusTextOnce(robotsTxtUrl)
+    const response = await fetchStatusTextOnce(robotsTxtUrl, 1500, ctx.signal)
     if (response === null) {
       return {
         label: LABEL,
@@ -70,7 +73,7 @@ export const robotsTxtRule: Rule = {
     }
     const status = response.status
     if (!response.ok) {
-      if (isNoRobotsStatus(status)) {
+      if (isNoRobotsStatus(status, response)) {
         return {
           label: LABEL,
           name: NAME,

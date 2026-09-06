@@ -1,5 +1,6 @@
 import { boundResults } from '@/shared/boundResult'
 import type { Result } from '@/core/types'
+import type { PhaseIdentity } from '@/shared/phaseSchema'
 
 export const PHASE_CHUNK_BYTES = 20_000
 const bytes = (value: unknown) => new TextEncoder().encode(JSON.stringify(value)).length
@@ -18,8 +19,13 @@ export const chunkPhaseResults = (results: Result[], limit = PHASE_CHUNK_BYTES):
   return chunks
 }
 
-export const sendPhaseResults = async (phase: 'static' | 'idle', url: string, results: Result[]) => {
-  for (const chunk of chunkPhaseResults(results)) {
-    await chrome.runtime.sendMessage({ event: 'phase_results', data: { phase, url, results: chunk } })
+export const sendPhaseResults = async (identity: PhaseIdentity, results: Result[]) => {
+  const chunks = chunkPhaseResults(results)
+  for (const [chunkIndex, chunk] of chunks.entries()) {
+    const response = await chrome.runtime.sendMessage({
+      event: 'phase_results', data: { ...identity, chunkIndex, chunkCount: chunks.length, results: chunk },
+    }) as { accepted?: boolean } | undefined
+    if (!response?.accepted) throw new Error('Phase result capture rejected')
   }
+  return chunks.length
 }

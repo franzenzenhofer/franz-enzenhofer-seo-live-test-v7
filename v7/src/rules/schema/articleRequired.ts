@@ -22,12 +22,13 @@ export const schemaArticleRequiredRule = createSchemaRule({
     if (!get(n, 'dateModified')) miss.push('dateModified')
 
     // Check image
-    if (!get(n, 'image')) miss.push('image')
+    const images = get(n, 'image')
+    if (!images || (Array.isArray(images) && images.length === 0)) miss.push('image')
 
     // Check author.name (handle both string and object)
     const author = get(n, 'author')
-    const an = typeof author === 'string' ? author : get(author, 'name')
-    if (!an) miss.push('author.name')
+    const authors = Array.isArray(author) ? author : [author]
+    if (!authors.length || authors.some((item) => !String(typeof item === 'string' ? item : get(item, 'name') || '').trim())) miss.push('author.name')
 
     return { ok: miss.length === 0, missing: miss }
   },

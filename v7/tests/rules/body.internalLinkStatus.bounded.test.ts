@@ -27,35 +27,62 @@ describe('rule: internal link status on the bounded fact document', () => {
     expect(r.message).toContain('300')
   })
 
-  it('does not lie when the bounded sample holds only nav/cross-host anchors (orf.at shape)', async () => {
+  it('still probes internal links when the first anchors are all nav/cross-host (orf.at shape)', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ status: 200 }))
     const nav = ['#top', '#nav', ...Array.from({ length: 8 }, (_, i) => `https://sub${i}.example.org/`)]
       .map((href) => `<a href="${href}">n</a>`).join('')
     const internal = Array.from({ length: 36 }, (_, i) => `<a href="/story${i}">s</a>`).join('')
-    const facts = collectDomFacts(makeDoc(`<html><head><title>T</title></head><body>${nav}${internal}</body></html>`), 'static')
+    const source = makeDoc(`<html><head><title>T</title></head><body>${nav}${internal}</body></html>`)
+    const facts = collectDomFacts(source, 'static')
     expect(facts.anchorCount).toBe(46)
+    // The bounded anchor evidence still holds only the leading nav anchors...
     expect(facts.truncatedBuckets).toContain('anchor')
+    // ...but candidates are picked across the COMPLETE DOM, so the nav bar
+    // cannot starve the sample any more.
+    expect(facts.internalLinkCount).toBe(36)
+    expect(facts.internalLinkCandidates).toHaveLength(5)
+    expect(facts.internalLinkCandidates?.every((c) => c.url.includes('/story'))).toBe(true)
     const doc = domFactsToDocument(facts, makeDoc)
     const r = await internalLinkStatusRule.run(
-      { html: '', url: 'https://example.com/', doc, staticFacts: facts } as never,
+      { html: '', url: source.URL, doc, staticFacts: facts } as never,
       { globals: {} },
     )
-    expect(r.type).toBe('runtime_error')
-    expect(r.message).not.toContain('No internal links found')
-    expect(r.message).toContain('captured anchors')
-    expect(r.details?.['pageAnchorCount']).toBe(46)
+    expect(r.type).toBe('ok')
+    expect(r.details?.['sampleSize']).toBe(5)
+    expect(r.details?.['internalLinkCount']).toBe(36)
+    expect(r.message).toContain('36 eligible internal link anchors')
   })
 
-  it('fails loudly instead of claiming "no internal links" when anchors were sampled away', async () => {
-    // The collector now reserves budget for anchors, so a capture with zero
-    // anchors on an anchor-bearing page cannot be produced any more; this
-    // guards the rule against any facts payload that still arrives that way.
+  it('separates "no internal links" from "candidates did not fit the budget"', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ status: 200 }))
+    const doc = makeDoc('<html><head><title>T</title></head><body><p>x</p></body></html>')
+    const empty = collectDomFacts(doc, 'static')
+    const none = await internalLinkStatusRule.run(
+      { html: '', url: 'https://example.com/', doc, staticFacts: empty } as never, { globals: {} })
+    expect(none.type).toBe('info')
+    expect(none.message).toBe('No internal links found to test.')
+
+    const squeezed = { ...empty, internalLinkCount: 12, internalLinkCandidatesOmitted: 12 }
+    const cut = await internalLinkStatusRule.run(
+      { html: '', url: 'https://example.com/', doc, staticFacts: squeezed } as never, { globals: {} })
+    expect(cut.type).toBe('runtime_error')
+    expect(cut.message).toContain('12 internal link anchors were counted')
+    expect(cut.details?.['candidateOmissions']).toBe(12)
+  })
+
+  it('fails loudly instead of claiming "no internal links" when a payload carries no candidate list', async () => {
+    // Facts produced before the candidate pass existed (or by a runtime that
+    // could not run it) have only the bounded anchor evidence. On an
+    // anchor-bearing page with truncated anchors that proves nothing, so the
+    // rule must say it could not test - never "no internal links".
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ status: 200 }))
     const doc = makeDoc('<html><head><title>T</title></head><body><p>x</p></body></html>')
     const facts = {
       ...collectDomFacts(doc, 'static'),
       anchorCount: 5,
       truncatedBuckets: ['anchor' as const],
+      internalLinkCandidates: undefined,
+      internalLinkCount: undefined,
     }
     const r = await internalLinkStatusRule.run(
       { html: '', url: 'https://example.com/', doc, staticFacts: facts } as never,
