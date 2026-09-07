@@ -1,10 +1,9 @@
 # Chrome Web Store Submission Guide
 
-**Currently published:** 7.0.87 - approved and live, store listing updated
-September 2, 2026, 575 users
-**Nothing in review**
-**Replaced:** 7.0.38 (the previous live build) and 7.0.55, which was cancelled
-out of review and superseded by 7.0.87
+**Currently published:** 7.0.87 - approved and live, 569 users
+**In review:** store-listing update submitted September 7, 2026 - new screenshots and
+promo tiles only (see `v7/marketing/store-2026-09/README.md`). Package unchanged at
+7.0.87; "Publish automatically after it has passed review" was left checked.
 
 To replace a submission that is still pending review: the item page's overflow
 menu (the three dots beside "Submit for review") has **Cancel review**, which
@@ -12,7 +11,7 @@ returns the item to draft and re-enables both "Upload new package" and "Submit
 for review". It is not on the Status page or the Package tab, which is why it
 looks at first as though a pending submission cannot be withdrawn.
 
-**Last updated:** September 2, 2026
+**Last updated:** September 7, 2026
 
 ## Files to Upload
 
@@ -22,15 +21,21 @@ v7/zip-build/latest-build.zip
 ```
 
 ### Images
+Current set: `v7/marketing/store-2026-09/` (September 2026). The older
+`v7/marketing/screenshots/` + `v7/marketing/promo/` set is superseded.
+
 | Asset | Path |
 |-------|------|
 | Icon 128x128 | `v7/src/icons/icon-128.png` |
-| Screenshot 1 | `v7/marketing/screenshots/screenshot-1-sidepanel.png` |
-| Screenshot 2 | `v7/marketing/screenshots/screenshot-2-settings.png` |
-| Screenshot 3 | `v7/marketing/screenshots/screenshot-3-features.png` |
-| Small tile 440x280 | `v7/marketing/promo/small-tile-440x280.png` |
-| Large tile 920x680 | `v7/marketing/promo/large-tile-920x680.png` |
-| Marquee 1400x560 | `v7/marketing/promo/marquee-1400x560.png` |
+| Screenshot 1 | `v7/marketing/store-2026-09/screenshots/01-brand-secret-sauce-1280x800.png` |
+| Screenshot 2 | `v7/marketing/store-2026-09/screenshots/02-guardian-full-1280x800.png` |
+| Screenshot 3 | `v7/marketing/store-2026-09/screenshots/03-wikipedia-full-1280x800.png` |
+| Screenshot 4 | `v7/marketing/store-2026-09/screenshots/04-guardian-detail-1280x800.png` |
+| Screenshot 5 | `v7/marketing/store-2026-09/screenshots/05-wikipedia-detail-1280x800.png` |
+| Small tile 440x280 | `v7/marketing/store-2026-09/promo/small-tile-440x280.png` |
+| Marquee 1400x560 | `v7/marketing/store-2026-09/promo/marquee-1400x560.png` |
+
+The dashboard no longer offers a 920x680 large promo tile slot; that asset is obsolete.
 
 ## Store Listing Content
 
