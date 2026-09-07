@@ -1,0 +1,75 @@
+/* Chrome Web Store asset design system - SEO Live Test
+   Palette sampled from the approved hero artwork (seo-live-test-hero.jpg):
+   navy #02081A / #040718, electric blue #0248FD */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: var(--w);
+  height: var(--h);
+  overflow: hidden;
+  background: #02081a;
+  font-family: -apple-system, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.stage {
+  position: relative;
+  width: var(--w);
+  height: var(--h);
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 8% 0%, #0a1738 0%, #02081a 55%, #010512 100%);
+}
+
+/* diagonal light beam, as in the hero */
+.beam {
+  position: absolute;
+  right: -18%;
+  top: -60%;
+  width: 42%;
+  height: 220%;
+  transform: rotate(28deg);
+  background: linear-gradient(90deg,
+    rgba(2, 72, 253, 0) 0%,
+    rgba(2, 72, 253, 0.10) 35%,
+    rgba(96, 156, 255, 0.95) 50%,
+    rgba(2, 72, 253, 0.10) 65%,
+    rgba(2, 72, 253, 0) 100%);
+  filter: blur(1.5px);
+  pointer-events: none;
+}
+.beam.soft { filter: blur(30px); opacity: 0.75; }
+
+.eyebrow {
+  color: #c3cee6;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.headline {
+  color: #ffffff;
+  font-weight: 800;
+  letter-spacing: -0.018em;
+  line-height: 0.98;
+}
+
+.chip {
+  display: inline-block;
+  background: #0248fd;
+  color: #ffffff;
+  font-weight: 800;
+  letter-spacing: -0.005em;
+}
+
+.sub {
+  color: #9fb0d0;
+  font-weight: 500;
+}
+
+.shot {
+  display: block;
+  border-radius: 10px;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}

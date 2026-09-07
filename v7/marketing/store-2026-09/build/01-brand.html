@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="base.css">
+<style>
+  :root { --w: 1280px; --h: 800px; }
+  .copy { position: absolute; left: 72px; top: 74px; z-index: 5; }
+  .eyebrow { font-size: 21px; }
+  .headline { font-size: 82px; margin-top: 20px; }
+  .chip { font-size: 31px; padding: 13px 24px 15px; margin-top: 26px; }
+
+  .deck { position: absolute; inset: 0; z-index: 2; }
+  .deck img { position: absolute; }
+
+  .win { width: 660px; border-radius: 12px;
+         box-shadow: 0 40px 90px rgba(0,0,0,.75), 0 0 0 1px rgba(255,255,255,.07); }
+  .pan { width: 302px; border-radius: 10px;
+         box-shadow: 0 26px 60px rgba(0,0,0,.72), 0 0 0 1px rgba(255,255,255,.10); }
+
+  #wg  { left: -108px; top: 404px; transform: perspective(1500px) rotateY(15deg) rotate(-1.6deg); }
+  #pg  { left: 318px;  top: 424px; transform: rotate(0.6deg); }
+  #ww  { left: 596px;  top: 400px; transform: perspective(1500px) rotateY(12deg) rotate(-1.2deg); }
+  #pw  { left: 1000px; top: 418px; transform: rotate(0.6deg); }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="beam soft"></div>
+  <div class="beam"></div>
+
+  <div class="copy">
+    <div class="eyebrow">Franz Enzenhofer SEO Live Test</div>
+    <h1 class="headline">MY SEO SECRET SAUCE.</h1>
+    <div class="chip">120+ CHECKS. FREE.</div>
+  </div>
+
+  <div class="deck">
+    <img id="wg" class="win" src="img/guardian-win-1400.png" alt="">
+    <img id="pg" class="pan" src="img/guardian-panel-540.png" alt="">
+    <img id="ww" class="win" src="img/wikipedia-win-1400.png" alt="">
+    <img id="pw" class="pan" src="img/wikipedia-panel-540.png" alt="">
+  </div>
+</div>
+</body>
+</html>
