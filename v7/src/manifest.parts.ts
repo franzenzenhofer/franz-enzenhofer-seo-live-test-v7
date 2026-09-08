@@ -14,7 +14,7 @@ export const PERMISSIONS: string[] = [
   'scripting',        // chrome.scripting.executeScript for getPageInfo + highlight
   'webRequest',       // Non-blocking observation of redirects/headers in history listener
   'webNavigation',    // onCommitted + onHistoryStateUpdated for navigation ledger
-  'identity',         // OAuth flow for Google Search Console + Analytics
+  'identity',         // OAuth flow for Google Search Console (read-only, non-sensitive scope)
   'alarms',           // chrome.alarms replaces every long timer in the SW
   'contextMenus',     // background/commands.ts creates "Open Live Test" entry
 ]

@@ -51,18 +51,28 @@ if (!manifest.oauth2?.client_id) {
 }
 
 // 3. Check OAuth scopes
-const expectedScopes = [
-  'https://www.googleapis.com/auth/webmasters.readonly',
-  'https://www.googleapis.com/auth/analytics.readonly',
-]
+const expectedScopes = ['https://www.googleapis.com/auth/webmasters.readonly']
+// Any of these makes Google show the "unverified app" interstitial to every new user
+// and caps the Cloud project at 100 users for its lifetime.
+const forbiddenSensitiveScopes = ['https://www.googleapis.com/auth/analytics.readonly']
 if (!manifest.oauth2?.scopes || manifest.oauth2.scopes.length === 0) {
   errors.push('❌ CRITICAL: oauth2.scopes missing from manifest')
 } else {
   const missingScopes = expectedScopes.filter((s) => !manifest.oauth2!.scopes!.includes(s))
+  const sensitiveScopes = forbiddenSensitiveScopes.filter((s) =>
+    manifest.oauth2!.scopes!.includes(s)
+  )
   if (missingScopes.length > 0) {
     warnings.push(`⚠️  Missing OAuth scopes: ${missingScopes.join(', ')}`)
-  } else {
-    console.log('✅ OAuth scopes correct:', manifest.oauth2.scopes.length, 'scopes')
+  }
+  if (sensitiveScopes.length > 0) {
+    errors.push(
+      `❌ CRITICAL: sensitive OAuth scope requested: ${sensitiveScopes.join(', ')}\n` +
+        '   Every new user would get the "Google hasn\'t verified this app" screen.'
+    )
+  }
+  if (missingScopes.length === 0 && sensitiveScopes.length === 0) {
+    console.log('✅ OAuth scopes correct:', manifest.oauth2.scopes.length, 'non-sensitive scope(s)')
   }
 }
 

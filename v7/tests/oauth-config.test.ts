@@ -31,6 +31,23 @@ describe('OAuth Configuration Verification', () => {
     )
   })
 
+  it('requests only the non-sensitive Search Console scope', async () => {
+    const { OAUTH_SCOPES } = await import('../config.js')
+
+    // A sensitive scope triggers Google's "hasn't verified this app" interstitial for
+    // every new user and caps the Cloud project at 100 users for its lifetime.
+    expect(OAUTH_SCOPES).toEqual(['https://www.googleapis.com/auth/webmasters.readonly'])
+  })
+
+  it('dist/manifest.json requests no sensitive scope', () => {
+    const manifestPath = join(process.cwd(), 'dist', 'manifest.json')
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'))
+
+    expect(manifest.oauth2?.scopes).toEqual([
+      'https://www.googleapis.com/auth/webmasters.readonly',
+    ])
+  })
+
   it('config.js exports correct DEV_EXTENSION_KEY', async () => {
     const { DEV_EXTENSION_KEY } = await import('../config.js')
 
