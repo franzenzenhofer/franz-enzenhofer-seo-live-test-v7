@@ -61,8 +61,7 @@ OAUTH_CLIENT_ID = '335346275770-6d6s9ja0h7brn24ghf3vqa9kv7ko5vfv.apps.googleuser
 
 // OAuth Scopes
 OAUTH_SCOPES = [
-  'https://www.googleapis.com/auth/webmasters.readonly',  // Google Search Console
-  'https://www.googleapis.com/auth/analytics.readonly',   // Google Analytics
+  'https://www.googleapis.com/auth/webmasters.readonly',  // Google Search Console (non-sensitive)
 ]
 
 // Extension Public Key (MUST NOT CHANGE - generates same extension ID)
@@ -75,19 +74,17 @@ DEV_EXTENSION_KEY = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsWxGAo8gbhOgcRR
 - OAuth client already has this extension ID registered in Google Cloud Console
 - OAuth works immediately - no additional setup needed!
 
-### ⚠️ Known defect: the OAuth app is unverified and not ours
+### OAuth scopes: non-sensitive only
 
-Cloud project `335346275770` was created in 2016 by the original contract developer
-(`ownedbymo@gmail.com`) under his personal Google account. It has never passed Google's
-[sensitive-scope verification](https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification),
-so every user who has not granted access before sees
-["Google hasn't verified this app"](https://support.google.com/cloud/answer/7454865) naming
-that stranger as the developer - and the project carries a lifetime
-[100-new-user cap](https://support.google.com/cloud/answer/13463817) that cannot be reset.
+The extension requests exactly one scope, `webmasters.readonly`, which Google classifies as
+**non-sensitive**. That is deliberate and load-bearing: an unapproved *sensitive* scope makes
+Google show the ["Google hasn't verified this app"](https://support.google.com/cloud/answer/7454865)
+interstitial to every new user and caps the Cloud project at
+[100 users for its lifetime](https://support.google.com/cloud/answer/15549945).
 
-Do not "fix" this by editing `config.js` on its own - changing the client ID without a
-verified replacement only breaks OAuth for existing users. The plan (ownership transfer or
-migration to our own project, plus verification) is in
+From 2016 until 2026-09-08 the manifest also requested `analytics.readonly` - a sensitive
+scope the code never used - which is exactly what users were hitting. `npm run build` now
+fails if any known sensitive scope reappears. Background:
 [`tickets/oauth-unverified-app-gsc.md`](./tickets/oauth-unverified-app-gsc.md).
 
 ### Testing OAuth

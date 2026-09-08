@@ -1,125 +1,110 @@
 # "Google hasn't verified this app (ownedbymo@gmail.com)" when connecting Search Console
 
-Reported 2026-09-08 by Christoph A. Müller (christoph.m@coffeecircle.com), reply to the
-2026-09-08 newsletter. Screenshot: the standard Google "unverified app" interstitial,
-naming `ownedbymo@gmail.com` as the developer.
+Reported 2026-09-08 by Christoph A. Müller, reply to the 2026-09-08 newsletter. Screenshot:
+Google's red-triangle "unverified app" interstitial, naming `ownedbymo@gmail.com` as the
+developer.
 
-## What happens
-Any user who clicks **Settings → Google Account → Sign In** to connect Google Search Console
-gets Google's red-triangle interstitial:
-
-> Google hasn't verified this app
-> The app is requesting access to sensitive info in your Google Account. Until the developer
-> (ownedbymo@gmail.com) verifies this app with Google, you shouldn't use it.
-
-The sign-in still works via **Advanced → Go to … (unsafe)**, but almost nobody clicks that,
-and the named developer is a stranger to the user - it looks like a phishing attempt.
+## What happened
+Every user who had not granted access before got the interstitial when clicking
+**Settings → Google Account → Sign In**. Sign-in still worked via **Advanced → Go to … (unsafe)**,
+but the named developer is a stranger to the user - it reads like phishing.
 
 ## Root cause (7 whys, each with evidence)
 
-1. **Why the warning?**
-   Google shows the "unverified app" screen for every OAuth client that requests *sensitive*
-   scopes and has not passed OAuth verification.
-   Evidence: `v7/config.js:13-16` requests `webmasters.readonly` + `analytics.readonly`, both
-   sensitive. https://support.google.com/cloud/answer/7454865
+1. **Why the interstitial?**
+   Google shows it when an OAuth request contains a *sensitive* scope that has not been
+   approved for that project: "If your users are seeing the 'unverified app' screen, it is
+   because your OAuth request includes additional scopes that haven't been approved."
+   (https://support.google.com/cloud/answer/15549945) - and it is driven by the scopes the
+   client REQUESTS, not by the project as such
+   (https://support.google.com/cloud/answer/7454865).
 
-2. **Why is this OAuth client unverified?**
-   Its Google Cloud project (number `335346275770`) never went through sensitive-scope
-   verification - no branding, no verified domain, no demo video, no submission.
-   Requirements: https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification
+2. **Which of our scopes is sensitive?**
+   Only `analytics.readonly`. The Google Cloud console groups
+   `https://www.googleapis.com/auth/webmasters.readonly` under **non-sensitive** scopes and
+   `https://www.googleapis.com/auth/analytics.readonly` under **sensitive** scopes (verified
+   2026-09-08 in the Data Access page of project seo-extension-1763158338633). Google
+   publishes no static list; the console's own grouping is the authoritative signal
+   (https://developers.google.com/identity/protocols/oauth2/scopes).
 
-3. **Why was verification never submitted?**
-   The project does not belong to Franz. The consent screen's user-support email is
-   `ownedbymo@gmail.com` = Moritz Kobrna, the contract developer who built the original
-   extension 2016-2019 (Gmail: "Update Chrome Extension" 2017-03-20, "Rechnung Chrome
-   Extension" 2019-04-17, "obtrusice live test - update und erweiterung" 2018-11-06).
-   He created the Cloud project under his personal Gmail account. Whether Franz still has an
-   IAM role on that project is UNVERIFIED - Google Cloud Console and gcloud both demand a
-   Workspace reauthentication (password) that could not be completed in this session. That is
-   the first thing to check: https://console.cloud.google.com/auth/branding?project=335346275770
+3. **Why did we request a sensitive Analytics scope?**
+   We never used it. `grep -rni analytics src/` finds six hits, all of them Search Console
+   URLs or a comment - **zero Google Analytics API calls**. The scope was inherited verbatim
+   from the 2016 extension (`f19n-obtrusive-livetest/dist/manifest.json`).
 
-4. **Why is v7 - a 2026 rewrite - still using a 2016 third-party OAuth client?**
-   It was copied on purpose. `v7/config.js:10` says "Using the EXACT SAME client ID as old
-   PUBLISHED extension!"; the same ID sits in the old repo (`f19n-obtrusive-livetest/Gruntfile.js:73`)
-   and in the shipped build (`latest-build.zip → manifest.json`, v0.1.800).
+4. **Why was it inherited?**
+   v7 copied the whole OAuth block on purpose - `v7/config.js:10` "Using the EXACT SAME
+   client ID as old PUBLISHED extension!" - to keep the extension ID and the existing user
+   grants working through the rewrite.
 
-5. **Why was it copied without questioning ownership?**
-   Keeping the client ID (and the extension key → same extension ID
-   `jbnaibigcohjfefpfocphcjeliohhold`) was the cheapest way to keep OAuth working during the
-   rewrite, and it was then frozen as doctrine: `v7/README.md:109` "DO NOT change
-   OAUTH_CLIENT_ID … unless you want to break OAuth", `v7/CLAUDE.md:12` "Critical values (DO
-   NOT CHANGE)". The question "whose Google Cloud project is this?" was never asked.
+5. **Why was the copy never questioned?**
+   It was frozen as doctrine: `README.md` "DO NOT change OAUTH_CLIENT_ID", `CLAUDE.md`
+   "Critical values (DO NOT CHANGE)". Nobody asked which of those scopes the code actually
+   uses, or whose Cloud project the client lives in.
 
-6. **Why did nobody notice in ten years of testing?**
-   Google only shows the consent screen - and therefore the interstitial - when the account
-   has no existing grant for that client. Franz and every long-term user granted access years
-   ago, so they never see it. Only *new* users do. Every OAuth test in the repo tests our own
-   config, not Google's opinion of it.
+6. **Why did nobody notice for ten years?**
+   Google shows the consent screen - and therefore the interstitial - only when the account
+   has no existing grant. Franz and every long-term user granted years ago. Only *new* users
+   ever saw it.
 
 7. **Why did CI not catch it?**
-   `v7/scripts/verify-build-config.ts` and `v7/tests/oauth-config.test.ts` assert that the
-   client ID equals the hard-coded legacy value. They lock the defect in: they can only fail
-   if someone *fixes* the client ID. Nothing checks project ownership or verification status,
-   and nothing can - that state lives in a Cloud Console we have no access to.
+   `scripts/verify-build-config.ts` asserted that both scopes were PRESENT, and
+   `tests/oauth-config.test.ts` pinned the client ID. The checks could only fail if someone
+   fixed the bug. Nothing ever asked "is any requested scope sensitive?"
 
-**Root cause:** the product's OAuth identity is not owned by us. It is a legacy, unverified
-OAuth client inside a former contractor's personal Google Cloud project, and the repo froze
-that as an invariant instead of treating it as debt.
+**Root cause:** the extension requested a sensitive OAuth scope it never used, inherited
+unexamined from the 2016 build and locked in by the build checks. The unusable Cloud project
+(owned by a former contractor) is why it could not be fixed from the Google side - it is not
+what caused the warning.
 
-## Severity beyond the warning
-The 100-new-user cap on unverified apps "applies over the entire lifetime of the project and
-it cannot be reset or changed" (https://support.google.com/cloud/answer/13463817). This
-project has been serving the extension since ~2016. When the cap is reached, new users stop
-getting the warning and start getting a hard block. Verification removes both the warning and
-the cap.
+## Why it could not be fixed without a release
+The requested scopes live in the shipped `manifest.json` and in the `getAuthToken` call, so
+changing them needs a new build. Everything else was checked and ruled out:
+- Removing the scope from the project's Data Access does not help: "Using an unregistered
+  scope, even if previously verified, will result in the user seeing the unverified app
+  warning screen" (https://support.google.com/cloud/answer/15549135).
+- Test users still see a warning, plus a 7-day token expiry
+  (https://support.google.com/cloud/answer/15549945).
+- Internal-only would restrict the app to one Workspace org
+  (https://support.google.com/cloud/answer/13464323).
+- Only successful verification removes it for an unchanged client
+  (https://support.google.com/cloud/answer/7454865) - and that project belongs to
+  `ownedbymo@gmail.com` (Moritz Kobrna, contract developer 2016-2019). Franz has no IAM role
+  on it: the console reports missing `clientauthconfig.clients.list`,
+  `oauthconfig.verification.get`, `resourcemanager.projects.get` for project 335346275770.
 
-## Fix
+## Fix shipped
+One-line scope reduction, **client ID unchanged** (`335346275770-6d6s…`), so no existing user
+has to re-authorize and the extension ID stays `jbnaibigcohjfefpfocphcjeliohhold`:
+- `config.js`: `OAUTH_SCOPES` is now only `webmasters.readonly`.
+- `scripts/verify-build-config.ts`: build now FAILS on any known sensitive scope.
+- `tests/oauth-config.test.ts`: two new tests pin the scope list in config and in
+  `dist/manifest.json`.
+- `src/manifest.parts.ts`: corrected the `identity` permission comment.
 
-### Path A - preferred, NO new extension version
-The client ID stays `335346275770-6d6s9ja0h7brn24ghf3vqa9kv7ko5vfv`, so nothing in the
-manifest or the store listing changes.
+Result: the app requests only a non-sensitive scope, so no verification is required
+("If your app utilizes only non-sensitive scopes, it is not mandatory for your app to
+complete the app verification process", https://support.google.com/cloud/answer/13463073),
+no interstitial, and no 100-user cap (the cap applies only to "unapproved sensitive or
+restricted scopes", https://support.google.com/cloud/answer/15549945).
 
-1. Check first whether Franz already has access:
-   https://console.cloud.google.com/auth/branding?project=335346275770
-   If yes, skip to step 2. If not, ask Moritz Kobrna (ownedbymo@gmail.com) to add
-   `franz.enzenhofer@fullstackoptimization.com` as **Owner** on Cloud project
-   `335346275770`, then remove himself. Only he can do that - it is his account.
-2. Google Cloud Console → **Google Auth Platform → Branding** for that project:
-   - App name: `Franz Enzenhofer SEO Live Test`
-   - User support email + developer contact: Franz's address (removes `ownedbymo@gmail.com`
-     from the warning immediately)
-   - App logo: the 128px extension icon
-   - App home page: https://seo-live-test.franzai.com/ (HTTP 200, verified 2026-09-08)
-   - Privacy policy: https://seo-live-test.franzai.com/privacy (HTTP 200; note `privacy.html`
-     301s to `/privacy` - link the final URL)
-   - Authorized domain: `franzai.com`, verified in Search Console by the project owner
-3. **Audience → Publish app** (In production, not Testing).
-4. **Verification Center → Submit for verification** for the two sensitive scopes, with an
-   unlisted YouTube demo video that shows the OAuth grant, the app name and the client ID in
-   the address bar, plus real usage of both scopes.
-5. Warning and user cap disappear when Google approves (weeks, not days).
+## Own OAuth app prepared as a hedge (not shipped)
+The legacy client still sits in a stranger's project; if that project is ever deleted, Search
+Console breaks for everyone. A replacement is ready in Franz's own project
+`seo-extension-1763158338633`:
+- Client (type Chrome Extension, Item ID `jbnaibigcohjfefpfocphcjeliohhold`):
+  `570341170190-h3pqkcloq0qbmar2t8gqhg2g3m8odh4r.apps.googleusercontent.com`
+- Consent screen "Franz Enzenhofer SEO Live Test", support + developer contact
+  franz.enzenhofer@fullstackoptimization.com, home page https://seo-live-test.franzai.com/,
+  privacy https://seo-live-test.franzai.com/privacy, authorized domain `franzai.com`
+- Audience External, publishing status **In production**, scope list: `webmasters.readonly`
+  only, **no logo** (a logo would force verification -
+  https://support.google.com/cloud/answer/15549049)
 
-### Path B - fallback if Moritz cannot or will not hand the project over
-Requires one new store release.
-
-1. Create a **Chrome Extension** OAuth client for extension ID
-   `jbnaibigcohjfefpfocphcjeliohhold` in Franz's own project
-   `seo-extension-1763158338633`, branding as above, publish, submit for verification.
-2. Change `OAUTH_CLIENT_ID` in `v7/config.js` plus the two places that pin the old value
-   (`v7/scripts/verify-build-config.ts:12`, `v7/tests/oauth-config.test.ts`), rebuild, ship.
-3. Existing users must re-authorize once.
-4. Fresh project = fresh 100-user cap while verification is pending, and the identity is ours.
-
-Path B is also the right move if Path A ever stalls: as long as the OAuth identity lives in
-someone else's account, one account deletion kills Search Console for every user.
-
-## Interim, today, no release
-Tell affected users to click **Advanced → Go to Franz Enzenhofer SEO Live Test (unsafe)**.
-The extension only ever requests read-only Search Console and Analytics scopes; the token is
-kept in `chrome.storage.session` (`v7/src/shared/tokenStorage.ts`) and is never sent anywhere
-but Google.
+Swapping `OAUTH_CLIENT_ID` to it is a one-line change. Cost: every existing user grants
+consent once more. Do it when that is acceptable - it is not urgent, and it is the only way
+to stop depending on the contractor's account.
 
 ## Follow-ups
-- Once the OAuth app is ours, replace the "DO NOT CHANGE" doctrine in README/CLAUDE.md with
-  "this client belongs to project X owned by Y" (done in this commit).
-- Consider a pre-flight note in the Sign In UI while verification is pending.
+- Enable the Search Console API in `seo-extension-1763158338633` before any client swap.
+- Chrome Web Store release with the scope reduction (the store review is the only wait).
