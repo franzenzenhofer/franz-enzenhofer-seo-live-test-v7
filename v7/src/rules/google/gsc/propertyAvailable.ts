@@ -50,6 +50,7 @@ export const gscPropertyAvailableRule: Rule = {
       name: NAME,
       details: {
         url: page.url,
+        value: property,
         property,
         propertyType,
       },

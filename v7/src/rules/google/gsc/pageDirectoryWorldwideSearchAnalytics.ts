@@ -2,6 +2,8 @@ import { gscFetch } from '../googleFetch'
 import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
 import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../google-gsc-utils'
 
+import { searchAnalyticsValue, totalsOf, type SearchAnalyticsRow } from './gscValue'
+
 import type { Rule } from '@/core/types'
 
 const NAME = 'Directory worldwide analytics'
@@ -40,15 +42,15 @@ export const gscDirectoryWorldwideRule: Rule = {
           details: { url: page.url, property, propertyType, status: r.status },
         }
       }
-      const j = await r.json() as { rows?: Array<{ clicks?: number, impressions?: number }> }
-      const imp = (j.rows || []).reduce((a, x)=> a + (x.impressions || 0), 0)
+      const j = await r.json() as { rows?: SearchAnalyticsRow[] }
+      const { impressions: imp, clicks: cl } = totalsOf(j.rows)
       return {
         label: 'GSC',
         message: `Directory impressions ${imp}.`,
         type: 'info',
         priority: 750,
         name: NAME,
-        details: { url: page.url, property, propertyType, directory: dir, impressions: imp, apiResponse: j },
+        details: { url: page.url, value: searchAnalyticsValue(imp, cl), property, propertyType, directory: dir, impressions: imp, clicks: cl, apiResponse: j },
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)

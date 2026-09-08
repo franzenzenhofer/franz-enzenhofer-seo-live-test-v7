@@ -2,6 +2,8 @@ import { gscFetch } from '../googleFetch'
 import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
 import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../google-gsc-utils'
 
+import { impressionsValue, totalsOf, type SearchAnalyticsRow } from './gscValue'
+
 import type { Rule } from '@/core/types'
 
 const NAME = 'Historical search impressions'
@@ -40,10 +42,10 @@ export const gscIsIndexedRule: Rule = {
           details: { url: page.url, property, propertyType, status: r.status },
         }
       }
-      const j = await r.json() as { rows?: Array<{ clicks?: number, impressions?: number }> }
-      const imp = (j.rows || []).reduce((a, x)=> a + (x.impressions || 0), 0)
+      const j = await r.json() as { rows?: SearchAnalyticsRow[] }
+      const { impressions: imp } = totalsOf(j.rows)
       return { label: 'GSC', message: imp > 0 ? `Historical search impressions: ${imp}; this does not establish current indexing.` : 'No search impressions reported; indexing state cannot be inferred from this.',
-        type: 'info', priority: 800, name: NAME, details: { url: page.url, property, propertyType, impressions: imp, apiResponse: j } }
+        type: 'info', priority: 800, name: NAME, details: { url: page.url, value: impressionsValue(imp), property, propertyType, impressions: imp, apiResponse: j } }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       return {
