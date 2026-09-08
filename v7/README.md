@@ -75,6 +75,21 @@ DEV_EXTENSION_KEY = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsWxGAo8gbhOgcRR
 - OAuth client already has this extension ID registered in Google Cloud Console
 - OAuth works immediately - no additional setup needed!
 
+### ⚠️ Known defect: the OAuth app is unverified and not ours
+
+Cloud project `335346275770` was created in 2016 by the original contract developer
+(`ownedbymo@gmail.com`) under his personal Google account. It has never passed Google's
+[sensitive-scope verification](https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification),
+so every user who has not granted access before sees
+["Google hasn't verified this app"](https://support.google.com/cloud/answer/7454865) naming
+that stranger as the developer - and the project carries a lifetime
+[100-new-user cap](https://support.google.com/cloud/answer/13463817) that cannot be reset.
+
+Do not "fix" this by editing `config.js` on its own - changing the client ID without a
+verified replacement only breaks OAuth for existing users. The plan (ownership transfer or
+migration to our own project, plus verification) is in
+[`tickets/oauth-unverified-app-gsc.md`](./tickets/oauth-unverified-app-gsc.md).
+
 ### Testing OAuth
 
 1. Build extension: `npm run build:dev`
@@ -103,10 +118,16 @@ const token = await getStoredToken()  // Returns string | null
 ### Google Cloud Console Configuration
 
 - **OAuth Client:** `335346275770-6d6s9ja0h7brn24ghf3vqa9kv7ko5vfv`
-- **Project ID:** 335346275770
+- **Project number:** 335346275770
+- **Project owner:** `ownedbymo@gmail.com` (Moritz Kobrna, contractor 2016-2019) - **not us**
+- **Verification status:** unverified for both sensitive scopes
 - **Authorized JavaScript origins:** Should include `chrome-extension://jbnaibigcohjfefpfocphcjeliohhold`
 
-**⚠️ IMPORTANT:** DO NOT change `OAUTH_CLIENT_ID` or `DEV_EXTENSION_KEY` in `config.js` unless you want to break OAuth!
+**⚠️ IMPORTANT:** `OAUTH_CLIENT_ID` and `DEV_EXTENSION_KEY` in `config.js` are pinned by
+`scripts/verify-build-config.ts` and `tests/oauth-config.test.ts`. Changing either breaks
+OAuth for every existing user, so change them only as part of the documented migration in
+[`tickets/oauth-unverified-app-gsc.md`](./tickets/oauth-unverified-app-gsc.md) -
+never on their own.
 
 Scripts
 
