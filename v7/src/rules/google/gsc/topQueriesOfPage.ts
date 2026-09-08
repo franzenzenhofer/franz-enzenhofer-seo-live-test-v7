@@ -2,6 +2,8 @@ import { gscFetch } from '../googleFetch'
 import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
 import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../google-gsc-utils'
 
+import { topQueriesValue, type SearchAnalyticsRow } from './gscValue'
+
 import type { Rule } from '@/core/types'
 
 const NAME = 'Top queries of page'
@@ -40,15 +42,15 @@ export const gscTopQueriesOfPageRule: Rule = {
           details: { url: page.url, property, propertyType, status: r.status },
         }
       }
-      const j = await r.json() as { rows?: Array<{ keys?: string[], clicks?: number, impressions?: number }> }
-      const rows = (j.rows || []).slice(0, 5).map(r => `${(r.keys||[])[0]||''} (${r.impressions||0})`).join(', ')
+      const j = await r.json() as { rows?: SearchAnalyticsRow[] }
+      const rows = topQueriesValue(j.rows)
       return {
         label: 'GSC',
         message: `Top queries: ${rows || 'none'}`,
         type: 'info',
         priority: 750,
         name: NAME,
-        details: { url: page.url, property, propertyType, topQueries: j.rows, apiResponse: j },
+        details: { url: page.url, value: rows || 'no queries', property, propertyType, topQueries: j.rows, apiResponse: j },
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)

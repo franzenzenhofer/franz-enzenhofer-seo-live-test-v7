@@ -3,29 +3,12 @@ import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
 import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../google-gsc-utils'
 
 import { inspectionResponse, inspectionDetails } from './inspectionData'
+import { inspectionValue, relativeTime } from './gscValue'
 
 import type { Rule } from '@/core/types'
 
 const NAME = 'GSC URL Inspection'
 const LABEL = 'GSC'
-
-const relativeTime = (iso?: string | null) => {
-  if (!iso) return ''
-  const ts = new Date(iso).getTime()
-  if (Number.isNaN(ts)) return ''
-  const elapsed = Date.now() - ts
-  const mins = Math.floor(elapsed / 60000)
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${mins} minute${mins === 1 ? '' : 's'} ago`
-  const hours = Math.floor(mins / 60)
-  if (hours < 48) return `${hours} hour${hours === 1 ? '' : 's'} ago`
-  const days = Math.floor(hours / 24)
-  if (days < 60) return `${days} day${days === 1 ? '' : 's'} ago`
-  const months = Math.floor(days / 30)
-  if (months < 24) return `${months} month${months === 1 ? '' : 's'} ago`
-  const years = Math.floor(months / 12)
-  return `${years} year${years === 1 ? '' : 's'} ago`
-}
 
 export const gscUrlInspectionRule: Rule = {
   id: 'gsc:url-inspection',
@@ -111,6 +94,7 @@ export const gscUrlInspectionRule: Rule = {
       name: NAME,
       priority: isPass ? 700 : 120,
       details: {
+        value: inspectionValue(coverage, verdict, lastCrawl),
         property: derived.property,
         propertyType: derived.type,
         verdict,

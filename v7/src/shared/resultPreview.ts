@@ -6,6 +6,8 @@ export { attributeOf, normalizeText, textOf } from './textMatch'
 const META_KEYS = new Set([
   'reference', 'provenance', 'domPath', 'domPaths', 'domPathColors', 'tested', 'snippet',
   'sourceHtml', 'apiResponse', 'strategy', 'url', 'checked', 'failures',
+  // Where the data came from (Search Console), never the finding itself.
+  'property', 'propertyType', 'siteUrl',
 ])
 
 // Preferred order when a rule offers several values.

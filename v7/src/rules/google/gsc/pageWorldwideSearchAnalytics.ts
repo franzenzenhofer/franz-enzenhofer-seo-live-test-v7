@@ -2,6 +2,8 @@ import { gscFetch } from '../googleFetch'
 import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
 import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../google-gsc-utils'
 
+import { searchAnalyticsValue } from './gscValue'
+
 import type { Rule } from '@/core/types'
 
 const NAME = 'Page worldwide analytics'
@@ -49,7 +51,7 @@ export const gscPageWorldwideRule: Rule = {
         type: 'info',
         priority: 750,
         name: NAME,
-        details: { url: page.url, property, propertyType, impressions: imp, clicks: cl, apiResponse: j },
+        details: { url: page.url, value: searchAnalyticsValue(imp, cl), property, propertyType, impressions: imp, clicks: cl, apiResponse: j },
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
