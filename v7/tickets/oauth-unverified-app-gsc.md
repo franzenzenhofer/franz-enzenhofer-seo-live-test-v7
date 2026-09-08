@@ -88,6 +88,21 @@ complete the app verification process", https://support.google.com/cloud/answer/
 no interstitial, and no 100-user cap (the cap applies only to "unapproved sensitive or
 restricted scopes", https://support.google.com/cloud/answer/15549945).
 
+## Proof (live A/B, 2026-09-08)
+
+Run against a throwaway Web OAuth client in our own unverified, in-production project, from an
+account OUTSIDE the Workspace org (`f.enzenhofer@gmail.com` - org members and project owners are
+exempt from the interstitial, which is why the first attempts with
+`franz.enzenhofer@` and `team@` both looked clean and proved nothing):
+
+| Requested scopes | Where Google lands |
+| --- | --- |
+| `webmasters.readonly` | `accounts.google.com/signin/oauth/v3/consent` - clean consent, "View Search Console data for your verified sites", Cancel / Allow |
+| `webmasters.readonly` + `analytics.readonly` | `accounts.google.com/signin/oauth/warning` - the "Google hasn't verified this app" interstitial |
+
+Same client, same project, same account, back to back. The single variable is the analytics scope.
+The throwaway probe client was deleted afterwards.
+
 ## Own OAuth app prepared as a hedge (not shipped)
 The legacy client still sits in a stranger's project; if that project is ever deleted, Search
 Console breaks for everyone. A replacement is ready in Franz's own project
