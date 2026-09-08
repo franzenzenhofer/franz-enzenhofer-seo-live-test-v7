@@ -33,8 +33,10 @@ and the named developer is a stranger to the user - it looks like a phishing att
    `ownedbymo@gmail.com` = Moritz Kobrna, the contract developer who built the original
    extension 2016-2019 (Gmail: "Update Chrome Extension" 2017-03-20, "Rechnung Chrome
    Extension" 2019-04-17, "obtrusice live test - update und erweiterung" 2018-11-06).
-   He created the Cloud project under his personal Gmail account; nobody at f19n can edit
-   that consent screen.
+   He created the Cloud project under his personal Gmail account. Whether Franz still has an
+   IAM role on that project is UNVERIFIED - Google Cloud Console and gcloud both demand a
+   Workspace reauthentication (password) that could not be completed in this session. That is
+   the first thing to check: https://console.cloud.google.com/auth/branding?project=335346275770
 
 4. **Why is v7 - a 2026 rewrite - still using a 2016 third-party OAuth client?**
    It was copied on purpose. `v7/config.js:10` says "Using the EXACT SAME client ID as old
@@ -77,9 +79,11 @@ the cap.
 The client ID stays `335346275770-6d6s9ja0h7brn24ghf3vqa9kv7ko5vfv`, so nothing in the
 manifest or the store listing changes.
 
-1. Ask Moritz Kobrna (ownedbymo@gmail.com) to add `franz.enzenhofer@fullstackoptimization.com`
-   as **Owner** on Cloud project `335346275770`, then remove himself. Only he can do this -
-   it is his account.
+1. Check first whether Franz already has access:
+   https://console.cloud.google.com/auth/branding?project=335346275770
+   If yes, skip to step 2. If not, ask Moritz Kobrna (ownedbymo@gmail.com) to add
+   `franz.enzenhofer@fullstackoptimization.com` as **Owner** on Cloud project
+   `335346275770`, then remove himself. Only he can do that - it is his account.
 2. Google Cloud Console → **Google Auth Platform → Branding** for that project:
    - App name: `Franz Enzenhofer SEO Live Test`
    - User support email + developer contact: Franz's address (removes `ownedbymo@gmail.com`
