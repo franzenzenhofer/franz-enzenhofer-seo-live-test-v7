@@ -9,10 +9,15 @@ For the 2026-05-20 hardening pass and remaining follow-ups, see [AUDIT-REPORT.md
 ## OAuth Configuration
 **See [README.md - OAuth Configuration](README.md#oauth-configuration-google-search-console--analytics) for complete setup.**
 
-**Critical values (DO NOT CHANGE):**
+**Critical values (change only via the migration ticket, never on their own):**
 - OAuth Client ID: `335346275770-6d6s9ja0h7brn24ghf3vqa9kv7ko5vfv`
 - Extension ID: `jbnaibigcohjfefpfocphcjeliohhold` (generated from DEV_EXTENSION_KEY)
 - All values in `config.js` match the published Chrome Web Store extension
+
+**Open defect:** Cloud project `335346275770` belongs to a former contractor
+(`ownedbymo@gmail.com`) and is unverified for its two sensitive scopes, so new users get
+Google's "Google hasn't verified this app" screen and the project has an unresettable
+lifetime 100-user cap. Plan: [`v7/tickets/oauth-unverified-app-gsc.md`](./tickets/oauth-unverified-app-gsc.md).
 
 ## Architecture
 - **Side Panel UI**: React 18 + Tailwind CSS + Vite
