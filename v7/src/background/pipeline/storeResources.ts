@@ -11,7 +11,10 @@ export const flushResources = async (tabId: number) => {
   const { [key]: raw } = await chrome.storage.session.get(key)
   const batch = raw as ResourceObservation[] | undefined
   if (!batch?.length) return
-  const run = (await getRun(tabId)) || { id: Date.now(), ev: [] }
+  const run = await getRun(tabId)
+  // A batch without a run is leftover traffic from a finished capture; there
+  // is no record to merge it into and creating one would leak for the session.
+  if (!run) return chrome.storage.session.remove(key)
   run.resources = mergeResourceObservations(run.resources || emptyResourceLedger(), batch)
   await setRun(tabId, run)
   await chrome.storage.session.remove(key)
