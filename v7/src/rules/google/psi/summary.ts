@@ -1,4 +1,4 @@
-import type { PSIResult } from '@/shared/psi'
+import { PSI_AUDIT, type PSIAuditId, type PSIResult } from '@/shared/psiSlim'
 
 type Strategy = 'mobile' | 'desktop'
 
@@ -10,7 +10,7 @@ const compact = <T extends Record<string, unknown>>(obj: T): T =>
 export const summarizePSI = (result: PSIResult, url: string, strategy: Strategy) => {
   const lighthouse = result.lighthouseResult || {}
   const audits = lighthouse.audits || {}
-  const pick = (id: string) => roundMs(audits[id]?.numericValue)
+  const pick = (id: PSIAuditId) => roundMs(audits[id]?.numericValue)
   const scoreRaw = lighthouse.categories?.performance?.score
 
   const finalUrl = lighthouse.finalDisplayedUrl || lighthouse.finalUrl || url
@@ -20,11 +20,11 @@ export const summarizePSI = (result: PSIResult, url: string, strategy: Strategy)
     url,
     strategy,
     score: typeof scoreRaw === 'number' && Number.isFinite(scoreRaw) ? Math.round(scoreRaw * 100) : undefined,
-    fcpMs: pick('first-contentful-paint'),
-    lcpMs: pick('largest-contentful-paint'),
-    tbtMs: pick('total-blocking-time'),
-    speedIndexMs: pick('speed-index'),
-    cls: roundCls(audits['cumulative-layout-shift']?.numericValue),
+    fcpMs: pick(PSI_AUDIT.fcp),
+    lcpMs: pick(PSI_AUDIT.lcp),
+    tbtMs: pick(PSI_AUDIT.tbt),
+    speedIndexMs: pick(PSI_AUDIT.speedIndex),
+    cls: roundCls(audits[PSI_AUDIT.cls]?.numericValue),
     fetchTime: lighthouse.fetchTime,
     finalDisplayedUrl: finalUrl,
     testUrl,
