@@ -1,23 +1,17 @@
+import { slimPSI, type PSIResult } from './psiSlim.js'
 import { PSIResponse } from './schemas.js'
 
-export type PSIResult = {
-  lighthouseResult?: {
-    audits?: Record<string, { numericValue?: number }>
-    categories?: { performance?: { score?: number | null } }
-    fetchTime?: string
-    finalDisplayedUrl?: string
-    finalUrl?: string
-    runWarnings?: string[]
-    userAgent?: string
-    runtimeError?: { code?: string; message?: string }
-  }
-}
+export type { PSIResult } from './psiSlim.js'
 
 // Default PSI API key - users can override in settings
 // This is a free public API key for PageSpeed Insights
 export const DEFAULT_PSI_KEY = 'AIzaSyA725ufYWi-tYPleOUdN3Qn6-c19w04DmE' as const
 
-const keyOf = (u: string, s: string, k: string) => `psi:${k}:${s}:${u}`
+const KEY_PREFIX = 'psi:'
+const TTL_MS = 5 * 60_000
+type CacheEntry = { ts: number; data: PSIResult }
+
+const keyOf = (u: string, s: string, k: string) => `${KEY_PREFIX}${k}:${s}:${u}`
 const now = () => Date.now()
 
 // Rules sharing a strategy (psi:mobile and psi:mobile-fcp-tbt) start together and would
@@ -25,7 +19,7 @@ const now = () => Date.now()
 // collapses concurrent callers onto one request.
 const inFlight = new Map<string, Promise<PSIResult>>()
 
-const read = async (k: string): Promise<{ ts: number; data: PSIResult } | null> => {
+const read = async (k: string): Promise<CacheEntry | null> => {
   try {
     const { [k]: val } = await chrome.storage.session.get(k)
     return val || null
@@ -34,8 +28,22 @@ const read = async (k: string): Promise<{ ts: number; data: PSIResult } | null> 
   }
 }
 
-const write = async (k: string, v: { ts: number; data: PSIResult }) => {
+const isExpired = (v: unknown, t: number): boolean =>
+  typeof v === 'object' && v !== null && typeof (v as CacheEntry).ts === 'number' && t - (v as CacheEntry).ts >= TTL_MS
+
+// chrome.storage.session holds 10 MB and nothing else ever removes psi: keys, so every write
+// first drops the entries the TTL in runPSI would refuse to serve anyway.
+const evictExpired = async (t: number) => {
+  const all = await chrome.storage.session.get(null)
+  const stale = Object.entries(all)
+    .filter(([key, v]) => key.startsWith(KEY_PREFIX) && isExpired(v, t))
+    .map(([key]) => key)
+  if (stale.length) await chrome.storage.session.remove(stale)
+}
+
+const write = async (k: string, v: CacheEntry) => {
   try {
+    await evictExpired(v.ts)
     await chrome.storage.session.set({ [k]: v })
   } catch { /* ignore quota errors */ }
   return true
@@ -47,7 +55,7 @@ const fetchPSI = async (url: string, strategy: 'mobile'|'desktop', key: string, 
   if (!r.ok) throw new Error(`PSI ${r.status}`)
   const parsed = PSIResponse.safeParse(await r.json())
   if (!parsed.success) throw new Error(`PSI response malformed: ${parsed.error.issues[0]?.message || 'schema mismatch'}`)
-  const j = parsed.data as PSIResult
+  const j = slimPSI(parsed.data)
   await write(k, { ts: now(), data: j })
   return j
 }
@@ -55,7 +63,7 @@ const fetchPSI = async (url: string, strategy: 'mobile'|'desktop', key: string, 
 export const runPSI = async (url: string, strategy: 'mobile'|'desktop', key: string): Promise<PSIResult> => {
   const k = keyOf(url, strategy, key)
   const cur = await read(k)
-  if (cur && now() - cur.ts < 5 * 60_000) return cur.data
+  if (cur && now() - cur.ts < TTL_MS) return cur.data
   const pending = inFlight.get(k)
   if (pending) return pending
   const task = fetchPSI(url, strategy, key, k).finally(() => { inFlight.delete(k) })
