@@ -1,9 +1,16 @@
 # Chrome Web Store Submission Guide
 
-**Currently published:** 7.0.87 - approved and live, 569 users
-**In review:** store-listing update submitted September 7, 2026 - new screenshots and
-promo tiles only (see `v7/marketing/store-2026-09/README.md`). Package unchanged at
-7.0.87; "Publish automatically after it has passed review" was left checked.
+**Currently published:** 7.0.111 - approved and live, 609 users
+**In review:** 7.0.117 submitted September 9, 2026 - fixes the session-storage quota
+exhaustion that broke Run test (orphan run records grown from post-run subresource
+traffic). "Publish automatically after it has passed review" was left checked.
+
+Upload flow that works, fully scriptable: the `google-team-login` skill (agent-browser
++ `~/.agent-browser-google-team-profile/auth-state.json`). If the saved state has gone
+stale the account chooser appears; clicking the team account and entering the password
+was enough - no 2FA prompt. Then Package tab -> "Upload new package" ->
+`agent-browser upload "input[type=file]" v7/zip-build/latest-build.zip` -> item edit
+page -> "Submit for review" -> "Submit For Review".
 
 To replace a submission that is still pending review: the item page's overflow
 menu (the three dots beside "Submit for review") has **Cancel review**, which
@@ -11,7 +18,7 @@ returns the item to draft and re-enables both "Upload new package" and "Submit
 for review". It is not on the Status page or the Package tab, which is why it
 looks at first as though a pending submission cannot be withdrawn.
 
-**Last updated:** September 7, 2026
+**Last updated:** September 9, 2026
 
 ## Files to Upload
 
