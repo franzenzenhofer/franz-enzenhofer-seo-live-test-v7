@@ -1,9 +1,10 @@
 # Chrome Web Store Submission Guide
 
-**Currently published:** 7.0.111 - approved and live, 609 users
-**In review:** 7.0.117 submitted September 9, 2026 - fixes the session-storage quota
-exhaustion that broke Run test (orphan run records grown from post-run subresource
-traffic). "Publish automatically after it has passed review" was left checked.
+**Currently published:** 7.0.117 - approved and live September 9, 2026, 609 users.
+It fixes the session-storage quota exhaustion that broke Run test (orphan run records
+grown from post-run subresource traffic). Submitted 18:23 CEST, published ~19:00 CEST -
+a package-only update with no permission changes cleared review in well under an hour.
+**In review:** nothing.
 
 Upload flow that works, fully scriptable: the `google-team-login` skill (agent-browser
 + `~/.agent-browser-google-team-profile/auth-state.json`). If the saved state has gone
