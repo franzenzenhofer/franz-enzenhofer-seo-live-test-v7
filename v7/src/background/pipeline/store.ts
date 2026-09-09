@@ -8,10 +8,14 @@ export { RESOURCE_LIMITS }
 
 const addEventUnsafe = async (tabId: number, ev: EventRec) => {
   if (isResourceEvent(ev)) {
-    // Subresources answer to the same document identity as phase events: a
-    // request belonging to a superseded document is not this run's evidence.
+    // Subresources are evidence for a run in progress: with no run record
+    // there is nothing to attribute them to, so post-run traffic on an open
+    // tab is dropped instead of resurrecting a record nothing ever cleans up.
     const current = await getRun(tabId)
-    if (ev.documentId && current?.documentId && ev.documentId !== current.documentId) return false
+    if (!current) return false
+    // They answer to the same document identity as phase events: a request
+    // belonging to a superseded document is not this run's evidence.
+    if (ev.documentId && current.documentId && ev.documentId !== current.documentId) return false
     await addResource(tabId, ev)
     return true
   }
