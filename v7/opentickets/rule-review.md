@@ -9,7 +9,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:alt-svc-other` | info | Pending | |
 | `google:amp-cache-url` | info | Pending | |
 | `head:amphtml` | info | Pending | |
-| `discover:article-structured-data` | warn | Pending | |
+| `discover:article-structured-data` | warn | Fixed: optional markup, BlogPosting coverage, exact matching script, incomplete parse explanation; absence/presence/malformed copy tests | This rule commit |
 | `discover:author` | warn | Pending | |
 | `speed:blocking-scripts` | warn | Pending | |
 | `head:brand-in-title` | warn | Pending | |
@@ -56,7 +56,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:link-header` | info | Pending | |
 | `a11y:linked-images-alt` | ok | Pending | |
 | `body:parameterized-links` | info | Pending | |
-| `discover:max-image-preview-large` | warn | Fixed: permission vs eligibility, named conflicting sources, noimageindex, missing/limited/allowed states and complete UI/copy evidence tested | This rule commit |
+| `discover:max-image-preview-large` | warn | Fixed: permission vs eligibility, named conflicting sources, noimageindex, missing/limited/allowed states and complete UI/copy evidence tested | `6a5d529` |
 | `head:meta-charset` | ok | Pending | |
 | `head-meta-description` | ok | Pending | |
 | `head:meta-googlebot` | info | Pending | |
