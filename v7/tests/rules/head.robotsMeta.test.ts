@@ -15,7 +15,7 @@ describe('rule: robots meta', () => {
   it('reports a single harmless tag as info', async () => {
     const res = await run('<meta name="robots" content="index,follow">')
     expect(res.type).toBe('info')
-    expect(res.message).toContain('index,follow')
+    expect(JSON.stringify(res.details?.['declaredInstructions'])).toContain('index,follow')
   })
 
   it('warns on noindex in a single tag', async () => {
@@ -38,4 +38,10 @@ describe('rule: robots meta', () => {
     expect((res.details as any).hasNofollow).toBe(true)
     expect((res.details as any).count).toBe(2)
   })
+})
+
+it('reads generic restrictions declared outside the head', async () => {
+  const result = await run('<body><meta name="ROBOTS" content="noindex"></body>')
+  expect(result.type).toBe('warn')
+  expect(result.details?.['count']).toBe(1)
 })

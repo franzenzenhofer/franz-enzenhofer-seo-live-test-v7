@@ -885,7 +885,7 @@
   },
   {
     "id": "head-robots-meta",
-    "name": "Robots Meta",
+    "name": "Robots meta instructions",
     "enabledByDefault": true,
     "what": "static",
     "provenance": "google",

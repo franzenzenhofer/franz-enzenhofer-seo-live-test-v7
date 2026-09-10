@@ -59,7 +59,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `discover:max-image-preview-large` | warn | Fixed: permission vs eligibility, named conflicting sources, noimageindex, missing/limited/allowed states and complete UI/copy evidence tested | `6a5d529` |
 | `head:meta-charset` | ok | Pending | |
 | `head-meta-description` | ok | Reviewed: description text and duplicate-tag evidence are retained; added search snippet meaning and CMS/template fix; existing absent/empty/duplicate/single fixtures retained | `5009a98` |
-| `head:meta-googlebot` | info | Reviewed missing, multiple, body and case-insensitive tags; exact named sources and noindex/nofollow meaning; focused fixtures. | This rule commit |
+| `head:meta-googlebot` | info | Reviewed missing, multiple, body and case-insensitive tags; exact named sources and noindex/nofollow meaning; focused fixtures. | `ca6d1df` |
 | `head:meta-keywords` | info | Pending | |
 | `head:meta-other-robots` | info | Reviewed and fixed: named crawler instructions replace parser dump; clarified that other-crawler restrictions do not automatically apply to Googlebot; existing non-robots filter fixtures retained | `842add8` |
 | `head:robots-noindex` | info | Pending | |
@@ -91,7 +91,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:robots-max-image-preview` | info | Pending | |
 | `head:robots-max-snippet` | info | Fixed: readable per-crawler limits with source, units, zero/unlimited/invalid meanings; removed duplicate token dumps; copied multi-source fixture | `7aa2748` |
 | `head:robots-max-video-preview` | info | Fixed: seconds, zero versus unlimited meaning, per-crawler source and value; removed duplicate token dumps; copied multiple-setting fixture | `919bf5f` |
-| `head-robots-meta` | info | Pending | |
+| `head-robots-meta` | info | Reviewed missing, multiple, body and case-insensitive tags; exact named sources and noindex/nofollow meaning; focused fixtures. | This rule commit |
 | `head:robots-meta-list` | info | Reviewed and fixed: crawler/source/instruction records replace raw parser fields; summary names crawlers; actual indexing and header limits explained; existing mixed-meta and crawler fixtures retained | `37425da` |
 | `head:robots-noimageindex` | info | Fixed: named sources, page indexing distinction and other image-source limits, intentional restriction guidance; copied restriction fixture | `87025e6` |
 | `head:robots-nosnippet` | info | Fixed: named tag/header restrictions, max-snippet zero, static-image and indexing distinctions, intentional restriction guidance; copied cross-crawler fixture | `bc6368a` |
