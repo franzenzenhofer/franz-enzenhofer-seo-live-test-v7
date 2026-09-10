@@ -5,6 +5,10 @@ It fixes the session-storage quota exhaustion that broke Run test (orphan run re
 grown from post-run subresource traffic). Submitted 18:23 CEST, published ~19:00 CEST -
 a package-only update with no permission changes cleared review in well under an hour.
 **In review:** nothing.
+**Draft uploaded, not yet submitted:** 7.0.122 (September 10, 2026) - the CMS back-office /
+action-URL probe safety fix (a WordPress agency's report: the link checker trashed posts and
+logged editors out). Package tab shows Draft 7.0.122 / Published 7.0.117; same 11 permissions
+and `<all_urls>` as 7.0.117. Remaining step: item page -> "Submit for review" -> "Submit For Review".
 
 Upload flow that works, fully scriptable: the `google-team-login` skill (agent-browser
 + `~/.agent-browser-google-team-profile/auth-state.json`). If the saved state has gone
@@ -19,7 +23,7 @@ returns the item to draft and re-enables both "Upload new package" and "Submit
 for review". It is not on the Status page or the Package tab, which is why it
 looks at first as though a pending submission cannot be withdrawn.
 
-**Last updated:** September 9, 2026
+**Last updated:** September 10, 2026
 
 ## Files to Upload
 
