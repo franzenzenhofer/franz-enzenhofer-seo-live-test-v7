@@ -13,6 +13,10 @@ export const firstPaintRule: Rule = {
   enabled: true,
   what: 'static',
   meta: {
+    userGuide: {
+      check: "First Contentful Paint (FCP) is when the browser first draws text, an image or other content. Values here are milliseconds from this page load; 1000 ms equals 1 second. One local run is not a field measurement across visitors or a complete performance assessment.",
+      action: "Use the browser performance and network timelines to investigate slow server responses, render-blocking resources and delayed content. Make targeted changes, then compare repeated loads under consistent conditions.",
+    },
     provenance: 'general',
     references: ['https://www.w3.org/TR/paint-timing/', 'https://web.dev/articles/fcp'],
     description: 'Grades first contentful paint per web.dev thresholds: ok <=1800ms, warn 1800-3000ms, error >3000ms; info when only first paint or no timing is available.',
@@ -28,7 +32,7 @@ export const firstPaintRule: Rule = {
         message: 'Paint timing not available.',
         type: 'info',
         priority: 900,
-        details: { tested: 'Performance paint timing entries' },
+        details: { tested: 'Performance paint timing entries', nextStep: 'Reload the page and rerun the audit to capture a fresh paint timing.' },
       }
     }
 
@@ -52,7 +56,7 @@ export const firstPaintRule: Rule = {
         message: 'First contentful paint timing could not be calculated.',
         type: 'runtime_error',
         priority: 10,
-        details: { firstPaint: roundedFp, firstContentfulPaint, tested: 'Performance paint timing entries' },
+        details: { firstPaint: roundedFp, firstContentfulPaint, tested: 'Performance paint timing entries', nextStep: 'Reload and rerun; the captured timing was not a usable measurement.' },
       }
     }
 

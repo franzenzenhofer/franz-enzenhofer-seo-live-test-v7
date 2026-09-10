@@ -28,7 +28,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `gsc:directory-worldwide` | runtime_error | Pending | |
 | `dom:node-count` | info | Pending | |
 | `dom:node-depth` | info | Pending | |
-| `speed:first-paint` | ok | Pending | |
+| `speed:first-paint` | ok | Reviewed: FCP thresholds and first-paint-only/missing states retained; added metric meaning, units, single-run limits and investigation steps; existing boundary states retained | This rule commit |
 | `google:is-connected` | info | Pending | |
 | `robots:googlebot-url-check` | ok | Pending | |
 | `gsc:url-inspection` | runtime_error | Pending | |
@@ -86,7 +86,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:rel-alternate-media` | info | Pending | |
 | `speed:dns-prefetch` | info | Reviewed: target URLs and actual link markup retained; explained DNS lookup and optional hint applicability; existing target-count fixture retained | `d042c53` |
 | `speed:preconnect` | info | Reviewed: full target list and source retained; explained prepared connections and absence without a false failure; existing target-count fixture retained | `87bd793` |
-| `speed:link-preload` | info | Reviewed: target URLs and as/source markup retained; added purpose and explicit validation limits; existing preload fixture retained | This rule commit |
+| `speed:link-preload` | info | Reviewed: target URLs and as/source markup retained; added purpose and explicit validation limits; existing preload fixture retained | `dc797e1` |
 | `head:robots-agent-conflicts` | info | Pending | |
 | `head:robots-max-image-preview` | info | Pending | |
 | `head:robots-max-snippet` | info | Fixed: readable per-crawler limits with source, units, zero/unlimited/invalid meanings; removed duplicate token dumps; copied multi-source fixture | `7aa2748` |
