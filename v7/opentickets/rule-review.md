@@ -35,7 +35,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:gzip` | ok | Reviewed: exact encoding, source and complete headers remain available; added purpose, measurement limits and server/CDN remedy; removed irrelevant browser-version detail; existing encoding/probe fixtures retained | `ee0ae40` |
 | `body:h1` | ok | Reviewed and fixed: multiple headings now include their text with locations; purpose and missing/empty remediation; existing single/multiple/empty/missing fixtures retained | `966acd5` |
 | `discover:headline-length` | info | Reviewed and fixed: missing versus empty heading wording; full headline and location preserved; added explicit heuristic limits and no-padding guidance; existing short/long fixtures retained | `06e9bc9` |
-| `gsc:is-indexed` | runtime_error | Reviewed API scope and missing/access/error/success branches; explicit Pacific dates and metric meaning; fixture checks with no live account claims. | This rule commit |
+| `gsc:is-indexed` | runtime_error | Reviewed API scope and missing/access/error/success branches; explicit Pacific dates and metric meaning; fixture checks with no live account claims. | `75227ff` |
 | `url:history-state-update` | info | Reviewed: captured history and commit booleans in baseline and source; added history meaning and direct-load guidance; no detection logic changed | `20289b4` |
 | `head-hreflang` | info | Pending | |
 | `head:hreflang-multipage` | info | Pending | |
@@ -77,7 +77,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `og:url` | warn | Pending | |
 | `debug:page-object` | Not in live run (review fixture/source) | Pending | |
 | `debug:page-summary` | Not in live run (review fixture/source) | Pending | |
-| `gsc:page-worldwide` | runtime_error | Pending | |
+| `gsc:page-worldwide` | runtime_error | Reviewed API scope and missing/access/error/success branches; explicit Pacific dates and metric meaning; fixture checks with no live account claims. | This rule commit |
 | `dom:parameterized-links-diff` | ok | Pending | |
 | `discover:primary-language` | info | Reviewed: language value and exact opening tag are visible and copied; added accessibility purpose, validation limits and template fix; existing present/missing fixtures retained | `6274e29` |
 | `discover:published-time` | warn | Fixed: optional dates, all declared values with exact sources, no fabricated modification dates; absent/published/multiple-source/copy/display tests | `afd09e5` |

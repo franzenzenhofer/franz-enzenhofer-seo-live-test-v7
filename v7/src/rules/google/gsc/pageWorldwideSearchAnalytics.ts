@@ -3,6 +3,7 @@ import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
 import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../google-gsc-utils'
 
 import { searchAnalyticsValue } from './gscValue'
+import { searchAnalyticsPeriod, searchAnalyticsScope, gscRequestIssue } from './searchAnalyticsContext'
 
 import type { Rule } from '@/core/types'
 
@@ -14,6 +15,10 @@ export const gscPageWorldwideRule: Rule = {
   enabled: true,
   what: 'gsc',
   meta: {
+    userGuide: {
+      check: "Reports clicks and impressions for the exact page URL over the displayed 90-day period, across all countries and devices. These are Google web search figures, not all website visits.",
+      action: "Compare the same page and dates in Search Console. If figures are missing, check the canonical URL and available reporting dates before changing the website.",
+    },
     provenance: 'franz',
     references: [
       'https://developers.google.com/webmaster-tools/v1/searchanalytics/query',
@@ -22,25 +27,17 @@ export const gscPageWorldwideRule: Rule = {
   },
   async run(page, ctx) {
     const { token } = extractGoogleCredentials(ctx)
-    if (!token) return createNoTokenResult()
+    if (!token) return createNoTokenResult('GSC', NAME)
 
     const derived = await deriveGscProperty(page.url, token)
-    if (!derived) return createGscPropertyDerivationFailedResult(page.url)
+    if (!derived) return createGscPropertyDerivationFailedResult(page.url, NAME)
 
     const { property, type: propertyType } = derived
-    const body = { startDate: '2020-01-01', endDate: '2099-12-31', dimensions: ['page'], dimensionFilterGroups: [{ groupType: 'and', filters: [{ dimension: 'page', operator: 'equals', expression: page.url }] }] }
+    const period = searchAnalyticsPeriod()
+    const body = { ...period, type: 'web', dataState: 'final', dimensions: ['page'], dimensionFilterGroups: [{ groupType: 'and', filters: [{ dimension: 'page', operator: 'equals', expression: page.url }] }] }
     try {
       const r = await gscFetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(property)}/searchAnalytics/query`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify(body) })
-      if (!r.ok) {
-        return {
-          label: 'GSC',
-          message: `GSC query error ${r.status}`,
-          type: 'warn',
-          priority: 200,
-          name: NAME,
-          details: { url: page.url, property, propertyType, status: r.status },
-        }
-      }
+      if (!r.ok) return gscRequestIssue(r.status, NAME, page.url, property)
       const j = await r.json() as { rows?: Array<{ clicks?: number, impressions?: number, keys?: string[] }> }
       const row = (j.rows || []).find(r => (r.keys||[])[0] === page.url)
       const imp = row?.impressions || 0
@@ -51,7 +48,7 @@ export const gscPageWorldwideRule: Rule = {
         type: 'info',
         priority: 750,
         name: NAME,
-        details: { url: page.url, value: searchAnalyticsValue(imp, cl), property, propertyType, impressions: imp, clicks: cl, apiResponse: j },
+        details: { url: page.url, value: searchAnalyticsValue(imp, cl), property, propertyType, impressions: imp, clicks: cl, ...searchAnalyticsScope(period), apiResponse: j },
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
