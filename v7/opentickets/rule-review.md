@@ -34,7 +34,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `gsc:url-inspection` | runtime_error | Pending | |
 | `http:gzip` | ok | Reviewed: exact encoding, source and complete headers remain available; added purpose, measurement limits and server/CDN remedy; removed irrelevant browser-version detail; existing encoding/probe fixtures retained | `ee0ae40` |
 | `body:h1` | ok | Reviewed and fixed: multiple headings now include their text with locations; purpose and missing/empty remediation; existing single/multiple/empty/missing fixtures retained | `966acd5` |
-| `discover:headline-length` | info | Pending | |
+| `discover:headline-length` | info | Reviewed and fixed: missing versus empty heading wording; full headline and location preserved; added explicit heuristic limits and no-padding guidance; existing short/long fixtures retained | This rule commit |
 | `gsc:is-indexed` | runtime_error | Pending | |
 | `url:history-state-update` | info | Reviewed: captured history and commit booleans in baseline and source; added history meaning and direct-load guidance; no detection logic changed | `20289b4` |
 | `head-hreflang` | info | Pending | |
@@ -61,7 +61,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head-meta-description` | ok | Reviewed: description text and duplicate-tag evidence are retained; added search snippet meaning and CMS/template fix; existing absent/empty/duplicate/single fixtures retained | `5009a98` |
 | `head:meta-googlebot` | info | Pending | |
 | `head:meta-keywords` | info | Pending | |
-| `head:meta-other-robots` | info | Reviewed and fixed: named crawler instructions replace parser dump; clarified that other-crawler restrictions do not automatically apply to Googlebot; existing non-robots filter fixtures retained | This rule commit |
+| `head:meta-other-robots` | info | Reviewed and fixed: named crawler instructions replace parser dump; clarified that other-crawler restrictions do not automatically apply to Googlebot; existing non-robots filter fixtures retained | `842add8` |
 | `head:robots-noindex` | info | Pending | |
 | `head:unavailable-after` | info | Pending | |
 | `head:meta-viewport` | ok | Pending | |
