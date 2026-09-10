@@ -12,7 +12,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `discover:article-structured-data` | warn | Fixed: optional markup, BlogPosting coverage, exact matching script, incomplete parse explanation; absence/presence/malformed copy tests | `4563095` |
 | `discover:author` | warn | Fixed: all named authors and exact sources, optional metadata, unresolved identity limits; multi-author/absent/malformed copy tests | `cf79561` |
 | `speed:blocking-scripts` | warn | Pending | |
-| `head:brand-in-title` | warn | Reviewed and fixed: estimated-versus-configured brand is explicit in missing-match summary; full title and brand retained; added verify-the-guess guidance; existing configured/inferred fixtures retained | This rule commit |
+| `head:brand-in-title` | warn | Reviewed and fixed: estimated-versus-configured brand is explicit in missing-match summary; full title and brand retained; added verify-the-guess guidance; existing configured/inferred fixtures retained | `9280d70` |
 | `http:cache-delivery` | info | Pending | |
 | `head:canonical-noindex-conflict` | info | Pending | |
 | `head:canonical-hreflang-consistency` | info | Pending | |
@@ -82,7 +82,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `discover:primary-language` | info | Reviewed: language value and exact opening tag are visible and copied; added accessibility purpose, validation limits and template fix; existing present/missing fixtures retained | `6274e29` |
 | `discover:published-time` | warn | Fixed: optional dates, all declared values with exact sources, no fabricated modification dates; absent/published/multiple-source/copy/display tests | `afd09e5` |
 | `http:redirect-loop` | ok | Pending | |
-| `http:redirect-canonical-chain` | info | Pending | |
+| `http:redirect-canonical-chain` | info | Fixed: one named timeline, separate preferred URL meaning, no fake history response or duplicate trace dump, header-only fallback; rendered and copied journey fixture | This rule commit |
 | `head:rel-alternate-media` | info | Pending | |
 | `speed:dns-prefetch` | info | Pending | |
 | `speed:preconnect` | info | Pending | |

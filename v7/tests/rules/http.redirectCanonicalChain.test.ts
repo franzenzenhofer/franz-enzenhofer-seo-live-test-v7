@@ -5,7 +5,7 @@ import { redirectCanonicalChainRule } from '@/rules/http/redirectCanonicalChain'
 const D = (h: string) => new DOMParser().parseFromString(h, 'text/html')
 
 describe('rule: redirect/canonical chain', () => {
-  it('returns runtime_error when headers not captured', async () => {
+  it('renders captured navigation even when the final header object is missing', async () => {
     const ledger = {
       tabId: 1,
       currentUrl: 'https://ex.com/b',
@@ -25,8 +25,8 @@ describe('rule: redirect/canonical chain', () => {
       ],
     }
     const r = await redirectCanonicalChainRule.run(page as any, { globals: { navigationLedger: ledger } })
-    expect(r.type).toBe('runtime_error')
-    expect(r.message).toContain('Hard Reload')
+    expect(r.type).toBe('info')
+    expect(r.details?.['navigationSteps']).toHaveLength(2)
   })
 
   it('reports the chain as info on a single redirect with canonical match', async () => {

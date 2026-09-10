@@ -1,123 +1,47 @@
+import { navigationPathSteps } from './navigationPathSteps'
+
 import { NavigationLedgerSchema } from '@/background/history/types'
 import type { Rule } from '@/core/types'
-import { getDomPath } from '@/shared/dom-path'
-import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
-import { redirectChainDetails } from '@/shared/redirectChainFormat'
-import { headerChainToRedirectChain } from '@/shared/redirectChainFromEvents'
+import { navigationOutcome } from '@/shared/navigationSteps'
+import { extractHtml } from '@/shared/html-utils'
 
-const LABEL = 'HTTP'
-const NAME = 'Redirect/Canonical chain'
-const RULE_ID = 'http:redirect-canonical-chain'
-
-const normalize = (u?: string): string => {
-  if (!u) return ''
-  try {
-    const url = new URL(u)
-    url.hash = ''
-    return url.href
-  } catch {
-    return (u || '').replace(/[?#].*$/, '')
-  }
-}
-
+const withoutHash = (url: string): string => { const parsed = new URL(url); parsed.hash = ''; return parsed.href }
 export const redirectCanonicalChainRule: Rule = {
-  id: RULE_ID,
-  name: NAME,
-  enabled: true,
-  what: 'http',
+  id: 'http:redirect-canonical-chain', name: 'Redirects and preferred URL', enabled: true, what: 'http',
   meta: {
     provenance: 'general',
-    references: [
-      'https://developers.google.com/search/docs/crawling-indexing/301-redirects',
-      'https://developers.google.com/search/docs/crawling-indexing/http-network-errors',
-    ],
-    description: 'Renders the full observed redirect/History-API chain hop by hop with statuses, cache flags, and a canonical (OK/AWAY) note, always type info.',
+    references: ['https://developers.google.com/search/docs/crawling-indexing/301-redirects', 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'],
+    description: 'Shows one named navigation timeline followed by the HTML canonical declaration, without duplicate trace and header dumps.',
+    userGuide: {
+      check: 'Shows the observed journey and the preferred URL declared by the landing page’s HTML canonical tag. History updates are separate from HTTP redirects. A canonical is a search preference, not a navigation instruction.',
+      action: 'Correct the invalid canonical href in the page template or SEO plugin, using the intended preferred page URL.',
+    },
   },
   async run(page, ctx) {
-    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
-    const ledgerRaw = (ctx.globals as { navigationLedger?: unknown }).navigationLedger
-    const ledger = NavigationLedgerSchema.safeParse(ledgerRaw)
-    if (!ledger.success || !ledger.data.trace.length) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'No redirects or navigation chain captured.',
-        type: 'info',
-        priority: 900,
-      }
-    }
-
-    const trace = ledger.data.trace
-    const headerChain = (page.headerChain || []).map((h) => ({ ...h }))
-    // Consistent hop-chain shape shared with every redirect-aware rule.
-    const chainDetails = redirectChainDetails(headerChainToRedirectChain(page.headerChain, page.status))
-    const redirectCount = trace.filter((t) => t.type === 'http_redirect').length
-    const historyCount = trace.filter((t) => t.type === 'history_api').length
-    const finalUrl = trace[trace.length - 1]?.url || page.url
-
-    if (redirectCount === 0 && historyCount === 0) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'Direct load (no redirects or history updates).',
-        type: 'info',
-        priority: 850,
-        details: { trace, headerChain, ...chainDetails },
-      }
-    }
-
-    const parts = trace.map((hop) => {
-      const headerHop = headerChain.find((h) => normalize(h.url) === normalize(hop.url))
-      const status = headerHop?.status ?? hop.statusCode
-      const statusLine = headerHop?.statusLine ?? hop.statusText
-      const location = headerHop?.redirectUrl || headerHop?.location
-      const viaCache = headerHop?.fromCache
-
-      let chunk = hop.url
-      if (status) chunk += ` → HTTP ${status}`
-      else if (statusLine) chunk += ` → ${statusLine}`
-      if (location) chunk += ` → ${location}`
-      if (viaCache) chunk += ' (via cache)'
-      if (hop.type === 'history_api') chunk += ' → History API update'
-      return chunk
-    })
-
-    let canonicalNote = ''
-    const canonicalEl = page.doc.querySelector('link[rel~="canonical" i]')
-    const canonicalHref = canonicalEl?.getAttribute('href') || ''
-    const canonicalDomPath = getDomPath(canonicalEl)
-    if (canonicalHref) {
+    const ledger = NavigationLedgerSchema.safeParse(ctx.globals['navigationLedger'])
+    const steps = navigationPathSteps(page, ledger.success ? ledger.data.trace : [])
+    const finalUrl = steps.at(-1)?.url || page.url
+    const redirectCount = steps.filter((step) => step.type === 'http_redirect').length
+    const clientRedirectCount = steps.filter((step) => step.type === 'client_redirect').length
+    const element = page.doc.querySelector('link[rel~="canonical" i]')
+    const href = (element?.getAttribute('href') || '').trim()
+    let canonicalUrl = '', canonicalMeaning = 'No HTML canonical URL was declared.'
+    let invalid = false
+    if (href) {
       try {
-        const resolved = new URL(canonicalHref, page.url).href
-        const matches = normalize(resolved) === normalize(finalUrl)
-        canonicalNote = `canonical ${matches ? '(OK)' : '(AWAY)'} → ${resolved}`
-      } catch {
-        canonicalNote = `canonical (invalid) → ${canonicalHref}`
-      }
+        canonicalUrl = new URL(href, page.url).href
+        if (!/^https?:\/\//i.test(canonicalUrl)) throw new Error('Unsupported canonical scheme')
+        canonicalMeaning = withoutHash(canonicalUrl) === withoutHash(finalUrl)
+          ? 'The canonical matches the final page URL.' : 'The canonical points to another preferred URL. Confirm that this is the intended duplicate-content relationship.'
+      } catch { invalid = true; canonicalMeaning = 'The canonical URL is invalid or uses an unsupported scheme.' }
     }
-    if (canonicalNote) parts.push(canonicalNote)
-
-    if (page.fromCache) parts.push('via cache')
-
-    // Redirects are Google's recommended consolidation mechanism and crawlers
-    // follow up to 10 hops; this rule only visualizes the chain, while
-    // hop-count judgment belongs to http:redirect-efficiency.
     return {
-      label: LABEL,
-      name: NAME,
-      message: parts.join(' → '),
-      type: 'info',
-      priority: 600,
+      label: 'HTTP', name: 'Redirects and preferred URL', type: invalid ? 'warn' : 'info', priority: invalid ? 250 : 600,
+      message: steps.length ? `${redirectCount} server redirect(s), ${clientRedirectCount} page-code redirect(s). ${canonicalMeaning}` : 'No navigation journey was captured.',
       details: {
-        trace,
-        headerChain,
-        ...chainDetails,
-        finalUrl,
-        redirectCount,
-        historyCount,
-        canonicalHref: canonicalNote || canonicalHref || null,
-        domPath: canonicalDomPath || undefined,
-        fromCache: page.fromCache ?? null,
+        ...(steps.length ? { navigationSteps: steps, redirectCount, clientRedirectCount, finalUrl } : {}),
+        interpretation: [navigationOutcome(steps), canonicalMeaning].filter(Boolean).join(' '),
+        ...(element ? { canonicalDeclaration: { declaredUrl: href || '(empty)', ...(canonicalUrl ? { resolvedUrl: canonicalUrl } : {}), sourceHtml: extractHtml(element) } } : {}),
       },
     }
   },

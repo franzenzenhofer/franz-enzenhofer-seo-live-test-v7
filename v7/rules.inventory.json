@@ -811,13 +811,13 @@
   },
   {
     "id": "http:redirect-canonical-chain",
-    "name": "Redirect/Canonical chain",
+    "name": "Redirects and preferred URL",
     "enabledByDefault": true,
     "what": "http",
     "provenance": "general",
     "references": [
       "https://developers.google.com/search/docs/crawling-indexing/301-redirects",
-      "https://developers.google.com/search/docs/crawling-indexing/http-network-errors"
+      "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
     ]
   },
   {
