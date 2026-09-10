@@ -1,61 +1,29 @@
 import type { Rule } from '@/core/types'
-import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
-import { getDomPaths } from '@/shared/dom-path'
-import { sampleElements, sampleMatchingElements } from '@/shared/domEvidence'
+import { sampleMatchingElements } from '@/shared/domEvidence'
+import { elementEvidence } from '@/shared/elementEvidence'
 
-const CSS_NOTE = 'Reserving the space with CSS aspect-ratio (or similar) is a spec-sanctioned alternative this static attribute check cannot verify.'
-
+const CSS_NOTE = 'CSS aspect-ratio can also reserve image space. This attribute check does not measure layout shifts or verify CSS sizing.'
 export const imagesLayoutRule: Rule = {
-  id: 'body:images-layout',
-  name: 'Images missing dimensions',
-  enabled: true,
-  what: 'static',
+  id: 'body:images-layout', name: 'Image dimension attributes', enabled: true, what: 'static',
   meta: {
-    provenance: 'google',
-    references: [
-      'https://web.dev/articles/optimize-cls#images-without-dimensions',
-      'https://web.dev/articles/cls',
-    ],
-    description: 'Warns when any img element lacks a width or height attribute (CLS prevention); ok when all images carry both.',
+    provenance: 'google', references: ['https://web.dev/articles/optimize-cls#images-without-dimensions', 'https://web.dev/articles/cls'],
+    description: 'Identifies images missing width or height attributes by name and URL, without claiming to measure layout shifts.',
+    userGuide: {
+      check: 'Looks for width and height attributes on img elements. Reserving space before images load helps avoid page movement. Attribute values and CSS layout are not validated by this presence check.',
+      action: 'For each listed image, declare width and height matching its aspect ratio, or verify that CSS already reserves the correct space. Set this in the image component or CMS template and recheck the page while images load.',
+    },
   },
   async run(page) {
-    const imgs = page.doc.querySelectorAll<HTMLImageElement>('img')
-    const missing = sampleMatchingElements(imgs, (image) => !image.getAttribute('width') || !image.getAttribute('height'))
-
-    if (missing.total > 0) {
-      const sourceHtml = extractHtmlFromList(missing.sample)
-      return {
-        label: 'BODY',
-        message: `${missing.total} images missing width/height`,
-        type: 'warn',
-        priority: 300,
-        name: 'Images missing dimensions',
-        details: {
-          sourceHtml,
-          snippet: extractSnippet(sourceHtml),
-          domPaths: getDomPaths(missing.sample),
-          count: missing.total, shown: missing.shown, truncated: missing.truncated,
-          note: CSS_NOTE,
-        },
-      }
-    }
-
-    const all = sampleElements(imgs)
-    const allHtml = extractHtmlFromList(all.sample)
-    const domPaths = getDomPaths(all.sample)
+    const images = page.doc.querySelectorAll<HTMLImageElement>('img')
+    const missing = sampleMatchingElements(images, (image) => !image.getAttribute('width') || !image.getAttribute('height'))
     return {
-      label: 'BODY',
-      message: 'All images have dimensions',
-      type: 'ok',
-      priority: 850,
-      name: 'Images missing dimensions',
-      details: {
-        sourceHtml: allHtml,
-        snippet: extractSnippet(allHtml),
-        domPaths,
-        count: all.total, shown: all.shown, truncated: all.truncated,
-        tested: 'Checked <img> width/height attributes',
-      },
+      label: 'BODY', name: 'Image dimension attributes', type: !images.length ? 'info' : missing.total ? 'warn' : 'ok', priority: missing.total ? 300 : 850,
+      message: !images.length ? 'No img elements found.' : missing.total ? `${missing.total} images lack width or height attributes.`
+        : `${images.length} images declare both width and height attributes.`,
+      details: { note: CSS_NOTE, imagesChecked: images.length, count: missing.total,
+        ...(missing.total ? { affectedImages: missing.sample.map((image) => ({ ...elementEvidence(image),
+          missingAttributes: ['width', 'height'].filter((key) => !image.getAttribute(key)) })),
+        examplesShown: missing.shown, examplesOmitted: missing.total - missing.shown } : {}) },
     }
   },
 }

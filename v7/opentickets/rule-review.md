@@ -33,7 +33,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `robots:googlebot-url-check` | ok | Pending | |
 | `gsc:url-inspection` | runtime_error | Pending | |
 | `http:gzip` | ok | Pending | |
-| `body:h1` | ok | Reviewed and fixed: multiple headings now include their text with locations; purpose and missing/empty remediation; existing single/multiple/empty/missing fixtures retained | This rule commit |
+| `body:h1` | ok | Reviewed and fixed: multiple headings now include their text with locations; purpose and missing/empty remediation; existing single/multiple/empty/missing fixtures retained | `966acd5` |
 | `discover:headline-length` | info | Pending | |
 | `gsc:is-indexed` | runtime_error | Pending | |
 | `url:history-state-update` | info | Pending | |
@@ -47,7 +47,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:h3-advertised` | info | Pending | |
 | `http:https-scheme` | ok | Pending | |
 | `body:images-lazy` | info | Pending | |
-| `body:images-layout` | ok | Pending | |
+| `body:images-layout` | ok | Fixed: image names and URLs, specific missing attributes, explicit sample count and no-image state; copied two-offender and empty fixtures | This rule commit |
 | `discover:indexable` | ok | Fixed: named applicable blockers, intentional exclusion guidance, permission vs actual indexing; body meta coverage; pass/block/other-crawler tests | `e3d2451` |
 | `body:internal-link-status` | ok | Pending | |
 | `body:internal-links` | info | Pending | |

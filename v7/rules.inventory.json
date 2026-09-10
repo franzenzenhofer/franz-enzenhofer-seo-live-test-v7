@@ -433,6 +433,17 @@
     ]
   },
   {
+    "id": "body:images-layout",
+    "name": "Image dimension attributes",
+    "enabledByDefault": true,
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://web.dev/articles/optimize-cls#images-without-dimensions",
+      "https://web.dev/articles/cls"
+    ]
+  },
+  {
     "id": "head:robots-noimageindex",
     "name": "Image indexing restrictions",
     "enabledByDefault": true,
@@ -450,17 +461,6 @@
     "provenance": "google",
     "references": [
       "https://web.dev/articles/browser-level-image-lazy-loading"
-    ]
-  },
-  {
-    "id": "body:images-layout",
-    "name": "Images missing dimensions",
-    "enabledByDefault": true,
-    "what": "static",
-    "provenance": "google",
-    "references": [
-      "https://web.dev/articles/optimize-cls#images-without-dimensions",
-      "https://web.dev/articles/cls"
     ]
   },
   {
