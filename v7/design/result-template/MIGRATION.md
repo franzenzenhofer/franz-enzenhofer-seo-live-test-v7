@@ -43,10 +43,11 @@ This supersedes every earlier instruction to stop after five or ten rules. Conti
 | `discover:article-structured-data` | `3576165` |
 | `discover:indexable` | `d5e18cc` |
 | `discover:primary-language` | `cfc8e98` |
+| `discover:headline-length` | `a8c7294` |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
-Current primary-agent reviewed migration: `discover:headline-length`. Lower-cost agents are preparing isolated patches for `discover:published-time`, `discover:author-present` and `discover:headline-length`; see agent messages and `/tmp/*-migration.patch`. Continue through every remaining existing registry rule.
+Current primary-agent reviewed migration: `discover:author`. Lower-cost agents are preparing isolated patches for `discover:published-time`, `discover:author` and `discover:headline-length`; see agent messages and `/tmp/*-migration.patch`. Continue through every remaining existing registry rule.
 
 ## Shared follow-up work still required
 

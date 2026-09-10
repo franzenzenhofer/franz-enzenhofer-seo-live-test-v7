@@ -1,6 +1,8 @@
 import type { Rule } from '@/core/types'
-import { extractHtmlFromList } from '@/shared/html-utils'
-import { getDomPaths } from '@/shared/dom-path'
+import { sampleElements } from '@/shared/domEvidence'
+import { textField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
 import { parseLdDetails } from '@/shared/structured'
 
 const authorNames = (value: unknown): string[] => {
@@ -10,7 +12,7 @@ const authorNames = (value: unknown): string[] => {
   return []
 }
 export const discoverAuthorPresentRule: Rule = {
-  id: 'discover:author', name: 'Author metadata', enabled: true, what: 'static',
+  id: 'discover:author', name: 'Author metadata', presentation: 1, enabled: true, what: 'static',
   meta: {
     provenance: 'google',
     references: [
@@ -18,29 +20,39 @@ export const discoverAuthorPresentRule: Rule = {
       'https://html.spec.whatwg.org/multipage/semantics.html#meta-author',
     ],
     description: 'Reports author names and their actual meta or JSON-LD sources. Missing optional author metadata is informational.',
-    userGuide: {
-      check: 'Reads author meta tags and JSON-LD author names. It does not verify a visible byline, resolve author references, or verify a person’s identity. Discover does not require special author markup.',
-      action: 'Fix the JSON-LD syntax errors, then run this check again to inspect author metadata.',
-    },
   },
   async run(page) {
     const parsed = parseLdDetails(page.doc)
-    const meta = Array.from(page.doc.querySelectorAll('meta[name="author" i]')).flatMap((element) =>
+    const metaElements = Array.from(page.doc.querySelectorAll('meta[name="author" i]'))
+    const ldScripts = Array.from(page.doc.querySelectorAll('script[type="application/ld+json"]'))
+    const meta = metaElements.flatMap((element) =>
       authorNames(element.getAttribute('content')).map((name) => ({ name, foundIn: 'Author meta tag', element })))
     const ld = parsed.entries.flatMap(({ node, script, scriptIndex }) =>
       authorNames(node['author']).map((name) => ({ name, foundIn: `JSON-LD script ${scriptIndex + 1}`, element: script })))
     const authors = [...meta, ...ld]
-    const sources = [...new Set(authors.map(({ element }) => element))]
-    return {
-      label: 'DISCOVER', name: 'Author metadata', type: parsed.errorCount ? 'warn' : 'info', priority: 750,
-      message: parsed.errorCount ? 'Author metadata check is incomplete: some JSON-LD could not be parsed.'
-        : authors.length ? `Author metadata names ${[...new Set(authors.map(({ name }) => name))].length} author(s).`
-          : 'No author name found in the inspected metadata.',
-      details: {
-        interpretation: 'For authored content, credit the actual author visibly and keep metadata consistent with that byline. Missing metadata alone is not a Discover eligibility failure; generic pages may not need an author.',
-        ...(authors.length ? { authors: authors.map(({ name, foundIn }) => ({ name, foundIn })), sourceHtml: extractHtmlFromList(sources), domPaths: getDomPaths(sources) } : {}),
-        ...(parsed.errorCount ? { parseErrors: parsed.errors.map(({ scriptIndex, message }) => ({ scriptNumber: scriptIndex + 1, problem: message })) } : {}),
-      },
-    }
+    const { sample, total } = sampleElements([...metaElements, ...ldScripts])
+    const captured = markupEvidence(sample, 'Author source')
+    const names = [...new Set(authors.map(({ name }) => name))]
+    return presentResult(discoverAuthorPresentRule, page, {
+      input: 'Idle DOM', type: parsed.errorCount ? 'warn' : 'info', priority: 750,
+      values: [textField(names.length > 10 ? 'Author names (first 10)' : 'Author names', names.length ? names.slice(0, 10).join(', ') : 'None found'),
+        textField('Author declarations', authors.length), textField('JSON-LD parse errors', parsed.errorCount)],
+      detailValues: [textField('Author meta elements', metaElements.length), textField('JSON-LD scripts', parsed.scriptCount),
+        textField('Distinct author names', names.length), textField('Author declarations omitted', Math.max(0, authors.length - 10)),
+        textField('Parse errors omitted', parsed.errorCount - parsed.errors.length), textField('Source elements retained', sample.length), textField('Source elements omitted', total - sample.length)],
+      checked: [textField('Author meta selector', 'meta[name="author" i]'),
+        textField('JSON-LD selector', 'script[type="application/ld+json"]'),
+        textField('Author extraction', 'String author values and object name values from parsed JSON-LD'),
+        textField('Criterion', 'Reports declared author names; no name is informational'),
+        textField('Visible byline', 'Not checked')],
+      evidence: [...authors.slice(0, 10).map(({ name, foundIn }, index) => ({ name: `Author ${index + 1}`, fields: [
+        textField('Name', name), textField('Source', foundIn),
+      ] })), ...parsed.errors.map(({ scriptIndex, message }, index) => ({
+        name: `JSON-LD parse error ${index + 1}`,
+        fields: [textField('Script', scriptIndex + 1), textField('Parse error excerpt', message)],
+      })), ...(captured.fields.length ? [{ name: 'Source locations', fields: captured.fields }] : [])],
+      markup: captured.markup,
+      noMarkup: total ? 'Complete original author source markup not retained' : 'No author meta tag or JSON-LD script found',
+    })
   },
 }
