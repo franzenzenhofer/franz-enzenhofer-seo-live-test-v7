@@ -1,20 +1,14 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, extractSnippet } from '@/shared/html-utils'
-import { getDomPath } from '@/shared/dom-path'
+import { textField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
 
 const HEURISTIC_MIN = 20
-const GUIDANCE = 'Use page titles and headlines that capture the essence of the content; avoid clickbait'
+const SELECTOR = 'h1'
 
 export const discoverHeadlineLengthRule: Rule = {
-  id: 'discover:headline-length',
-  name: 'Headline length',
-  enabled: true,
-  what: 'static',
+  id: 'discover:headline-length', name: 'Headline length', presentation: 1, enabled: true, what: 'static',
   meta: {
-    userGuide: {
-      check: "Measures the text of the first h1 heading. The 20-character threshold is an editorial heuristic, not a Google requirement or a test of headline quality. A short name or concise headline can be appropriate.",
-      action: "Give the page a clear main heading that accurately describes its content. Fill an empty heading or add one if needed; do not pad the wording merely to meet a character count.",
-    },
     provenance: 'google',
     references: [
       'https://developers.google.com/search/docs/appearance/google-discover',
@@ -23,47 +17,31 @@ export const discoverHeadlineLengthRule: Rule = {
     description: 'Checks that the first h1 exists and is at least 20 characters long (ok >=20, info <20, warn if no h1).',
   },
   async run(page) {
-    const el = page.doc.querySelector('h1')
-    const h = (el?.textContent || '').trim()
-    const n = h.length
-
-    if (!n) {
-      return {
-        label: 'DISCOVER',
-        message: el ? 'The first h1 heading has no text.' : 'No h1 heading found.',
-        type: 'warn',
-        priority: 300,
-        name: 'Headline length',
-        details: { should: GUIDANCE },
-      }
-    }
-
-    const sourceHtml = extractHtml(el)
-    const isLongEnough = n >= HEURISTIC_MIN
-
-    return isLongEnough
-      ? {
-          label: 'DISCOVER',
-          message: `Headline length ${n} chars.`,
-          type: 'ok',
-          priority: 850,
-          name: 'Headline length',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), headline: h },
-        }
-      : {
-          label: 'DISCOVER',
-          message: `Headline short: ${n} chars (heuristic threshold ${HEURISTIC_MIN}; Google sets no minimum length).`,
-          type: 'info',
-          priority: 500,
-          name: 'Headline length',
-          details: {
-            sourceHtml,
-            snippet: extractSnippet(sourceHtml),
-            domPath: getDomPath(el),
-            headline: h,
-            is: `Headline is ${n} chars, below the ${HEURISTIC_MIN}-char heuristic (not a Google requirement)`,
-            should: GUIDANCE,
-          },
-        }
+    const element = page.doc.querySelector(SELECTOR)
+    const headline = (element?.textContent || '').trim()
+    const characters = headline.length
+    const captured = markupEvidence(element ? [element] : [], '<h1>')
+    const type = !characters ? 'warn' : characters >= HEURISTIC_MIN ? 'ok' : 'info'
+    const priority = !characters ? 300 : characters >= HEURISTIC_MIN ? 850 : 500
+    return presentResult(discoverHeadlineLengthRule, page, {
+      input: 'Idle DOM', type, priority,
+      values: [
+        textField('H1 heading', element ? 'Found' : 'Not found'),
+        ...(element ? [textField('Characters', characters)] : []),
+        ...(element ? [textField('Heuristic threshold', `${HEURISTIC_MIN} characters; Google sets no minimum length`)] : []),
+        ...(element && !characters ? [textField('Headline text', 'Empty')] : []),
+        ...(captured.markup[0] ? [{ ...captured.markup[0], key: '<h1>' }] : []),
+      ],
+      detailValues: element ? [textField('Headline', headline)] : [],
+      checked: [
+        textField('Selector', SELECTOR),
+        textField('Selected element', 'First match'),
+        textField('Measurement', 'Trimmed text length in UTF-16 code units'),
+        textField('Criterion', `At least ${HEURISTIC_MIN} characters (editorial heuristic; Google sets no minimum length)`),
+      ],
+      evidence: captured.fields.length ? [{ name: 'Source', fields: captured.fields }] : [],
+      markup: captured.markup,
+      noMarkup: element ? 'Complete original h1 markup not retained' : 'No h1 element found',
+    })
   },
 }

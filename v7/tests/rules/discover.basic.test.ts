@@ -41,7 +41,9 @@ describe('discover rules', () => {
     const p = { html:'', url:'', doc: D('<h1>Short one</h1>') }
     const r = await discoverHeadlineLengthRule.run(p as any, { globals: {} })
     expect((r as any).type).toBe('info')
-    expect((r as any).message.toLowerCase().includes('heuristic')).toBe(true)
+    expect((r as any).presentation?.values).toContainEqual({
+      key: 'Heuristic threshold', value: '20 characters; Google sets no minimum length', kind: 'text',
+    })
   })
   it('indexable ok', async () => {
     const p = { html:'', url:'', doc: D('<p/>') }
