@@ -1,9 +1,9 @@
 import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
-import { deriveGscProperty } from '../google-gsc-utils'
+import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../google-gsc-utils'
 
 import type { Rule } from '@/core/types'
 
-const NAME = 'Webproperty available'
+const NAME = 'Search Console property access'
 
 export const gscPropertyAvailableRule: Rule = {
   id: 'gsc:property-available',
@@ -11,6 +11,10 @@ export const gscPropertyAvailableRule: Rule = {
   enabled: true,
   what: 'gsc',
   meta: {
+    userGuide: {
+      check: "Looks for a Search Console property covering this URL that the signed-in account can query. A domain property covers protocols and subdomains; a URL-prefix property covers its URL prefix. Results may come from a recent access probe.",
+      action: "Check the displayed property in Search Console. If it is unavailable, verify account access before creating another property.",
+    },
     provenance: 'franz',
     references: [
       'https://developers.google.com/webmaster-tools/v1/urlInspection.index/inspect',
@@ -19,28 +23,12 @@ export const gscPropertyAvailableRule: Rule = {
   },
   async run(page, ctx) {
     const { token } = extractGoogleCredentials(ctx)
-    if (!token) return createNoTokenResult()
+    if (!token) return createNoTokenResult('GSC', NAME)
 
     const derived = await deriveGscProperty(page.url, token)
     const { property, type: propertyType } = derived || {}
 
-    if (!derived) {
-      const parsedUrl = new URL(page.url)
-      const domain = parsedUrl.hostname.replace(/^www\./, '')
-      return {
-        label: 'GSC',
-        message: `No GSC property access for ${parsedUrl.hostname}. Add property in Search Console.`,
-        type: 'runtime_error',
-        name: NAME,
-        priority: -1000,
-        details: {
-          url: page.url,
-          hostname: parsedUrl.hostname,
-          triedUrlPrefix: `${parsedUrl.origin}/`,
-          triedDomain: `sc-domain:${domain}`,
-        },
-      }
-    }
+    if (!derived) return createGscPropertyDerivationFailedResult(page.url, NAME)
 
     return {
       label: 'GSC',

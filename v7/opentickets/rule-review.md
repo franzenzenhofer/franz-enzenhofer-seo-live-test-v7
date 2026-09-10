@@ -29,7 +29,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `dom:node-count` | info | Reviewed: measurement method in walker and captured facts; added counted-node definition and no arbitrary score implication; existing nested-tree fixture retained | `a69ffba` |
 | `dom:node-depth` | info | Reviewed: depth convention and fallback traversal; added clear nesting meaning and diagnostic limits; existing nested-tree fixture retained | `f63e1fe` |
 | `speed:first-paint` | ok | Reviewed: FCP thresholds and first-paint-only/missing states retained; added metric meaning, units, single-run limits and investigation steps; existing boundary states retained | `83c6e60` |
-| `google:is-connected` | info | Reviewed stored/missing credentials and Settings controls; states access-check limits and reconnect steps; existing credential fixture. | This rule commit |
+| `google:is-connected` | info | Reviewed stored/missing credentials and Settings controls; states access-check limits and reconnect steps; existing credential fixture. | `9e46f1b` |
 | `robots:googlebot-url-check` | ok | Pending | |
 | `gsc:url-inspection` | runtime_error | Pending | |
 | `http:gzip` | ok | Reviewed: exact encoding, source and complete headers remain available; added purpose, measurement limits and server/CDN remedy; removed irrelevant browser-version detail; existing encoding/probe fixtures retained | `ee0ae40` |
@@ -131,7 +131,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `psi:mobile-fcp-tbt` | warn | Pending | |
 | `psi:mobile` | ok | Pending | |
 | `http:vary-user-agent` | info | Pending | |
-| `gsc:property-available` | runtime_error | Pending | |
+| `gsc:property-available` | runtime_error | Reviewed access probes, cache limits, sign-in and success fixtures; preserves rule identity and distinguishes an unavailable probe from an absent property. | This rule commit |
 | `http:canonical-host-redirect` | info | Pending | |
 | `http:x-cache` | info | Pending | |
 | `http:unavailable-after` | info | Pending | |

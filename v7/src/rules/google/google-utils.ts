@@ -26,7 +26,7 @@ export const createNoTokenResult = (label = 'GSC', name = 'googleRule') => {
     type: 'runtime_error' as const,
     name,
     priority: -1000,
-    details: { reference: GSC_API_REFERENCE },
+    details: { nextStep: 'Open Settings > Google Account > Sign In, then rerun this page test. Use an account with access to this site in Search Console.', reference: GSC_API_REFERENCE },
   }
 }
 

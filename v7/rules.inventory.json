@@ -1092,6 +1092,16 @@
     ]
   },
   {
+    "id": "gsc:property-available",
+    "name": "Search Console property access",
+    "enabledByDefault": true,
+    "what": "gsc",
+    "provenance": "franz",
+    "references": [
+      "https://developers.google.com/webmaster-tools/v1/urlInspection.index/inspect"
+    ]
+  },
+  {
     "id": "head:robots-max-snippet",
     "name": "Search snippet length limits",
     "enabledByDefault": true,
@@ -1313,16 +1323,6 @@
     "provenance": "google",
     "references": [
       "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#max-video-preview"
-    ]
-  },
-  {
-    "id": "gsc:property-available",
-    "name": "Webproperty available",
-    "enabledByDefault": true,
-    "what": "gsc",
-    "provenance": "franz",
-    "references": [
-      "https://developers.google.com/webmaster-tools/v1/urlInspection.index/inspect"
     ]
   },
   {
