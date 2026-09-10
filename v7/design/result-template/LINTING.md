@@ -1,0 +1,26 @@
+# Presentation enforcement
+
+The contract is implemented in `src/shared/presentation/schema.ts`; rule construction uses `createPresentation` / `presentResult`. A rule declares `presentation: 1` only after every branch has been migrated. The canonical rules registry remains the sole list of rules.
+
+Run `npx tsx scripts/lint-result-presentations.ts` from `v7/`. It executes every migrated rule against absent, present, duplicate/empty, malformed, invalid-URL and large-capture fixtures. It does not make network requests.
+
+The lint fails when:
+
+- Any branch lacks a valid presentation, speaking name, input, labelled values or checked criteria.
+- A value is an object/array rather than an explicitly selected scalar field.
+- An original-data field lacks `complete-original` fidelity.
+- A field asserted to be original does not equal a complete element retrieved from that fixture's DOM.
+- Storage bounding changes a retained original value.
+- Existing reference URLs are lost, reordered or replaced with a fallback.
+- A reference is empty, invalid or uses an executable scheme.
+- The rule still emits a generic legacy `details` payload.
+- The result contains an unknown state or advice labels such as Fix, Interpretation or Next step.
+- Copy output contains a fixture object-coercion dump or omits a reference.
+
+The original-data tests additionally cover attributes and nested children, reconstructed compact documents, large source captures, full-element omission and independent plain-text title values. Schema negative cases cover invalid references, blank keys, object values and incomplete source markers.
+
+This lint cannot prove that a rule's selector, algorithm or SEO criterion is correct. That requires manual inspection of each rule, its reference documents and its individual tests. A passing schema or generic fixture run never substitutes for that review. Do not migrate the remaining rules through a codemod or legacy-object adapter.
+
+Headless browser verification must exercise the actual extension card and report, not only the standalone dummy: narrow layouts, reference and data links, labelled original fields, extracted title text, Details/Hide, keyboard menu, favorites, disabling, copy, clipboard fallback and the not-applicable filter.
+
+Before each commit, run the repository's typecheck, ESLint, complete unit suite and extension build, including the headless browser suite. Preserve generated outputs in `trash/` before any build script cleans its output directories. The build and pre-commit hook both bump versions; follow the documented repository release procedure and verify the committed package version equals `dist/manifest.json`.

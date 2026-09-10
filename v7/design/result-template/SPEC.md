@@ -6,7 +6,9 @@ Audience: SEO professionals inspecting observed site code and responses. This sp
 
 A result answers three questions: what was checked, what values were observed, and whether the stated criterion was met. It does not provide editorial advice or an SEO tutorial. Browser repairs do not make incorrect source code correct: an authored HTTP resource URL remains a finding even if a browser upgrades the request.
 
-Migrate ten rules in the first production batch, one rule per commit: page title, title length, brand in title, meta description, H1 headings, parameterized links, password fields on HTTP pages, large image preview permission, Open Graph image dimensions and Article structured data. Shared infrastructure is a separate logical change. Remaining rules retain their existing presentation until the handover migration.
+Migrate **all existing registry rules**, one rule per commit. The user expanded the scope on 2026-09-10; this supersedes the earlier ten-rule limit. Preserve existing rule IDs and check logic: this is a presentation migration, not the creation of new rules or criteria. Shared infrastructure is a separate logical change. Track progress and resume instructions in `MIGRATION.md`.
+
+Every rule must be reviewed and changed individually by hand, however long it takes. Read its actual implementation, input, criteria, branches, tests and references before editing it. Do not use codemods, bulk substitutions or a generic legacy-dump adapter to claim rules have been migrated. Shared contracts, evidence helpers and the renderer remain reusable; each rule's facts and evidence selection require an individual implementation and review. Commit each completed rule separately after its quality gates pass.
 
 ## Overview
 
@@ -92,4 +94,4 @@ Lint and tests must enforce the migration allowlist and prohibit advice/dump fie
 - Pipeline tests: native DOM versus reconstructed facts; storage and phase-message bounds; partial and omitted evidence explicitly reported; not-applicable type survives validation, sorting and filters.
 - Headless UI: overview/detail, narrow layout, keyboard menu, copy success/failure, favorite persistence, disable/enable, reference links, neutral data links, readonly raw data, exact copied markup, labelled metadata, no horizontal overflow.
 - Run typecheck, lint, unit tests and build before every logical commit. Test browser runs are headless. Keep local artifacts private and retain superseded generated outputs in trash.
-- Stop after the ten rule migrations. The handover names the migrated rules, committed code, required commands, test evidence, known limitations and the exact process for migrating the remainder. Do not claim remaining rules have been reviewed or migrated.
+- Continue until every existing registry rule is migrated. The final handover names the committed code, required commands, test evidence and known limitations. Do not claim an unreviewed rule has been migrated. Copy the final handover to the clipboard and call `say` when all work is finished.
