@@ -45,14 +45,22 @@ This supersedes every earlier instruction to stop after five or ten rules. Conti
 | `discover:primary-language` | `cfc8e98` |
 | `discover:headline-length` | `a8c7294` |
 | `discover:author` | `2f297b3` |
+| `discover:published-time` | `dfb24fc` |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
-Current primary-agent reviewed migration: `discover:published-time`. Lower-cost agents are preparing isolated patches for `discover:published-time`, `discover:author` and `discover:headline-length`; see agent messages and `/tmp/*-migration.patch`. Continue through every remaining existing registry rule.
+All eight Discover rules are now migrated. Primary agent is wiring shared presentation lint and lifecycle/search/copy integration before continuing individual rule patches. Reviewed/prepared patches waiting for individual application and full verification (not yet migrated just because a patch exists):
+
+- `/tmp/meta-keywords-migration.patch`, `/tmp/meta-viewport-migration.patch`, `/tmp/meta-charset-migration.patch` — parent read all three. Remove duplicate capture/content values before applying; charset should retain an inspected invalid http-equiv element even when no declaration is selected.
+- `/tmp/og-title-migration.patch`, `/tmp/og-description-migration.patch`, `/tmp/og-url-migration.patch`, `/tmp/og-image-migration.patch` — ready, parent review pending.
+- Root manually prepared `/tmp/http-status-migrated.ts` and `/tmp/http-status-migrated.test.ts` — read/reviewed, not applied.
+- Agents remain active: `migrate_headline` preparing canonicalHeader/canonicalHttpsPreference/canonicalTrackingParams/canonicalHreflangConsistency; `migrate_author` preparing imagesLayout/imagesLazy/nofollow/internalLinks; `migrate_published_time` preparing shortlink/amphtml/relAlternateMedia. Each patch is independent; agents never mutate the repository or commit.
+
+Continue through every remaining existing registry rule. Agent patch completion is not migration completion: primary review, apply, all gates and a separate commit are required.
 
 ## Shared follow-up work still required
 
-- Wire presentation lint into `npm run lint`; its script exists and has passed against the first eight migrated rules.
+- Shared lint/lifecycle/search/copy integration checkpoint is in progress.
 - Add headless coverage of the actual new extension cards (not only the standalone dummy), all actions, references, original data and the not-applicable filter.
 - Ensure lifecycle-unavailable results use the new presentation, alongside pending/disabled/runtime errors.
 - Improve large-payload retention by keeping whole evidence records where possible, always reporting omissions and never truncating attested originals.

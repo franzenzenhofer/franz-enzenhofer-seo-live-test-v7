@@ -2,7 +2,7 @@
 
 The contract is implemented in `src/shared/presentation/schema.ts`; rule construction uses `createPresentation` / `presentResult`. A rule declares `presentation: 1` only after every branch has been migrated. The canonical rules registry remains the sole list of rules.
 
-Run `npx tsx scripts/lint-result-presentations.ts` from `v7/`. It executes every migrated rule against absent, present, duplicate/empty, malformed, invalid-URL and large-capture fixtures. It does not make network requests.
+Run `npm run lint:presentation` from `v7/`; it also runs as part of `npm run lint` and the commit hook. Network access is disabled in its fixtures. It executes every migrated rule against absent, present, duplicate/empty, malformed, invalid-URL and large-capture fixtures. It does not make network requests.
 
 The lint fails when:
 
@@ -14,6 +14,7 @@ The lint fails when:
 - Existing reference URLs are lost, reordered or replaced with a fallback.
 - A reference is empty, invalid or uses an executable scheme.
 - The rule still emits a generic legacy `details` payload.
+- Captured markup is labelled with the wrong DOM lifecycle phase for its registered input.
 - The result contains an unknown state or advice labels such as Fix, Interpretation or Next step.
 - Copy output contains a fixture object-coercion dump or omits a reference.
 

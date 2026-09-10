@@ -9,6 +9,9 @@ import { presentationCopy } from '../src/shared/presentation/copy'
 import { boundResult } from '../src/shared/boundResult'
 import { resultTypeOrder } from '../src/shared/colors'
 
+// Fixture lint is deterministic and must never probe a live site.
+globalThis.fetch = async () => { throw new Error('Network disabled during presentation lint') }
+
 const fixtures = [
   { name: 'absent', html: '', url: 'https://example.test/' },
   { name: 'present', url: 'https://example.test/', html: '<title lang="en" data-capture="all-attributes"> Example &amp; title </title><meta name="description" content="Description"><meta name="robots" content="max-image-preview:large"><meta property="og:image" content="/photo.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><h1 class="hero">Hello <em lang="de">world</em></h1><a href="/trips?q=a&amp;page=2">Trips</a><script type="application/ld+json">{"@graph":[{"@type":"Article"},{"@type":"Organization"}]}</script>' },
@@ -27,6 +30,10 @@ for (const rule of migrated) {
     const result = await rule.run({ html: fixture.html, doc, url: fixture.url, headers: {} }, { globals: {} })
     const prefix = `${rule.id} / ${fixture.name}`
     const view = presentationSchema.parse(result.presentation)
+    if (view.markup.length && (rule.input === 'static' || rule.input === 'idle')) {
+      const expectedInput = rule.input === 'idle' ? 'Idle DOM' : 'Static DOM'
+      assert(view.input.includes(expectedInput), `${prefix}: wrong checked DOM phase; expected ${expectedInput}`)
+    }
     assert.equal(view.name, rule.name, `${prefix}: speaking name differs`)
     assert.equal(view.pageUrl, fixture.url, `${prefix}: tested URL missing`)
     assert.deepEqual(view.references, referenceUrls(rule.meta.references), `${prefix}: lost or replaced references`)

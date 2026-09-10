@@ -1,3 +1,4 @@
+import { statusLabels } from './statusLabels'
 import type { DisplayField } from './schema'
 
 import type { Result } from '@/core/types'
@@ -7,7 +8,7 @@ export const presentationCopy = (result: Result): string => {
   const view = result.presentation
   if (!view) return ''
   return [
-    `Rule: ${view.name}`, `Status: ${result.type}`, `Page URL: ${view.pageUrl}`,
+    `Rule: ${view.name}`, `Status: ${statusLabels[result.type]}`, `Page URL: ${view.pageUrl}`,
     `Checked input: ${view.input}`, ...lines(view.values), ...lines(view.detailValues),
     '', 'Checked:', ...lines(view.checked),
     ...view.evidence.flatMap((record) => ['', `${record.name}:`, ...lines(record.fields)]),

@@ -1,5 +1,6 @@
 import { matchesPriorityFilter, type PriorityFilter } from './priorityFilter'
 
+import { presentationCopy } from '@/shared/presentation/copy'
 import { isResultUnconfigured, type Result } from '@/shared/results'
 
 type TokenKey = 'id' | 'label' | 'name'
@@ -42,7 +43,7 @@ export const matchesResult = (result: Result, { types, q, priority }: MatchQuery
   if (!matchAny(result.label, tokens.label)) return false
   if (!matchAny(result.name, tokens.name)) return false
   if (text) {
-    const haystack = `${result.label} ${result.name} ${result.ruleId ?? ''} ${result.what ?? ''} ${result.message}`.toLowerCase()
+    const haystack = `${result.label} ${result.name} ${result.ruleId ?? ''} ${result.what ?? ''} ${result.message} ${presentationCopy(result)}`.toLowerCase()
     if (!haystack.includes(text)) return false
   }
   return true

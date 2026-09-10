@@ -1,6 +1,6 @@
 {
   "name": "f19n-obtrusive-livetest-v7",
-  "version": "7.0.226",
+  "version": "7.0.227",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,7 +14,7 @@
     "zip:build": "tsx scripts/zip-build.ts",
     "verify:build": "tsx scripts/verify-build-config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "lint": "eslint .",
+    "lint": "eslint . && npm run lint:presentation",
     "format": "prettier --write .",
     "test": "node scripts/vitest-runner.mjs",
     "test:watch": "vitest --watch --reporter=dot",
@@ -32,7 +32,8 @@
     "dev:reload-token": "tsx scripts/write-reload-token.ts",
     "chrome:profile": "tsx scripts/open-profile.ts",
     "bump": "node scripts/bump-version.mjs",
-    "audit": "npm run build:dev && tsx scripts/audit/runner.ts"
+    "audit": "npm run build:dev && tsx scripts/audit/runner.ts",
+    "lint:presentation": "tsx scripts/lint-result-presentations.ts"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

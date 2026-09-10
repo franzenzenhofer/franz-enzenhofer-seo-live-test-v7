@@ -1,4 +1,5 @@
 import { createDisabledResult } from '@/core/runHelpers'
+import { executionPresentation } from '@/shared/presentation/result'
 import { boundResult } from '@/shared/boundResult'
 import type { RegisteredRule, Result } from '@/core/types'
 
@@ -29,6 +30,7 @@ const unavailableResult = (rule: RegisteredRule, runId?: string): Result => ({
   message: rule.input === 'context'
     ? 'Required bounded DOM context unavailable or truncated.'
     : `${rule.input === 'static' ? 'Static' : rule.input === 'idle' ? 'Idle' : 'Cross-phase'} DOM lifecycle unavailable.`,
+  presentation: executionPresentation(rule, 'Required capture unavailable'),
   type: 'runtime_error',
   priority: 950,
   ruleId: rule.id,
