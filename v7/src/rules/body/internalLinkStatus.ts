@@ -102,7 +102,8 @@ export const internalLinkStatusRule: Rule = {
           ...(hops.length ? { redirectChainHops: hops } : {}) }
       }
     }))
-    const inconclusive = checks.filter((c) => !c.status || c.status === 429 || c.status === 403)
+    // Probes are anonymous by design (like Googlebot): a login wall (401) is unverifiable, not broken.
+    const inconclusive = checks.filter((c) => !c.status || c.status === 401 || c.status === 403 || c.status === 429)
     const failures = checks.filter((c) => c.redirectChain?.loop || c.redirectChain?.capped ||
       (!inconclusive.includes(c) && (c.status >= 400 || (c.status >= 300 && c.status < 400))))
     const redirecting = checks.filter((c) => c.redirectChain?.redirected)

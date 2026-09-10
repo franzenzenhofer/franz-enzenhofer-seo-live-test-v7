@@ -1,5 +1,6 @@
 import { getDomPath } from './dom-path'
 import { factByteSize, INTERNAL_LINK_CANDIDATE_BYTE_BUDGET } from './domFacts.budget'
+import { unsafeProbeReason } from './probeSafety'
 
 export type InternalLinkCandidate = { url: string; domPath: string }
 export const INTERNAL_LINK_SAMPLE_SIZE = 5
@@ -10,7 +11,8 @@ const internalUrlForHost = (href: string, host: string, baseUri: string): string
     const url = new URL(href, baseUri)
     if (!['http:', 'https:'].includes(url.protocol) || url.host !== host) return null
     url.hash = ''
-    return url.href
+    // Back-office, action and token links are never sampled: requesting one IS the action.
+    return unsafeProbeReason(url.href) ? null : url.href
   } catch { return null }
 }
 

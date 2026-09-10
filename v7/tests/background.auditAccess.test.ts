@@ -48,6 +48,19 @@ describe('audit authorization', () => {
     expect(await authorizeAudit(sender({ url: 'https://www.google.com/search?q=x' }))).toBe(false)
   })
 
+  it('refuses a CMS back office and tells the panel why, once per document', async () => {
+    const admin = sender({ url: 'https://example.test/wp-admin/edit.php' })
+    expect(await authorizeAudit(admin)).toBe(false)
+    const first = local['results-meta:7'] as { runId: string; status: string }
+    expect(await authorizeAudit(admin)).toBe(false)
+    expect(await isAuthorizedDocument(admin)).toBe(false)
+    expect(local['results:7']).toEqual([expect.objectContaining({
+      ruleId: 'system:cms-backend', type: 'info', message: expect.stringMatching(/^Not tested: WordPress admin/),
+    })])
+    expect(first.status).toBe('skipped')
+    expect((local['results-meta:7'] as { runId: string }).runId).toBe(first.runId)
+  })
+
   it('refuses non-http documents', async () => {
     expect(await authorizeAudit(sender({ url: 'chrome://newtab/' }))).toBe(false)
   })

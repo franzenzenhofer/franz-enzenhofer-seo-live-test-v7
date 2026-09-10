@@ -63,5 +63,17 @@ export default [
     files: ['src/cli/runner.ts'],
     rules: { 'import/order': 'off' },
   },
+  {
+    // Page-derived URLs are requested only through shared/probeFetch.ts: anonymous
+    // (credentials: 'omit') and never a CMS back-office, action or token URL.
+    files: ['src/rules/**/*.ts', 'src/shared/**/*.ts', 'src/offscreen/**/*.ts', 'src/content/**/*.ts'],
+    ignores: ['src/shared/probeFetch.ts', 'src/shared/psi.ts', 'src/shared/validation-psi.ts', 'src/shared/auth.ts', 'src/rules/google/**'],
+    rules: {
+      'no-restricted-syntax': ['error', {
+        selector: "CallExpression[callee.name='fetch']",
+        message: 'Request page-derived URLs with anonymousFetch from @/shared/probeFetch.',
+      }],
+    },
+  },
 
 ]

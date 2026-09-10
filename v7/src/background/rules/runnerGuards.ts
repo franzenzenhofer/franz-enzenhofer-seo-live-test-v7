@@ -2,11 +2,11 @@ import type { Run } from '../pipeline/types'
 
 import type { RunState } from './runState'
 import type { RuleResult } from './types'
-import { updateRunState } from './runState'
+import { CMS_BACKEND_RULE, recordSkippedRun } from './skippedRun'
 
 import { isUrlBlocked } from '@/shared/blocklist'
 import { log } from '@/shared/logs'
-import { appendRunHistory } from '@/shared/runHistory'
+import { pageSkipMessage, unsafePageReason } from '@/shared/probeSafety'
 import { writeRunMeta } from '@/shared/runMeta'
 
 type GuardResult = { stop: boolean; status: 'skipped' | 'error'; runState?: RunState }
@@ -46,25 +46,16 @@ export const applyRunGuards = async ({
     await writeRunMeta(tabId, { url: pageUrl || '', ranAt: runTimestamp, runId: runState.runId, status: 'error' })
     return { stop: true, status: 'error' }
   }
+  const skipped = (result: { ruleId: string; what: string; message: string }) =>
+    recordSkippedRun({ tabId, url: pageUrl, resultsKey, result, runState, ranAt: runTimestamp })
   const { blocked, matched } = pageUrl ? await isUrlBlocked(pageUrl) : { blocked: false, matched: undefined as string | undefined }
   if (blocked) {
-    const res: RuleResult[] = [{
-      name: 'system:blocklist',
-      label: 'Runner',
-      type: 'info',
-      message: `Run skipped on blocked URL${matched ? ` (${matched})` : ''}. Update the blocklist in Settings to allow this page.`,
-      runIdentifier: runState.runId,
-      ruleId: 'system:blocklist',
-      what: 'Blocklist',
-      priority: -4000,
-    }]
-    await chrome.storage.local.set({ [resultsKey]: res })
-    const updated = updateRunState(runState, { status: 'skipped', completedAt: new Date().toISOString(), resultCount: res.length })
-    await writeRunMeta(tabId, { url: pageUrl || '', ranAt: runTimestamp, runId: runState.runId, status: 'skipped' })
-    await appendRunHistory(updated)
-    await log(tabId, `runner:blocklisted tab=${tabId} runId=${runState.runId} url=${pageUrl || '(none)'} matched=${matched || 'none'}`)
-    return { stop: true, status: 'skipped', runState: updated }
+    const message = `Run skipped on blocked URL${matched ? ` (${matched})` : ''}. Update the blocklist in Settings to allow this page.`
+    return { stop: true, status: 'skipped', runState: await skipped({ ruleId: 'system:blocklist', what: 'Blocklist', message }) }
   }
+  // Also for a URL that changed after the audit was authorized (e.g. a redirect into wp-admin).
+  const unsafe = pageUrl ? unsafePageReason(pageUrl) : null
+  if (unsafe) return { stop: true, status: 'skipped', runState: await skipped({ ...CMS_BACKEND_RULE, message: pageSkipMessage(unsafe) }) }
   if (!hasDom) {
     await Promise.all([
       log(tabId, `runner:skip tab=${tabId} runId=${runState.runId} no-dom ev=${run.ev.length} url=${pageUrl || '(none)'}`),

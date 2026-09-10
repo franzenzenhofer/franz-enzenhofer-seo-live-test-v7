@@ -1,4 +1,5 @@
 import { abortReason, throwIfAborted } from './abort'
+import { assertSafeProbe } from './probeSafety'
 
 type Waiter = { start: () => void; reject: (error: Error) => void }
 type OriginState = { active: number; queue: Waiter[]; until: number }
@@ -24,6 +25,7 @@ export const withSiteProbe = async <T>(url: string, signal: AbortSignal | undefi
   throwIfAborted(signal)
   const origin = new URL(url).origin
   if (!/^https?:$/.test(new URL(url).protocol)) throw new Error('Only HTTP(S) probes are supported')
+  assertSafeProbe(url)
   for (const [key, value] of origins) {
     if (!value.active && !value.queue.length && value.until <= Date.now()) origins.delete(key)
   }

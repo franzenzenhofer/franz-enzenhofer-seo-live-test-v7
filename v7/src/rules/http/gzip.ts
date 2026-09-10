@@ -2,6 +2,7 @@ import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
 import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 import { normalizeUrl } from '@/shared/url-utils'
+import { anonymousFetch } from '@/shared/probeFetch'
 
 const LABEL = 'HTTP'
 const NAME = 'Gzip/Brotli Compression'
@@ -29,7 +30,7 @@ const normalizeHeaders = (headers?: Record<string, string>): Record<string, stri
   Object.fromEntries(Object.entries(headers || {}).map(([k, v]) => [k.toLowerCase(), v]))
 const fetchHeadHeaders = async (url: string, signal?: AbortSignal) => {
   try {
-    const r = await fetch(url, { method: 'HEAD', redirect: 'follow', signal })
+    const r = await anonymousFetch(url, { method: 'HEAD', redirect: 'follow', signal })
     const h: Record<string, string> = {}
     r.headers.forEach((v, k) => { h[k.toLowerCase()] = v })
     return h

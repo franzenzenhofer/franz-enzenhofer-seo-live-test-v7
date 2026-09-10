@@ -1,6 +1,7 @@
 import { abortScope } from './abort'
 import { enrichFromEvents } from './page.enrich'
 import { discardBody, hasHeaders } from './http-utils'
+import { anonymousFetch } from './probeFetch'
 
 import type { Page } from '@/core/types'
 import type { EventRec } from '@/background/pipeline/types'
@@ -16,10 +17,10 @@ const PROBE_TIMEOUT_MS = 5_000
 const head: Probe = async (url, signal) => {
   const scope = abortScope(PROBE_TIMEOUT_MS, signal, 'Page header probe timed out')
   try {
-    let r = await fetch(url, { method: 'HEAD', redirect: 'follow', signal: scope.signal })
+    let r = await anonymousFetch(url, { method: 'HEAD', redirect: 'follow', signal: scope.signal })
     if (r.status === 405 || r.status === 501) {
       discardBody(r)
-      try { r = await fetch(url, { method: 'GET', redirect: 'follow', signal: scope.signal }) } catch { /* ignore */ }
+      try { r = await anonymousFetch(url, { method: 'GET', redirect: 'follow', signal: scope.signal }) } catch { /* ignore */ }
     }
     discardBody(r)
     const h: Record<string, string> = {}

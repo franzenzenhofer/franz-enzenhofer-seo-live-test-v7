@@ -72,11 +72,23 @@ export type RunSnapshot = {
   results: Array<{ type: string; ruleId?: string; message: string; details?: Record<string, unknown> }>
 }
 
+// Chrome also runs its own component extensions, whose workers have no
+// chrome.tabs - "the first chrome-extension:// worker" is not necessarily ours.
+const workerScript = (): string =>
+  (JSON.parse(fs.readFileSync(path.join(dist, 'manifest.json'), 'utf8')) as { background: { service_worker: string } }).background.service_worker
+const isOwnWorker = (url: string): boolean => url.startsWith('chrome-extension://') && url.endsWith(`/${workerScript()}`)
+
+export const extensionWorker = async (context: BrowserContext) =>
+  context.serviceWorkers().find((candidate) => isOwnWorker(candidate.url()))
+    || await context.waitForEvent('serviceworker', { predicate: (candidate) => isOwnWorker(candidate.url()), timeout: 10_000 }).catch(() => null)
+
 export const readRunSnapshot = async (context: BrowserContext, targetUrl: string): Promise<RunSnapshot | null> => {
-  const worker = context.serviceWorkers().find((candidate) => candidate.url().startsWith('chrome-extension://'))
-    || await context.waitForEvent('serviceworker', { timeout: 10_000 }).catch(() => null)
+  const worker = await extensionWorker(context)
   if (!worker) return null
   return worker.evaluate(async (url) => {
+    // A worker that has just started can be reachable before its extension
+    // bindings are: report "no snapshot yet" instead of failing the poll.
+    if (!chrome?.tabs || !chrome.storage) return null
     const tab = (await chrome.tabs.query({})).find((candidate) => candidate.url === url)
     if (!tab?.id) return null
     const resultKey = `results:${tab.id}`
