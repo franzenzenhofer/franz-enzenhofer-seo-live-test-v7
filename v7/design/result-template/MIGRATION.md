@@ -51,10 +51,11 @@ This supersedes every earlier instruction to stop after five or ten rules. Conti
 | `head:meta-viewport` | `400f5ab` |
 | `head:meta-charset` | `f89aa6e` |
 | `og-title` | `8df4a0d` |
+| `og:description` | `5982688` |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
-All eight Discover rules are now migrated. Shared lint, lifecycle, search and copy integration committed as `d39231a` (7.0.227). Current individual migration: `og:description`. Reviewed/prepared patches waiting for individual application and full verification (not yet migrated just because a patch exists):
+All eight Discover rules are now migrated. Shared lint, lifecycle, search and copy integration committed as `d39231a` (7.0.227). Current individual migration: `og:url`. Reviewed/prepared patches waiting for individual application and full verification (not yet migrated just because a patch exists):
 
 - `/tmp/meta-keywords-migration.patch`, `/tmp/meta-viewport-migration.patch`, `/tmp/meta-charset-migration.patch` — parent read all three. Remove duplicate capture/content values before applying; charset should retain an inspected invalid http-equiv element even when no declaration is selected.
 - `/tmp/og-title-migration.patch`, `/tmp/og-description-migration.patch`, `/tmp/og-url-migration.patch`, `/tmp/og-image-migration.patch` — ready, parent review pending.
