@@ -196,37 +196,41 @@ Default rules audited from `f19n-obtrusive-livetest/src/public/default-rules/*.j
   - Audit rules that inadvertently use idle DOM when they should use static: search for `domIdleDoc` once added to rules to ensure intent.
 
 ## Gaps to close for 100% parity (actionable checklist)
+Status re-verified against `rules.inventory.json` on 2026-09-10. Only one item is still open.
+
 ### HTML/DOM rules
-- [ ] Add rule: parameterized links diff (legacy `dom-static-idle-parameterized-href`): compare `page.doc` vs `page.domIdleDoc` for internal `href*='?'`, report idle-only additions and counts.
-- [ ] Add rule: parameterized links static vs idle (legacy `idle-static-body-parameterized-links`): count param links in both DOMs, warn on many and static-only extras.
-- [ ] Add rule: robots-blocked internal resources from DOM (legacy `static-idle-robotstxt-blocked-ressources`): collect internal `src` from static+idle DOM, test against robots.txt with Googlebot UA.
-- [ ] Ensure DOM size/depth rules use static DOM (current `dom:node-count`/`dom:node-depth` already static).
+- [x] Parameterized links diff (legacy `dom-static-idle-parameterized-href`) - `dom:parameterized-links-diff`.
+- [x] Parameterized links static vs idle (legacy `idle-static-body-parameterized-links`) - covered by `dom:parameterized-links-diff`.
+- [x] Robots-blocked internal resources from DOM (legacy `static-idle-robotstxt-blocked-ressources`) - `robots:blocked-resources`.
+- [x] DOM size/depth rules use the static DOM (`dom:node-count`, `dom:node-depth`).
 
 ### URL/redirect/canonical rules
-- [ ] Add rule: trailing slash live variant (legacy `url-with-without-trailing-slash`): fetch opposite trailing-slash version, evaluate status/redirect and canonical alignment.
-- [ ] Add rule: redirect+canonical chain detector (legacy `http-dom-detect-redirect-canonical-chains`): combine navigation ledger redirects + history state updates + canonical comparison; flag cache redirects and mismatches.
-- [ ] Enhance `url:history-state-update` if needed to mirror legacy messaging (already present).
+- [x] Trailing slash live variant (legacy `url-with-without-trailing-slash`) - `url:trailing-slash`.
+- [x] Redirect+canonical chain detector (legacy `http-dom-detect-redirect-canonical-chains`) - `http:redirect-canonical-chain`.
+- [x] `url:history-state-update` present.
 
 ### HTTP/transport rules
-- [ ] Add negotiated protocol detection (legacy `http-http2-detection`): report `nextHopProtocol` equivalent; today v7 only checks Alt-Svc advertising.
-- [ ] Add cache-delivery from browser cache (legacy `http-detect-classic-deliver-from-cache`): detect `fromCache` flag in navigation events; warn users.
-- [ ] Add soft-404 probe (legacy `http-sofft-404-check`): fetch random non-existent URL, inspect status/redirect; current v7 soft-404 only inspects current page content.
-- [ ] Decide header presence rule parity: choose between info/warn vs runtime_error when headers missing (review `http-status`/`http:gzip` behavior).
+- [x] Negotiated protocol detection (legacy `http-http2-detection`) - `http:negotiated-protocol`.
+- [x] Delivery from browser cache (legacy `http-detect-classic-deliver-from-cache`) - `http:from-cache`.
+- [x] Soft-404 probe (legacy `http-sofft-404-check`) - `http:soft-404` probes a random URL.
+- [x] Header presence parity - `http:headers-present`.
 
 ### Robots rules
-- [ ] Enhance `robots:complexity` to flag HTML-looking robots.txt and redirects (legacy did).
-- [ ] Ensure Googlebot URL check remains parity (already present).
+- [ ] **Open:** enhance `robots:complexity` to flag an HTML-looking robots.txt and redirects (legacy did; `src/rules/robots/complexity.ts` has no such check yet).
+- [x] Googlebot URL check - `robots:googlebot-url-check`.
 
 ### Mobile/PSI/API rules
-- [ ] Add Mobile Friendly Test API rule (legacy `mobile-friendly-test-async`).
-- [ ] Ensure PSI rules satisfy legacy metrics (v7 FCP/TBT vs legacy FCP/FID); decision required on adding an FID variant.
+- [x] Mobile Friendly Test API rule - dropped on purpose: Google retired the API; the rule was removed in 16fd605.
+- [x] FID variant - not applicable: "INP has replaced FID as a Core Web Vital metric, Chrome is officially
+  deprecating support for FID" (https://web.dev/blog/inp-cwv-launch, "What's changing today").
 
 ### Internal links
-- [ ] Add link status checker (legacy `static-internal-links-check`): sample internal links, fetch, report status distribution/redirects; configurable limits/domains.
+- [x] Link status checker (legacy `static-internal-links-check`) - `body:internal-link-status`. Since 2026-09-10 it
+  never samples CMS back-office, action or token links, and probes anonymously (see RUNBOOK.md, "Add a new fetch").
 
 ### Debug/UX
-- [ ] Add optional debug full page object output (legacy `debug-stringify-page-object`) gated by config.
-- [ ] Decision required: include or omit promo rule (legacy `a-promotion-for-reviews`).
+- [x] Debug full page object output (legacy `debug-stringify-page-object`) - `debug:page-object`, gated by `ui:debug`.
+- [x] Promo rule (legacy `a-promotion-for-reviews`) - intentionally omitted.
 
 ## Coverage tags (where parity is DONE vs TODO)
 - DONE (legacy behavior covered): title/meta robots/googlebot/keywords/viewport/shortlink/amp/canonical presence & self/absolute, hreflang presence/duplicates + multipage self/back-reference with status/redirect checks, brand-in-title, og:title/desc/url/image presence with og:url vs canonical/location, meta unavailable_after (DOM + header), H1 presence, nofollow, linked images alt/text, ld+json count, top words, node count/depth, robots.txt exists/sitemap ref/Googlebot URL, client-side rendering heuristic (now static vs idle), GSC queries, PSI, speed blocking scripts/preload/preconnect/dns-prefetch, security headers, HTTPS scheme, alt-svc advertise H2/H3, cache Age, navigation ledger-based redirect loop/efficiency/path, twitter card, schema rules, discover signals, google auth check.
