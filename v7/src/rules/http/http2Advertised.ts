@@ -1,3 +1,4 @@
+import { headerValue, advertisedProtocol } from '@/shared/headerValue'
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
 import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
@@ -12,6 +13,10 @@ export const http2AdvertisedRule: Rule = {
   enabled: true,
   what: 'http',
   meta: {
+    userGuide: {
+      check: "Reports whether the server advertises HTTP/2 in Alt-Svc, an alternative-service response header. Advertisement does not establish which protocol this load actually used, and absence does not prove a lack of support.",
+      action: "Use the negotiated-protocol result to see this load. If you intend to advertise HTTP/2, check the server or CDN configuration and verify that the advertised endpoint works.",
+    },
     provenance: 'standard',
     references: [
       'https://www.rfc-editor.org/rfc/rfc7838.html#section-3',
@@ -21,13 +26,12 @@ export const http2AdvertisedRule: Rule = {
   },
   async run(page) {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
-    const altSvcHeader = page.headers?.['alt-svc']?.trim() || ''
-    const altSvcLower = altSvcHeader.toLowerCase()
-    const advertisesHttp2 = /\bh2\b|h2=/.test(altSvcLower)
+    const altSvcHeader = headerValue(page.headers, 'alt-svc')
+    const advertisesHttp2 = advertisedProtocol(altSvcHeader, 'h2')
     const message = advertisesHttp2
-      ? `Alt-Svc advertises HTTP/2: ${altSvcHeader}`
+      ? 'The server advertises HTTP/2 as an alternative service.'
       : altSvcHeader
-        ? `Alt-Svc present but no HTTP/2: ${altSvcHeader}`
+        ? 'Alt-Svc is present without an HTTP/2 advertisement.'
         : 'No Alt-Svc advertisement captured. This does not determine HTTP/2 support; see the negotiated protocol.'
     return {
       label: LABEL,
@@ -36,7 +40,6 @@ export const http2AdvertisedRule: Rule = {
       type: 'info',
       priority: advertisesHttp2 ? 750 : 850,
       details: {
-        httpHeaders: page.headers || {},
         snippet: extractSnippet(altSvcHeader || '(not present)'),
         altSvcHeader,
         advertisesHttp2,

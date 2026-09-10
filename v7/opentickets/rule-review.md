@@ -7,7 +7,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | Rule | Baseline result | Review status | Commit |
 | --- | --- | --- | --- |
 | `http:alt-svc-other` | info | Reviewed: advertised IDs, clear and unparsed states retain the full header; added protocol names and advertisement-versus-usage distinction; existing quic/clear fixtures retained | `0a0282e` |
-| `google:amp-cache-url` | info | Reviewed absence, relative destinations and invalid declarations; named URLs, source evidence, conditional remedies and focused fixtures. | This rule commit |
+| `google:amp-cache-url` | info | Reviewed absence, relative destinations and invalid declarations; named URLs, source evidence, conditional remedies and focused fixtures. | `8481328` |
 | `head:amphtml` | info | Reviewed absence, relative destinations and invalid declarations; named URLs, source evidence, conditional remedies and focused fixtures. | `7ff4af5` |
 | `discover:article-structured-data` | warn | Fixed: optional markup, BlogPosting coverage, exact matching script, incomplete parse explanation; absence/presence/malformed copy tests | `4563095` |
 | `discover:author` | warn | Fixed: all named authors and exact sources, optional metadata, unresolved identity limits; multi-author/absent/malformed copy tests | `cf79561` |
@@ -43,7 +43,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:headers-present` | info | Pending | |
 | `http:has-header` | info | Reviewed: requested, present and missing lists remain fully copied; added custom-requirement scope and configuration/server remedy; existing all-present/missing fixtures retained | `253d632` |
 | `http-status` | runtime_error | Fixed: named statuses, affected page URL, status-specific remedies, cache revalidation and unavailable evidence; context registration and copy tests | `0a0fba4` |
-| `http:h2-advertised` | info | Pending | |
+| `http:h2-advertised` | info | Reviewed missing capture, valid and malformed evidence; explanatory units and scope; existing and focused boundary fixtures. | This rule commit |
 | `http:h3-advertised` | info | Pending | |
 | `http:https-scheme` | ok | Pending | |
 | `body:images-lazy` | info | Reviewed and fixed: named per-image loading instructions replace concatenated HTML; explicit eager default and viewport limits; existing mixed/default fixtures retained | `83ee1ac` |
