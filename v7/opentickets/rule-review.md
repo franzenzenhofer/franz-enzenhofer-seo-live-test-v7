@@ -32,7 +32,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `google:is-connected` | info | Pending | |
 | `robots:googlebot-url-check` | ok | Pending | |
 | `gsc:url-inspection` | runtime_error | Pending | |
-| `http:gzip` | ok | Pending | |
+| `http:gzip` | ok | Reviewed: exact encoding, source and complete headers remain available; added purpose, measurement limits and server/CDN remedy; removed irrelevant browser-version detail; existing encoding/probe fixtures retained | This rule commit |
 | `body:h1` | ok | Reviewed and fixed: multiple headings now include their text with locations; purpose and missing/empty remediation; existing single/multiple/empty/missing fixtures retained | `966acd5` |
 | `discover:headline-length` | info | Pending | |
 | `gsc:is-indexed` | runtime_error | Pending | |
@@ -41,7 +41,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:hreflang-multipage` | info | Pending | |
 | `head:hreflang-values` | info | Pending | |
 | `http:headers-present` | info | Pending | |
-| `http:has-header` | info | Reviewed: requested, present and missing lists remain fully copied; added custom-requirement scope and configuration/server remedy; existing all-present/missing fixtures retained | This rule commit |
+| `http:has-header` | info | Reviewed: requested, present and missing lists remain fully copied; added custom-requirement scope and configuration/server remedy; existing all-present/missing fixtures retained | `253d632` |
 | `http-status` | runtime_error | Fixed: named statuses, affected page URL, status-specific remedies, cache revalidation and unavailable evidence; context registration and copy tests | `0a0fba4` |
 | `http:h2-advertised` | info | Pending | |
 | `http:h3-advertised` | info | Pending | |

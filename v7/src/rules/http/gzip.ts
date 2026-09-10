@@ -11,7 +11,7 @@ const RULE_ID = 'http:gzip'
 const KNOWN_ENCODINGS: Record<string, { note: string; accepted: boolean }> = {
   br: { note: 'Brotli (modern, recommended)', accepted: true },
   gzip: { note: 'Gzip (widely supported, recommended)', accepted: true },
-  zstd: { note: 'Zstandard (modern; Chrome/Edge 123+, Firefox 126+, Safari 26+)', accepted: true },
+  zstd: { note: 'Zstandard compression', accepted: true },
   deflate: { note: 'Deflate (legacy but accepted; prefer gzip or Brotli)', accepted: true },
   compress: { note: 'LZW compress (obsolete)', accepted: false },
   identity: { note: 'identity (no compression)', accepted: false },
@@ -45,6 +45,10 @@ export const gzipRule: Rule = {
   enabled: true,
   what: 'http',
   meta: {
+    userGuide: {
+      check: "Reads Content-Encoding for the main document to identify response compression. Compression reduces transferred text bytes; this check does not measure the savings or validate every resource. Header source identifies whether the evidence was captured or re-probed.",
+      action: "Enable an appropriate supported text-compression format in the server or CDN and verify the response’s Content-Encoding. Avoid recompressing formats already compressed, and review the listed encoding if it is unknown or obsolete.",
+    },
     provenance: 'google',
     references: [
       'https://developer.chrome.com/docs/lighthouse/performance/uses-text-compression',
