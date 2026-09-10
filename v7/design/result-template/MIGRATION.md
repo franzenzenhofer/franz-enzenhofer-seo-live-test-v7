@@ -48,10 +48,11 @@ This supersedes every earlier instruction to stop after five or ten rules. Conti
 | `discover:published-time` | `dfb24fc` |
 | `http-status` | `44868e1` |
 | `head:meta-keywords` | `f3dc777` |
+| `head:meta-viewport` | `400f5ab` |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
-All eight Discover rules are now migrated. Shared lint, lifecycle, search and copy integration committed as `d39231a` (7.0.227). Current individual migration: `head:meta-viewport`. Reviewed/prepared patches waiting for individual application and full verification (not yet migrated just because a patch exists):
+All eight Discover rules are now migrated. Shared lint, lifecycle, search and copy integration committed as `d39231a` (7.0.227). Current individual migration: `head:meta-charset`. Reviewed/prepared patches waiting for individual application and full verification (not yet migrated just because a patch exists):
 
 - `/tmp/meta-keywords-migration.patch`, `/tmp/meta-viewport-migration.patch`, `/tmp/meta-charset-migration.patch` — parent read all three. Remove duplicate capture/content values before applying; charset should retain an inspected invalid http-equiv element even when no declaration is selected.
 - `/tmp/og-title-migration.patch`, `/tmp/og-description-migration.patch`, `/tmp/og-url-migration.patch`, `/tmp/og-image-migration.patch` — ready, parent review pending.
@@ -74,4 +75,4 @@ The current `SPEC.md` and `LINTING.md` are the detailed contract. `index.html` i
 
 ## Power-management note (2026-09-11)
 
-Viewport verification at version 7.0.230 passed unit gates but browser tests timed out during a confirmed 1016-second system sleep (`pmset` log). No commit was made. A temporary `caffeinate -is` process is running in exec session 56677 to prevent idle sleep while this long task is active; display sleep is not blocked. Full verification is being rerun. Keep the final explicit shutdown condition: only after all migrations, final build, tests and commits.
+Viewport verification at version 7.0.230 passed unit gates but browser tests timed out during a confirmed 1016-second system sleep (`pmset` log). No commit was made. A temporary `caffeinate -is` process is running in exec session 56677 to prevent idle sleep while this long task is active; display sleep is not blocked. Full verification rerun passed and viewport committed as `400f5ab` in 7.0.231. Keep the final explicit shutdown condition: only after all migrations, final build, tests and commits.
