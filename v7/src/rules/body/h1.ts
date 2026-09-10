@@ -1,60 +1,31 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, stripAttributesDeep } from '@/shared/html-utils'
-import { getDomPath, getDomPaths } from '@/shared/dom-path'
 import { sampleElements } from '@/shared/domEvidence'
-
-const LABEL = 'BODY', NAME = 'H1 Present', RULE_ID = 'body:h1'
+import { textField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
 
 export const h1Rule: Rule = {
-  id: RULE_ID,
-  name: NAME,
-  enabled: true,
-  what: 'static',
+  id: 'body:h1', name: 'H1 headings', presentation: 1, enabled: true, what: 'static',
   meta: {
-    userGuide: {
-      check: 'Checks text in the page’s top-level headings. A heading helps readers identify the main subject; several h1 elements are not automatically an error. Image alternative text is not evaluated here.',
-      action: 'Add a meaningful visible main heading or fill the empty heading in the page template. Use heading levels to describe the content structure, not just to control font size.',
-    },
     provenance: 'general',
-    references: [
-      'https://html.spec.whatwg.org/multipage/sections.html#headings-and-outlines-2',
-      'https://developers.google.com/search/docs/fundamentals/seo-starter-guide',
-    ],
-    description: 'Warns on a missing or empty h1; reports multiple h1 elements as info (HTML permits several top-level headings); ok on exactly one with text.',
+    references: ['https://html.spec.whatwg.org/multipage/sections.html#headings-and-outlines-2', 'https://developers.google.com/search/docs/fundamentals/seo-starter-guide'],
+    description: 'Counts H1 elements and empty text; missing or all-empty headings warn, multiple non-empty headings are informational.',
   },
   async run(page) {
-    const { sample: nodes, total: count, shown, truncated } = sampleElements(page.doc.querySelectorAll('h1'))
-    const header = { ruleId: RULE_ID, label: LABEL, name: NAME, what: 'static' } as const
-    if (count === 0) {
-      return { ...header, message: 'No <h1> found.', type: 'warn', priority: 0 }
-    }
-    if (count > 1) {
-      // WHATWG explicitly permits multiple top-level headings, so this is a fact, not a fault.
-      return {
-        ...header,
-        message: `${count} <h1> elements found.`,
-        type: 'info',
-        priority: 700,
-        details: { headings: nodes.map((node) => ({ text: (node.textContent || '').trim() || '(no text)', domPath: getDomPath(node) })), domPaths: getDomPaths(nodes), count, shown, truncated },
-      }
-    }
-    const node = nodes[0]!
-    const text = (node.textContent || '').replace(/\s+/g, ' ').trim()
-    if (!text) {
-      return {
-        ...header,
-        message: '<h1> is empty.',
-        type: 'warn',
-        priority: 200,
-        details: { snippet: stripAttributesDeep(node), sourceHtml: extractHtml(node), domPath: getDomPath(node) },
-      }
-    }
-    return {
-      ...header,
-      message: '1 <h1> found.',
-      type: 'ok',
-      priority: 1000,
-      details: { h1: text, snippet: stripAttributesDeep(node), sourceHtml: extractHtml(node), domPath: getDomPath(node) },
-    }
+    const nodes = page.doc.querySelectorAll('h1')
+    const { sample, total } = sampleElements(nodes)
+    let empty = 0
+    nodes.forEach((node) => { if (!(node.textContent || '').trim()) empty++ })
+    const type = !total || empty === total ? 'warn' : total === 1 ? 'ok' : 'info'
+    const captured = markupEvidence(sample, '<h1>')
+    return presentResult(h1Rule, page, {
+      input: 'Static DOM', type, priority: type === 'ok' ? 1000 : type === 'info' ? 700 : total ? 200 : 0,
+      values: [textField('H1 elements', total), ...(empty ? [textField('Empty headings', empty)] : []),
+        ...(total === 1 && captured.markup[0] ? [{ ...captured.markup[0], key: '<h1>' }] : [])],
+      detailValues: sample.map((node, index) => textField(total === 1 ? 'Heading text' : `Heading ${index + 1} text`, node.textContent || '')),
+      checked: [textField('Selector', 'h1'), textField('Criterion', 'At least one element with non-empty trimmed text'), textField('Image alt text', 'Not evaluated')],
+      evidence: [{ name: 'Capture', fields: [textField('Elements retained', sample.length), textField('Elements omitted', total - sample.length), ...captured.fields] }],
+      markup: captured.markup, noMarkup: total ? 'Complete original heading markup not retained' : 'No H1 element found',
+    })
   },
 }

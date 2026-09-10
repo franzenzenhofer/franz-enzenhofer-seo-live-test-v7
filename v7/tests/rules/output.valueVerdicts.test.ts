@@ -42,8 +42,8 @@ describe('verdicts carry the judged value', () => {
 
   it('body:h1 carries the heading text under the h1 key', async () => {
     const res = await h1Rule.run(page('<body><h1>Welcome to the Test</h1></body>'), ctx)
-    expect(res.message).toBe('1 <h1> found.')
-    expect(res.details?.['h1']).toBe('Welcome to the Test')
+    expect(res.presentation?.values[0].value).toBe(1)
+    expect(res.presentation?.detailValues).toContainEqual({ key: 'Heading text', value: 'Welcome to the Test', kind: 'text' })
   })
 
   it('meta viewport carries the content value in its key', async () => {

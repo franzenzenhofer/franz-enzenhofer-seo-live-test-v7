@@ -298,7 +298,7 @@
   },
   {
     "id": "body:h1",
-    "name": "H1 Present",
+    "name": "H1 headings",
     "enabledByDefault": true,
     "what": "static",
     "provenance": "general",
