@@ -1,20 +1,12 @@
 import type { Rule } from '@/core/types'
-import { extractSnippet } from '@/shared/html-utils'
-import { getDomPath } from '@/shared/dom-path'
 import { boundedOpeningTag } from '@/shared/boundedHtml'
-
-const NOTE = 'The lang attribute aids accessibility (screen-reader pronunciation); Google determines page language from visible content, not from lang attributes.'
+import { textField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
 
 export const discoverPrimaryLanguageRule: Rule = {
-  id: 'discover:primary-language',
-  name: 'Primary language set',
-  enabled: true,
-  what: 'static',
+  id: 'discover:primary-language', name: 'Declared page language', presentation: 1, enabled: true, what: 'static',
   meta: {
-    userGuide: {
-      check: "Reads the language declared on the html element, which helps screen readers choose pronunciation. This presence check does not verify that the language code is valid or matches the page text.",
-      action: "Set the html element’s lang attribute to the actual primary language, for example en for English or de for German. Mark passages in other languages on their own elements. Change this in the page template so it is included consistently.",
-    },
     provenance: 'standard',
     references: [
       'https://html.spec.whatwg.org/multipage/dom.html#attr-lang',
@@ -25,24 +17,16 @@ export const discoverPrimaryLanguageRule: Rule = {
   async run(page) {
     const el = page.doc.documentElement
     const lang = (el.getAttribute('lang') || '').trim()
-    const sourceHtml = boundedOpeningTag(el)
-
-    return lang
-      ? {
-          label: 'DISCOVER',
-          message: `html[lang] set to '${lang}'`,
-          type: 'info',
-          priority: 800,
-          name: 'Primary language set',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), language: lang, note: NOTE },
-        }
-      : {
-          label: 'DISCOVER',
-          message: 'Missing lang attribute on <html> tag (HTML standard / accessibility)',
-          type: 'warn',
-          priority: 250,
-          name: 'Primary language set',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(el), language: null, note: NOTE },
-        }
+    const captured = markupEvidence([el], 'HTML element')
+    return presentResult(discoverPrimaryLanguageRule, page, {
+      input: 'Idle DOM', type: lang ? 'info' : 'warn', priority: lang ? 800 : 250,
+      values: [textField('Language (trimmed)', lang || 'Not declared or empty')],
+      detailValues: [textField('lang attribute', el.hasAttribute('lang') ? 'Present' : 'Absent'),
+        ...(!captured.markup.length ? [textField('Opening tag excerpt (reconstructed)', boundedOpeningTag(el))] : [])],
+      checked: [textField('Selector', 'html'), textField('Attribute', 'lang'), textField('Criterion', 'Non-empty value after trimming'),
+        textField('Language code validity', 'Not checked'), textField('Match with visible content', 'Not checked')],
+      evidence: captured.fields.length ? [{ name: 'Source location', fields: captured.fields }] : [],
+      markup: captured.markup, noMarkup: 'Complete original HTML element not retained; reconstructed opening tag excerpt shown separately',
+    })
   },
 }

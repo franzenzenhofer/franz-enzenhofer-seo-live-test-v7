@@ -82,12 +82,12 @@ describe('discover rules', () => {
     const p = { html:'', url:'', doc: D('<html lang="en"><body></body></html>') }
     const r = await discoverPrimaryLanguageRule.run(p as any, { globals: {} })
     expect((r as any).type).toBe('info')
-    expect(String((r as any).details.note)).toContain('visible content')
+    expect(r.presentation?.checked).toContainEqual(expect.objectContaining({ key: 'Match with visible content', value: 'Not checked' }))
   })
   it('missing lang warns as accessibility issue, not a Google signal', async () => {
     const p = { html:'', url:'', doc: D('<p>hi</p>') }
     const r = await discoverPrimaryLanguageRule.run(p as any, { globals: {} })
     expect((r as any).type).toBe('warn')
-    expect(String((r as any).details.note)).toContain('visible content')
+    expect(r.presentation?.checked).toContainEqual(expect.objectContaining({ key: 'Match with visible content', value: 'Not checked' }))
   })
 })

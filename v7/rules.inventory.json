@@ -193,6 +193,17 @@
     ]
   },
   {
+    "id": "discover:primary-language",
+    "name": "Declared page language",
+    "enabledByDefault": true,
+    "what": "static",
+    "provenance": "standard",
+    "references": [
+      "https://html.spec.whatwg.org/multipage/dom.html#attr-lang",
+      "https://dequeuniversity.com/rules/axe/4.4/html-has-lang"
+    ]
+  },
+  {
     "id": "gsc:directory-worldwide",
     "name": "Directory worldwide analytics",
     "enabledByDefault": true,
@@ -806,17 +817,6 @@
     "references": [
       "https://www.chromium.org/Home/chromium-security/marking-http-as-non-secure/",
       "https://developer.mozilla.org/en-US/docs/Web/Security/Insecure_passwords"
-    ]
-  },
-  {
-    "id": "discover:primary-language",
-    "name": "Primary language set",
-    "enabledByDefault": true,
-    "what": "static",
-    "provenance": "standard",
-    "references": [
-      "https://html.spec.whatwg.org/multipage/dom.html#attr-lang",
-      "https://dequeuniversity.com/rules/axe/4.4/html-has-lang"
     ]
   },
   {
