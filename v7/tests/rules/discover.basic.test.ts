@@ -58,10 +58,10 @@ describe('discover rules', () => {
     const r = await discoverIndexableRule.run(p as any, { globals: {} })
     expect((r as any).type).toBe('warn')
   })
-  it('og image wide enough via width metadata', async () => {
+  it('og image with missing height cannot pass the area check', async () => {
     const p = { html:'', url:'', doc: D('<meta property="og:image" content="https://ex.com/a.jpg"><meta property="og:image:width" content="2000">') }
     const r = await discoverOgImageLargeRule.run(p as any, { globals: {} })
-    expect((r as any).type).toBe('ok')
+    expect((r as any).type).toBe('warn')
   })
   it('og image 1280x720 passes width and total-pixel checks', async () => {
     const p = { html:'', url:'', doc: D('<meta property="og:image" content="https://ex.com/a.jpg"><meta property="og:image:width" content="1280"><meta property="og:image:height" content="720">') }

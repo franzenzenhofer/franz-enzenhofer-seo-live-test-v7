@@ -517,17 +517,6 @@
     ]
   },
   {
-    "id": "discover:og-image-large",
-    "name": "Large OG image (metadata)",
-    "enabledByDefault": true,
-    "what": "static",
-    "provenance": "google",
-    "references": [
-      "https://developers.google.com/search/docs/appearance/google-discover",
-      "https://ogp.me/"
-    ]
-  },
-  {
     "id": "http:link-header",
     "name": "Link Header",
     "enabledByDefault": true,
@@ -707,6 +696,17 @@
     "provenance": "standard",
     "references": [
       "https://ogp.me/#metadata"
+    ]
+  },
+  {
+    "id": "discover:og-image-large",
+    "name": "Open Graph image dimensions",
+    "enabledByDefault": true,
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/google-discover",
+      "https://ogp.me/"
     ]
   },
   {
