@@ -48,7 +48,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:https-scheme` | ok | Pending | |
 | `body:images-lazy` | info | Pending | |
 | `body:images-layout` | ok | Pending | |
-| `discover:indexable` | ok | Fixed: named applicable blockers, intentional exclusion guidance, permission vs actual indexing; body meta coverage; pass/block/other-crawler tests | This rule commit |
+| `discover:indexable` | ok | Fixed: named applicable blockers, intentional exclusion guidance, permission vs actual indexing; body meta coverage; pass/block/other-crawler tests | `e3d2451` |
 | `body:internal-link-status` | ok | Pending | |
 | `body:internal-links` | info | Pending | |
 | `discover:og-image-large` | warn | Pending | |
@@ -56,7 +56,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:link-header` | info | Pending | |
 | `a11y:linked-images-alt` | ok | Pending | |
 | `body:parameterized-links` | info | Pending | |
-| `discover:max-image-preview-large` | warn | Pending | |
+| `discover:max-image-preview-large` | warn | Fixed: permission vs eligibility, named conflicting sources, noimageindex, missing/limited/allowed states and complete UI/copy evidence tested | This rule commit |
 | `head:meta-charset` | ok | Pending | |
 | `head-meta-description` | ok | Pending | |
 | `head:meta-googlebot` | info | Pending | |

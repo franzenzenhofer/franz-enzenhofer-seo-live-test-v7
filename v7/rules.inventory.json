@@ -475,6 +475,17 @@
     ]
   },
   {
+    "id": "discover:max-image-preview-large",
+    "name": "Large image preview permission",
+    "enabledByDefault": true,
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/google-discover",
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag"
+    ]
+  },
+  {
     "id": "discover:og-image-large",
     "name": "Large OG image (metadata)",
     "enabledByDefault": true,
@@ -528,17 +539,6 @@
     "references": [
       "https://developers.google.com/search/docs/crawling-indexing/crawling-managing-faceted-navigation",
       "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
-    ]
-  },
-  {
-    "id": "discover:max-image-preview-large",
-    "name": "max-image-preview:large",
-    "enabledByDefault": true,
-    "what": "static",
-    "provenance": "google",
-    "references": [
-      "https://developers.google.com/search/docs/appearance/google-discover",
-      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag"
     ]
   },
   {
