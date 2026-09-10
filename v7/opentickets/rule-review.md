@@ -84,8 +84,8 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:redirect-loop` | ok | Pending | |
 | `http:redirect-canonical-chain` | info | Fixed: one named timeline, separate preferred URL meaning, no fake history response or duplicate trace dump, header-only fallback; rendered and copied journey fixture | `1274af3` |
 | `head:rel-alternate-media` | info | Pending | |
-| `speed:dns-prefetch` | info | Reviewed: target URLs and actual link markup retained; explained DNS lookup and optional hint applicability; existing target-count fixture retained | This rule commit |
-| `speed:preconnect` | info | Pending | |
+| `speed:dns-prefetch` | info | Reviewed: target URLs and actual link markup retained; explained DNS lookup and optional hint applicability; existing target-count fixture retained | `d042c53` |
+| `speed:preconnect` | info | Reviewed: full target list and source retained; explained prepared connections and absence without a false failure; existing target-count fixture retained | This rule commit |
 | `speed:link-preload` | info | Pending | |
 | `head:robots-agent-conflicts` | info | Pending | |
 | `head:robots-max-image-preview` | info | Pending | |

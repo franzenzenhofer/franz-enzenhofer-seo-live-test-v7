@@ -9,6 +9,10 @@ export const preconnectRule: Rule = {
   enabled: true,
   what: 'static',
   meta: {
+    userGuide: {
+      check: "A preconnect hint asks the browser to prepare a connection to an origin before a resource needs it. This lists declared hints; it does not prove that a connection was opened or that the hint improved loading.",
+      action: "Use preconnect for a small number of important origins needed early. Remove unused hints and configure crossorigin where required by the actual resource request; verify the effect in network timing.",
+    },
     provenance: 'standard',
     references: [
       'https://html.spec.whatwg.org/multipage/links.html#link-type-preconnect',
