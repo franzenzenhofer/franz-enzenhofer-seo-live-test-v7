@@ -29,7 +29,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `dom:node-count` | info | Reviewed: measurement method in walker and captured facts; added counted-node definition and no arbitrary score implication; existing nested-tree fixture retained | `a69ffba` |
 | `dom:node-depth` | info | Reviewed: depth convention and fallback traversal; added clear nesting meaning and diagnostic limits; existing nested-tree fixture retained | `f63e1fe` |
 | `speed:first-paint` | ok | Reviewed: FCP thresholds and first-paint-only/missing states retained; added metric meaning, units, single-run limits and investigation steps; existing boundary states retained | `83c6e60` |
-| `google:is-connected` | info | Pending | |
+| `google:is-connected` | info | Reviewed stored/missing credentials and Settings controls; states access-check limits and reconnect steps; existing credential fixture. | This rule commit |
 | `robots:googlebot-url-check` | ok | Pending | |
 | `gsc:url-inspection` | runtime_error | Pending | |
 | `http:gzip` | ok | Reviewed: exact encoding, source and complete headers remain available; added purpose, measurement limits and server/CDN remedy; removed irrelevant browser-version detail; existing encoding/probe fixtures retained | `ee0ae40` |
@@ -66,7 +66,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:unavailable-after` | info | Pending | |
 | `head:meta-viewport` | ok | Pending | |
 | `http:mixed-content` | ok | Reviewed: named offenders, exact attributes, working copy actions and code-level error semantics from 3261b17; added explicit collection scope; unit and headless offender fixtures retained | `286b757` |
-| `http:navigation-path` | info | Reviewed: named HTTP timeline, 308 meaning, actual destination outcome, separate history updates and complete copy from 3261b17; added purpose and intentional redirect guidance; unit and headless journey fixtures retained | This rule commit |
+| `http:navigation-path` | info | Reviewed: named HTTP timeline, 308 meaning, actual destination outcome, separate history updates and complete copy from 3261b17; added purpose and intentional redirect guidance; unit and headless journey fixtures retained | `38da089` |
 | `http:negotiated-protocol` | ok | Pending | |
 | `body:nofollow` | ok | Pending | |
 | `http:redirect-efficiency` | ok | Pending | |

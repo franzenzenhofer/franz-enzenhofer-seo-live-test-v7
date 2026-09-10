@@ -234,14 +234,6 @@
     ]
   },
   {
-    "id": "google:is-connected",
-    "name": "Google auth connected",
-    "enabledByDefault": true,
-    "what": "static",
-    "provenance": "franz",
-    "references": []
-  },
-  {
     "id": "discover:indexable",
     "name": "Google indexing permission",
     "enabledByDefault": true,
@@ -251,6 +243,14 @@
       "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag",
       "https://developers.google.com/search/docs/appearance/google-discover"
     ]
+  },
+  {
+    "id": "google:is-connected",
+    "name": "Google sign-in credentials",
+    "enabledByDefault": true,
+    "what": "static",
+    "provenance": "franz",
+    "references": []
   },
   {
     "id": "robots:googlebot-url-check",
