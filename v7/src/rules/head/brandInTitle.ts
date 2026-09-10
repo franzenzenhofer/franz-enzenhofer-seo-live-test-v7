@@ -26,6 +26,10 @@ export const brandInTitleRule: Rule = {
   enabled: true,
   what: 'static',
   meta: {
+    userGuide: {
+      check: "Looks for the configured brand text in the title. When no brand is configured, it guesses from the longest hostname part; that guess can be wrong. A missing match is a review suggestion, not proof that the title is incorrect.",
+      action: "First verify the brand shown in this result. If the hostname guess is wrong, configure the actual brand instead of changing the title to match a guess. Add accurate, concise branding to the title only where it helps readers.",
+    },
     provenance: 'franz',
     references: ['https://developers.google.com/search/docs/appearance/title-link'],
     description: 'Checks whether the configured brand (or longest hostname label as fallback) appears case-insensitively in the <title>.',
@@ -61,7 +65,7 @@ export const brandInTitleRule: Rule = {
       ? `Missing <title> tag. Cannot check brand "${extractSnippet(brand, 20)}".`
       : hasBrand
         ? `Title contains brand "${extractSnippet(brand, 20)}".`
-        : `Meta-Title does not include the brand "${brand}".`
+        : `Title does not contain brand "${brand}" (${brandSource === 'hostname' ? 'estimated from hostname' : 'configured brand'}).`
 
     const type: 'info' | 'warn' = hasBrand && !isTitleMissing ? 'info' : 'warn'
 

@@ -12,7 +12,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `discover:article-structured-data` | warn | Fixed: optional markup, BlogPosting coverage, exact matching script, incomplete parse explanation; absence/presence/malformed copy tests | `4563095` |
 | `discover:author` | warn | Fixed: all named authors and exact sources, optional metadata, unresolved identity limits; multi-author/absent/malformed copy tests | `cf79561` |
 | `speed:blocking-scripts` | warn | Pending | |
-| `head:brand-in-title` | warn | Pending | |
+| `head:brand-in-title` | warn | Reviewed and fixed: estimated-versus-configured brand is explicit in missing-match summary; full title and brand retained; added verify-the-guess guidance; existing configured/inferred fixtures retained | This rule commit |
 | `http:cache-delivery` | info | Pending | |
 | `head:canonical-noindex-conflict` | info | Pending | |
 | `head:canonical-hreflang-consistency` | info | Pending | |
@@ -34,7 +34,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `gsc:url-inspection` | runtime_error | Pending | |
 | `http:gzip` | ok | Reviewed: exact encoding, source and complete headers remain available; added purpose, measurement limits and server/CDN remedy; removed irrelevant browser-version detail; existing encoding/probe fixtures retained | `ee0ae40` |
 | `body:h1` | ok | Reviewed and fixed: multiple headings now include their text with locations; purpose and missing/empty remediation; existing single/multiple/empty/missing fixtures retained | `966acd5` |
-| `discover:headline-length` | info | Reviewed and fixed: missing versus empty heading wording; full headline and location preserved; added explicit heuristic limits and no-padding guidance; existing short/long fixtures retained | This rule commit |
+| `discover:headline-length` | info | Reviewed and fixed: missing versus empty heading wording; full headline and location preserved; added explicit heuristic limits and no-padding guidance; existing short/long fixtures retained | `06e9bc9` |
 | `gsc:is-indexed` | runtime_error | Pending | |
 | `url:history-state-update` | info | Reviewed: captured history and commit booleans in baseline and source; added history meaning and direct-load guidance; no detection logic changed | `20289b4` |
 | `head-hreflang` | info | Pending | |
