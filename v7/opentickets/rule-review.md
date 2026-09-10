@@ -79,8 +79,8 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `debug:page-summary` | Not in live run (review fixture/source) | Pending | |
 | `gsc:page-worldwide` | runtime_error | Pending | |
 | `dom:parameterized-links-diff` | ok | Pending | |
-| `discover:primary-language` | info | Pending | |
-| `discover:published-time` | warn | Fixed: optional dates, all declared values with exact sources, no fabricated modification dates; absent/published/multiple-source/copy/display tests | This rule commit |
+| `discover:primary-language` | info | Reviewed: language value and exact opening tag are visible and copied; added accessibility purpose, validation limits and template fix; existing present/missing fixtures retained | This rule commit |
+| `discover:published-time` | warn | Fixed: optional dates, all declared values with exact sources, no fabricated modification dates; absent/published/multiple-source/copy/display tests | `afd09e5` |
 | `http:redirect-loop` | ok | Pending | |
 | `http:redirect-canonical-chain` | info | Pending | |
 | `head:rel-alternate-media` | info | Pending | |

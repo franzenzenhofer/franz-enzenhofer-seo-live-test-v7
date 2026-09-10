@@ -11,6 +11,10 @@ export const discoverPrimaryLanguageRule: Rule = {
   enabled: true,
   what: 'static',
   meta: {
+    userGuide: {
+      check: "Reads the language declared on the html element, which helps screen readers choose pronunciation. This presence check does not verify that the language code is valid or matches the page text.",
+      action: "Set the html element’s lang attribute to the actual primary language, for example en for English or de for German. Mark passages in other languages on their own elements. Change this in the page template so it is included consistently.",
+    },
     provenance: 'standard',
     references: [
       'https://html.spec.whatwg.org/multipage/dom.html#attr-lang',
