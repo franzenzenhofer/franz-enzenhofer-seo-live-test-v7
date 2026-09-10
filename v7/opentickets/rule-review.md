@@ -19,7 +19,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:canonical-header` | info | Pending | |
 | `head:canonical-https-preference` | info | Pending | |
 | `head-canonical` | warn | Pending | |
-| `head:canonical-signals-conflict` | info | Pending | |
+| `head:canonical-signals-conflict` | info | Fixed: named HTML/header URL comparison, absent/single/matching/invalid states, specific template/server remedy; copy and invalid-input tests | This rule commit |
 | `head:canonical-tracking-params` | info | Pending | |
 | `head:canonical-nav-consistency` | info | Pending | |
 | `dom:client-side-rendering` | info | Pending | |
@@ -42,7 +42,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:hreflang-values` | info | Pending | |
 | `http:headers-present` | info | Pending | |
 | `http:has-header` | info | Pending | |
-| `http-status` | runtime_error | Fixed: named statuses, affected page URL, status-specific remedies, cache revalidation and unavailable evidence; context registration and copy tests | This rule commit |
+| `http-status` | runtime_error | Fixed: named statuses, affected page URL, status-specific remedies, cache revalidation and unavailable evidence; context registration and copy tests | `0a0fba4` |
 | `http:h2-advertised` | info | Pending | |
 | `http:h3-advertised` | info | Pending | |
 | `http:https-scheme` | ok | Pending | |

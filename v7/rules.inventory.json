@@ -139,17 +139,6 @@
     ]
   },
   {
-    "id": "head:canonical-signals-conflict",
-    "name": "Canonical signals conflict",
-    "enabledByDefault": true,
-    "what": "static",
-    "provenance": "google",
-    "references": [
-      "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",
-      "https://www.rfc-editor.org/rfc/rfc6596"
-    ]
-  },
-  {
     "id": "head:canonical-tracking-params",
     "name": "Canonical tracking params",
     "enabledByDefault": true,
@@ -370,6 +359,17 @@
     "provenance": "google",
     "references": [
       "https://developers.google.com/search/docs/specialty/international/localized-versions"
+    ]
+  },
+  {
+    "id": "head:canonical-signals-conflict",
+    "name": "HTML and HTTP canonical agreement",
+    "enabledByDefault": true,
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",
+      "https://www.rfc-editor.org/rfc/rfc6596"
     ]
   },
   {
