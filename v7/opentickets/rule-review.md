@@ -120,7 +120,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:from-cache` | info | Pending | |
 | `head:shortlink` | info | Reviewed absence, relative destinations and invalid declarations; named URLs, source evidence, conditional remedies and focused fixtures. | `98be397` |
 | `http:soft-404` | ok | Pending | |
-| `http:hsts` | ok | Pending | |
+| `http:hsts` | ok | Reviewed missing capture, valid and malformed evidence; explanatory units and scope; existing and focused boundary fixtures. | This rule commit |
 | `gsc:top-queries-of-page` | runtime_error | Reviewed API scope and missing/access/error/success branches; explicit Pacific dates and metric meaning; fixture checks with no live account claims. | `745ff6a` |
 | `dom:top-words` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | `7bacfed` |
 | `head:twitter-card` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | `b76d858` |
@@ -133,6 +133,6 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:vary-user-agent` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | `7493324` |
 | `gsc:property-available` | runtime_error | Reviewed access probes, cache limits, sign-in and success fixtures; preserves rule identity and distinguishes an unavailable probe from an absent property. | `678bcd5` |
 | `http:canonical-host-redirect` | info | Pending | |
-| `http:x-cache` | info | Reviewed missing capture, valid and malformed evidence; explanatory units and scope; existing and focused boundary fixtures. | This rule commit |
+| `http:x-cache` | info | Reviewed missing capture, valid and malformed evidence; explanatory units and scope; existing and focused boundary fixtures. | `171e4f7` |
 | `http:unavailable-after` | info | Pending | |
 | `http:x-robots` | info | Pending | |

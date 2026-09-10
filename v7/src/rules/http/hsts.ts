@@ -1,3 +1,4 @@
+import { headerValue } from '@/shared/headerValue'
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
 import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
@@ -7,12 +8,12 @@ const NAME = 'Strict-Transport-Security (HSTS)'
 const RULE_ID = 'http:hsts'
 const PRELOAD_MIN_MAX_AGE = 31536000
 
-const parseMaxAge = (header: string): number => {
-  for (const directive of header.split(';')) {
-    const match = directive.trim().match(/^max-age\s*=\s*"?(\d+)"?$/i)
-    if (match && match[1]) return parseInt(match[1], 10)
-  }
-  return 0
+const parseMaxAge = (header: string): number | null => {
+  const declarations = header.split(';').map(part => part.trim()).filter(part => /^max-age(?:\s|=|$)/i.test(part))
+  if (declarations.length !== 1) return null
+  const match = /^max-age\s*=\s*(?:"(\d+)"|(\d+))$/i.exec(declarations[0]!)
+  const value = match ? Number(match[1] || match[2]) : NaN
+  return Number.isSafeInteger(value) ? value : null
 }
 
 const isHttpsUrl = (url: string): boolean => {
@@ -29,6 +30,10 @@ export const hstsRule: Rule = {
   enabled: true,
   what: 'http',
   meta: {
+    userGuide: {
+      check: "HSTS tells browsers to keep using HTTPS for the stated number of seconds. It only takes effect over a secure HTTPS response. includeSubDomains extends the policy to subdomains; preload is a separate opt-in process.",
+      action: "If HTTPS is ready, configure a valid Strict-Transport-Security max-age value on HTTPS responses. Include subdomains only when they all support HTTPS. A max-age of 0 deliberately removes this host policy; verify whether that is intended before changing it.",
+    },
     provenance: 'general',
     references: [
       'https://www.rfc-editor.org/rfc/rfc6797',
@@ -41,7 +46,7 @@ export const hstsRule: Rule = {
   },
   async run(page) {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
-    const hstsHeader = page.headers?.['strict-transport-security']?.trim() || ''
+    const hstsHeader = headerValue(page.headers, 'strict-transport-security')
     const hasHsts = Boolean(hstsHeader)
     if (!hasHsts) {
       const https = isHttpsUrl(page.url)
@@ -54,7 +59,6 @@ export const hstsRule: Rule = {
         type: https ? 'warn' : 'info',
         priority: https ? 300 : 900,
         details: {
-          httpHeaders: page.headers || {},
           snippet: extractSnippet('(not present)'),
           hstsHeader: '',
           hasHsts: false,
@@ -64,12 +68,18 @@ export const hstsRule: Rule = {
     const maxAge = parseMaxAge(hstsHeader)
     const includeSubDomains = /(?:^|;)\s*includeSubDomains\s*(?:;|$)/i.test(hstsHeader)
     const preload = /(?:^|;)\s*preload\s*(?:;|$)/i.test(hstsHeader)
-    const preloadEligible = maxAge >= PRELOAD_MIN_MAX_AGE && includeSubDomains
+    const preloadEligible = maxAge !== null && maxAge >= PRELOAD_MIN_MAX_AGE && includeSubDomains
     let message = `HSTS: max-age=${maxAge}${includeSubDomains ? ', includeSubDomains' : ''}${preload ? ', preload' : ''}`
     let type: 'ok' | 'warn' = 'ok'
     let priority = 750
-    if (maxAge === 0) {
-      message = 'HSTS max-age=0: the policy is being removed; browsers stop enforcing HSTS for this host.'
+    if (!isHttpsUrl(page.url)) {
+      message = 'HSTS was sent over HTTP; browsers ignore this policy on an insecure response.'
+      type = 'warn'
+    } else if (maxAge === null) {
+      message = 'HSTS needs one valid max-age duration in whole seconds within the numeric range supported by this check.'
+      type = 'warn'
+    } else if (maxAge === 0) {
+      message = 'HSTS max-age=0 requests removal of this host policy. An inherited or preloaded HSTS policy may still apply.'
       type = 'warn'
       priority = 300
     } else if (preload && !preloadEligible) {
@@ -82,11 +92,12 @@ export const hstsRule: Rule = {
       type,
       priority,
       details: {
-        httpHeaders: page.headers || {},
         snippet: extractSnippet(hstsHeader),
         hstsHeader,
         hasHsts: true,
         maxAge,
+        durationUnit: 'seconds',
+        preloadStatus: 'The preload token does not prove acceptance into a browser preload list; eligibility and list membership were not checked.',
         includeSubDomains,
         preload,
       },

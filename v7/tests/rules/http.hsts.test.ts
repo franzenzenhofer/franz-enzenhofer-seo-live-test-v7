@@ -42,3 +42,23 @@ describe('rule: http hsts', () => {
     expect((r as any).message).toContain('preload requires')
   })
 })
+
+it('does not call malformed max-age a deliberate policy removal', async () => {
+  const result = await hstsRule.run(P({ 'Strict-Transport-Security': 'max-age=nope' }), { globals: {} })
+  expect(result.type).toBe('warn')
+  expect(result.message).toContain('valid max-age')
+  expect(result.message).not.toContain('being removed')
+})
+it('does not pass an HSTS policy delivered over insecure HTTP', async () => {
+  const result = await hstsRule.run(P({ 'strict-transport-security': 'max-age=31536000' }, 'http://example.test/'), { globals: {} })
+  expect(result.type).toBe('warn')
+  expect(result.message).toContain('browsers ignore')
+})
+
+it('rejects unmatched quotes and duplicate max-age declarations', async () => {
+  for (const value of ['max-age="60', 'max-age=60"', 'max-age=60; max-age=120']) {
+    const result = await hstsRule.run(P({ 'strict-transport-security': value }), { globals: {} })
+    expect(result.type).toBe('warn')
+    expect(result.details?.['maxAge']).toBeNull()
+  }
+})
