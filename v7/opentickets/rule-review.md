@@ -20,7 +20,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:canonical-https-preference` | info | Pending | |
 | `head-canonical` | warn | Pending | |
 | `head:canonical-signals-conflict` | info | Fixed: named HTML/header URL comparison, absent/single/matching/invalid states, specific template/server remedy; copy and invalid-input tests | `87e86af` |
-| `head:canonical-tracking-params` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | This rule commit |
+| `head:canonical-tracking-params` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | `4565ba3` |
 | `head:canonical-nav-consistency` | info | Pending | |
 | `dom:client-side-rendering` | info | Pending | |
 | `http:common-mobile-setup` | info | Reviewed: viewport text and source are retained; added presence-versus-usability distinction and optional icon meaning; existing viewport/icon fixtures retained | `7e8fea8` |
@@ -123,7 +123,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:hsts` | ok | Pending | |
 | `gsc:top-queries-of-page` | runtime_error | Reviewed API scope and missing/access/error/success branches; explicit Pacific dates and metric meaning; fixture checks with no live account claims. | `745ff6a` |
 | `dom:top-words` | info | Pending | |
-| `head:twitter-card` | info | Pending | |
+| `head:twitter-card` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | This rule commit |
 | `body:unsecure-input` | info | Pending | |
 | `robots:noindex-unsupported` | info | Pending | |
 | `url:trailing-slash` | warn | Pending | |

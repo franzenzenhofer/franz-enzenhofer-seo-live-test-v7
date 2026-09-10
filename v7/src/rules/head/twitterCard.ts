@@ -6,7 +6,7 @@ import { getDomPath } from '@/shared/dom-path'
 const LABEL = 'HEAD'
 const NAME = 'Twitter Card'
 const RULE_ID = 'head:twitter-card'
-const SELECTOR = 'head > meta[name="twitter:card"]'
+const SELECTOR = 'head > meta[name="twitter:card" i]'
 
 // Valid Twitter Card types per spec
 const VALID_CARD_TYPES = ['summary', 'summary_large_image', 'app', 'player']
@@ -17,6 +17,10 @@ export const twitterCardRule: Rule = {
   enabled: true,
   what: 'static',
   meta: {
+    userGuide: {
+      check: "Checks whether the declared X/Twitter card type matches the supported names in this rule. It does not fetch a preview or validate all image, app or player requirements.",
+      action: "For a standard link preview, set twitter:card to summary or summary_large_image in the page head and configure the corresponding preview metadata. Use app or player only with their required supporting fields.",
+    },
     provenance: 'general',
     references: ['https://web.archive.org/web/20240526100043/https://developer.x.com/en/docs/twitter-for-websites/cards/overview/markup'],
     description: 'Checks meta[name=twitter:card] presence and validates its value against {summary, summary_large_image, app, player}.',
@@ -39,7 +43,7 @@ export const twitterCardRule: Rule = {
     let priority = 700
 
     if (!isPresent) {
-      message = 'No twitter:card meta tag found. (Falls back to Open Graph tags)'
+      message = 'No twitter:card meta tag found. A preview may use suitable Open Graph metadata.'
       type = 'info'
       priority = 900
     } else if (!hasCardType) {
