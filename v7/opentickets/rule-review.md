@@ -1,6 +1,10 @@
 # Complete rule review
 
-Scope: all 130 registered rules. Review each rule before marking it complete. Commit each rule fix separately.
+Inventory: all 130 registered rules. Review each rule before marking it complete. Commit each rule fix separately.
+
+Requested stopping point (2026-09-10): complete five additional rules, then create and build a new version. Completed HTTPS scheme, cache delivery, X-Cache, HSTS and Article presence in separate commits. Remaining Pending entries are not claimed as reviewed; the complete 130-card visual review remains unfinished.
+
+Focused final-five visual check: rendered all five fixture cards at 420px and inspected their screenshots. Verified named Article entries, copied evidence for both entries, no `[object Object]` and no horizontal overflow. This is a simulated review, not a recruited-user study. Remaining shared presentation work includes moving source markup after the human-readable evidence and reducing duplicate entity numbering/technical metadata in long expanded cards.
 
 Baseline: a complete headless run of https://www.example.com/g/286584 redirected to /g/597748; 128 visible results. Debug-only rules remain explicitly in this inventory. Successful authenticated GSC states require fixture review in addition to the unauthenticated live result.
 
@@ -100,7 +104,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `robots-exists` | info | Pending | |
 | `robots:sitemap-reference` | ok | Pending | |
 | `robots:size` | info | Pending | |
-| `schema:article:present` | info | Reviewed JSON-LD configuration, primary documentation and rule fixtures; named entities/source blocks, required versus recommended fields and eligibility limits. | This rule commit |
+| `schema:article:present` | info | Reviewed JSON-LD configuration, primary documentation and rule fixtures; named entities/source blocks, required versus recommended fields and eligibility limits. | `b14bf74` |
 | `schema:article:required` | info | Pending | |
 | `schema:breadcrumb:positions` | ok | Pending | |
 | `schema:breadcrumb` | ok | Pending | |
