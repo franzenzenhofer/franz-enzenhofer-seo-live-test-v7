@@ -1,42 +1,40 @@
 import type { Rule } from '@/core/types'
 import { pageEffectiveRobots } from '@/shared/effectiveRobots'
-import { robotsEvidence } from '@/shared/robotsEvidence'
-import { findRobotsTokens } from '@/shared/robots-tokens'
+import { sampleElements } from '@/shared/domEvidence'
+import { textField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
 
-const NAME = 'Large image preview permission'
+const SELECTOR = 'meta[name="robots" i], meta[name="googlebot" i]'
 export const discoverMaxImagePreviewLargeRule: Rule = {
-  id: 'discover:max-image-preview-large', name: NAME, enabled: true, what: 'static',
+  id: 'discover:max-image-preview-large', name: 'Large image preview permission', presentation: 1, enabled: true, what: 'static',
   meta: {
     provenance: 'google',
-    references: [
-      'https://developers.google.com/search/docs/appearance/google-discover',
-      'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag',
-    ],
-    description: 'Explains Googlebot image-preview restrictions and whether robots instructions permit large previews.',
-    userGuide: {
-      check: 'Checks image-preview permission in applicable robots tags and HTTP headers. Large previews are recommended for Discover; this does not check image quality, validate AMP, or guarantee Discover placement.',
-      action: 'If you want large previews, set max-image-preview:large in the robots meta tag or X-Robots-Tag header. Change any conflicting none or standard limits listed below, and remove noimageindex if image exclusion is unintended. Preserve unrelated instructions.',
-    },
+    references: ['https://developers.google.com/search/docs/appearance/google-discover', 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag'],
+    description: 'Reports the effective Googlebot image-preview directive and noimageindex across applicable meta tags and captured headers.',
   },
   async run(page) {
     const effective = pageEffectiveRobots(page)
+    const headersCaptured = page.headers !== undefined || page.responseHeaderFields !== undefined
     const ok = effective.maxImagePreview === 'large' && !effective.noimageindex
-    const relevant = effective.directives.filter((directive) =>
-      ['max-image-preview', 'noimageindex'].some((name) => findRobotsTokens([directive], name).length > 0))
-    const value = effective.noimageindex ? 'noimageindex tells Google not to index images from this page.'
-      : effective.maxImagePreview ? `Effective setting: max-image-preview:${effective.maxImagePreview}`
-        : 'No valid max-image-preview instruction was found for Googlebot.'
-    return {
-      label: 'DISCOVER', name: NAME, type: ok ? 'ok' : 'warn', priority: ok ? 800 : 400,
-      message: ok ? 'Your robots instructions allow large image previews.'
-        : effective.noimageindex ? 'Image indexing is restricted by noimageindex.'
-          : effective.maxImagePreview ? `Image previews are limited to ${effective.maxImagePreview === 'none' ? 'no preview' : 'standard size'}.`
-            : 'Large image preview permission is not explicitly enabled.',
-      details: {
-        value,
-        interpretation: 'When applicable robots instructions disagree, Google uses the more restrictive setting. A static image may still be allowed with nosnippet; noindex is checked separately. AMP is another way to enable large previews.',
-        ...(relevant.length ? { previewInstructions: robotsEvidence(relevant) } : {}),
-      },
-    }
+    const { sample, total } = sampleElements(page.doc.querySelectorAll(SELECTOR))
+    const captured = markupEvidence(sample, 'Robots meta')
+    return presentResult(discoverMaxImagePreviewLargeRule, page, {
+      input: headersCaptured ? 'Static DOM + HTTP response headers' : 'Static DOM',
+      type: !headersCaptured ? 'runtime_error' : ok ? 'ok' : 'warn', priority: ok && headersCaptured ? 800 : 400,
+      values: [textField('max-image-preview', effective.maxImagePreview || 'Not declared in checked input'),
+        textField('noimageindex', effective.noimageindex ? 'Observed' : 'Not observed'),
+        ...(!headersCaptured ? [textField('Check completeness', 'Response headers not captured')] : [])],
+      detailValues: [textField('Meta elements retained', sample.length), textField('Meta elements omitted', total - sample.length)],
+      checked: [textField('DOM selector', SELECTOR), textField('Header', headersCaptured ? 'X-Robots-Tag' : 'Not captured'),
+        textField('Crawler', 'Googlebot'), textField('Resolution', 'Most restrictive applicable instruction'),
+        textField('Criterion', 'max-image-preview:large with no noimageindex instruction')],
+      evidence: [...effective.directives.map((directive, index) => ({ name: `Instruction ${index + 1}`, fields: [
+        textField('Source', directive.source === 'meta' ? 'Meta tag' : 'HTTP response header'),
+        textField('Crawler', directive.ua), textField('Instruction', directive.value),
+        ...(directive.headerKey ? [textField('Header name', directive.headerKey)] : []),
+      ] })), ...(captured.fields.length ? [{ name: 'Meta source locations', fields: captured.fields }] : [])],
+      markup: captured.markup, noMarkup: total ? 'Complete original robots meta markup not retained' : 'No applicable robots meta element found',
+    })
   },
 }

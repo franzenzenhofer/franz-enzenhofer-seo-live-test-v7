@@ -12,7 +12,7 @@ const D = (h: string) => new DOMParser().parseFromString(h,'text/html')
 
 describe('discover rules', () => {
   it('max-image-preview:large via meta', async () => {
-    const p = { html:'', url:'https://ex.com', doc: D('<meta name="robots" content="max-image-preview:large">') }
+    const p = { html:'', url:'https://ex.com', headers: {}, doc: D('<meta name="robots" content="max-image-preview:large">') }
     const r = await discoverMaxImagePreviewLargeRule.run(p as any, { globals: {} })
     expect((r as any).type).toBe('ok')
   })
