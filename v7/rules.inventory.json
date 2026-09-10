@@ -798,6 +798,17 @@
     ]
   },
   {
+    "id": "body:unsecure-input",
+    "name": "Password fields on HTTP pages",
+    "enabledByDefault": true,
+    "what": "static",
+    "provenance": "general",
+    "references": [
+      "https://www.chromium.org/Home/chromium-security/marking-http-as-non-secure/",
+      "https://developer.mozilla.org/en-US/docs/Web/Security/Insecure_passwords"
+    ]
+  },
+  {
     "id": "discover:primary-language",
     "name": "Primary language set",
     "enabledByDefault": true,
@@ -1234,17 +1245,6 @@
     "provenance": "general",
     "references": [
       "https://web.archive.org/web/20240526100043/https://developer.x.com/en/docs/twitter-for-websites/cards/overview/markup"
-    ]
-  },
-  {
-    "id": "body:unsecure-input",
-    "name": "Unsecure input over HTTP",
-    "enabledByDefault": true,
-    "what": "static",
-    "provenance": "general",
-    "references": [
-      "https://www.chromium.org/Home/chromium-security/marking-http-as-non-secure/",
-      "https://developer.mozilla.org/en-US/docs/Web/Security/Insecure_passwords"
     ]
   },
   {
