@@ -51,7 +51,7 @@ export function createSchemaRule(config: SchemaRuleConfig): Rule {
         ...(config.reference ? { reference: config.reference } : {}),
         ...(config.deprecated ? { note: config.deprecated } : {}) }
       if (!matches.length) return {
-        label: 'SCHEMA', name: config.name, type: 'info', priority: 920,
+        label: 'SCHEMA', name: config.name, type: parsed.errorCount ? 'warn' : 'info', priority: 920,
         message: `No ${types[0]} JSON-LD${parsed.errorCount ? ' identified in successfully parsed blocks' : ''}`,
         details: { ...extras, parseErrors: parsed.errors },
       }
@@ -68,18 +68,26 @@ export function createSchemaRule(config: SchemaRuleConfig): Rule {
       let message = config.presenceOnly ? `${foundType} structured data present (presence check only).`
         : failures.length ? `${foundType} missing: ${validation.missing?.join(', ') || `${fieldsLabel} fields`}`
           : `${foundType} structured data found and ${fieldsLabel} fields present.`
-      if (checks.length > 1) message += ` Checked ${checks.length} entities; ${failures.length} with field issues.`
+      if (checks.length > 1) message += config.presenceOnly ? ` Found ${checks.length} matching entities.` : ` Checked ${checks.length} entities; ${failures.length} with field issues.`
+      if (parsed.errorCount) message += ` ${parsed.errorCount} JSON-LD block(s) could not be parsed; the check is incomplete.`
       if (config.deprecated) message += ` ${config.deprecated}`
       const failType = failures.some(({ validation: v }) => (v.failType || 'warn') === 'warn') ? 'warn' : 'info'
-      const type = config.deprecated ? 'info' : failures.length ? failType : 'ok'
+      const type = parsed.errorCount ? 'warn' : config.deprecated ? 'info' : failures.length ? failType : 'ok'
       const sourceHtml = extractHtml(selected.script)
       return {
         label: 'SCHEMA', name: config.name, message, type, priority: type === 'warn' ? 250 : 800,
         details: { ...extras, foundType, sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(selected.script),
           ...(validation.missing?.length ? { missing: validation.missing } : {}),
-          entityCount: matches.length, issueCount: failures.length,
-          entityIssues: failures.slice(0, 10).map(({ node, scriptIndex, validation: v }) => ({ scriptIndex, id: node['@id'], missing: v.missing })),
-          issuesTruncated: failures.length > 10 },
+          entityCount: matches.length, ...(config.presenceOnly ? {} : { issueCount: failures.length }),
+          entities: checks.map(({ node, scriptIndex, validation: v }, index) => ({
+            entity: index + 1, name: [node['name'], node['headline'], node['title'], node['@id']].find(value => typeof value === 'string' && value.trim()) || 'Unnamed entity',
+            schemaType: schemaTypes(node).join(', '), sourceBlock: scriptIndex + 1,
+            fieldCheck: config.presenceOnly ? 'Presence only; fields not checked' : v.ok ? 'Checked fields present' : `Missing ${v.fieldsLabel || config.fieldsLabel || 'required'} fields`,
+            ...(v.missing?.length ? { missingFields: v.missing } : {}),
+          })),
+          sourceBlocks: Array.from(new Set(checks.map(check => check.script))).map(script => ({
+            block: parsed.entries.find(entry => entry.script === script)!.scriptIndex + 1, sourceHtml: extractHtml(script),
+          })) },
       }
     },
   }

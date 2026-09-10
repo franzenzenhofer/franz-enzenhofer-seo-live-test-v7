@@ -100,7 +100,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `robots-exists` | info | Pending | |
 | `robots:sitemap-reference` | ok | Pending | |
 | `robots:size` | info | Pending | |
-| `schema:article:present` | info | Pending | |
+| `schema:article:present` | info | Reviewed JSON-LD configuration, primary documentation and rule fixtures; named entities/source blocks, required versus recommended fields and eligibility limits. | This rule commit |
 | `schema:article:required` | info | Pending | |
 | `schema:breadcrumb:positions` | ok | Pending | |
 | `schema:breadcrumb` | ok | Pending | |
@@ -120,7 +120,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:from-cache` | info | Pending | |
 | `head:shortlink` | info | Reviewed absence, relative destinations and invalid declarations; named URLs, source evidence, conditional remedies and focused fixtures. | `98be397` |
 | `http:soft-404` | ok | Pending | |
-| `http:hsts` | ok | Reviewed missing capture, valid and malformed evidence; explanatory units and scope; existing and focused boundary fixtures. | This rule commit |
+| `http:hsts` | ok | Reviewed missing capture, valid and malformed evidence; explanatory units and scope; existing and focused boundary fixtures. | `6ec29c7` |
 | `gsc:top-queries-of-page` | runtime_error | Reviewed API scope and missing/access/error/success branches; explicit Pacific dates and metric meaning; fixture checks with no live account claims. | `745ff6a` |
 | `dom:top-words` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | `7bacfed` |
 | `head:twitter-card` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | `b76d858` |
