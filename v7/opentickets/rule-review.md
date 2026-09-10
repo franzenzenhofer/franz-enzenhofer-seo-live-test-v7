@@ -19,7 +19,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:canonical-header` | info | Pending | |
 | `head:canonical-https-preference` | info | Pending | |
 | `head-canonical` | warn | Pending | |
-| `head:canonical-signals-conflict` | info | Fixed: named HTML/header URL comparison, absent/single/matching/invalid states, specific template/server remedy; copy and invalid-input tests | This rule commit |
+| `head:canonical-signals-conflict` | info | Fixed: named HTML/header URL comparison, absent/single/matching/invalid states, specific template/server remedy; copy and invalid-input tests | `87e86af` |
 | `head:canonical-tracking-params` | info | Pending | |
 | `head:canonical-nav-consistency` | info | Pending | |
 | `dom:client-side-rendering` | info | Pending | |
@@ -89,7 +89,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `speed:link-preload` | info | Pending | |
 | `head:robots-agent-conflicts` | info | Pending | |
 | `head:robots-max-image-preview` | info | Pending | |
-| `head:robots-max-snippet` | info | Pending | |
+| `head:robots-max-snippet` | info | Fixed: readable per-crawler limits with source, units, zero/unlimited/invalid meanings; removed duplicate token dumps; copied multi-source fixture | This rule commit |
 | `head:robots-max-video-preview` | info | Pending | |
 | `head-robots-meta` | info | Pending | |
 | `head:robots-meta-list` | info | Pending | |

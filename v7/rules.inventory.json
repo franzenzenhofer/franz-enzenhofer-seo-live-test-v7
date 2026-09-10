@@ -874,16 +874,6 @@
     ]
   },
   {
-    "id": "head:robots-max-snippet",
-    "name": "Robots max-snippet",
-    "enabledByDefault": true,
-    "what": "static",
-    "provenance": "google",
-    "references": [
-      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#max-snippet"
-    ]
-  },
-  {
     "id": "head:robots-max-video-preview",
     "name": "Robots max-video-preview",
     "enabledByDefault": true,
@@ -1120,6 +1110,16 @@
     "provenance": "google",
     "references": [
       "https://developers.google.com/search/updates#bye-sitelinkbox"
+    ]
+  },
+  {
+    "id": "head:robots-max-snippet",
+    "name": "Search snippet length limits",
+    "enabledByDefault": true,
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#max-snippet"
     ]
   },
   {
