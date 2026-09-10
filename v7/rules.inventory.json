@@ -779,7 +779,7 @@
   },
   {
     "id": "discover:published-time",
-    "name": "Published time",
+    "name": "Publication dates",
     "enabledByDefault": true,
     "what": "static",
     "provenance": "google",

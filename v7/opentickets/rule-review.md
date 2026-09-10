@@ -10,7 +10,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `google:amp-cache-url` | info | Pending | |
 | `head:amphtml` | info | Pending | |
 | `discover:article-structured-data` | warn | Fixed: optional markup, BlogPosting coverage, exact matching script, incomplete parse explanation; absence/presence/malformed copy tests | `4563095` |
-| `discover:author` | warn | Fixed: all named authors and exact sources, optional metadata, unresolved identity limits; multi-author/absent/malformed copy tests | This rule commit |
+| `discover:author` | warn | Fixed: all named authors and exact sources, optional metadata, unresolved identity limits; multi-author/absent/malformed copy tests | `cf79561` |
 | `speed:blocking-scripts` | warn | Pending | |
 | `head:brand-in-title` | warn | Pending | |
 | `http:cache-delivery` | info | Pending | |
@@ -80,7 +80,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `gsc:page-worldwide` | runtime_error | Pending | |
 | `dom:parameterized-links-diff` | ok | Pending | |
 | `discover:primary-language` | info | Pending | |
-| `discover:published-time` | warn | Pending | |
+| `discover:published-time` | warn | Fixed: optional dates, all declared values with exact sources, no fabricated modification dates; absent/published/multiple-source/copy/display tests | This rule commit |
 | `http:redirect-loop` | ok | Pending | |
 | `http:redirect-canonical-chain` | info | Pending | |
 | `head:rel-alternate-media` | info | Pending | |

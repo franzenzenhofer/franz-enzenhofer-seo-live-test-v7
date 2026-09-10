@@ -54,7 +54,7 @@ export const tierDetails = (details: Result['details'], snippet?: string | null)
   let evidence = survivors.filter((entry) => !entry.isSource).map(({ key, text }) => ({ key, text }))
   let source = survivors.filter((entry) => entry.isSource).map(({ key, text }) => ({ key, text }))
   // A card whose only surviving value is its markup shows that markup as the evidence.
-  if (!evidence.length && source.length) { evidence = source; source = [] }
+  if (!evidence.length && source.length && !guidance.length && !measurements.length) { evidence = source; source = [] }
   const keptInfos = survivors.flatMap(({ text }) => representationsOf(text))
   return {
     evidence,
