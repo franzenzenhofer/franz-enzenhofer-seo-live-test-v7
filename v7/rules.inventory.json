@@ -767,6 +767,16 @@
     ]
   },
   {
+    "id": "head:title",
+    "name": "Page title length",
+    "enabledByDefault": true,
+    "what": "static",
+    "provenance": "general",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/title-link"
+    ]
+  },
+  {
     "id": "gsc:page-worldwide",
     "name": "Page worldwide analytics",
     "enabledByDefault": true,
@@ -1151,16 +1161,6 @@
     "provenance": "google",
     "references": [
       "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics"
-    ]
-  },
-  {
-    "id": "head:title",
-    "name": "SEO Title Length",
-    "enabledByDefault": true,
-    "what": "static",
-    "provenance": "general",
-    "references": [
-      "https://developers.google.com/search/docs/appearance/title-link"
     ]
   },
   {

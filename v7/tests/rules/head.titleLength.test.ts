@@ -1,32 +1,25 @@
 import { describe, it, expect } from 'vitest'
 import { titleLengthRule } from '@/rules/head/titleLength'
-
-const doc = (h: string) => new DOMParser().parseFromString(h, 'text/html')
-
-describe('rule: title length', () => {
-  it('reports short titles as info (no documented character thresholds)', async () => {
-    const r = await titleLengthRule.run({ html:'', url:'', doc: doc('<title>x</title>') }, { globals: {} })
-    expect((r as any).type).toBe('info')
-    expect((r as any).details.length).toBe(1)
+const run = (html: string) => titleLengthRule.run({ html, url: 'https://example.test', doc: new DOMParser().parseFromString(html, 'text/html') }, { globals: {} })
+describe('page title length', () => {
+  it('measures short, long, blank and non-BMP text without an invented threshold', async () => {
+    for (const title of ['x', 'word '.repeat(60), '   ', '😀']) {
+      const r = await run(`<title data-template="seo">${title}</title>`)
+      expect(r.type).toBe('info')
+      expect(r.presentation?.values[0].value).toBe(title.trim().length)
+      expect(r.presentation?.detailValues).toContainEqual({ key: 'Title', value: title, kind: 'text' })
+      expect(r.presentation?.markup[0].value).toContain('data-template="seo"')
+      expect(r.presentation?.checked).toContainEqual({ key: 'Length threshold', value: 'None', kind: 'text' })
+    }
   })
-  it('reports good titles as info', async () => {
-    const r = await titleLengthRule.run({ html:'', url:'', doc: doc('<title>This is a good title with more than fifty characters total</title>') }, { globals: {} })
-    expect((r as any).type).toBe('info')
+  it('reports missing input without inventing a zero-length title', async () => {
+    const r = await run('<p>No title</p>')
+    expect(r.type).toBe('info'); expect(r.presentation?.values[0].value).toBe('Not measurable')
+    expect(r.presentation?.markup).toEqual([])
   })
-  it('reports very long titles as info with the measured length', async () => {
-    const long = 'word '.repeat(60).trim()
-    const r = await titleLengthRule.run({ html:'', url:'', doc: doc(`<title>${long}</title>`) }, { globals: {} })
-    expect((r as any).type).toBe('info')
-    expect((r as any).message).toContain(`${long.length}`)
-  })
-  it('defers missing title to head-title with an info result', async () => {
-    const r = await titleLengthRule.run({ html:'', url:'', doc: doc('<p>no title</p>') }, { globals: {} })
-    expect((r as any).type).toBe('info')
-    expect((r as any).message).toContain('SEO Title Present')
-  })
-  it('defers blank title to head-title with an info result', async () => {
-    const r = await titleLengthRule.run({ html:'', url:'', doc: doc('<title>   </title>') }, { globals: {} })
-    expect((r as any).type).toBe('info')
-    expect((r as any).details.length).toBe(0)
+  it('identifies first-match measurement when there are duplicate titles', async () => {
+    const r = await run('<title>First</title><title>Second longer</title>')
+    expect(r.presentation?.values[0].value).toBe(5)
+    expect(r.presentation?.detailValues[0].value).toBe(2)
   })
 })

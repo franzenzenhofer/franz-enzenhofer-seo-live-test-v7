@@ -25,7 +25,7 @@ describe('verdicts carry the judged value', () => {
 
   it('head:title (length) carries the title as a semantic key', async () => {
     const res = await titleLengthRule.run(page('<head><title>My Fine Title</title></head>'), ctx)
-    expect(res.details?.['title']).toBe('My Fine Title')
+    expect(res.presentation?.detailValues).toContainEqual({ key: 'Title', value: 'My Fine Title', kind: 'text' })
   })
 
   it('meta description verdict reports length; value lives in the description key', async () => {
