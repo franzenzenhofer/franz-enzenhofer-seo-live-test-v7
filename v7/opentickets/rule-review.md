@@ -44,8 +44,8 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:has-header` | info | Reviewed: requested, present and missing lists remain fully copied; added custom-requirement scope and configuration/server remedy; existing all-present/missing fixtures retained | `253d632` |
 | `http-status` | runtime_error | Fixed: named statuses, affected page URL, status-specific remedies, cache revalidation and unavailable evidence; context registration and copy tests | `0a0fba4` |
 | `http:h2-advertised` | info | Reviewed missing capture, valid and malformed evidence; explanatory units and scope; existing and focused boundary fixtures. | `e631d93` |
-| `http:h3-advertised` | info | Reviewed missing capture, valid and malformed evidence; explanatory units and scope; existing and focused boundary fixtures. | This rule commit |
-| `http:https-scheme` | ok | Pending | |
+| `http:h3-advertised` | info | Reviewed missing capture, valid and malformed evidence; explanatory units and scope; existing and focused boundary fixtures. | `1259098` |
+| `http:https-scheme` | ok | Reviewed missing capture, valid and malformed evidence; explanatory units and scope; existing and focused boundary fixtures. | This rule commit |
 | `body:images-lazy` | info | Reviewed and fixed: named per-image loading instructions replace concatenated HTML; explicit eager default and viewport limits; existing mixed/default fixtures retained | `83ee1ac` |
 | `body:images-layout` | ok | Fixed: image names and URLs, specific missing attributes, explicit sample count and no-image state; copied two-offender and empty fixtures | `2697ef6` |
 | `discover:indexable` | ok | Fixed: named applicable blockers, intentional exclusion guidance, permission vs actual indexing; body meta coverage; pass/block/other-crawler tests | `e3d2451` |

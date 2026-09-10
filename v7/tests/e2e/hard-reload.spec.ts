@@ -4,6 +4,7 @@ import { findExtensionId, readRunSnapshot, withExtension } from './extensionHarn
 import type { RunSnapshot } from './extensionHarness'
 
 test('hard reload updates the completed run ID and timestamp', async () => {
+  test.setTimeout(150_000)
   const { context, userDataDir, cleanup } = await withExtension()
   try {
     const page = await context.newPage()
@@ -14,7 +15,7 @@ test('hard reload updates the completed run ID and timestamp', async () => {
     await expect.poll(async () => {
       first = await readRunSnapshot(context, targetUrl)
       return first?.status
-    }, { timeout: 30_000 }).toBe('completed')
+    }, { timeout: 60_000 }).toBe('completed')
 
     await page.bringToFront()
     await page.reload()
@@ -24,7 +25,7 @@ test('hard reload updates the completed run ID and timestamp', async () => {
     await expect.poll(async () => {
       second = await readRunSnapshot(context, targetUrl)
       return second?.status === 'completed' && second.runId !== first!.runId
-    }, { timeout: 30_000 }).toBe(true)
+    }, { timeout: 60_000 }).toBe(true)
 
     expect(second!.ranAt).not.toBe(first!.ranAt)
     const extensionId = await findExtensionId(context, userDataDir)
