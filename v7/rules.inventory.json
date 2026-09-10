@@ -604,16 +604,6 @@
     ]
   },
   {
-    "id": "head:robots-noindex",
-    "name": "Meta Robots Noindex",
-    "enabledByDefault": true,
-    "what": "static",
-    "provenance": "google",
-    "references": [
-      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag"
-    ]
-  },
-  {
     "id": "head:unavailable-after",
     "name": "Meta Unavailable After",
     "enabledByDefault": true,
@@ -737,6 +727,16 @@
     "provenance": "standard",
     "references": [
       "https://ogp.me/#metadata"
+    ]
+  },
+  {
+    "id": "head:robots-noindex",
+    "name": "Page exclusion in robots meta",
+    "enabledByDefault": true,
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag"
     ]
   },
   {
