@@ -26,6 +26,7 @@ const IDLE = new Set([
 ])
 
 const CONTEXT = new Set([
+  'http-status',
   'body:internal-link-status',
   'debug:page-object',
   'debug:page-summary',

@@ -1,5 +1,11 @@
-// Status names: https://www.rfc-editor.org/rfc/rfc9110.html#name-status-codes
+// Status names: https://www.iana.org/assignments/http-status-codes (reviewed 2026-09-10).
 const NAMES: Record<number, string> = {
+  102: 'Processing', 103: 'Early Hints', 104: 'Upload Resumption Supported (temporary registration)',
+  207: 'Multi-Status', 208: 'Already Reported', 226: 'IM Used', 306: '(Unused)',
+  418: '(Unused)', 423: 'Locked', 424: 'Failed Dependency', 425: 'Too Early',
+  428: 'Precondition Required', 429: 'Too Many Requests', 431: 'Request Header Fields Too Large',
+  451: 'Unavailable For Legal Reasons', 506: 'Variant Also Negotiates', 507: 'Insufficient Storage',
+  508: 'Loop Detected', 510: 'Not Extended (obsoleted)', 511: 'Network Authentication Required',
   100: 'Continue', 101: 'Switching Protocols', 200: 'OK', 201: 'Created',
   202: 'Accepted', 203: 'Non-Authoritative Information', 204: 'No Content',
   205: 'Reset Content', 206: 'Partial Content', 300: 'Multiple Choices',

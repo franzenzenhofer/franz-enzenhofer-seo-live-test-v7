@@ -390,13 +390,13 @@
   },
   {
     "id": "http-status",
-    "name": "HTTP Status",
+    "name": "HTTP response status",
     "enabledByDefault": true,
     "what": "http",
     "provenance": "google",
     "references": [
-      "https://developers.google.com/search/docs/crawling-indexing/http-network-errors",
-      "https://www.rfc-editor.org/rfc/rfc9110.html#name-status-codes"
+      "https://developers.google.com/crawling/docs/troubleshooting/http-status-codes",
+      "https://www.iana.org/assignments/http-status-codes"
     ]
   },
   {

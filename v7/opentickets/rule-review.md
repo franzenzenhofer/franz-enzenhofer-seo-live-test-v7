@@ -42,7 +42,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:hreflang-values` | info | Pending | |
 | `http:headers-present` | info | Pending | |
 | `http:has-header` | info | Pending | |
-| `http-status` | runtime_error | Pending | |
+| `http-status` | runtime_error | Fixed: named statuses, affected page URL, status-specific remedies, cache revalidation and unavailable evidence; context registration and copy tests | This rule commit |
 | `http:h2-advertised` | info | Pending | |
 | `http:h3-advertised` | info | Pending | |
 | `http:https-scheme` | ok | Pending | |
@@ -58,7 +58,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `body:parameterized-links` | info | Pending | |
 | `discover:max-image-preview-large` | warn | Fixed: permission vs eligibility, named conflicting sources, noimageindex, missing/limited/allowed states and complete UI/copy evidence tested | `6a5d529` |
 | `head:meta-charset` | ok | Pending | |
-| `head-meta-description` | ok | Reviewed: description text and duplicate-tag evidence are retained; added search snippet meaning and CMS/template fix; existing absent/empty/duplicate/single fixtures retained | This rule commit |
+| `head-meta-description` | ok | Reviewed: description text and duplicate-tag evidence are retained; added search snippet meaning and CMS/template fix; existing absent/empty/duplicate/single fixtures retained | `5009a98` |
 | `head:meta-googlebot` | info | Pending | |
 | `head:meta-keywords` | info | Pending | |
 | `head:meta-other-robots` | info | Pending | |
