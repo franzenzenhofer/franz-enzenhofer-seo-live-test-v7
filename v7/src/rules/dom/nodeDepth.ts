@@ -7,6 +7,10 @@ export const nodeDepthRule: Rule = {
   enabled: true,
   what: 'static',
   meta: {
+    userGuide: {
+      check: "Measures the deepest nesting of nodes in the page tree, counting the html root as level 1 and including text nodes. This is a structural observation; it does not identify a particular slow component or establish an SEO problem.",
+      action: "When investigating rendering cost, inspect deeply nested components and simplify wrappers where practical. Keep the structure needed for meaning and accessibility, and measure performance before and after.",
+    },
     provenance: 'franz',
     references: ['https://developer.chrome.com/docs/lighthouse/performance/dom-size'],
     description: 'Reports the maximum DOM tree depth of the rendered (idle) or parsed document (info-only, no threshold).',
