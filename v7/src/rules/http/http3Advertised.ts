@@ -1,3 +1,4 @@
+import { headerValue, advertisedProtocol } from '@/shared/headerValue'
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
 import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
@@ -12,6 +13,10 @@ export const http3AdvertisedRule: Rule = {
   enabled: true,
   what: 'http',
   meta: {
+    userGuide: {
+      check: "Reports whether the server advertises HTTP/3 in Alt-Svc, an alternative-service response header. Advertisement does not establish which protocol this load actually used, and absence does not prove a lack of support.",
+      action: "Use the negotiated-protocol result to see this load. If you intend to advertise HTTP/3, check the server or CDN configuration and verify that the advertised endpoint works.",
+    },
     provenance: 'standard',
     references: [
       'https://www.rfc-editor.org/rfc/rfc9114.html#section-3.1.1',
@@ -21,13 +26,12 @@ export const http3AdvertisedRule: Rule = {
   },
   async run(page) {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
-    const altSvcHeader = page.headers?.['alt-svc']?.trim() || ''
-    const altSvcLower = altSvcHeader.toLowerCase()
-    const advertisesHttp3 = /\bh3\b|h3-/.test(altSvcLower)
+    const altSvcHeader = headerValue(page.headers, 'alt-svc')
+    const advertisesHttp3 = advertisedProtocol(altSvcHeader, 'h3')
     const message = advertisesHttp3
-      ? `Alt-Svc advertises HTTP/3: ${altSvcHeader}`
+      ? 'The server advertises HTTP/3 as an alternative service.'
       : altSvcHeader
-        ? `Alt-Svc present but no HTTP/3: ${altSvcHeader}`
+        ? 'Alt-Svc is present without an HTTP/3 advertisement.'
         : 'No Alt-Svc advertisement captured. HTTP/3 capability is undetermined; see the negotiated protocol.'
     return {
       label: LABEL,
@@ -36,7 +40,6 @@ export const http3AdvertisedRule: Rule = {
       type: 'info',
       priority: advertisesHttp3 ? 750 : 850,
       details: {
-        httpHeaders: page.headers || {},
         snippet: extractSnippet(altSvcHeader || '(not present)'),
         altSvcHeader,
         advertisesHttp3,
