@@ -10,3 +10,9 @@ describe('rule: x-cache', () => {
   })
 })
 
+
+it('preserves a mixed result from multiple cache layers', async () => {
+  const result = await xCacheRule.run(P({ 'X-Cache': 'MISS, HIT' }), { globals: {} })
+  expect(result.message).toContain('Mixed HIT and MISS')
+  expect(result.details?.['xCacheHeader']).toBe('MISS, HIT')
+})

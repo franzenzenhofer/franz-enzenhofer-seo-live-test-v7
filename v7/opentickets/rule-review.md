@@ -13,7 +13,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `discover:author` | warn | Fixed: all named authors and exact sources, optional metadata, unresolved identity limits; multi-author/absent/malformed copy tests | `cf79561` |
 | `speed:blocking-scripts` | warn | Reviewed: complete script URL list and sampled source retained; added parsing impact, detection limits and dependency-aware remediation; existing classic/module/non-JS fixtures retained | `07714f9` |
 | `head:brand-in-title` | warn | Reviewed and fixed: estimated-versus-configured brand is explicit in missing-match summary; full title and brand retained; added verify-the-guess guidance; existing configured/inferred fixtures retained | `9280d70` |
-| `http:cache-delivery` | info | Reviewed missing capture, valid and malformed evidence; explanatory units and scope; existing and focused boundary fixtures. | This rule commit |
+| `http:cache-delivery` | info | Reviewed missing capture, valid and malformed evidence; explanatory units and scope; existing and focused boundary fixtures. | `fb6c088` |
 | `head:canonical-noindex-conflict` | info | Pending | |
 | `head:canonical-hreflang-consistency` | info | Pending | |
 | `head:canonical-header` | info | Pending | |
@@ -133,6 +133,6 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:vary-user-agent` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | `7493324` |
 | `gsc:property-available` | runtime_error | Reviewed access probes, cache limits, sign-in and success fixtures; preserves rule identity and distinguishes an unavailable probe from an absent property. | `678bcd5` |
 | `http:canonical-host-redirect` | info | Pending | |
-| `http:x-cache` | info | Pending | |
+| `http:x-cache` | info | Reviewed missing capture, valid and malformed evidence; explanatory units and scope; existing and focused boundary fixtures. | This rule commit |
 | `http:unavailable-after` | info | Pending | |
 | `http:x-robots` | info | Pending | |
