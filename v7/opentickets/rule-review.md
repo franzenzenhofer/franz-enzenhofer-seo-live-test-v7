@@ -20,7 +20,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:canonical-https-preference` | info | Pending | |
 | `head-canonical` | warn | Pending | |
 | `head:canonical-signals-conflict` | info | Fixed: named HTML/header URL comparison, absent/single/matching/invalid states, specific template/server remedy; copy and invalid-input tests | `87e86af` |
-| `head:canonical-tracking-params` | info | Pending | |
+| `head:canonical-tracking-params` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | This rule commit |
 | `head:canonical-nav-consistency` | info | Pending | |
 | `dom:client-side-rendering` | info | Pending | |
 | `http:common-mobile-setup` | info | Reviewed: viewport text and source are retained; added presence-versus-usability distinction and optional icon meaning; existing viewport/icon fixtures retained | `7e8fea8` |
@@ -64,7 +64,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:meta-other-robots` | info | Reviewed and fixed: named crawler instructions replace parser dump; clarified that other-crawler restrictions do not automatically apply to Googlebot; existing non-robots filter fixtures retained | `842add8` |
 | `head:robots-noindex` | info | Reviewed missing, multiple, body and case-insensitive tags; exact named sources and noindex/nofollow meaning; focused fixtures. | `0f9442e` |
 | `head:unavailable-after` | info | Pending | |
-| `head:meta-viewport` | ok | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | This rule commit |
+| `head:meta-viewport` | ok | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | `186502b` |
 | `http:mixed-content` | ok | Reviewed: named offenders, exact attributes, working copy actions and code-level error semantics from 3261b17; added explicit collection scope; unit and headless offender fixtures retained | `286b757` |
 | `http:navigation-path` | info | Reviewed: named HTTP timeline, 308 meaning, actual destination outcome, separate history updates and complete copy from 3261b17; added purpose and intentional redirect guidance; unit and headless journey fixtures retained | `38da089` |
 | `http:negotiated-protocol` | ok | Pending | |

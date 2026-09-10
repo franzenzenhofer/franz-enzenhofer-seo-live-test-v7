@@ -31,6 +31,10 @@ export const canonicalTrackingParamsRule: Rule = {
   enabled: true,
   what: 'static',
   meta: {
+    userGuide: {
+      check: "Checks the declared preferred URL for a listed set of common campaign tracking parameters. Other query parameters may identify real content and are not automatically errors.",
+      action: "Edit the canonical URL in the template or CMS to remove the named tracking parameters if they do not change the content. Keep parameters needed to identify the preferred page.",
+    },
     provenance: 'general',
     references: [
       'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls',
@@ -57,7 +61,7 @@ export const canonicalTrackingParamsRule: Rule = {
       const params = resolved.searchParams
       const offenders = paramList.filter((p) => params.has(p))
       if (!offenders.length) {
-        return { label: LABEL, name: NAME, message: 'Canonical URL has no tracking parameters.', type: 'ok', priority: 800, details: { canonicalUrl: resolved.toString(), checkedParams: paramList.length } }
+        return { label: LABEL, name: NAME, message: 'Canonical URL has none of the checked tracking parameters.', type: 'ok', priority: 800, details: { canonicalUrl: resolved.toString(), checkedParams: paramList.length } }
       }
       return {
         label: LABEL,
