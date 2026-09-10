@@ -10,6 +10,10 @@ export const historyStateUpdateRule: Rule = {
   enabled: true,
   what: 'static',
   meta: {
+    userGuide: {
+      check: "Detects a history update in a run without a document-load event. Page code can change browser history without an HTTP redirect. This is normal in many applications; it does not by itself prove that content, titles or canonical tags updated correctly.",
+      action: "For application navigation, verify that directly opening the resulting URL delivers the intended content and that titles and canonical declarations match the new page.",
+    },
     provenance: 'google',
     references: [
       'https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics',

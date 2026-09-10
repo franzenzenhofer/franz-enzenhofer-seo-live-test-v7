@@ -23,7 +23,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:canonical-tracking-params` | info | Pending | |
 | `head:canonical-nav-consistency` | info | Pending | |
 | `dom:client-side-rendering` | info | Pending | |
-| `http:common-mobile-setup` | info | Reviewed: viewport text and source are retained; added presence-versus-usability distinction and optional icon meaning; existing viewport/icon fixtures retained | This rule commit |
+| `http:common-mobile-setup` | info | Reviewed: viewport text and source are retained; added presence-versus-usability distinction and optional icon meaning; existing viewport/icon fixtures retained | `7e8fea8` |
 | `dom:data-nosnippet` | info | Pending | |
 | `gsc:directory-worldwide` | runtime_error | Pending | |
 | `dom:node-count` | info | Pending | |
@@ -36,7 +36,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `body:h1` | ok | Reviewed and fixed: multiple headings now include their text with locations; purpose and missing/empty remediation; existing single/multiple/empty/missing fixtures retained | `966acd5` |
 | `discover:headline-length` | info | Pending | |
 | `gsc:is-indexed` | runtime_error | Pending | |
-| `url:history-state-update` | info | Pending | |
+| `url:history-state-update` | info | Reviewed: captured history and commit booleans in baseline and source; added history meaning and direct-load guidance; no detection logic changed | This rule commit |
 | `head-hreflang` | info | Pending | |
 | `head:hreflang-multipage` | info | Pending | |
 | `head:hreflang-values` | info | Pending | |
