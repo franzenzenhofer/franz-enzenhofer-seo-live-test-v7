@@ -13,6 +13,10 @@ export const altSvcOtherProtocolsRule: Rule = {
   enabled: true,
   what: 'http',
   meta: {
+    userGuide: {
+      check: "Reads alternative connection services advertised by the server. h2 means HTTP/2 and h3 means HTTP/3; clear tells clients to forget stored alternatives. Advertising a protocol does not prove the browser used it or that the endpoint works.",
+      action: "Review the Alt-Svc header in the server or CDN configuration if its advertised services are unexpected. Use the negotiated protocol result to see the connection actually used.",
+    },
     provenance: 'standard',
     references: ['https://www.rfc-editor.org/rfc/rfc7838.html#section-3'],
     description: "Parses the Alt-Svc header, splits advertised ALPN protocol-ids into standard (h2/h3/h3-drafts) vs 'other', and reports the full list (info-only).",

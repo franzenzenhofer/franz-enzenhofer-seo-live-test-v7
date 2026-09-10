@@ -6,7 +6,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 
 | Rule | Baseline result | Review status | Commit |
 | --- | --- | --- | --- |
-| `http:alt-svc-other` | info | Pending | |
+| `http:alt-svc-other` | info | Reviewed: advertised IDs, clear and unparsed states retain the full header; added protocol names and advertisement-versus-usage distinction; existing quic/clear fixtures retained | This rule commit |
 | `google:amp-cache-url` | info | Pending | |
 | `head:amphtml` | info | Pending | |
 | `discover:article-structured-data` | warn | Fixed: optional markup, BlogPosting coverage, exact matching script, incomplete parse explanation; absence/presence/malformed copy tests | `4563095` |
@@ -46,7 +46,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:h2-advertised` | info | Pending | |
 | `http:h3-advertised` | info | Pending | |
 | `http:https-scheme` | ok | Pending | |
-| `body:images-lazy` | info | Reviewed and fixed: named per-image loading instructions replace concatenated HTML; explicit eager default and viewport limits; existing mixed/default fixtures retained | This rule commit |
+| `body:images-lazy` | info | Reviewed and fixed: named per-image loading instructions replace concatenated HTML; explicit eager default and viewport limits; existing mixed/default fixtures retained | `83ee1ac` |
 | `body:images-layout` | ok | Fixed: image names and URLs, specific missing attributes, explicit sample count and no-image state; copied two-offender and empty fixtures | `2697ef6` |
 | `discover:indexable` | ok | Fixed: named applicable blockers, intentional exclusion guidance, permission vs actual indexing; body meta coverage; pass/block/other-crawler tests | `e3d2451` |
 | `body:internal-link-status` | ok | Pending | |
