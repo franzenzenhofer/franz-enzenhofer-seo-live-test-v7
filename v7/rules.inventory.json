@@ -253,6 +253,17 @@
     "references": []
   },
   {
+    "id": "discover:indexable",
+    "name": "Google indexing permission",
+    "enabledByDefault": true,
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag",
+      "https://developers.google.com/search/docs/appearance/google-discover"
+    ]
+  },
+  {
     "id": "robots:googlebot-url-check",
     "name": "Googlebot URL allowed",
     "enabledByDefault": true,
@@ -440,17 +451,6 @@
     "references": [
       "https://web.dev/articles/optimize-cls#images-without-dimensions",
       "https://web.dev/articles/cls"
-    ]
-  },
-  {
-    "id": "discover:indexable",
-    "name": "Indexable",
-    "enabledByDefault": true,
-    "what": "static",
-    "provenance": "google",
-    "references": [
-      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag",
-      "https://developers.google.com/search/docs/appearance/google-discover"
     ]
   },
   {

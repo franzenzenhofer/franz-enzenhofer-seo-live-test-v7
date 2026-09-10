@@ -11,7 +11,7 @@ const scanTokens = (value: string) => sampleDelimitedTokens(value, ',;', ['noind
 
 const parseMeta = (doc: Document): RobotsDirective[] => {
   const directives: RobotsDirective[] = []
-  const nodes = doc.querySelectorAll<HTMLMetaElement>('head > meta[name]')
+  const nodes = doc.querySelectorAll<HTMLMetaElement>('meta[name]')
   for (let index = 0; index < nodes.length; index++) {
     const el = nodes.item(index)
     if (!el) continue

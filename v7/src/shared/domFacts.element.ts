@@ -22,6 +22,9 @@ export const attributesOf = (element: Element | null, maxValueLength = MAX_VALUE
 export const factBucket = (element: Element, doc: Document): FactBucket | null => {
   const tag = element.tagName.toLowerCase()
   if (doc.head?.contains(element) && HEAD_TAGS.has(tag)) return 'head'
+  // Google respects robots meta tags in the body as well as the head.
+  // https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag
+  if (tag === 'meta' && element.hasAttribute('name')) return 'head'
   if (tag === 'a') return 'anchor'
   if (RESOURCE_TAGS.has(tag)) return 'resource'
   // A <link> outside <head> can still load a resource (stylesheet, preload).

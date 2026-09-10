@@ -48,7 +48,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:https-scheme` | ok | Pending | |
 | `body:images-lazy` | info | Pending | |
 | `body:images-layout` | ok | Pending | |
-| `discover:indexable` | ok | Pending | |
+| `discover:indexable` | ok | Fixed: named applicable blockers, intentional exclusion guidance, permission vs actual indexing; body meta coverage; pass/block/other-crawler tests | This rule commit |
 | `body:internal-link-status` | ok | Pending | |
 | `body:internal-links` | info | Pending | |
 | `discover:og-image-large` | warn | Pending | |
