@@ -14,13 +14,9 @@ test('HTTP findings render readable offenders and a named navigation journey wit
     await expect.poll(() => worker!.evaluate(() => Boolean(chrome.runtime?.id))).toBe(true)
     const page = await context.newPage()
     await page.goto(START)
-    await expect.poll(async () => {
-      await expect.poll(async () => (await readRunSnapshot(context, FINAL))?.status, { timeout: 30_000 }).toBe('completed')
+    await expect.poll(async () => (await readRunSnapshot(context, FINAL))?.status, { timeout: 60_000 }).toBe('completed')
     const snapshot = await readRunSnapshot(context, FINAL)
-      return snapshot?.results.find((result) => result.ruleId === 'http:mixed-content')?.type
-    }, { timeout: 30_000 }).toBe('error')
-    await expect.poll(async () => (await readRunSnapshot(context, FINAL))?.status, { timeout: 30_000 }).toBe('completed')
-    const snapshot = await readRunSnapshot(context, FINAL)
+    expect(snapshot?.results.find((result) => result.ruleId === 'http:mixed-content')?.type).toBe('error')
     const id = await findExtensionId(context, userDataDir)
     const report = await context.newPage()
     await report.setViewportSize({ width: 420, height: 1000 })

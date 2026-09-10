@@ -16,6 +16,10 @@ export const metaDescriptionRule: Rule = {
   enabled: true,
   what: 'static',
   meta: {
+    userGuide: {
+      check: "Checks for one non-empty page description in a meta tag. Search engines may use this text for the result snippet or choose text from the page. Presence does not guarantee that this exact description will appear.",
+      action: "Add one accurate description in the page’s CMS SEO description field or template. If several tags are listed, remove duplicate output from plugins or templates and keep the intended page-specific description.",
+    },
     provenance: 'google',
     references: [
       'https://developers.google.com/search/docs/crawling-indexing/special-tags',

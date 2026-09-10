@@ -58,7 +58,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `body:parameterized-links` | info | Pending | |
 | `discover:max-image-preview-large` | warn | Fixed: permission vs eligibility, named conflicting sources, noimageindex, missing/limited/allowed states and complete UI/copy evidence tested | `6a5d529` |
 | `head:meta-charset` | ok | Pending | |
-| `head-meta-description` | ok | Pending | |
+| `head-meta-description` | ok | Reviewed: description text and duplicate-tag evidence are retained; added search snippet meaning and CMS/template fix; existing absent/empty/duplicate/single fixtures retained | This rule commit |
 | `head:meta-googlebot` | info | Pending | |
 | `head:meta-keywords` | info | Pending | |
 | `head:meta-other-robots` | info | Pending | |
@@ -115,7 +115,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `schema:website-searchaction` | info | Pending | |
 | `http:security-headers` | info | Pending | |
 | `dom:seo-phase-changes` | info | Pending | |
-| `head:title` | info | Reviewed: full title remains visible and copied; added units and explanation that character count is not a Google limit; existing missing/empty/long fixtures retained | This rule commit |
+| `head:title` | info | Reviewed: full title remains visible and copied; added units and explanation that character count is not a Google limit; existing missing/empty/long fixtures retained | `5aae648` |
 | `head-title` | ok | Reviewed: title text, count and matching source are retained; added purpose and missing/empty/duplicate remediation; existing branch fixtures retained | `ea76cd9` |
 | `http:from-cache` | info | Pending | |
 | `head:shortlink` | info | Pending | |
