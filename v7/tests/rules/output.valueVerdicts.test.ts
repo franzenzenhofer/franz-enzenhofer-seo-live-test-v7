@@ -51,7 +51,7 @@ describe('verdicts carry the judged value', () => {
       page('<head><meta name="viewport" content="width=device-width, initial-scale=1"></head>'),
       ctx,
     )
-    expect(res.details?.['content']).toBe('width=device-width, initial-scale=1')
+    expect(res.presentation?.values).toContainEqual({ key: 'Content (trimmed)', value: 'width=device-width, initial-scale=1', kind: 'text' })
   })
 
   it('og:image carries the image URL in its key', async () => {

@@ -1,12 +1,18 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, extractSnippet } from '@/shared/html-utils'
-import { getDomPath } from '@/shared/dom-path'
 import { sampleElements } from '@/shared/domEvidence'
+import { textField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
 
 const SELECTOR = 'meta[name="viewport" i]'
-const LABEL = 'HEAD'
 const NAME = 'Meta Viewport'
-const TESTED = 'Checks width=device-width, initial-scale below 1 and user-scalable=no in the first captured viewport tag.'
+const checked = [
+  textField('Selector', SELECTOR),
+  textField('Selection', 'First matching viewport tag'),
+  textField('Width check', 'width must equal device-width'),
+  textField('Initial scale check', 'Numeric initial-scale below 1 is an issue'),
+  textField('Zoom check', 'user-scalable=no or 0 is an issue'),
+]
 
 const parseViewport = (content: string): Record<string, string> => {
   const entries: Record<string, string> = {}
@@ -27,49 +33,33 @@ const findViewportIssues = (props: Record<string, string>): string[] => {
 }
 
 export const metaViewportRule: Rule = {
-  id: 'head:meta-viewport',
-  name: NAME,
-  enabled: true,
-  what: 'static',
+  id: 'head:meta-viewport', name: NAME, presentation: 1, enabled: true, what: 'static',
   meta: {
-    userGuide: {
-      check: "Checks the first viewport tag for width=device-width, an initial scale below 1 and a setting that disables zoom. This is a limited configuration check; it does not establish full mobile usability.",
-      action: "In the page template, use one viewport tag with content=\"width=device-width, initial-scale=1\" and allow users to zoom. Test the actual page at mobile widths.",
-    },
-    provenance: 'google',
-    references: ['https://developer.chrome.com/docs/lighthouse/pwa/viewport'],
+    provenance: 'google', references: ['https://developer.chrome.com/docs/lighthouse/pwa/viewport'],
     description: 'Checks meta[name=viewport]: warns when the tag is missing and validates its content (expects width=device-width, flags initial-scale below 1 and user-scalable=no).',
   },
   async run(page) {
     const elements = sampleElements(page.doc.querySelectorAll(SELECTOR))
-    if (elements.total === 0) {
-      return { name: NAME, label: LABEL, message: 'No meta viewport tag found. (Mobile devices render at desktop width and scale down)', type: 'warn', priority: 200, details: { tested: TESTED } }
-    }
+    if (!elements.total) return presentResult(metaViewportRule, page, {
+      input: 'Idle DOM', type: 'warn', priority: 200,
+      values: [textField('Viewport tags', 0), textField('Viewport status', 'Not found')], checked,
+      noMarkup: 'No meta viewport element found',
+    })
+
     const first = elements.sample[0]!
-    const sourceHtml = extractHtml(first)
     const content = (first.getAttribute('content') || '').trim()
-    const issues = findViewportIssues(parseViewport(content))
-    const countNote = elements.total > 1 ? ` (${elements.total} viewport tags)` : ''
-    const hasIssues = issues.length > 0
-    return {
-      name: NAME,
-      label: LABEL,
-      message: hasIssues
-        ? `Meta viewport issues: ${issues.join('; ')}${countNote}.`
-        : `Meta viewport configured for mobile: ${content}${countNote}.`,
-      type: hasIssues ? 'warn' : 'ok',
-      priority: hasIssues ? 300 : 700,
-      details: {
-        sourceHtml,
-        snippet: extractSnippet(sourceHtml),
-        domPath: getDomPath(first),
-        count: elements.total,
-        shown: elements.shown,
-        truncated: elements.truncated,
-        content,
-        issues,
-        tested: TESTED,
-      },
-    }
+    const props = parseViewport(content)
+    const issues = findViewportIssues(props)
+    const captured = markupEvidence(elements.sample, 'Viewport tag')
+    return presentResult(metaViewportRule, page, {
+      input: 'Idle DOM', type: issues.length ? 'warn' : 'ok', priority: issues.length ? 300 : 700,
+      values: [textField('Viewport tags', elements.total), textField('Content (trimmed)', content || 'Empty'),
+        textField('Viewport issues', issues.join('; ') || 'None')],
+      detailValues: ['width', 'initial-scale', 'user-scalable'].map((key) => textField(key,
+        key in props ? props[key] || 'Empty' : 'Not declared')),
+      checked,
+      evidence: [{ name: 'Capture', fields: [textField('Elements retained', elements.shown), textField('Elements omitted', elements.total - elements.shown), ...captured.fields] }],
+      markup: captured.markup, noMarkup: 'Complete original viewport markup not retained',
+    })
   },
 }
