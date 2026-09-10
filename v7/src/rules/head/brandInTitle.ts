@@ -1,94 +1,44 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, extractSnippet } from '@/shared/html-utils'
-import { getDomPath } from '@/shared/dom-path'
+import { textField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
 
-// Constants
-const LABEL = 'HEAD'
-const NAME = 'Brand in Title'
-const RULE_ID = 'head:brand-in-title'
-const SELECTOR = 'head > title'
-
-const inferBrandFromUrl = (url: string): { brand: string; host: string } => {
+const inferBrand = (url: string) => {
   try {
-    const { hostname } = new URL(url || '')
-    const host = hostname.replace(/^www\./, '')
-    const parts = host.split('.').filter(Boolean)
-    const brand = parts.reduce((longest, part) => (part.length > longest.length ? part : longest), '')
-    return { brand, host }
-  } catch {
-    return { brand: '', host: '' }
-  }
+    const host = new URL(url).hostname.replace(/^www\./, '')
+    return { host, brand: host.split('.').reduce((a, b) => b.length > a.length ? b : a, '') }
+  } catch { return { host: '', brand: '' } }
 }
-
 export const brandInTitleRule: Rule = {
-  id: RULE_ID,
-  name: NAME,
-  enabled: true,
-  what: 'static',
+  id: 'head:brand-in-title', name: 'Brand in page title', presentation: 1, enabled: true, what: 'static',
   meta: {
-    userGuide: {
-      check: "Looks for the configured brand text in the title. When no brand is configured, it guesses from the longest hostname part; that guess can be wrong. A missing match is a review suggestion, not proof that the title is incorrect.",
-      action: "First verify the brand shown in this result. If the hostname guess is wrong, configure the actual brand instead of changing the title to match a guess. Add accurate, concise branding to the title only where it helps readers.",
-    },
-    provenance: 'franz',
-    references: ['https://developers.google.com/search/docs/appearance/title-link'],
-    description: 'Checks whether the configured brand (or longest hostname label as fallback) appears case-insensitively in the <title>.',
+    provenance: 'franz', references: ['https://developers.google.com/search/docs/appearance/title-link'],
+    description: 'Matches configured brand text, or an estimate from the longest hostname label, against the first title.',
   },
   async run(page, ctx) {
-    // 1. Extract brand from configuration (user-defined variable) or infer from hostname
-    const variables = (ctx.globals as { variables?: Record<string, unknown> }).variables || {}
-    const configuredBrand = String((variables as Record<string, unknown>)['brand'] || '').trim()
-    const { brand: inferredBrand, host } = inferBrandFromUrl(page.url || '')
-    const brand = configuredBrand || inferredBrand
-    const brandSource = configuredBrand ? 'configured' : inferredBrand ? 'hostname' : 'unknown'
-
-    if (!brand) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'Could not determine brand; set "brand" in settings.',
-        type: 'info',
-        priority: 900,
-        details: { brandSource, host },
-      }
-    }
-
-    // 3. Query title element
-    const element = page.doc.querySelector(SELECTOR)
-    const titleText = (element?.textContent || '').trim()
-
-    // 4. Determine states (Binary Logic)
-    const isTitleMissing = !element || titleText.length === 0
-    const hasBrand = titleText.toLowerCase().includes(brand.toLowerCase())
-
-    const message = isTitleMissing
-      ? `Missing <title> tag. Cannot check brand "${extractSnippet(brand, 20)}".`
-      : hasBrand
-        ? `Title contains brand "${extractSnippet(brand, 20)}".`
-        : `Title does not contain brand "${brand}" (${brandSource === 'hostname' ? 'estimated from hostname' : 'configured brand'}).`
-
-    const type: 'info' | 'warn' = hasBrand && !isTitleMissing ? 'info' : 'warn'
-
-    const details = element
-      ? {
-          sourceHtml: extractHtml(element),
-          snippet: extractSnippet(titleText || '(empty)'),
-          domPath: getDomPath(element),
-          title: titleText,
-          brand,
-          hasBrand,
-          brandSource,
-          host,
-        }
-      : { brand, brandSource, host }
-
-    return {
-      label: LABEL,
-      name: NAME,
-      message,
-      type,
-      priority: hasBrand ? 700 : 300,
-      details,
-    }
+    const variables = ctx.globals['variables']
+    const raw = variables && typeof variables === 'object' ? (variables as Record<string, unknown>)['brand'] : undefined
+    const invalid = raw !== undefined && typeof raw !== 'string'
+    const configured = typeof raw === 'string' ? raw.trim() : ''
+    const inferred = inferBrand(page.url)
+    const brand = invalid ? '' : configured || inferred.brand
+    const element = page.doc.querySelector('head > title')
+    const title = element?.textContent || ''
+    const applicable = !!brand && !!title.trim()
+    const match = applicable && title.toLowerCase().includes(brand.toLowerCase())
+    const captured = markupEvidence(element ? [element] : [], '<title>')
+    return presentResult(brandInTitleRule, page, {
+      input: `Static DOM + ${configured || invalid ? 'brand configuration' : 'page hostname'}`,
+      type: invalid ? 'runtime_error' : !brand || match ? 'info' : 'warn', priority: match ? 700 : 300,
+      values: [textField('Brand match', applicable ? match ? 'Found' : 'Not found' : 'Not evaluated'),
+        textField('Searched brand', brand || (invalid ? 'Invalid configuration' : 'Not determined')),
+        ...(captured.markup[0] ? [{ ...captured.markup[0], key: '<title>' }] : [])],
+      detailValues: [textField('Title', element ? title : 'Not present'), textField('Brand source', configured ? 'Configured text' : invalid ? 'Invalid configuration' : 'Hostname estimate'),
+        textField('Hostname', inferred.host || 'Not available')],
+      checked: [textField('Selector', 'head > title'), textField('Selected element', 'First match'),
+        textField('Match', 'Case-insensitive substring'), textField('Run condition', 'Brand text and non-empty title available')],
+      evidence: captured.fields.length ? [{ name: 'Source', fields: captured.fields }] : [],
+      markup: captured.markup, noMarkup: element ? 'Complete original title markup not retained' : 'No title element found in head',
+    })
   },
 }

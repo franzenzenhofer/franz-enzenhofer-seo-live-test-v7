@@ -20,3 +20,18 @@ describe('rule: brand in title', () => {
     expect((r as any).type).toBe('info')
   })
 })
+
+it('retains exact title markup and separates plain text from source', async () => {
+  const html = '<title lang="de" data-template="trip">Shop ACME</title>'
+  const r = await brandInTitleRule.run({ html, url: 'https://example.com', doc: doc(html) }, { globals: { variables: { brand: 'ACME' } } })
+  expect(r.presentation?.markup[0].value).toBe(html)
+  expect(r.presentation?.detailValues).toContainEqual({ key: 'Title', value: 'Shop ACME', kind: 'text' })
+  expect(r.presentation?.references).toEqual(brandInTitleRule.meta.references)
+})
+it('does not claim a missing title was searched or stringify invalid brand configuration', async () => {
+  const absent = await brandInTitleRule.run({ html: '', url: 'https://example.com', doc: doc('') }, { globals: {} })
+  expect(absent.presentation?.values[0].value).toBe('Not evaluated')
+  const invalid = await brandInTitleRule.run({ html: '', url: 'https://example.com', doc: doc('<title>Example</title>') }, { globals: { variables: { brand: {} } } })
+  expect(invalid.type).toBe('runtime_error')
+  expect(JSON.stringify(invalid)).not.toContain('[object Object]')
+})
