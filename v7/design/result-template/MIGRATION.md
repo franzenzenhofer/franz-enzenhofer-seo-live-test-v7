@@ -16,7 +16,7 @@ This supersedes every earlier instruction to stop after five or ten rules. Conti
 - Commit **one migrated rule after another**, each with typecheck, lint, unit tests and build passing. All browser tests are headless. Retain replaced generated outputs in `trash/`.
 - The user subsequently authorized lower-cost subagents for individual manual migrations. Agents may prepare isolated patches; the primary agent reviews, applies and commits each rule sequentially after quality gates. No concurrent edits during verification.
 - Keep work on the current single branch, `main`; do not create parallel worktrees or branches. Do not push or publish.
-- At final completion, produce the handover prompt, copy it to the clipboard and call `say`, as explicitly requested. Do not announce completion before all rules and verification are finished.
+- At final completion, produce the handover prompt, copy it to the clipboard and call `say`, as explicitly requested. The user additionally explicitly authorized and requested shutting down this computer **only after ALL rule migrations, individual commits and testing are complete**. Before shutdown, create and verify a fresh final build, commit all task work and the handover, verify the committed package version matches the built manifest, and inspect git status for uncommitted task changes. Preserve unrelated user work. Save the handover and clipboard, report completion, then shut down. Never shut down on partial completion, failed verification, compaction or a handover to continue unfinished work.
 
 ## Resume instructions
 
@@ -40,10 +40,11 @@ This supersedes every earlier instruction to stop after five or ten rules. Conti
 | `body:unsecure-input` | `d66d283` |
 | `discover:max-image-preview-large` | `09768e7` |
 | `discover:og-image-large` | `eb8d1ed` |
+| `discover:article-structured-data` | `3576165` |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
-Next rule already inspected: `discover:article-structured-data` (`src/rules/discover/articleStructuredData.ts`). Then continue through every remaining existing registry rule.
+Current primary-agent migration: `discover:indexable`. Lower-cost agents are preparing isolated patches for `discover:published-time`, `discover:author-present` and `discover:headline-length`; see agent messages and `/tmp/*-migration.patch`. Continue through every remaining existing registry rule.
 
 ## Shared follow-up work still required
 
