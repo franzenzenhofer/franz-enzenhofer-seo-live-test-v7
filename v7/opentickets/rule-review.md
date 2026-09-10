@@ -7,7 +7,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | Rule | Baseline result | Review status | Commit |
 | --- | --- | --- | --- |
 | `http:alt-svc-other` | info | Reviewed: advertised IDs, clear and unparsed states retain the full header; added protocol names and advertisement-versus-usage distinction; existing quic/clear fixtures retained | `0a0282e` |
-| `google:amp-cache-url` | info | Pending | |
+| `google:amp-cache-url` | info | Reviewed absence, relative destinations and invalid declarations; named URLs, source evidence, conditional remedies and focused fixtures. | This rule commit |
 | `head:amphtml` | info | Reviewed absence, relative destinations and invalid declarations; named URLs, source evidence, conditional remedies and focused fixtures. | `7ff4af5` |
 | `discover:article-structured-data` | warn | Fixed: optional markup, BlogPosting coverage, exact matching script, incomplete parse explanation; absence/presence/malformed copy tests | `4563095` |
 | `discover:author` | warn | Fixed: all named authors and exact sources, optional metadata, unresolved identity limits; multi-author/absent/malformed copy tests | `cf79561` |
@@ -17,7 +17,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:canonical-noindex-conflict` | info | Pending | |
 | `head:canonical-hreflang-consistency` | info | Pending | |
 | `head:canonical-header` | info | Pending | |
-| `head:canonical-https-preference` | info | Reviewed absence, relative destinations and invalid declarations; named URLs, source evidence, conditional remedies and focused fixtures. | This rule commit |
+| `head:canonical-https-preference` | info | Reviewed absence, relative destinations and invalid declarations; named URLs, source evidence, conditional remedies and focused fixtures. | `576f7e0` |
 | `head-canonical` | warn | Pending | |
 | `head:canonical-signals-conflict` | info | Fixed: named HTML/header URL comparison, absent/single/matching/invalid states, specific template/server remedy; copy and invalid-input tests | `87e86af` |
 | `head:canonical-tracking-params` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | `4565ba3` |

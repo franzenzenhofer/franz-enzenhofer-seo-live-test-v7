@@ -8,7 +8,7 @@ describe('rule: amp cache url', () => {
     const doc = D('<link rel="amphtml" href="https://my-pub.com/article.amp.html?id=7">')
     const r = await ampCacheUrlRule.run({ html:'', url:'https://my-pub.com', doc }, { globals: {} })
     expect((r as any).message.includes('AMP Cache')).toBe(true)
-    expect((r as any).details.ampCacheUrl).toBe('https://my--pub-com.cdn.ampproject.org/c/s/my-pub.com/article.amp.html?id=7')
+    expect((r as any).details.ampCacheUrl).toBe('https://0-my--pub-com-0.cdn.ampproject.org/c/s/my-pub.com/article.amp.html?id=7')
   })
 
   it('omits the /s/ infix for http amp pages', async () => {
@@ -22,4 +22,10 @@ describe('rule: amp cache url', () => {
     expect((r as any).type).toBe('info')
     expect((r as any).message).toContain('No amphtml link')
   })
+})
+
+it('resolves relative AMP declarations and handles the reserved double-dash prefix', async () => {
+  const doc = D('<link rel="AMPHTML" href="/amp">')
+  const result = await ampCacheUrlRule.run({ html: '', url: 'https://en-us.example.com/page', doc }, { globals: {} })
+  expect(result.details?.['ampCacheUrl']).toBe('https://0-en--us-example-com-0.cdn.ampproject.org/c/s/en-us.example.com/amp')
 })
