@@ -584,7 +584,7 @@
   },
   {
     "id": "head:meta-keywords",
-    "name": "Meta Keywords (Deprecated)",
+    "name": "Meta keywords (ignored by Google)",
     "enabledByDefault": true,
     "what": "static",
     "provenance": "google",

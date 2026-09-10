@@ -60,7 +60,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:meta-charset` | ok | Pending | |
 | `head-meta-description` | ok | Reviewed: description text and duplicate-tag evidence are retained; added search snippet meaning and CMS/template fix; existing absent/empty/duplicate/single fixtures retained | `5009a98` |
 | `head:meta-googlebot` | info | Reviewed missing, multiple, body and case-insensitive tags; exact named sources and noindex/nofollow meaning; focused fixtures. | `ca6d1df` |
-| `head:meta-keywords` | info | Pending | |
+| `head:meta-keywords` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | This rule commit |
 | `head:meta-other-robots` | info | Reviewed and fixed: named crawler instructions replace parser dump; clarified that other-crawler restrictions do not automatically apply to Googlebot; existing non-robots filter fixtures retained | `842add8` |
 | `head:robots-noindex` | info | Reviewed missing, multiple, body and case-insensitive tags; exact named sources and noindex/nofollow meaning; focused fixtures. | `0f9442e` |
 | `head:unavailable-after` | info | Pending | |
@@ -123,7 +123,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:hsts` | ok | Pending | |
 | `gsc:top-queries-of-page` | runtime_error | Reviewed API scope and missing/access/error/success branches; explicit Pacific dates and metric meaning; fixture checks with no live account claims. | `745ff6a` |
 | `dom:top-words` | info | Pending | |
-| `head:twitter-card` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | This rule commit |
+| `head:twitter-card` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | `b76d858` |
 | `body:unsecure-input` | info | Pending | |
 | `robots:noindex-unsupported` | info | Pending | |
 | `url:trailing-slash` | warn | Pending | |
