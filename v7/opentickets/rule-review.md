@@ -13,7 +13,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `discover:author` | warn | Fixed: all named authors and exact sources, optional metadata, unresolved identity limits; multi-author/absent/malformed copy tests | `cf79561` |
 | `speed:blocking-scripts` | warn | Reviewed: complete script URL list and sampled source retained; added parsing impact, detection limits and dependency-aware remediation; existing classic/module/non-JS fixtures retained | `07714f9` |
 | `head:brand-in-title` | warn | Reviewed and fixed: estimated-versus-configured brand is explicit in missing-match summary; full title and brand retained; added verify-the-guess guidance; existing configured/inferred fixtures retained | `9280d70` |
-| `http:cache-delivery` | info | Pending | |
+| `http:cache-delivery` | info | Reviewed missing capture, valid and malformed evidence; explanatory units and scope; existing and focused boundary fixtures. | This rule commit |
 | `head:canonical-noindex-conflict` | info | Pending | |
 | `head:canonical-hreflang-consistency` | info | Pending | |
 | `head:canonical-header` | info | Pending | |
@@ -45,7 +45,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http-status` | runtime_error | Fixed: named statuses, affected page URL, status-specific remedies, cache revalidation and unavailable evidence; context registration and copy tests | `0a0fba4` |
 | `http:h2-advertised` | info | Reviewed missing capture, valid and malformed evidence; explanatory units and scope; existing and focused boundary fixtures. | `e631d93` |
 | `http:h3-advertised` | info | Reviewed missing capture, valid and malformed evidence; explanatory units and scope; existing and focused boundary fixtures. | `1259098` |
-| `http:https-scheme` | ok | Reviewed missing capture, valid and malformed evidence; explanatory units and scope; existing and focused boundary fixtures. | This rule commit |
+| `http:https-scheme` | ok | Reviewed missing capture, valid and malformed evidence; explanatory units and scope; existing and focused boundary fixtures. | `03eb10b` |
 | `body:images-lazy` | info | Reviewed and fixed: named per-image loading instructions replace concatenated HTML; explicit eager default and viewport limits; existing mixed/default fixtures retained | `83ee1ac` |
 | `body:images-layout` | ok | Fixed: image names and URLs, specific missing attributes, explicit sample count and no-image state; copied two-offender and empty fixtures | `2697ef6` |
 | `discover:indexable` | ok | Fixed: named applicable blockers, intentional exclusion guidance, permission vs actual indexing; body meta coverage; pass/block/other-crawler tests | `e3d2451` |

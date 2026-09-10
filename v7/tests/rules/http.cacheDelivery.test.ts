@@ -40,3 +40,10 @@ describe('rule: cache delivery (Age header)', () => {
     expect(hours.message).toContain('2 hours (From cache)')
   })
 })
+
+it.each(['NaN', '-1', '1.5'])('identifies malformed Age %s instead of displaying a made-up duration', async age => {
+  const result = await cacheDeliveryRule.run(P({ Age: age }), { globals: {} })
+  expect(result.type).toBe('warn')
+  expect(result.message).not.toContain('NaN hours')
+  expect(result.details?.['ageValue']).toBeNull()
+})

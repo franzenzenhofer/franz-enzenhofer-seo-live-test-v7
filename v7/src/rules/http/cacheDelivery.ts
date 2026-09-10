@@ -1,3 +1,4 @@
+import { headerValue } from '@/shared/headerValue'
 import type { Rule } from '@/core/types'
 import { extractSnippet } from '@/shared/html-utils'
 import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
@@ -13,6 +14,10 @@ export const cacheDeliveryRule: Rule = {
   enabled: true,
   what: 'http',
   meta: {
+    userGuide: {
+      check: "Age is a cache-reported estimate in seconds since the response was generated or validated. It concerns an intermediary cache, not necessarily the browser cache or the age of the page content.",
+      action: "For an invalid Age value, fix the server or CDN to send a non-negative whole number of seconds. If content seems stale, inspect cache freshness and revalidation settings; the Age value alone does not prove a problem.",
+    },
     provenance: 'standard',
     references: [
       'https://www.rfc-editor.org/rfc/rfc9111.html#section-5.1',
@@ -23,18 +28,20 @@ export const cacheDeliveryRule: Rule = {
   async run(page) {
     if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
     // 1. Extract Age header
-    const ageHeader = page.headers?.['age'] || ''
-    const ageValue = Number(ageHeader || '0')
+    const ageHeader = headerValue(page.headers, 'age')
+    const ageValue = ageHeader && /^\d+$/.test(ageHeader) && Number.isSafeInteger(Number(ageHeader)) ? Number(ageHeader) : null
 
     // 2. Determine states (RFC 9111 5.1: presence of Age implies a cache was
     // in the path; absence proves nothing about origin contact)
     const hasAgeHeader = ageHeader.length > 0
-    const isFromCache = hasAgeHeader
+    const isFromCache = hasAgeHeader && ageValue !== null
 
     // 3. Build message (Quantified, showing value)
     let message = ''
     if (!hasAgeHeader) {
       message = 'No Age header (no evidence of shared-cache delivery)'
+    } else if (ageValue === null) {
+      message = 'Age header is invalid: expected a non-negative whole number of seconds.'
     } else if (ageValue === 0) {
       message = 'Age: 0 - response passed through a cache but was just generated/validated at the origin'
     } else if (ageValue < 60) {
@@ -52,13 +59,13 @@ export const cacheDeliveryRule: Rule = {
       label: LABEL,
       name: NAME,
       message,
-      type: 'info',
+      type: hasAgeHeader && ageValue === null ? 'warn' : 'info',
       priority: isFromCache ? 750 : 900,
       details: {
-        httpHeaders: page.headers || {},
         snippet: extractSnippet(ageHeader || '(not present)'),
         ageHeader,
         ageValue,
+        ageUnit: 'seconds',
         isFromCache,
       },
     }
