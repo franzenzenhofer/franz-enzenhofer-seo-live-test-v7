@@ -36,7 +36,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `body:h1` | ok | Reviewed and fixed: multiple headings now include their text with locations; purpose and missing/empty remediation; existing single/multiple/empty/missing fixtures retained | `966acd5` |
 | `discover:headline-length` | info | Pending | |
 | `gsc:is-indexed` | runtime_error | Pending | |
-| `url:history-state-update` | info | Reviewed: captured history and commit booleans in baseline and source; added history meaning and direct-load guidance; no detection logic changed | This rule commit |
+| `url:history-state-update` | info | Reviewed: captured history and commit booleans in baseline and source; added history meaning and direct-load guidance; no detection logic changed | `20289b4` |
 | `head-hreflang` | info | Pending | |
 | `head:hreflang-multipage` | info | Pending | |
 | `head:hreflang-values` | info | Pending | |
@@ -92,7 +92,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:robots-max-snippet` | info | Fixed: readable per-crawler limits with source, units, zero/unlimited/invalid meanings; removed duplicate token dumps; copied multi-source fixture | `7aa2748` |
 | `head:robots-max-video-preview` | info | Fixed: seconds, zero versus unlimited meaning, per-crawler source and value; removed duplicate token dumps; copied multiple-setting fixture | `919bf5f` |
 | `head-robots-meta` | info | Pending | |
-| `head:robots-meta-list` | info | Pending | |
+| `head:robots-meta-list` | info | Reviewed and fixed: crawler/source/instruction records replace raw parser fields; summary names crawlers; actual indexing and header limits explained; existing mixed-meta and crawler fixtures retained | This rule commit |
 | `head:robots-noimageindex` | info | Fixed: named sources, page indexing distinction and other image-source limits, intentional restriction guidance; copied restriction fixture | `87025e6` |
 | `head:robots-nosnippet` | info | Fixed: named tag/header restrictions, max-snippet zero, static-image and indexing distinctions, intentional restriction guidance; copied cross-crawler fixture | `bc6368a` |
 | `robots:blocked-resources` | ok | Pending | |
