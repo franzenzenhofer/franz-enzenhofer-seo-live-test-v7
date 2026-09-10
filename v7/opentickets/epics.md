@@ -31,3 +31,21 @@
 - Rationale: Confusing totals reduce confidence in findings
 - Impacted personas: P1, P2
 - Linked tickets: TCK-005
+
+---
+
+# Result comprehension review
+
+This is a simulated expert and novice review, not a study with recruited people. The product is the Chrome extension side panel and report. The task is to understand what each result proves, locate its evidence, decide what to do, and copy an actionable ticket.
+
+## EPIC-001: Understand and share every finding
+
+Outcome: all 130 rules use readable evidence and explain the scope of a pass, warning, failure or unavailable test. Personas: novice site owner, content editor, technical SEO. Tickets: UX-001 and the per-rule records in rule-review.md.
+
+## Review scripts
+
+- Novice: identify whether the page is correct, explain the finding without jargon, decide whether any action is needed, and copy a ticket.
+- Content editor: identify the affected content, distinguish required changes from optional recommendations, locate the CMS setting or element, and explain the expected outcome.
+- Technical SEO: verify the source and crawler scope, distinguish captured facts from inference, check missing-data behavior, and preserve all evidence when copying.
+
+Each rule is reviewed in collapsed and expanded form, including representative passing, failing, absent and unavailable-data branches where they exist. Browser verification remains headless.

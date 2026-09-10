@@ -8,6 +8,7 @@ import { useResultHighlight } from './useResultHighlight'
 import { toResultCopyPayload } from './resultCopy'
 import { buildDomHighlight, buildDetailPayload, extractSnippet } from './resultTransforms'
 import { ResultPreview } from './ResultPreview'
+import { ResultStatus } from './ResultStatus'
 
 import { getResultColor } from '@/shared/colors'
 import type { Result } from '@/shared/results'
@@ -27,7 +28,6 @@ type Props = {
 
 export const ResultCard = ({ result, index, displayIndex, isPinned, onTogglePin, isDisabled, onToggleDisable, defaultExpanded = false, tabId, logUi }: Props) => {
   const color = getResultColor(result.type)
-  const readableDetails = result.details?.['resourceIssues'] || result.details?.['navigationSteps']
   const isPending = result.type === 'pending'
   const hasDetails = Boolean(result.details || result.what || result.ruleId || typeof result.priority === 'number')
   const [open, setOpen] = useState(hasDetails && defaultExpanded)
@@ -52,7 +52,7 @@ export const ResultCard = ({ result, index, displayIndex, isPinned, onTogglePin,
   }
 
   return (
-    <article id={typeof numberLabel === 'number' ? `result-${numberLabel}` : undefined} className={`${color.full} border rounded p-3 space-y-2 ${isPending ? 'animate-pending' : ''} ${readableDetails ? '[&_*]:text-base' : ''}`} data-testid="result-card">
+    <article id={typeof numberLabel === 'number' ? `result-${numberLabel}` : undefined} className={`${color.full} border rounded p-3 space-y-2 ${isPending ? 'animate-pending' : ''} [&_*]:text-base`} data-testid="result-card">
       <ResultHeader
         result={result}
         isPinned={isPinned}
@@ -66,6 +66,7 @@ export const ResultCard = ({ result, index, displayIndex, isPinned, onTogglePin,
         disabled={isDisabled}
         onOpenReport={result.runIdentifier ? openReport : undefined}
       />
+      <ResultStatus type={result.type} />
       <MessageWithLinks text={result.message} className="text-sm text-slate-900 break-words" />
       {!open && <ResultPreview details={result.details} />}
       {open && hasDetails && (

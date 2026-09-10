@@ -61,6 +61,7 @@ export type RuleMeta = {
   provenance: RuleProvenance
   references: string[]
   description?: string
+  userGuide?: { check: string; action: string }
 }
 export type Rule = {
   id: string

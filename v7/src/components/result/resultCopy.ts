@@ -1,6 +1,8 @@
 import type { Result } from '@/shared/results'
 import { readResourceIssues, resourceIssueCopy } from '@/shared/resourceIssues'
 import { navigationStepsCopy, readNavigationSteps } from '@/shared/navigationSteps'
+import { detailLabel, readableDetail } from '@/shared/readableDetails'
+import { markdownCode } from '@/shared/markdownFormatting'
 
 const codeBlock = (label: string, content: string, lang = '') => {
   const trimmed = content.trim()
@@ -35,16 +37,20 @@ export const toResultCopyPayload = (result: Result | null | undefined): string =
   const sourceHtml = typeof details['sourceHtml'] === 'string' ? details['sourceHtml'] : ''
   if (sourceHtml) lines.push('', codeBlock('Source HTML', sourceHtml, 'html'))
   const extraEntries = Object.entries(details).filter(
-    ([key]) => !['snippet', 'reference', 'provenance', 'sourceHtml', 'domPath', 'domPaths', ...(steps.length ? ['issue'] : [])].includes(key),
+    ([key]) => !['snippet', 'reference', 'provenance', 'sourceHtml', ...(issues.length ? ['resourceIssues'] : []), ...(steps.length ? ['issue', 'navigationSteps'] : [])].includes(key),
   )
   for (const [key, value] of extraEntries) {
-    if (typeof value === 'string') {
+    const text = readableDetail(value)
+    if (!text) continue
+    if (typeof value !== 'string') {
+      lines.push('', `**${detailLabel(key)}:**\n${markdownCode(text)}`)
+    } else {
       if (value.startsWith('http')) {
         lines.push('', linkLine(key, value))
       } else if (value.includes('<') && value.includes('>')) {
         lines.push('', codeBlock(key, value, 'html'))
       } else {
-        lines.push('', `**${key}:** ${value}`)
+        lines.push('', `**${detailLabel(key)}:** ${value}`)
       }
     }
   }

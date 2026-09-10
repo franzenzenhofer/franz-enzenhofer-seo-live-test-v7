@@ -7,6 +7,7 @@ import { Logger } from '@/shared/logger'
 export const metaDetails = (rule: Rule, details?: ResultDetails): ResultDetails => ({
   ...(rule.meta.references[0] ? { reference: rule.meta.references[0] } : {}),
   provenance: rule.meta.provenance,
+  ...(rule.meta.userGuide ? { whatThisChecks: rule.meta.userGuide.check } : {}),
   ...details,
 })
 
@@ -16,7 +17,12 @@ export const enrichResult = (res: Result, rule: Rule, runId: string | undefined,
   ruleId: res.ruleId ?? rule.id,
   runIdentifier: runId,
   runIndex: typeof runIndex === 'number' ? runIndex : res.runIndex,
-  details: metaDetails(rule, res.details),
+  details: metaDetails(rule, {
+    ...(rule.meta.userGuide && ['warn', 'error'].includes(res.type)
+      && !res.details?.['fix'] && !res.details?.['should'] && !res.details?.['nextStep']
+      ? { nextStep: rule.meta.userGuide.action } : {}),
+    ...res.details,
+  }),
 })
 
 export const emitChunk = async (emit: ((chunk: Result[]) => Promise<void> | void) | undefined, chunk: Result[]) => {

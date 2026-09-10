@@ -25,6 +25,7 @@ const TECHNICAL_KEYS = new Set([
 const GUIDANCE_LABELS: Record<string, string> = {
   is: 'Problem', problem: 'Problem', actual: 'Actual', expected: 'Expected',
   should: 'Fix', fix: 'Fix', recommendation: 'Fix',
+  whatThisChecks: 'What this checks', interpretation: 'What it means', nextStep: 'Next step', note: 'Note', reason: 'Why',
 }
 const LONG_TEXT = 100
 const SOURCE_KEY = 'sourceHtml'

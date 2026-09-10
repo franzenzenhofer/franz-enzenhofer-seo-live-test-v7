@@ -106,3 +106,24 @@
 - Acceptance criteria:
   - Total label reflects what is being counted
   - Missing/unconfigured counts are visible to all users
+
+---
+
+# Result UX tickets
+
+## UX-001: Preserve nested evidence in readable cards and copied results
+
+- Epic: EPIC-001
+- Type: Bug / UX
+- Severity: S2 Major
+- Priority: P1
+- Persona: novice site owner, content editor, technical SEO
+- Scenario: inspect Discover indexing and preview permission results, then copy them into a ticket.
+- Steps: run the extension; read the collapsed result; expand it; copy the complete finding.
+- Expected: readable named values, evidence locations, complete copied details, and an explicit result status.
+- Actual / IS: nested objects become `[object Object]` in previews, JSON in expanded cards, and missing data in whole-result copies.
+- SHOULD: recursively format objects as labelled fields, keep all recorded values in copies, distinguish a failed site check from a test that could not run.
+- Reasoning: users cannot determine correctness or delegate a fix when evidence is unreadable or omitted. Color alone is insufficient to distinguish review recommendations and unavailable tests.
+- Code hints: shared/resultPreview.ts, shared/readableDetails.ts, components/result/ResultDetails.tsx, components/result/resultCopy.ts.
+- Acceptance criteria: no object-coercion placeholders or nested JSON dumps; copied arrays retain values and locations; explicit status labels; complete all 130 per-rule reviews.
+- Status: shared fix in verification; per-rule review ongoing in rule-review.md.

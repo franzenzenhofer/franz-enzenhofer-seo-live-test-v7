@@ -34,8 +34,8 @@ describe('resultPreview', () => {
 
   it('summarises a record, so "HTTP headers captured." shows the headers', () => {
     const out = resultPreview({ httpHeaders: { 'cache-control': 'max-age=0', server: 'nginx' }, status: 200 })
-    expect(out).toContain('cache-control: max-age=0')
-    expect(out).toContain('server: nginx')
+    expect(out).toContain('Cache-control: max-age=0')
+    expect(out).toContain('Server: nginx')
   })
 
   it('never shows spec links or DOM paths as the value', () => {

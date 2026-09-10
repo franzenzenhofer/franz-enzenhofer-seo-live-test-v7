@@ -30,7 +30,7 @@ describe('ResultDetails tiers', () => {
       <ResultDetails details={{ count: 12, length: 58, hasNoindex: false, status: 200 }} />,
     )
     expect(html).toContain('detail-measurements')
-    expect(html).toContain('Has noindex:')
+    expect(html).toContain('Blocks search indexing:')
     expect(html).toContain('no')
     expect(html).not.toContain('HAS NOINDEX')
     expect(count(html, 'detail-evidence')).toBe(0)
@@ -41,7 +41,7 @@ describe('ResultDetails tiers', () => {
       <ResultDetails details={{ httpHeaders: { server: 'Apache', vary: 'Origin' }, highlightSelectors: ['html > head > meta'] }} />,
     )
     expect(html).toContain('detail-technical')
-    expect(html).toContain('server: Apache')
+    expect(html).toContain('Server: Apache')
     expect(html).toContain('html &gt; head &gt; meta')
     expect(html).not.toContain('<details')
   })
@@ -86,9 +86,9 @@ describe('ResultDetails tiers', () => {
       { url: 'https://newsv2.orf.at/stories/3440788', status: 404 },
     ]
     const tiers = tierDetails({ redirectChain })
-    expect(tiers.evidence[0]?.text).toBe(
-      'https://orf.at/stories/3440788/fake-url-for-soft-404-check  301\nhttps://newsv2.orf.at/stories/3440788  404',
-    )
+    expect(tiers.evidence[0]?.text).toContain('Status: 301')
+    expect(tiers.evidence[0]?.text).toContain('Location: https://newsv2.orf.at/stories/3440788')
+    expect(tiers.evidence[0]?.text).toContain('Status: 404')
   })
 
   it('keeps long values complete in the expanded view - no truncation, no ellipsis', () => {
@@ -120,7 +120,9 @@ describe('ResultDetails tiers', () => {
       { ua: 'googlebot', source: 'meta', value: 'noarchive', sourceHtml: '<meta name="googlebot">' },
     ]
     const tiers = tierDetails({ directives })
-    expect(tiers.evidence[0]?.text).toBe('robots: index, follow\ngooglebot: noarchive')
+    expect(tiers.evidence[0]?.text).toContain('Crawler: googlebot')
+    expect(tiers.evidence[0]?.text).toContain('Value: noarchive')
+    expect(tiers.evidence[0]?.text).toContain('Source HTML: <meta name="googlebot">')
   })
 
   it('always keeps the value box, even when the verdict message quotes the value', () => {

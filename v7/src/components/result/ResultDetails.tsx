@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react'
 
+import { DetailRecords } from './DetailRecords'
 import { DetailGuidance } from './DetailGuidance'
 import { DetailMeasurements } from './DetailMeasurements'
 import { DetailProvenance } from './DetailProvenance'
@@ -13,6 +14,7 @@ import { hasTierContent, tierDetails } from './detailTiers'
 import type { Result } from '@/shared/results'
 import { readResourceIssues } from '@/shared/resourceIssues'
 import { readNavigationSteps } from '@/shared/navigationSteps'
+import { isDetailRecord } from '@/shared/readableDetails'
 
 type Props = { details?: Result['details']; snippet?: string | null }
 
@@ -26,9 +28,12 @@ export const ResultDetails = ({ details, snippet }: Props): ReactElement | null 
   const issues = readResourceIssues(details?.['resourceIssues'])
   const steps = readNavigationSteps(details?.['navigationSteps'])
   const hidden = [...(issues.length ? ['resourceIssues', 'count', 'insecureFormActionCount'] : []), ...(steps.length ? ['navigationSteps', 'issue', 'tempRedirectCodes'] : [])]
-  const genericDetails = Object.fromEntries(Object.entries(details ?? {}).filter(([key]) => !hidden.includes(key)))
+  const entries = Object.entries(details ?? {}).filter(([key]) => !hidden.includes(key))
+  const records = entries.filter(([key, value]) => !['apiResponse', 'httpHeaders', 'headers', 'navigationTiming'].includes(key)
+    && (isDetailRecord(value) || (Array.isArray(value) && value.some(isDetailRecord))))
+  const genericDetails = Object.fromEntries(entries.filter(([key]) => !records.some(([recordKey]) => recordKey === key)))
   const tiers = tierDetails(genericDetails, snippet)
-  if (!hasTierContent(tiers) && !issues.length && !steps.length) return null
+  if (!hasTierContent(tiers) && !issues.length && !steps.length && !records.length) return null
   return (
     <div className={`mt-2 space-y-2 border-t pt-2 text-xs ${issues.length || steps.length ? '[&_p]:text-base [&_dl]:text-base' : ''}`}>
       {tiers.evidence.map(({ key, text }) => (
@@ -40,6 +45,7 @@ export const ResultDetails = ({ details, snippet }: Props): ReactElement | null 
       {issues.length > 0 && <ResourceIssues issues={issues} />}
       {steps.length > 0 && <NavigationJourney steps={steps} />}
       <DetailGuidance entries={tiers.guidance} />
+      <DetailRecords entries={records.map(([key, value]) => ({ key, value }))} />
       <DetailMeasurements entries={tiers.measurements} />
       {tiers.source.map(({ key, text }) => (
         <div key={key} data-testid="detail-source">

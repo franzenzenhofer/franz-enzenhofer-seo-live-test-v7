@@ -1,4 +1,5 @@
 import { attributeOf, normalizeText, textOf } from './textMatch'
+import { readableDetail } from './readableDetails'
 
 export { attributeOf, normalizeText, textOf } from './textMatch'
 
@@ -6,14 +7,15 @@ export { attributeOf, normalizeText, textOf } from './textMatch'
 const META_KEYS = new Set([
   'reference', 'provenance', 'domPath', 'domPaths', 'domPathColors', 'tested', 'snippet',
   'sourceHtml', 'apiResponse', 'strategy', 'url', 'checked', 'failures',
+  'fix', 'should', 'problem', 'interpretation', 'nextStep', 'why', 'recommendation', 'whatThisChecks',
   // Where the data came from (Search Console), never the finding itself.
   'property', 'propertyType', 'siteUrl',
 ])
 
 // Preferred order when a rule offers several values.
 const VALUE_KEYS = [
-  'title', 'description', 'h1', 'heading', 'canonical', 'htmlCanonical',
-  'headerCanonical', 'href', 'resolvedUrl', 'content', 'value', 'text', 'lang',
+  'summary', 'title', 'description', 'h1', 'heading', 'canonical', 'htmlCanonical',
+  'headerCanonical', 'robotsContent', 'xRobotsTag', 'href', 'resolvedUrl', 'content', 'value', 'text', 'lang',
 ] as const
 
 const MAX_PREVIEW = 160
@@ -35,18 +37,14 @@ export const listItemText = (item: unknown): string => {
 /** Some rules hold a record (HTTP headers, a page summary). Show its pairs. */
 const recordOf = (value: unknown): string => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return ''
-  const pairs = Object.entries(value as Record<string, unknown>)
-    .filter(([, item]) => item !== null && item !== undefined && item !== '')
-    .slice(0, 6)
-    .map(([key, item]) => `${key}: ${normalizeText(String(item)).slice(0, 40)}`)
-  return pairs.length ? cut(pairs.join(' · ')) : ''
+  return readableDetail(value).replace(/\n\s*/g, ' · ')
 }
 
 /** Some rules collect a list (robots directives, hreflang pairs). Show it. */
 const listOf = (value: unknown): string => {
   if (!Array.isArray(value) || !value.length) return ''
-  const parts = value.slice(0, 4).map(listItemText).filter(Boolean)
-  return parts.length ? cut(parts.join(' · ')) : ''
+  const parts = value.map((item) => listItemText(item) || readableDetail(item)).filter(Boolean)
+  return parts.join(' · ')
 }
 
 /**
