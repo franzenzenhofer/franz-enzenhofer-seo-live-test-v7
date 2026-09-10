@@ -1,5 +1,5 @@
 import type { Rule, RuleMeta } from '@/core/types'
-import { parseLdDetails, findType } from '@/shared/structured'
+import { parseLdDetails, findType, schemaTypes } from '@/shared/structured'
 import { extractHtml, extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
 
@@ -63,7 +63,7 @@ export function createSchemaRule(config: SchemaRuleConfig): Rule {
       const failures = checks.filter(({ validation }) => !validation.ok)
       const selected = failures[0] || checks[0]!
       const validation = selected.validation
-      const foundType = String(selected.node['@type'] || types[0])
+      const foundType = schemaTypes(selected.node).join(', ') || types[0]!
       const fieldsLabel = validation.fieldsLabel || config.fieldsLabel || 'required'
       let message = config.presenceOnly ? `${foundType} structured data present (presence check only).`
         : failures.length ? `${foundType} missing: ${validation.missing?.join(', ') || `${fieldsLabel} fields`}`

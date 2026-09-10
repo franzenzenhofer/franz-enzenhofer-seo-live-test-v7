@@ -485,6 +485,17 @@
     ]
   },
   {
+    "id": "dom:ldjson",
+    "name": "JSON-LD structured data blocks",
+    "enabledByDefault": true,
+    "what": "static",
+    "provenance": "standard",
+    "references": [
+      "https://www.w3.org/TR/json-ld/",
+      "https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data"
+    ]
+  },
+  {
     "id": "discover:max-image-preview-large",
     "name": "Large image preview permission",
     "enabledByDefault": true,
@@ -504,17 +515,6 @@
     "references": [
       "https://developers.google.com/search/docs/appearance/google-discover",
       "https://ogp.me/"
-    ]
-  },
-  {
-    "id": "dom:ldjson",
-    "name": "LD+JSON presence",
-    "enabledByDefault": true,
-    "what": "static",
-    "provenance": "standard",
-    "references": [
-      "https://www.w3.org/TR/json-ld/",
-      "https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data"
     ]
   },
   {

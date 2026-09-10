@@ -52,7 +52,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `body:internal-link-status` | ok | Pending | |
 | `body:internal-links` | info | Pending | |
 | `discover:og-image-large` | warn | Pending | |
-| `dom:ldjson` | info | Pending | |
+| `dom:ldjson` | info | Fixed: numbered source blocks, declared types, syntax versus schema validity, explicit sample coverage; malformed types never stringify as Object; rendered/copied malformed fixture | This rule commit |
 | `http:link-header` | info | Pending | |
 | `a11y:linked-images-alt` | ok | Pending | |
 | `body:parameterized-links` | info | Pending | |
@@ -82,7 +82,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `discover:primary-language` | info | Reviewed: language value and exact opening tag are visible and copied; added accessibility purpose, validation limits and template fix; existing present/missing fixtures retained | `6274e29` |
 | `discover:published-time` | warn | Fixed: optional dates, all declared values with exact sources, no fabricated modification dates; absent/published/multiple-source/copy/display tests | `afd09e5` |
 | `http:redirect-loop` | ok | Pending | |
-| `http:redirect-canonical-chain` | info | Fixed: one named timeline, separate preferred URL meaning, no fake history response or duplicate trace dump, header-only fallback; rendered and copied journey fixture | This rule commit |
+| `http:redirect-canonical-chain` | info | Fixed: one named timeline, separate preferred URL meaning, no fake history response or duplicate trace dump, header-only fallback; rendered and copied journey fixture | `1274af3` |
 | `head:rel-alternate-media` | info | Pending | |
 | `speed:dns-prefetch` | info | Pending | |
 | `speed:preconnect` | info | Pending | |
