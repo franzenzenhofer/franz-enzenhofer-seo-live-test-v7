@@ -1,6 +1,7 @@
 import { throwIfAborted, abortScope } from './abort'
 import { isRedirectStatus } from './http-constants'
 import { discardBody } from './http-utils'
+import { withAnonymity } from './probeFetch'
 import { followViaObserver } from './redirectChain.observed'
 import { finalize, followHidden, hopFetch, newChain, stopWithNote } from './redirectChain.steps'
 import { getRedirectHopObserver } from './redirectChainObserver'
@@ -11,10 +12,10 @@ export const REDIRECT_MAX_HOPS = 10
 export const REDIRECT_TIMEOUT_MS = 15_000
 
 const probeFetch = (opts: FollowOptions): typeof fetch => {
-  const rawFetch = opts.fetchFn ?? fetch
   return async (input, init) => {
     throwIfAborted(opts.signal)
-    const response = await rawFetch(input, init)
+    // Anonymous and safety-checked on every hop - also for an injected fetch.
+    const response = await withAnonymity(opts.fetchFn)(input, init)
     noteProbeResponse(String(input), response)
     return response
   }

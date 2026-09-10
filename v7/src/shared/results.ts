@@ -2,16 +2,16 @@ import type { Result as CoreResult } from '@/core/types'
 
 export type Result = CoreResult
 
-const key = (tabId: number) => `results:${tabId}`
+export const resultsKey = (tabId: number) => `results:${tabId}`
 
 export const readResults = async (tabId: number) => {
-  const { [key(tabId)]: v } = await chrome.storage.local.get(key(tabId))
+  const { [resultsKey(tabId)]: v } = await chrome.storage.local.get(resultsKey(tabId))
   return (v as Result[]) || []
 }
 
 export const watchResults = (tabId: number, cb: (r: Result[]) => void) => {
   const h = (c: { [k: string]: chrome.storage.StorageChange }) => {
-    const ch = c[key(tabId)]
+    const ch = c[resultsKey(tabId)]
     if (ch) cb((ch.newValue as Result[]) || [])
   }
   chrome.storage.onChanged.addListener(h)
@@ -19,7 +19,7 @@ export const watchResults = (tabId: number, cb: (r: Result[]) => void) => {
 }
 
 export const clearResults = async (tabId: number) => {
-  await chrome.storage.local.remove(key(tabId))
+  await chrome.storage.local.remove(resultsKey(tabId))
 }
 
 export const filterResultsByRunId = (results: Result[], runId: string | undefined): Result[] => {

@@ -67,6 +67,7 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
 2. Bound retries. Use `withQuotaRetry` for storage-side concerns; for network, prefer a fixed small backoff and stop.
 3. Validate the response with a Zod schema if it came from outside the extension. `src/shared/psi.ts` is the canonical example -- minimal `passthrough()` schema with `.optional()` on every field except the path you actually depend on.
 4. Increment the `fetch.fail` telemetry counter on every non-OK / aborted path so the counters reflect production reality.
+5. **Page-derived URLs** (links, hreflang targets, the page URL itself, probe variants) are requested only through `anonymousFetch` / `withAnonymity` in `src/shared/probeFetch.ts`, or through `followRedirectChain` / `fetchTextOnce`, which use it. It sends no cookies and no HTTP auth (`credentials: 'omit'`, on every redirect hop) and refuses every URL that `unsafeProbeReason` in `src/shared/probeSafety.ts` flags: CMS back offices, GET action URLs, token-bearing URLs. Pages that `unsafePageReason` flags are not audited at all. ESLint (`no-restricted-syntax`) rejects a raw `fetch(` in `src/rules`, `src/shared`, `src/offscreen` and `src/content`; only the Google API clients are allowlisted. Why: Chrome sends the user's cookies with extension fetches of host-permitted URLs, so on 2026-09-10 a logged-in WordPress editor's trash and logout links were executed by the link checker.
 
 ## Add a new realm/document
 
@@ -86,6 +87,7 @@ If you add another HTML document (e.g. an onboarding page), wire it like every o
 - Bypassing the `withQuotaRetry` storage facade in favor of raw `chrome.storage.local.set`.
 - Removing `chrome.runtime.lastError` checks in callback-form APIs.
 - Adding a permission without a justification line in `src/manifest.parts.ts`.
+- A request to a page-derived URL that bypasses `src/shared/probeFetch.ts` or sends credentials.
 
 ## Verification
 

@@ -1,5 +1,6 @@
 import { slimPSI, type PSIResult } from './psiSlim.js'
 import { PSIResponse } from './schemas.js'
+import { assertSafeProbe } from './probeSafety.js'
 
 export type { PSIResult } from './psiSlim.js'
 
@@ -30,6 +31,8 @@ const fetchPSI = async (url: string, strategy: 'mobile'|'desktop', key: string):
 }
 
 export const runPSI = async (url: string, strategy: 'mobile'|'desktop', key: string): Promise<PSIResult> => {
+  // PSI makes Google request the URL: never hand it a back-office, action or token URL.
+  assertSafeProbe(url)
   const k = inFlightKey(url, strategy, key)
   const pending = inFlight.get(k)
   if (pending) return pending

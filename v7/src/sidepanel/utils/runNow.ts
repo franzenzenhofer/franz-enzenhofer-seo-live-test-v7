@@ -6,6 +6,13 @@ import { clearRunMeta } from '@/shared/runMeta'
 import { isAbsoluteUrl, isValidUrl } from '@/shared/url-utils'
 import { isRestrictedUrl } from '@/shared/tabMemory'
 import { requestManualAudit } from '@/shared/auditIntent'
+import { pageSkipMessage, unsafePageReason } from '@/shared/probeSafety'
+
+// A manual run hard-reloads the tab: on an action URL that would repeat the action.
+const refuseUnsafePage = (url?: string) => {
+  const reason = url ? unsafePageReason(url) : null
+  if (reason) throw new Error(pageSkipMessage(reason))
+}
 
 const normalizeRunUrl = (raw?: string) => {
   const trimmed = (raw || '').trim()
@@ -17,6 +24,7 @@ const normalizeRunUrl = (raw?: string) => {
   if (isRestrictedUrl(candidate)) {
     throw new Error('Restricted URL. Use an http(s) page instead.')
   }
+  refuseUnsafePage(candidate)
   return candidate
 }
 
@@ -27,6 +35,7 @@ export const executeRunNow = async (url?: string) => {
     if (isRestrictedUrl(tab?.url)) {
       throw new Error('Cannot run on chrome:// pages. Switch to a web page or enter a URL.')
     }
+    refuseUnsafePage(tab?.url)
   }
   const tabId = await getActiveTabId()
   if (!tabId) throw new Error('No active tab')

@@ -1,4 +1,5 @@
 import { incr } from './telemetry'
+import { anonymousFetch } from './probeFetch'
 import { abortScope, throwIfAborted } from './abort'
 import { readBoundedText } from './responseBody'
 import { createSingleFlight } from './singleFlight'
@@ -23,7 +24,7 @@ const fetchWithTimeout = (url: string, timeoutMs: number, signal: AbortSignal) =
     const scope = abortScope(timeoutMs, signal)
     try {
       throwIfAborted(scope.signal)
-      const res = await fetch(url, { signal: scope.signal })
+      const res = await anonymousFetch(url, { signal: scope.signal })
       noteProbeResponse(url, res)
       if (!res.ok) incr('fetch.fail')
       const body = await readBoundedText(res, { signal: scope.signal, maxBytes: FETCH_ONCE_MAX_BYTES })
