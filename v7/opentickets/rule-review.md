@@ -11,7 +11,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:amphtml` | info | Pending | |
 | `discover:article-structured-data` | warn | Fixed: optional markup, BlogPosting coverage, exact matching script, incomplete parse explanation; absence/presence/malformed copy tests | `4563095` |
 | `discover:author` | warn | Fixed: all named authors and exact sources, optional metadata, unresolved identity limits; multi-author/absent/malformed copy tests | `cf79561` |
-| `speed:blocking-scripts` | warn | Pending | |
+| `speed:blocking-scripts` | warn | Reviewed: complete script URL list and sampled source retained; added parsing impact, detection limits and dependency-aware remediation; existing classic/module/non-JS fixtures retained | This rule commit |
 | `head:brand-in-title` | warn | Reviewed and fixed: estimated-versus-configured brand is explicit in missing-match summary; full title and brand retained; added verify-the-guess guidance; existing configured/inferred fixtures retained | `9280d70` |
 | `http:cache-delivery` | info | Pending | |
 | `head:canonical-noindex-conflict` | info | Pending | |
@@ -52,7 +52,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `body:internal-link-status` | ok | Pending | |
 | `body:internal-links` | info | Pending | |
 | `discover:og-image-large` | warn | Pending | |
-| `dom:ldjson` | info | Fixed: numbered source blocks, declared types, syntax versus schema validity, explicit sample coverage; malformed types never stringify as Object; rendered/copied malformed fixture | This rule commit |
+| `dom:ldjson` | info | Fixed: numbered source blocks, declared types, syntax versus schema validity, explicit sample coverage; malformed types never stringify as Object; rendered/copied malformed fixture | `0ab0d11` |
 | `http:link-header` | info | Pending | |
 | `a11y:linked-images-alt` | ok | Pending | |
 | `body:parameterized-links` | info | Pending | |

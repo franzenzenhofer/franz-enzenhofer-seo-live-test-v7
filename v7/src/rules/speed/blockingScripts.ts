@@ -23,6 +23,10 @@ export const blockingScriptsRule: Rule = {
   enabled: true,
   what: 'static',
   meta: {
+    userGuide: {
+      check: "Lists external classic JavaScript in the document head without async or defer. These scripts can pause HTML parsing. This does not measure the actual delay, inspect inline scripts or prove that every resource blocking rendering was found.",
+      action: "Review the listed script URLs in the page template. Use defer for scripts that can wait until parsing finishes; use async only when execution order is independent. Remove unused scripts and test behavior after changing load order.",
+    },
     provenance: 'google',
     references: [
       'https://developer.chrome.com/docs/lighthouse/performance/render-blocking-resources',
