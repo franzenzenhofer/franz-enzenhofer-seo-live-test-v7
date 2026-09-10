@@ -253,6 +253,16 @@
     "references": []
   },
   {
+    "id": "head:meta-googlebot",
+    "name": "Googlebot meta instructions",
+    "enabledByDefault": true,
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag"
+    ]
+  },
+  {
     "id": "robots:googlebot-url-check",
     "name": "Googlebot URL allowed",
     "enabledByDefault": true,
@@ -570,16 +580,6 @@
     "references": [
       "https://developers.google.com/search/docs/crawling-indexing/special-tags",
       "https://developers.google.com/search/docs/appearance/snippet"
-    ]
-  },
-  {
-    "id": "head:meta-googlebot",
-    "name": "Meta Googlebot",
-    "enabledByDefault": true,
-    "what": "static",
-    "provenance": "google",
-    "references": [
-      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag"
     ]
   },
   {

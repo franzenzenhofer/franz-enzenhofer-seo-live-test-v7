@@ -23,3 +23,11 @@ describe('rule: meta googlebot', () => {
     expect(((r as any).details as any).hasNoindex).toBe(true)
   })
 })
+
+it('does not miss a restriction after the tenth tag or in the body with mixed-case names', async () => {
+  const harmless = '<meta name="googlebot" content="index">'.repeat(12)
+  const result = await run(`<head>${harmless}</head><body><meta name="GoogleBot" content="noindex"></body>`)
+  expect(result.type).toBe('warn')
+  expect(result.details?.['count']).toBe(13)
+  expect(JSON.stringify(result.details?.['declaredInstructions'])).toContain('noindex')
+})
