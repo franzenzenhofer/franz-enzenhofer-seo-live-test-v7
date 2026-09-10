@@ -90,11 +90,11 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:robots-agent-conflicts` | info | Pending | |
 | `head:robots-max-image-preview` | info | Pending | |
 | `head:robots-max-snippet` | info | Fixed: readable per-crawler limits with source, units, zero/unlimited/invalid meanings; removed duplicate token dumps; copied multi-source fixture | `7aa2748` |
-| `head:robots-max-video-preview` | info | Fixed: seconds, zero versus unlimited meaning, per-crawler source and value; removed duplicate token dumps; copied multiple-setting fixture | This rule commit |
+| `head:robots-max-video-preview` | info | Fixed: seconds, zero versus unlimited meaning, per-crawler source and value; removed duplicate token dumps; copied multiple-setting fixture | `919bf5f` |
 | `head-robots-meta` | info | Pending | |
 | `head:robots-meta-list` | info | Pending | |
 | `head:robots-noimageindex` | info | Pending | |
-| `head:robots-nosnippet` | info | Pending | |
+| `head:robots-nosnippet` | info | Fixed: named tag/header restrictions, max-snippet zero, static-image and indexing distinctions, intentional restriction guidance; copied cross-crawler fixture | This rule commit |
 | `robots:blocked-resources` | ok | Pending | |
 | `robots:complexity` | info | Pending | |
 | `robots-exists` | info | Pending | |

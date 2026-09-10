@@ -904,17 +904,6 @@
     ]
   },
   {
-    "id": "head:robots-nosnippet",
-    "name": "Robots nosnippet",
-    "enabledByDefault": true,
-    "what": "static",
-    "provenance": "google",
-    "references": [
-      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#nosnippet",
-      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#max-snippet"
-    ]
-  },
-  {
     "id": "robots:blocked-resources",
     "name": "robots.txt Blocked Resources",
     "enabledByDefault": true,
@@ -1110,6 +1099,16 @@
     "provenance": "google",
     "references": [
       "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#max-snippet"
+    ]
+  },
+  {
+    "id": "head:robots-nosnippet",
+    "name": "Search snippet restrictions",
+    "enabledByDefault": true,
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#nosnippet"
     ]
   },
   {
