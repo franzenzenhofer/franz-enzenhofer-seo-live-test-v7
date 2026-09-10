@@ -79,7 +79,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `debug:page-summary` | Not in live run (review fixture/source) | Pending | |
 | `gsc:page-worldwide` | runtime_error | Pending | |
 | `dom:parameterized-links-diff` | ok | Pending | |
-| `discover:primary-language` | info | Reviewed: language value and exact opening tag are visible and copied; added accessibility purpose, validation limits and template fix; existing present/missing fixtures retained | This rule commit |
+| `discover:primary-language` | info | Reviewed: language value and exact opening tag are visible and copied; added accessibility purpose, validation limits and template fix; existing present/missing fixtures retained | `6274e29` |
 | `discover:published-time` | warn | Fixed: optional dates, all declared values with exact sources, no fabricated modification dates; absent/published/multiple-source/copy/display tests | `afd09e5` |
 | `http:redirect-loop` | ok | Pending | |
 | `http:redirect-canonical-chain` | info | Pending | |
@@ -116,7 +116,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:security-headers` | info | Pending | |
 | `dom:seo-phase-changes` | info | Pending | |
 | `head:title` | info | Pending | |
-| `head-title` | ok | Pending | |
+| `head-title` | ok | Reviewed: title text, count and matching source are retained; added purpose and missing/empty/duplicate remediation; existing branch fixtures retained | This rule commit |
 | `http:from-cache` | info | Pending | |
 | `head:shortlink` | info | Pending | |
 | `http:soft-404` | ok | Pending | |

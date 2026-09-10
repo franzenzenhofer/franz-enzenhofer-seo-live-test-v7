@@ -12,6 +12,10 @@ export const titleRule: Rule = {
   enabled: true,
   what: 'static',
   meta: {
+    userGuide: {
+      check: "Checks for exactly one non-empty title element in the document head. The title names the browser tab and can inform the search result title; Google may choose different wording.",
+      action: "In the page template or CMS SEO title field, provide one descriptive title for this page. Remove duplicate title output from competing templates or plugins and make sure the remaining title is inside head.",
+    },
     provenance: 'google',
     references: [
       'https://developers.google.com/search/docs/appearance/title-link',
