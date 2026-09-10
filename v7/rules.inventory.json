@@ -874,16 +874,6 @@
     ]
   },
   {
-    "id": "head:robots-max-video-preview",
-    "name": "Robots max-video-preview",
-    "enabledByDefault": true,
-    "what": "static",
-    "provenance": "google",
-    "references": [
-      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#max-video-preview"
-    ]
-  },
-  {
     "id": "head-robots-meta",
     "name": "Robots Meta",
     "enabledByDefault": true,
@@ -1314,6 +1304,16 @@
       "https://developers.google.com/search/docs/crawling-indexing/mobile/mobile-sites-mobile-first-indexing",
       "https://httpwg.org/specs/rfc9110.html#field.vary",
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Vary"
+    ]
+  },
+  {
+    "id": "head:robots-max-video-preview",
+    "name": "Video preview duration limits",
+    "enabledByDefault": true,
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#max-video-preview"
     ]
   },
   {
