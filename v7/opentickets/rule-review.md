@@ -8,7 +8,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | --- | --- | --- | --- |
 | `http:alt-svc-other` | info | Reviewed: advertised IDs, clear and unparsed states retain the full header; added protocol names and advertisement-versus-usage distinction; existing quic/clear fixtures retained | `0a0282e` |
 | `google:amp-cache-url` | info | Pending | |
-| `head:amphtml` | info | Pending | |
+| `head:amphtml` | info | Reviewed absence, relative destinations and invalid declarations; named URLs, source evidence, conditional remedies and focused fixtures. | This rule commit |
 | `discover:article-structured-data` | warn | Fixed: optional markup, BlogPosting coverage, exact matching script, incomplete parse explanation; absence/presence/malformed copy tests | `4563095` |
 | `discover:author` | warn | Fixed: all named authors and exact sources, optional metadata, unresolved identity limits; multi-author/absent/malformed copy tests | `cf79561` |
 | `speed:blocking-scripts` | warn | Reviewed: complete script URL list and sampled source retained; added parsing impact, detection limits and dependency-aware remediation; existing classic/module/non-JS fixtures retained | `07714f9` |
@@ -118,7 +118,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:title` | info | Reviewed: full title remains visible and copied; added units and explanation that character count is not a Google limit; existing missing/empty/long fixtures retained | `5aae648` |
 | `head-title` | ok | Reviewed: title text, count and matching source are retained; added purpose and missing/empty/duplicate remediation; existing branch fixtures retained | `ea76cd9` |
 | `http:from-cache` | info | Pending | |
-| `head:shortlink` | info | Reviewed absence, relative destinations and invalid declarations; named URLs, source evidence, conditional remedies and focused fixtures. | This rule commit |
+| `head:shortlink` | info | Reviewed absence, relative destinations and invalid declarations; named URLs, source evidence, conditional remedies and focused fixtures. | `98be397` |
 | `http:soft-404` | ok | Pending | |
 | `http:hsts` | ok | Pending | |
 | `gsc:top-queries-of-page` | runtime_error | Reviewed API scope and missing/access/error/success branches; explicit Pacific dates and metric meaning; fixture checks with no live account claims. | `745ff6a` |

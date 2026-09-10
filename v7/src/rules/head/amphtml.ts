@@ -1,3 +1,4 @@
+import { resolvePageWebUrl } from '@/shared/resolvePageWebUrl'
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
@@ -14,6 +15,10 @@ export const amphtmlRule: Rule = {
   enabled: true,
   what: 'static',
   meta: {
+    userGuide: {
+      check: "An amphtml link points to an optional AMP version of this page. This check validates and resolves the declared web address; it does not validate the destination as AMP.",
+      action: "Correct the amphtml href if this site provides an AMP version, then validate that destination. If the site has no AMP version, remove the unused declaration; adding AMP is not required.",
+    },
     provenance: 'standard',
     references: ['https://amp.dev/documentation/guides-and-tutorials/optimize-and-measure/discovery/'],
     description: 'Detects link[rel=amphtml] in <head> and reports the linked AMP URL (info) or a missing href (warn).',
@@ -33,11 +38,12 @@ export const amphtmlRule: Rule = {
     }
 
     const sourceHtml = extractHtml(element)
-    const hasHref = href.length > 0
+    const resolved = resolvePageWebUrl(href, page)
+    const hasHref = Boolean(resolved)
     return {
       label: LABEL,
       name: NAME,
-      message: hasHref ? `Link rel=amphtml URL: ${href}` : 'amphtml link present but href missing.',
+      message: hasHref ? 'Optional AMP version declared.' : 'amphtml href is missing or is not a valid HTTP or HTTPS URL.',
       type: hasHref ? 'info' : 'warn',
       priority: 500,
       details: {
@@ -45,7 +51,8 @@ export const amphtmlRule: Rule = {
         snippet: extractSnippet(href || sourceHtml),
         domPath: getDomPath(element),
         href: href || '(empty)',
-        validatorUrl: hasHref ? `https://validator.ampproject.org/#url=${href}` : undefined,
+        ampUrl: resolved || undefined,
+        validatorUrl: hasHref ? `https://validator.ampproject.org/#url=${encodeURIComponent(resolved!)}` : undefined,
       },
     }
   },
