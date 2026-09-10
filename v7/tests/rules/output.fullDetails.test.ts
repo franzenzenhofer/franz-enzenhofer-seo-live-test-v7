@@ -33,8 +33,8 @@ describe('details carry everything collected (no silent discarding)', () => {
     const imgs = Array.from({ length: 7 }, (_, i) => `<img src="http://ex.com/i${i}.png">`).join('')
     const res = await mixedContentRule.run(page(`<body>${imgs}</body>`), ctx)
     expect(res.type).toBe('error')
-    expect((res.details?.['offenders'] as unknown[]).length).toBe(7)
-    expect(res.details?.['snippet']).not.toContain('omitted')
+    expect((res.details?.['resourceIssues'] as unknown[]).length).toBe(7)
+    expect(JSON.stringify(res.details?.['resourceIssues'])).not.toContain('omitted')
   })
 
   it('robots:blocked-resources names each blocked resource', async () => {

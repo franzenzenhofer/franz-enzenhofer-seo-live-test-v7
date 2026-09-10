@@ -630,8 +630,7 @@
     "what": "http",
     "provenance": "standard",
     "references": [
-      "https://www.w3.org/TR/mixed-content/",
-      "https://developer.chrome.com/docs/lighthouse/performance/redirects"
+      "https://www.w3.org/TR/mixed-content/"
     ]
   },
   {

@@ -1,4 +1,6 @@
 import type { Result } from '@/shared/results'
+import { readResourceIssues, resourceIssueCopy } from '@/shared/resourceIssues'
+import { navigationStepsCopy, readNavigationSteps } from '@/shared/navigationSteps'
 
 const codeBlock = (label: string, content: string, lang = '') => {
   const trimmed = content.trim()
@@ -22,6 +24,10 @@ export const toResultCopyPayload = (result: Result | null | undefined): string =
   lines.push('')
   lines.push(`**Message:** ${result.message}`)
   const details = result.details || {}
+  const issues = readResourceIssues(details['resourceIssues'])
+  if (issues.length) lines.push('', '**What to fix:**', ...issues.map(resourceIssueCopy))
+  const steps = readNavigationSteps(details['navigationSteps'])
+  if (steps.length) lines.push('', '**Navigation journey:**', navigationStepsCopy(steps))
   const snippet = typeof details['snippet'] === 'string' ? details['snippet'] : ''
   if (snippet) lines.push('', codeBlock('Snippet', snippet, 'html'))
   const reference = typeof details['reference'] === 'string' ? details['reference'] : ''
@@ -29,7 +35,7 @@ export const toResultCopyPayload = (result: Result | null | undefined): string =
   const sourceHtml = typeof details['sourceHtml'] === 'string' ? details['sourceHtml'] : ''
   if (sourceHtml) lines.push('', codeBlock('Source HTML', sourceHtml, 'html'))
   const extraEntries = Object.entries(details).filter(
-    ([key]) => !['snippet', 'reference', 'provenance', 'sourceHtml', 'domPath', 'domPaths'].includes(key),
+    ([key]) => !['snippet', 'reference', 'provenance', 'sourceHtml', 'domPath', 'domPaths', ...(steps.length ? ['issue'] : [])].includes(key),
   )
   for (const [key, value] of extraEntries) {
     if (typeof value === 'string') {

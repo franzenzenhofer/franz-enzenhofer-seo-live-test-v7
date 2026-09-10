@@ -29,7 +29,7 @@ const readExtensionIdFromPreferences = (profileDir: string): string | null => {
 // Headless by default so e2e runs never pop up browser windows; PW_EXT_HEADLESS=0 forces headed.
 export const extensionHeadless = () => process.env.PW_EXT_HEADLESS !== '0'
 
-export const withExtension = async () => {
+export const withExtension = async (options: { ignoreHTTPSErrors?: boolean } = {}) => {
   if (!fs.existsSync(dist)) throw new Error('Build dist first (npm run build) before running e2e tests.')
   const profile = prepareProfileDir()
   console.info(`[e2e] Using ${describeProfileChoice(profile)}`)
@@ -40,7 +40,7 @@ export const withExtension = async () => {
   ]
   if (headless) args.unshift('--headless=new')
   const context = await chromium.launchPersistentContext(profile.userDataDir, {
-    args, headless, executablePath: browserExecutable(),
+    args, headless, executablePath: browserExecutable(), ...options,
   })
   return { context, userDataDir: profile.userDataDir, cleanup: () => cleanupProfileDir(profile) }
 }

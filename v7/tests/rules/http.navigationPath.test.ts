@@ -37,13 +37,14 @@ describe('http:navigation-path rule', () => {
     // Googlebot follows up to 10 hops, so a chain is a crawl/performance warning,
     // not a broken page: https://developers.google.com/search/docs/crawling-indexing/301-redirects
     expect(result.type).toBe('warn')
-    // The full webRequest hop chain renders once, in details.redirectChainText.
-    const chainText = result.details?.['redirectChainText'] as string
-    expect(chainText).toContain('HTTP 301 -> Location: https://example.com/mid')
-    expect(chainText).toContain('HTTP 302 -> Location: https://example.com/')
-    expect(chainText).toContain('FINAL STATUS HTTP 200')
-    expect(result.details?.['redirectChain']).toBeUndefined()
-    expect(result.message).not.toContain('HTTP 301 -> Location:')
+    const steps = result.details?.['navigationSteps'] as Array<{ url: string; statusCode: number; target?: string }>
+    expect(steps.map((step) => step.statusCode)).toEqual([301, 302, 200])
+    expect(steps[0]?.target).toBe('https://example.com/mid')
+    expect(steps[1]?.target).toBe('https://example.com/')
+    expect(result.details?.['redirectChainText']).toBeUndefined()
+    expect(result.details?.['trace']).toBeUndefined()
+    expect(result.message).not.toContain('https://example.com/old')
+
   })
 
   it('returns runtime_error when headers not captured', async () => {
@@ -302,7 +303,7 @@ describe('http:navigation-path rule', () => {
     expect(result.details?.issue).toBe('long_chain')
   })
 
-  it('includes trace details in result', async () => {
+  it('includes structured journey details in result', async () => {
     const ledger: NavigationLedger = {
       tabId: 1,
       currentUrl: 'https://example.com',
@@ -316,7 +317,7 @@ describe('http:navigation-path rule', () => {
       ],
     }
     const result = await run(ledger)
-    expect(result.details?.trace).toBeDefined()
-    expect(result.details?.trace).toHaveLength(1)
+    expect(result.details?.['navigationSteps']).toBeDefined()
+    expect(result.details?.['navigationSteps']).toHaveLength(1)
   })
 })

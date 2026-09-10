@@ -1,95 +1,59 @@
+import { mixedContentResources, resourceSummary } from './mixedContentResources'
+
 import type { Rule } from '@/core/types'
-import { getDomPaths } from '@/shared/dom-path'
-import { extractHtml } from '@/shared/html-utils'
 
 const LABEL = 'HTTP'
 const NAME = 'Mixed content'
-const RULE_ID = 'http:mixed-content'
-
-// Mixed content is defined over requests (W3C): only link relations that trigger a
-// fetch count - rel=canonical/alternate/etc. never issue requests.
-const fetchingLinks =
-  'link[rel~=stylesheet][href], link[rel~=icon][href], link[rel~=preload][href], link[rel~=prefetch][href], link[rel~=modulepreload][href], link[rel~=manifest][href]'
-const resourceSelectors = ['script[src]', fetchingLinks, 'img[src]', 'iframe[src]', 'video[src]', 'audio[src]', 'source[src]', 'embed[src]', 'object[data]']
-const isHttp = (url: string | null | undefined) => typeof url === 'string' && url.trim().toLowerCase().startsWith('http://')
-const buildDetails = (nodes: Element[], paths: string[]) => ({
-  offenders: nodes.map((node, index) => ({ html: extractHtml(node), domPath: paths[index] || '' })),
-  snippet: nodes.map(extractHtml).join('\n\n'),
-  domPaths: paths,
-  count: nodes.length,
-})
+const REFERENCE = 'https://www.w3.org/TR/mixed-content/'
+const FIX = 'Update the listed URLs in your HTML, CMS content, templates or third-party configuration to HTTPS. Verify each HTTPS endpoint works; otherwise replace or remove the resource.'
 
 export const mixedContentRule: Rule = {
-  id: RULE_ID,
+  id: 'http:mixed-content',
   name: NAME,
   enabled: true,
   what: 'http',
   meta: {
     provenance: 'standard',
-    references: [
-      'https://www.w3.org/TR/mixed-content/',
-      'https://developer.chrome.com/docs/lighthouse/performance/redirects',
-    ],
-    description:
-      'On HTTPS pages, flags fetched subresources (script/fetching link/img/iframe/video/audio/source/embed/object, plus network-captured resources) whose URLs start with http://; insecure form actions warn.',
+    references: [REFERENCE],
+    description: 'Flags HTTP subresource references on HTTPS pages, even if the browser upgrades or blocks them. Identifies each resource and attribute; includes network-only URLs and insecure form actions.',
   },
   async run(page) {
-    if (!page.url.startsWith('https://')) {
-      return { label: LABEL, name: NAME, message: 'Page is not HTTPS; mixed content check skipped.', type: 'info', priority: 900, details: {} }
+    const base = { label: LABEL, name: NAME }
+    if (!/^https:\/\//i.test(page.url)) {
+      return { ...base, message: 'Page is not HTTPS; mixed content check skipped.', type: 'info', priority: 900, details: {} }
     }
-
-    const doc = page.doc
-    const offenders: Element[] = []
-    resourceSelectors.forEach((sel) => {
-      doc.querySelectorAll(sel).forEach((el) => {
-        const url = (el.getAttribute('src') || el.getAttribute('href') || el.getAttribute('data') || '').trim()
-        if (isHttp(url)) offenders.push(el)
-      })
-    })
-
-    const formOffenders: Element[] = []
-    doc.querySelectorAll('form[action]').forEach((el) => {
-      if (isHttp((el.getAttribute('action') || '').trim())) formOffenders.push(el)
-    })
-
-    const resourceUrls = Array.isArray(page.resources) ? page.resources : []
-    const netOffenders = resourceUrls.filter((u) => isHttp(u))
-
-    if (offenders.length) {
-      const domPaths = getDomPaths(offenders)
+    const { resources, forms } = mixedContentResources(page)
+    if (resources.length) {
       return {
-        label: LABEL,
-        name: NAME,
-        message: `${offenders.length} mixed-content resource${offenders.length === 1 ? '' : 's'} loaded over HTTP on an HTTPS page.`,
+        ...base,
+        message: `${resources.length} mixed-content resource${resources.length === 1 ? ' uses' : 's use'} HTTP on this HTTPS page (${resourceSummary(resources)}).${forms.length ? ` Also found ${resourceSummary(forms)} with insecure actions.` : ''}`,
         type: 'error',
         priority: 80,
-        details: { ...buildDetails(offenders, domPaths), fix: 'Serve all subresources over HTTPS or remove them.', networkResources: netOffenders, networkCount: netOffenders.length, insecureFormActionCount: formOffenders.length },
+        details: {
+          resourceIssues: [...resources, ...forms],
+          problem: 'These HTTP URLs are errors in the site code, even when the browser automatically upgrades or blocks the requests.',
+          fix: FIX,
+          count: resources.length,
+          ...(forms.length ? { insecureFormActionCount: forms.length } : {}),
+          reference: REFERENCE,
+        },
       }
     }
-
-    if (netOffenders.length) {
+    if (forms.length) {
       return {
-        label: LABEL,
-        name: NAME,
-        message: `${netOffenders.length} mixed-content resource${netOffenders.length === 1 ? '' : 's'} detected from network capture.`,
-        type: 'error',
-        priority: 90,
-        details: { resources: netOffenders, count: netOffenders.length, insecureFormActionCount: formOffenders.length },
-      }
-    }
-
-    if (formOffenders.length) {
-      const domPaths = getDomPaths(formOffenders)
-      return {
-        label: LABEL,
-        name: NAME,
-        message: `${formOffenders.length} form${formOffenders.length === 1 ? '' : 's'} on this HTTPS page submit${formOffenders.length === 1 ? 's' : ''} to an insecure http:// action.`,
+        ...base,
+        message: `${resourceSummary(forms)} on this HTTPS page ${forms.length === 1 ? 'has an insecure HTTP action' : 'have insecure HTTP actions'}.`,
         type: 'warn',
         priority: 200,
-        details: { ...buildDetails(formOffenders, domPaths), fix: 'Point form actions at HTTPS endpoints.' },
+        details: {
+          resourceIssues: forms,
+          problem: 'These forms send submitted data to an insecure HTTP endpoint.',
+          fix: 'Update each form action to a working HTTPS endpoint before accepting submissions.',
+          count: forms.length,
+          reference: REFERENCE,
+        },
       }
     }
-
-    return { label: LABEL, name: NAME, message: 'No mixed content resources found.', type: 'ok', priority: 850, details: {} }
+    return { ...base, message: 'No HTTP subresource references or insecure form actions found in the inspected HTML and captured resource URLs.', type: 'ok', priority: 850, details: {} }
   },
 }

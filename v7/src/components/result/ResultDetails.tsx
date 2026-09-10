@@ -5,10 +5,14 @@ import { DetailMeasurements } from './DetailMeasurements'
 import { DetailProvenance } from './DetailProvenance'
 import { DetailTechnical } from './DetailTechnical'
 import { EvidenceBox } from './EvidenceBox'
+import { ResourceIssues } from './ResourceIssues'
+import { NavigationJourney } from './NavigationJourney'
 import { formatLabel } from './detailText'
 import { hasTierContent, tierDetails } from './detailTiers'
 
 import type { Result } from '@/shared/results'
+import { readResourceIssues } from '@/shared/resourceIssues'
+import { readNavigationSteps } from '@/shared/navigationSteps'
 
 type Props = { details?: Result['details']; snippet?: string | null }
 
@@ -19,16 +23,22 @@ type Props = { details?: Result['details']; snippet?: string | null }
  * footer. Expanded means everything: nothing folded, nothing truncated.
  */
 export const ResultDetails = ({ details, snippet }: Props): ReactElement | null => {
-  const tiers = tierDetails(details, snippet)
-  if (!hasTierContent(tiers)) return null
+  const issues = readResourceIssues(details?.['resourceIssues'])
+  const steps = readNavigationSteps(details?.['navigationSteps'])
+  const hidden = [...(issues.length ? ['resourceIssues', 'count', 'insecureFormActionCount'] : []), ...(steps.length ? ['navigationSteps', 'issue', 'tempRedirectCodes'] : [])]
+  const genericDetails = Object.fromEntries(Object.entries(details ?? {}).filter(([key]) => !hidden.includes(key)))
+  const tiers = tierDetails(genericDetails, snippet)
+  if (!hasTierContent(tiers) && !issues.length && !steps.length) return null
   return (
-    <div className="mt-2 space-y-2 border-t pt-2 text-xs">
+    <div className={`mt-2 space-y-2 border-t pt-2 text-xs ${issues.length || steps.length ? '[&_p]:text-base [&_dl]:text-base' : ''}`}>
       {tiers.evidence.map(({ key, text }) => (
         <div key={key || 'snippet'}>
           {key && <span className="font-medium text-slate-500">{formatLabel(key)}</span>}
           <EvidenceBox testId="detail-evidence" copyValue={text}>{text}</EvidenceBox>
         </div>
       ))}
+      {issues.length > 0 && <ResourceIssues issues={issues} />}
+      {steps.length > 0 && <NavigationJourney steps={steps} />}
       <DetailGuidance entries={tiers.guidance} />
       <DetailMeasurements entries={tiers.measurements} />
       {tiers.source.map(({ key, text }) => (
