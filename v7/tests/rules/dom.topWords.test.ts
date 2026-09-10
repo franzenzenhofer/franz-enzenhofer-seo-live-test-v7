@@ -8,8 +8,15 @@ describe('rule: dom top words', () => {
   it('returns no text for empty body', async () => {
     const doc = D('<html><body></body></html>')
     const r = await topWordsRule.run({ html: '', url: 'https://ex.com', doc } as any, { globals: {} })
-    expect(r.message).toBe('No text')
+    expect(r.message).toContain('No text found')
+    expect(r.details?.['textLength']).toBe(0)
     expect(r.type).toBe('info')
+  })
+
+  it('distinguishes short words from missing text', async () => {
+    const r = await topWordsRule.run({ html: '', url: 'https://ex.com', doc: D('<p>an ox is in it</p>') }, { globals: {} })
+    expect(r.message).toContain('No qualifying words')
+    expect(r.details?.['textLength']).toBeGreaterThan(0)
   })
 
   it('extracts top words from body text', async () => {
