@@ -54,13 +54,11 @@ npm run build        # Must build successfully
 
 ### Production Build & Deploy
 ```bash
-npm run dist         # Build + create dist.zip for Chrome Web Store
-npm run bump         # Auto-increment version before build
+npm run build        # Bumps the patch version, runs all gates + e2e, writes zip-build/latest-build.zip
+# Upload zip-build/latest-build.zip to the Chrome Web Store: see CHROME-STORE-SUBMISSION.md
 ```
 
 ## Enhanced Reporting System
-
-**See [/ENHANCED-REPORTING.md](../ENHANCED-REPORTING.md) for complete design documentation.**
 
 ### Key Principles
 - **Two-Layer UX**: Quick view (inline snippets) + Deep detail view (full inspection)
@@ -135,7 +133,8 @@ npm run bump         # Auto-increment version before build
 - No broad host permissions without justification
 
 ### Content Script Injection
-- Inject on-demand only (not on all pages)
+- Content scripts run on `<all_urls>` (top frame only) so any visited page can be audited; `authorizeAudit`
+  gates every audit (active tab, auto-run setting, user blocklist, CMS back-office / action-URL check)
 - Clean up when tab closes
 - Handle CSP restrictions gracefully
 
@@ -147,7 +146,7 @@ npm run bump         # Auto-increment version before build
 ## Production Readiness Checklist
 
 ### Before Each Release
-- [ ] Version bumped in manifest.json and package.json
+- [ ] Version bumped (automatic: `prebuild` bumps package.json, the manifest reads it)
 - [ ] All quality gates pass (typecheck, lint, test, build)
 - [ ] Manual testing in Chrome (side panel loads, rules execute)
 - [ ] Console free of errors/warnings
@@ -159,6 +158,8 @@ npm run bump         # Auto-increment version before build
 - Validate all external inputs with Zod
 - Sanitize HTML before rendering
 - Use HTTPS for all external requests
+- Request page-derived URLs only via `src/shared/probeFetch.ts`: anonymous, and never a CMS back-office,
+  action or token URL (RUNBOOK.md, "Add a new fetch")
 - No eval() or new Function() in production code
 
 ## THINK BEFORE CODE - MANDATORY WORKFLOW
@@ -280,7 +281,8 @@ chrome.runtime.onInstalled.addListener(() => {
 ## Contact & Support
 - Repository: Private (franz-enzenhofer-seo-live-test-v7)
 - Primary Developer: Franz Enzenhofer
-- Chrome Web Store: [pending]
+- Chrome Web Store: live, see [CHROME-STORE-SUBMISSION.md](./CHROME-STORE-SUBMISSION.md)
+- Open work: [tickets/README.md](./tickets/README.md)
 
 ## Quick Reference
 
@@ -302,5 +304,5 @@ npm run lint -- --fix  # Auto-fix lint issues
 4. Enable "Errors" pause in DevTools for debugging
 
 ---
-Last Updated: 2025-09-19
-Version: 0.1.54
+Last Updated: 2026-09-10
+Version: see package.json
