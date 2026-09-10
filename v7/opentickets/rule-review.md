@@ -11,7 +11,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:amphtml` | info | Pending | |
 | `discover:article-structured-data` | warn | Fixed: optional markup, BlogPosting coverage, exact matching script, incomplete parse explanation; absence/presence/malformed copy tests | `4563095` |
 | `discover:author` | warn | Fixed: all named authors and exact sources, optional metadata, unresolved identity limits; multi-author/absent/malformed copy tests | `cf79561` |
-| `speed:blocking-scripts` | warn | Reviewed: complete script URL list and sampled source retained; added parsing impact, detection limits and dependency-aware remediation; existing classic/module/non-JS fixtures retained | This rule commit |
+| `speed:blocking-scripts` | warn | Reviewed: complete script URL list and sampled source retained; added parsing impact, detection limits and dependency-aware remediation; existing classic/module/non-JS fixtures retained | `07714f9` |
 | `head:brand-in-title` | warn | Reviewed and fixed: estimated-versus-configured brand is explicit in missing-match summary; full title and brand retained; added verify-the-guess guidance; existing configured/inferred fixtures retained | `9280d70` |
 | `http:cache-delivery` | info | Pending | |
 | `head:canonical-noindex-conflict` | info | Pending | |
@@ -84,7 +84,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:redirect-loop` | ok | Pending | |
 | `http:redirect-canonical-chain` | info | Fixed: one named timeline, separate preferred URL meaning, no fake history response or duplicate trace dump, header-only fallback; rendered and copied journey fixture | `1274af3` |
 | `head:rel-alternate-media` | info | Pending | |
-| `speed:dns-prefetch` | info | Pending | |
+| `speed:dns-prefetch` | info | Reviewed: target URLs and actual link markup retained; explained DNS lookup and optional hint applicability; existing target-count fixture retained | This rule commit |
 | `speed:preconnect` | info | Pending | |
 | `speed:link-preload` | info | Pending | |
 | `head:robots-agent-conflicts` | info | Pending | |
