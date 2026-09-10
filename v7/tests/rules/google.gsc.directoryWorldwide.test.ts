@@ -24,7 +24,7 @@ describe('rule: gsc directory worldwide analytics', () => {
     expect(body['dimensions']).toBeUndefined()
     expect(body['rowLimit']).toBeUndefined()
     expect(body['dimensionFilterGroups']).toEqual([
-      { groupType: 'and', filters: [{ dimension: 'page', operator: 'contains', expression: 'https://example.com/blog/' }] },
+      { groupType: 'and', filters: [{ dimension: 'page', operator: 'includingRegex', expression: '^https://example\\.com/blog/' }] },
     ])
     expect(r.type).toBe('info')
     expect(r.message).toBe('Directory impressions 12345.')

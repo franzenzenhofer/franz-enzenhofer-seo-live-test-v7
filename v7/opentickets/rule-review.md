@@ -25,7 +25,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `dom:client-side-rendering` | info | Pending | |
 | `http:common-mobile-setup` | info | Reviewed: viewport text and source are retained; added presence-versus-usability distinction and optional icon meaning; existing viewport/icon fixtures retained | `7e8fea8` |
 | `dom:data-nosnippet` | info | Pending | |
-| `gsc:directory-worldwide` | runtime_error | Pending | |
+| `gsc:directory-worldwide` | runtime_error | Reviewed API scope and missing/access/error/success branches; explicit Pacific dates and metric meaning; fixture checks with no live account claims. | This rule commit |
 | `dom:node-count` | info | Reviewed: measurement method in walker and captured facts; added counted-node definition and no arbitrary score implication; existing nested-tree fixture retained | `a69ffba` |
 | `dom:node-depth` | info | Reviewed: depth convention and fallback traversal; added clear nesting meaning and diagnostic limits; existing nested-tree fixture retained | `f63e1fe` |
 | `speed:first-paint` | ok | Reviewed: FCP thresholds and first-paint-only/missing states retained; added metric meaning, units, single-run limits and investigation steps; existing boundary states retained | `83c6e60` |
@@ -77,7 +77,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `og:url` | warn | Pending | |
 | `debug:page-object` | Not in live run (review fixture/source) | Pending | |
 | `debug:page-summary` | Not in live run (review fixture/source) | Pending | |
-| `gsc:page-worldwide` | runtime_error | Reviewed API scope and missing/access/error/success branches; explicit Pacific dates and metric meaning; fixture checks with no live account claims. | This rule commit |
+| `gsc:page-worldwide` | runtime_error | Reviewed API scope and missing/access/error/success branches; explicit Pacific dates and metric meaning; fixture checks with no live account claims. | `2dac7af` |
 | `dom:parameterized-links-diff` | ok | Pending | |
 | `discover:primary-language` | info | Reviewed: language value and exact opening tag are visible and copied; added accessibility purpose, validation limits and template fix; existing present/missing fixtures retained | `6274e29` |
 | `discover:published-time` | warn | Fixed: optional dates, all declared values with exact sources, no fabricated modification dates; absent/published/multiple-source/copy/display tests | `afd09e5` |
