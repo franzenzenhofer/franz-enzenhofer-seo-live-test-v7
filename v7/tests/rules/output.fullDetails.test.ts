@@ -69,6 +69,8 @@ describe('details carry everything collected (no silent discarding)', () => {
   it('body:parameterized-links lists the parameterized URLs themselves', async () => {
     const anchors = Array.from({ length: 14 }, (_, i) => `<a href="/p?x=${i}">a</a>`).join('')
     const res = await parameterizedLinksRule.run(page(`<body>${anchors}</body>`), ctx)
-    expect((res.details?.['hrefs'] as string[]).length).toBe(14)
+    const urls = res.presentation?.evidence.map((record) => record.fields.find((field) => field.key === 'Resolved URL')?.value)
+    expect(urls).toHaveLength(14)
+    expect(urls?.every((url) => typeof url === 'string' && url.includes('?'))).toBe(true)
   })
 })

@@ -552,7 +552,7 @@
   },
   {
     "id": "body:parameterized-links",
-    "name": "Links with query params",
+    "name": "Links with URL parameters",
     "enabledByDefault": true,
     "what": "static",
     "provenance": "google",

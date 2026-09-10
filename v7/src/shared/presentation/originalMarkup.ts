@@ -36,12 +36,15 @@ export const readOriginalMarkup = (element: Element) => {
 export const markupEvidence = (elements: Element[], label = 'Markup') => {
   const markup: Array<Extract<DisplayField, { kind: 'original' }>> = []
   const fields: DisplayField[] = []
+  const selectors: Array<string | null> = []
   for (const [index, element] of elements.entries()) {
     const captured = readOriginalMarkup(element)
+    const selector = captured?.selector ?? (reconstructed.has(element.ownerDocument) ? null : getDomPath(element))
+    selectors.push(selector)
     if (captured) {
       markup.push(originalField(`${label} ${index + 1}`, captured.html))
-      fields.push(textField(`Selector ${index + 1}`, captured.selector))
     } else fields.push(textField(`${label} ${index + 1}`, 'Complete original markup not retained'))
+    if (selector) fields.push(textField(`Selector ${index + 1}`, selector))
   }
-  return { markup, fields }
+  return { markup, fields, selectors }
 }
