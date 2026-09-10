@@ -33,7 +33,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `robots:googlebot-url-check` | ok | Pending | |
 | `gsc:url-inspection` | runtime_error | Pending | |
 | `http:gzip` | ok | Pending | |
-| `body:h1` | ok | Pending | |
+| `body:h1` | ok | Reviewed and fixed: multiple headings now include their text with locations; purpose and missing/empty remediation; existing single/multiple/empty/missing fixtures retained | This rule commit |
 | `discover:headline-length` | info | Pending | |
 | `gsc:is-indexed` | runtime_error | Pending | |
 | `url:history-state-update` | info | Pending | |
@@ -93,7 +93,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:robots-max-video-preview` | info | Fixed: seconds, zero versus unlimited meaning, per-crawler source and value; removed duplicate token dumps; copied multiple-setting fixture | `919bf5f` |
 | `head-robots-meta` | info | Pending | |
 | `head:robots-meta-list` | info | Pending | |
-| `head:robots-noimageindex` | info | Fixed: named sources, page indexing distinction and other image-source limits, intentional restriction guidance; copied restriction fixture | This rule commit |
+| `head:robots-noimageindex` | info | Fixed: named sources, page indexing distinction and other image-source limits, intentional restriction guidance; copied restriction fixture | `87025e6` |
 | `head:robots-nosnippet` | info | Fixed: named tag/header restrictions, max-snippet zero, static-image and indexing distinctions, intentional restriction guidance; copied cross-crawler fixture | `bc6368a` |
 | `robots:blocked-resources` | ok | Pending | |
 | `robots:complexity` | info | Pending | |

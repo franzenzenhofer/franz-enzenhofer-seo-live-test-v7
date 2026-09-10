@@ -11,6 +11,10 @@ export const h1Rule: Rule = {
   enabled: true,
   what: 'static',
   meta: {
+    userGuide: {
+      check: 'Checks text in the page’s top-level headings. A heading helps readers identify the main subject; several h1 elements are not automatically an error. Image alternative text is not evaluated here.',
+      action: 'Add a meaningful visible main heading or fill the empty heading in the page template. Use heading levels to describe the content structure, not just to control font size.',
+    },
     provenance: 'general',
     references: [
       'https://html.spec.whatwg.org/multipage/sections.html#headings-and-outlines-2',
@@ -31,7 +35,7 @@ export const h1Rule: Rule = {
         message: `${count} <h1> elements found.`,
         type: 'info',
         priority: 700,
-        details: { domPaths: getDomPaths(nodes), count, shown, truncated },
+        details: { headings: nodes.map((node) => ({ text: (node.textContent || '').trim() || '(no text)', domPath: getDomPath(node) })), domPaths: getDomPaths(nodes), count, shown, truncated },
       }
     }
     const node = nodes[0]!
