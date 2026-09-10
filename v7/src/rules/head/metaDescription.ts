@@ -1,67 +1,31 @@
 import type { Rule } from '@/core/types'
-import { extractHtml } from '@/shared/html-utils'
-import { getDomPath, getDomPaths } from '@/shared/dom-path'
 import { sampleElements } from '@/shared/domEvidence'
+import { textField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
 
-const LABEL = 'HEAD'
-const NAME = 'Meta Description'
-const RULE_ID = 'head-meta-description'
-const SELECTOR = 'meta[name="description"]'
-
-const cleanContent = (value: string | null | undefined) => (value || '').trim()
-
+const SELECTOR = 'meta[name="description" i]'
 export const metaDescriptionRule: Rule = {
-  id: RULE_ID,
-  name: NAME,
-  enabled: true,
-  what: 'static',
+  id: 'head-meta-description', name: 'Meta description', presentation: 1, enabled: true, what: 'static',
   meta: {
-    userGuide: {
-      check: "Checks for one non-empty page description in a meta tag. Search engines may use this text for the result snippet or choose text from the page. Presence does not guarantee that this exact description will appear.",
-      action: "Add one accurate description in the page’s CMS SEO description field or template. If several tags are listed, remove duplicate output from plugins or templates and keep the intended page-specific description.",
-    },
     provenance: 'google',
-    references: [
-      'https://developers.google.com/search/docs/crawling-indexing/special-tags',
-      'https://developers.google.com/search/docs/appearance/snippet',
-    ],
-    description: 'Checks that exactly one non-empty meta[name=description] exists (warn on missing or empty, error on multiple).',
+    references: ['https://developers.google.com/search/docs/crawling-indexing/special-tags', 'https://developers.google.com/search/docs/appearance/snippet'],
+    description: 'Checks for exactly one meta description with a non-empty content attribute.',
   },
-  run: async (page) => {
-    const nodes = sampleElements(page.doc.querySelectorAll<HTMLMetaElement>(SELECTOR))
-    const count = nodes.total
-    if (!count) {
-      return { label: LABEL, message: 'No meta description found.', type: 'warn', priority: 0, name: NAME, details: {} }
-    }
-    if (count > 1) {
-      const combined = nodes.sample.map((node) => extractHtml(node)).join('\n')
-      return {
-        label: LABEL,
-        message: 'Multiple meta description tags found.',
-        type: 'error',
-        priority: 100,
-        name: NAME,
-        details: { domPaths: getDomPaths(nodes.sample), snippet: combined, sourceHtml: combined, count, shown: nodes.shown, truncated: nodes.truncated },
-      }
-    }
-    const node = nodes.sample[0]!
-    const description = cleanContent(node.getAttribute('content'))
-    const empty = description.length === 0
-    return {
-      label: LABEL,
-      message: empty
-        ? 'Meta description is empty.'
-        : `Meta description present (${description.length} characters).`,
-      type: empty ? 'warn' : 'ok',
-      priority: empty ? 100 : 760,
-      name: NAME,
-      details: {
-        snippet: description || '(empty)',
-        sourceHtml: extractHtml(node),
-        domPath: getDomPath(node),
-        description,
-        length: description.length,
-      },
-    }
+  async run(page) {
+    const { sample, total } = sampleElements(page.doc.querySelectorAll(SELECTOR))
+    const description = sample[0]?.getAttribute('content') || ''
+    const ok = total === 1 && !!description.trim()
+    const captured = markupEvidence(sample, 'Meta description')
+    return presentResult(metaDescriptionRule, page, {
+      input: 'Static DOM', type: total > 1 ? 'error' : ok ? 'ok' : 'warn', priority: ok ? 760 : total ? 100 : 0,
+      values: [textField('Description elements', total), ...(total === 1 ? [textField('Characters', description.trim().length)] : []),
+        ...(total === 1 && captured.markup[0] ? [{ ...captured.markup[0], key: '<meta name="description">' }] : [])],
+      detailValues: sample.map((node, index) => textField(total === 1 ? 'Description' : `Description ${index + 1}`, node.getAttribute('content') ?? 'Attribute absent')),
+      checked: [textField('Selector', SELECTOR), textField('Attribute', 'content'), textField('Criterion', 'Exactly one element with non-empty trimmed content'),
+        textField('Length measurement', 'Trimmed content in UTF-16 code units')],
+      evidence: [{ name: 'Capture', fields: [textField('Elements retained', sample.length), textField('Elements omitted', total - sample.length), ...captured.fields] }],
+      markup: captured.markup, noMarkup: total ? 'Complete original meta description markup not retained' : 'No meta description element found',
+    })
   },
 }

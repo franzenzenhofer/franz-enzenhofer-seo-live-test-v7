@@ -573,7 +573,7 @@
   },
   {
     "id": "head-meta-description",
-    "name": "Meta Description",
+    "name": "Meta description",
     "enabledByDefault": true,
     "what": "static",
     "provenance": "google",

@@ -34,10 +34,10 @@ describe('verdicts carry the judged value', () => {
       ctx,
     )
     expect(res.type).toBe('ok')
-    expect(res.message).toContain('30 characters')
+    expect(res.presentation?.values).toContainEqual({ key: 'Characters', value: 30, kind: 'text' })
     expect(res.message).not.toContain('A concise summary')
-    expect(res.details?.['description']).toBe('A concise summary of the page.')
-    expect(res.details?.['length']).toBe(30)
+    expect(res.presentation?.detailValues).toContainEqual({ key: 'Description', value: 'A concise summary of the page.', kind: 'text' })
+    expect(res.presentation?.markup[0].value).toContain('content="A concise summary of the page."')
   })
 
   it('body:h1 carries the heading text under the h1 key', async () => {

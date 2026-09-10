@@ -1,35 +1,28 @@
 import { describe, it, expect } from 'vitest'
-
 import { metaDescriptionRule } from '@/rules/head/metaDescription'
-
-const D = (html: string) => new DOMParser().parseFromString(html, 'text/html')
-const run = (html: string) => metaDescriptionRule.run({ html, url: 'https://example.com', doc: D(html) } as any, { globals: {} })
-
-describe('meta description rule', () => {
-  it('warns on missing meta description (Google auto-generates snippets)', async () => {
-    const result = await run('<html><head></head><body></body></html>')
-    expect(result.message).toBe('No meta description found.')
-    expect(result.type).toBe('warn')
+const run = (html: string) => metaDescriptionRule.run({ html, url: 'https://example.test', doc: new DOMParser().parseFromString(html, 'text/html') }, { globals: {} })
+describe('meta description', () => {
+  it('reports missing, empty and missing-attribute cases precisely', async () => {
+    const missing = await run('')
+    expect(missing.type).toBe('warn'); expect(missing.presentation?.values[0].value).toBe(0)
+    for (const html of ['<meta name="description" content="  ">', '<meta name="description">']) {
+      const r = await run(html)
+      expect(r.type).toBe('warn'); expect(r.presentation?.values[1].value).toBe(0)
+      expect(r.presentation?.markup[0].value).toBe(html)
+    }
   })
-
-  it('errors when multiple descriptions exist', async () => {
-    const html = '<meta name="description" content="First"><meta name="description" content="Second">'
-    const result = await run(`<html><head>${html}</head><body></body></html>`)
-    expect(result.type).toBe('error')
-    expect(result.details?.domPaths).toEqual(['html > head > meta:nth-of-type(1)', 'html > head > meta:nth-of-type(2)'])
+  it('retains duplicate descriptions as separate full elements with actual selectors', async () => {
+    const r = await run('<meta name="description" content="First"><meta name="DESCRIPTION" content="Second">')
+    expect(r.type).toBe('error'); expect(r.presentation?.values[0].value).toBe(2)
+    expect(r.presentation?.markup).toHaveLength(2)
+    expect(r.presentation?.evidence[0].fields).toContainEqual({ key: 'Selector 2', value: 'html > head > meta:nth-of-type(2)', kind: 'text' })
   })
-
-  it('warns on empty meta description', async () => {
-    const result = await run('<html><head><meta name="description" content="  "></head></html>')
-    expect(result.message).toBe('Meta description is empty.')
-    expect(result.type).toBe('warn')
-  })
-
-  it('passes when description present, showing length and value', async () => {
-    const result = await run('<html><head><meta name="description" content="Hello world"></head></html>')
-    expect(result.type).toBe('ok')
-    expect(result.message).toContain('11 characters')
-    expect(result.details?.description).toBe('Hello world')
-    expect(result.details?.domPath).toBe('html > head > meta')
+  it('reports a complete original element and its content separately', async () => {
+    const html = '<meta name="DESCRIPTION" data-origin="cms" content="Hello world">'
+    const r = await run(html)
+    expect(r.type).toBe('ok'); expect(r.presentation?.values[1].value).toBe(11)
+    expect(r.presentation?.markup[0].value).toBe(html)
+    expect(r.presentation?.detailValues[0].value).toBe('Hello world')
+    expect(r.presentation?.references).toEqual(metaDescriptionRule.meta.references)
   })
 })
