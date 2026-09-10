@@ -9,6 +9,10 @@ export const linkPreloadRule: Rule = {
   enabled: true,
   what: 'static',
   meta: {
+    userGuide: {
+      check: "A preload hint asks the browser to fetch a resource early. The URLs below show what the page requests. This presence check does not validate the as/type/crossorigin settings or prove the preloaded resource is used.",
+      action: "Preload only resources needed soon that are otherwise discovered late. Match the actual URL, resource type and request credentials; remove unused or duplicate preloads and measure the effect.",
+    },
     provenance: 'standard',
     references: [
       'https://html.spec.whatwg.org/multipage/links.html#link-type-preload',
