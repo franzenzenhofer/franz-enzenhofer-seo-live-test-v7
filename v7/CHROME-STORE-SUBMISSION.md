@@ -4,11 +4,10 @@
 It fixes the session-storage quota exhaustion that broke Run test (orphan run records
 grown from post-run subresource traffic). Submitted 18:23 CEST, published ~19:00 CEST -
 a package-only update with no permission changes cleared review in well under an hour.
-**In review:** nothing.
-**Draft uploaded, not yet submitted:** 7.0.122 (September 10, 2026) - the CMS back-office /
-action-URL probe safety fix (a WordPress agency's report: the link checker trashed posts and
-logged editors out). Package tab shows Draft 7.0.122 / Published 7.0.117; same 11 permissions
-and `<all_urls>` as 7.0.117. Remaining step: item page -> "Submit for review" -> "Submit For Review".
+**In review:** 7.0.122, submitted September 10, 2026 - status "Pending review", with
+"Publish automatically after it has passed review" on. The CMS back-office / action-URL probe
+safety fix (a WordPress agency's report: the link checker trashed posts and logged editors out).
+Same 11 permissions and `<all_urls>` as 7.0.117, so no permission warning for users.
 
 Upload flow that works, fully scriptable: the `google-team-login` skill (agent-browser
 + `~/.agent-browser-google-team-profile/auth-state.json`). If the saved state has gone
