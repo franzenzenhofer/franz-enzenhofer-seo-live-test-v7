@@ -49,7 +49,7 @@ This supersedes every earlier instruction to stop after five or ten rules. Conti
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
-All eight Discover rules are now migrated. Primary agent is wiring shared presentation lint and lifecycle/search/copy integration before continuing individual rule patches. Reviewed/prepared patches waiting for individual application and full verification (not yet migrated just because a patch exists):
+All eight Discover rules are now migrated. Shared lint, lifecycle, search and copy integration committed as `d39231a` (7.0.227). Current individual migration: `http-status`. Reviewed/prepared patches waiting for individual application and full verification (not yet migrated just because a patch exists):
 
 - `/tmp/meta-keywords-migration.patch`, `/tmp/meta-viewport-migration.patch`, `/tmp/meta-charset-migration.patch` — parent read all three. Remove duplicate capture/content values before applying; charset should retain an inspected invalid http-equiv element even when no declaration is selected.
 - `/tmp/og-title-migration.patch`, `/tmp/og-description-migration.patch`, `/tmp/og-url-migration.patch`, `/tmp/og-image-migration.patch` — ready, parent review pending.
@@ -60,12 +60,12 @@ Continue through every remaining existing registry rule. Agent patch completion 
 
 ## Shared follow-up work still required
 
-- Shared lint/lifecycle/search/copy integration checkpoint is in progress.
+- Shared lint/lifecycle/search/copy integration completed in `d39231a`; lint now runs automatically before every commit.
 - Add headless coverage of the actual new extension cards (not only the standalone dummy), all actions, references, original data and the not-applicable filter.
-- Ensure lifecycle-unavailable results use the new presentation, alongside pending/disabled/runtime errors.
+- Lifecycle-unavailable results now use the new presentation (`d39231a`).
 - Improve large-payload retention by keeping whole evidence records where possible, always reporting omissions and never truncating attested originals.
-- Verify search, filter persistence and CLI HTML exports for new presentations. Keep status labels readable in copied results.
-- Include the vendored Lucide ISC notice in built distribution assets.
+- Search now includes all presentation fields and copied statuses are readable (`d39231a`). Still verify filter persistence and CLI HTML exports.
+- Lucide ISC notice is included in public build assets (`d39231a`).
 - Update the dummy's preview-permission input label to match the actual Static DOM + response headers context.
 
 The current `SPEC.md` and `LINTING.md` are the detailed contract. `index.html` is the approved interactive dummy. Temporary verification helper `/tmp/verify-rule-ux.py` archives old build outputs, runs all gates and commits explicit paths; its source is short and should be inspected before reuse. Do not run old bulk-migration scripts in `/tmp/`.

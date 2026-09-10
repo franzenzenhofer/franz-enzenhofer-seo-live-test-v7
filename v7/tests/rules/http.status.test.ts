@@ -4,27 +4,28 @@ import { httpStatusRule } from '@/rules/http/status'
 import { ruleInputForId } from '@/rules/ruleInputs'
 import { enrichResult } from '@/core/runHelpers'
 import { toResultCopyPayload } from '@/components/result/resultCopy'
-const run = async (status?: number) => enrichResult(await httpStatusRule.run({
-  html: '', url: 'https://example.test/page', doc: new DOMParser().parseFromString('', 'text/html'), status,
+const run = async (status?: number, headers?: Record<string, string>) => enrichResult(await httpStatusRule.run({
+  html: '', url: 'https://example.test/page', doc: new DOMParser().parseFromString('', 'text/html'), status, headers,
 }, { globals: {} }), httpStatusRule, 'test')
 
-it('waits for context capture and reports a named status even without response headers', async () => {
+it.each([[200, 'OK'], [308, 'Permanent Redirect'], [429, 'Too Many Requests'], [304, 'Not Modified']])('reports the standard name for HTTP %s', async (status, name) => {
   expect(ruleInputForId('http-status')).toBe('context')
-  expect((await run(200)).message).toBe('HTTP 200 OK')
-  expect((await run(308)).message).toBe('HTTP 308 Permanent Redirect')
-  expect((await run(429)).message).toBe('HTTP 429 Too Many Requests')
+  const result = await run(status as number)
+  expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Response status', value: `HTTP ${status} ${name}` }))
 })
-it('distinguishes unavailable evidence from a site failure and revalidation from redirection', async () => {
-  expect((await run()).type).toBe('runtime_error')
-  const result = await run(304)
-  expect(result.type).toBe('info')
-  expect(result.details?.['interpretation']).toContain('not a redirect')
+it.each([undefined, 0, 99, 600, 200.5, NaN])('preserves unavailable/invalid capture state: %s', async (status) => {
+  expect((await run(status)).type).toBe('runtime_error')
 })
-it('copies the affected URL, status meaning and conditional remedy for removed content', async () => {
-  const result = await run(404)
-  expect(result.type).toBe('error')
+it.each([[103, 'info'], [204, 'ok'], [304, 'info'], [404, 'error'], [500, 'error']])('preserves classification for %s', async (status, expected) => {
+  const result = await run(status as number)
+  expect(result.type).toBe(expected)
+  expect(result.presentation?.markup).toHaveLength(0)
+  expect(result.presentation?.noMarkup).toContain('HTTP response')
+})
+it('copies the affected URL, named status, references and labelled headers without advice', async () => {
+  const result = await run(404, { 'content-type': 'text/html', 'x-trace': 'original header value' })
   const copy = toResultCopyPayload(result)
-  expect(copy).toContain('https://example.test/page')
-  expect(copy).toContain('HTTP 404 Not Found')
-  expect(copy).toContain('when deletion is intentional')
+  for (const value of ['https://example.test/page', 'HTTP 404 Not Found', 'x-trace: original header value', ...httpStatusRule.meta.references]) expect(copy).toContain(value)
+  expect(copy).not.toContain('when deletion is intentional')
+  expect(result.details).toBeUndefined()
 })
