@@ -9,8 +9,8 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:alt-svc-other` | info | Pending | |
 | `google:amp-cache-url` | info | Pending | |
 | `head:amphtml` | info | Pending | |
-| `discover:article-structured-data` | warn | Fixed: optional markup, BlogPosting coverage, exact matching script, incomplete parse explanation; absence/presence/malformed copy tests | This rule commit |
-| `discover:author` | warn | Pending | |
+| `discover:article-structured-data` | warn | Fixed: optional markup, BlogPosting coverage, exact matching script, incomplete parse explanation; absence/presence/malformed copy tests | `4563095` |
+| `discover:author` | warn | Fixed: all named authors and exact sources, optional metadata, unresolved identity limits; multi-author/absent/malformed copy tests | This rule commit |
 | `speed:blocking-scripts` | warn | Pending | |
 | `head:brand-in-title` | warn | Pending | |
 | `http:cache-delivery` | info | Pending | |

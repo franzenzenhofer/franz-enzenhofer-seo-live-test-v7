@@ -42,7 +42,7 @@
   },
   {
     "id": "discover:author",
-    "name": "Author present",
+    "name": "Author metadata",
     "enabledByDefault": true,
     "what": "static",
     "provenance": "google",
