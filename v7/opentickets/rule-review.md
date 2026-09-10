@@ -93,8 +93,8 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:robots-max-video-preview` | info | Fixed: seconds, zero versus unlimited meaning, per-crawler source and value; removed duplicate token dumps; copied multiple-setting fixture | `919bf5f` |
 | `head-robots-meta` | info | Pending | |
 | `head:robots-meta-list` | info | Pending | |
-| `head:robots-noimageindex` | info | Pending | |
-| `head:robots-nosnippet` | info | Fixed: named tag/header restrictions, max-snippet zero, static-image and indexing distinctions, intentional restriction guidance; copied cross-crawler fixture | This rule commit |
+| `head:robots-noimageindex` | info | Fixed: named sources, page indexing distinction and other image-source limits, intentional restriction guidance; copied restriction fixture | This rule commit |
+| `head:robots-nosnippet` | info | Fixed: named tag/header restrictions, max-snippet zero, static-image and indexing distinctions, intentional restriction guidance; copied cross-crawler fixture | `bc6368a` |
 | `robots:blocked-resources` | ok | Pending | |
 | `robots:complexity` | info | Pending | |
 | `robots-exists` | info | Pending | |

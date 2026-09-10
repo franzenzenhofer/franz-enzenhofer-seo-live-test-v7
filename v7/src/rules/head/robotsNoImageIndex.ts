@@ -1,53 +1,7 @@
-import type { Rule } from '@/core/types'
-import { extractSnippet, joinHtmlFragments } from '@/shared/html-utils'
-import { parseRobotsDirectives } from '@/shared/robots'
-import { findRobotsTokens } from '@/shared/robots-tokens'
+import { createRobotsRestrictionRule } from './createRobotsRestrictionRule'
 
-const LABEL = 'HEAD'
-const NAME = 'Robots noimageindex'
-const RULE_ID = 'head:robots-noimageindex'
-
-const summary = (tokens: { ua: string; token: string }[]) => tokens.map((t) => `${t.ua}:${t.token}`).join('; ')
-
-export const robotsNoImageIndexRule: Rule = {
-  id: RULE_ID,
-  name: NAME,
-  enabled: true,
-  what: 'static',
-  meta: {
-    provenance: 'google',
-    references: ['https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#noimageindex'],
-    description: 'Warns when a noimageindex directive is present in robots meta tags or the X-Robots-Tag header.',
-  },
-  async run(page) {
-    const directives = parseRobotsDirectives(page.doc, page.headers, page.responseHeaderFields)
-    const matches = findRobotsTokens(directives, 'noimageindex')
-    if (matches.length === 0) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'No noimageindex directive found.',
-        type: 'info',
-        priority: 900,
-      }
-    }
-
-    const sourceHtml = joinHtmlFragments(matches.map((m) => m.sourceHtml).filter((html): html is string => Boolean(html)))
-    const matchSummary = summary(matches)
-    const snippet = sourceHtml ? extractSnippet(sourceHtml) : extractSnippet(matchSummary || '(not present)')
-    const domPaths = matches.map((m) => m.domPath).filter((path): path is string => Boolean(path))
-    return {
-      label: LABEL,
-      name: NAME,
-      message: `Image indexing disabled via noimageindex (${matchSummary}).`,
-      type: 'warn',
-      priority: 220,
-      details: {
-        sourceHtml,
-        snippet,
-        domPaths,
-        matches,
-      },
-    }
-  },
-}
+export const robotsNoImageIndexRule = createRobotsRestrictionRule({
+  directive: 'noimageindex', name: 'Image indexing restrictions',
+  meaning: 'noimageindex asks Google not to index images from this page. It does not block indexing of the page itself, and the same image may still be indexed when linked or embedded elsewhere.',
+  action: 'If these images should be discoverable in image search, remove noimageindex from the applicable tags or X-Robots-Tag headers listed below. Keep it if image exclusion is intentional; do not remove unrelated robots instructions.',
+})

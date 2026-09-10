@@ -433,6 +433,16 @@
     ]
   },
   {
+    "id": "head:robots-noimageindex",
+    "name": "Image indexing restrictions",
+    "enabledByDefault": true,
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#noimageindex"
+    ]
+  },
+  {
     "id": "body:images-lazy",
     "name": "Images lazy-loading",
     "enabledByDefault": true,
@@ -891,16 +901,6 @@
     "provenance": "google",
     "references": [
       "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag"
-    ]
-  },
-  {
-    "id": "head:robots-noimageindex",
-    "name": "Robots noimageindex",
-    "enabledByDefault": true,
-    "what": "static",
-    "provenance": "google",
-    "references": [
-      "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#noimageindex"
     ]
   },
   {
