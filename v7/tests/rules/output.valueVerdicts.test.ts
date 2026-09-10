@@ -18,9 +18,9 @@ describe('verdicts carry the judged value', () => {
   it('head-title reports the length and carries the title as a value key', async () => {
     const res = await titleRule.run(page('<head><title>My Fine Title</title></head>'), ctx)
     expect(res.type).toBe('ok')
-    expect(res.message).toContain('13 characters')
+    expect(res.presentation?.detailValues).toContainEqual({ key: 'Trimmed length (UTF-16 code units)', value: 13, kind: 'text' })
     expect(res.message).not.toContain('My Fine Title')
-    expect(res.details?.['title']).toBe('My Fine Title')
+    expect(res.presentation?.detailValues).toContainEqual({ key: 'Title', value: 'My Fine Title', kind: 'text' })
   })
 
   it('head:title (length) carries the title as a semantic key', async () => {

@@ -1,65 +1,34 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, extractHtmlFromList } from '@/shared/html-utils'
-import { getDomPath } from '@/shared/dom-path'
 import { sampleElements } from '@/shared/domEvidence'
+import { textField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
 
-const LABEL = 'HEAD'
-const NAME = 'SEO Title Present'
-
+const SELECTOR = 'head > title'
 export const titleRule: Rule = {
-  id: 'head-title',
-  name: NAME,
-  enabled: true,
-  what: 'static',
+  id: 'head-title', name: 'Page title', presentation: 1, enabled: true, what: 'static',
   meta: {
-    userGuide: {
-      check: "Checks for exactly one non-empty title element in the document head. The title names the browser tab and can inform the search result title; Google may choose different wording.",
-      action: "In the page template or CMS SEO title field, provide one descriptive title for this page. Remove duplicate title output from competing templates or plugins and make sure the remaining title is inside head.",
-    },
     provenance: 'google',
     references: [
       'https://developers.google.com/search/docs/appearance/title-link',
       'https://html.spec.whatwg.org/multipage/semantics.html#the-title-element',
     ],
-    description: 'Checks that exactly one non-empty <title> element exists in <head> (error on missing, multiple, or empty).',
+    description: 'Checks for exactly one non-empty title element in head.',
   },
-  run: async (page) => {
-    const nodes = sampleElements(page.doc.querySelectorAll('head > title'))
-    const count = nodes.total
-    const first = nodes.sample[0]
-    const title = (first?.textContent || '').trim()
-    const isMissing = count === 0
-    const isMultiple = count > 1
-    const isEmpty = count === 1 && title.length === 0
-    const isOk = count === 1 && !isEmpty
-
-    const type: 'ok' | 'error' = isOk ? 'ok' : 'error'
-    const message = isOk
-      ? `Title present (${title.length} characters).`
-      : isMultiple
-        ? `${count} <title> tags found in head (only one allowed).`
-        : isMissing
-          ? 'No <title> tag found in head.'
-          : '<title> tag exists but is empty.'
-
-    const sourceHtml = isMultiple ? extractHtmlFromList(nodes.sample) : extractHtml(first ?? null)
-
-    return {
-      label: LABEL,
-      name: NAME,
-      message,
-      type,
-      priority: isOk ? 1000 : 0,
-      details: {
-        snippet: isOk ? `<title>${title}</title>` : undefined,
-        title,
-        length: title.length,
-        sourceHtml,
-        count,
-        shown: nodes.shown,
-        truncated: nodes.truncated,
-        domPath: getDomPath(first ?? null),
-      },
-    }
+  async run(page) {
+    const { sample, total } = sampleElements(page.doc.querySelectorAll(SELECTOR))
+    const title = sample[0]?.textContent || ''
+    const ok = total === 1 && title.trim().length > 0
+    const captured = markupEvidence(sample, '<title>')
+    const primary = total === 1 && captured.markup[0] ? [{ ...captured.markup[0], key: '<title>' }] : []
+    return presentResult(titleRule, page, {
+      input: 'Static DOM', type: ok ? 'ok' : 'error', priority: ok ? 1000 : 0,
+      values: [textField('Title elements', total), ...(total === 1 ? [textField('Title text', title.trim() ? 'Non-empty' : 'Empty')] : []), ...primary],
+      detailValues: [...sample.map((node, index) => textField(total === 1 ? 'Title' : `Title ${index + 1}`, node.textContent || '')),
+        ...(total === 1 ? [textField('Trimmed length (UTF-16 code units)', title.trim().length)] : [])],
+      checked: [textField('Selector', SELECTOR), textField('Criterion', 'Exactly one element with non-empty trimmed text')],
+      evidence: [{ name: 'Capture', fields: [textField('Elements retained', sample.length), textField('Elements omitted', total - sample.length), ...captured.fields] }],
+      markup: captured.markup, noMarkup: total ? 'Complete original title markup not retained' : 'No title element found in head',
+    })
   },
 }

@@ -756,6 +756,17 @@
     "references": []
   },
   {
+    "id": "head-title",
+    "name": "Page title",
+    "enabledByDefault": true,
+    "what": "static",
+    "provenance": "google",
+    "references": [
+      "https://developers.google.com/search/docs/appearance/title-link",
+      "https://html.spec.whatwg.org/multipage/semantics.html#the-title-element"
+    ]
+  },
+  {
     "id": "gsc:page-worldwide",
     "name": "Page worldwide analytics",
     "enabledByDefault": true,
@@ -1150,17 +1161,6 @@
     "provenance": "general",
     "references": [
       "https://developers.google.com/search/docs/appearance/title-link"
-    ]
-  },
-  {
-    "id": "head-title",
-    "name": "SEO Title Present",
-    "enabledByDefault": true,
-    "what": "static",
-    "provenance": "google",
-    "references": [
-      "https://developers.google.com/search/docs/appearance/title-link",
-      "https://html.spec.whatwg.org/multipage/semantics.html#the-title-element"
     ]
   },
   {
