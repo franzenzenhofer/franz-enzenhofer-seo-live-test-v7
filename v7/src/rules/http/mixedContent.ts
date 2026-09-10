@@ -13,6 +13,10 @@ export const mixedContentRule: Rule = {
   enabled: true,
   what: 'http',
   meta: {
+    userGuide: {
+      check: "Checks captured resource-loading src, href and data attributes, form actions and captured resource URLs for explicit HTTP references on an HTTPS page. Browser upgrading or blocking does not repair an HTTP URL in the site code.",
+      action: "Replace each listed HTTP URL with a working HTTPS resource or remove the dependency. Correct the template, CMS field or third-party configuration responsible for the URL.",
+    },
     provenance: 'standard',
     references: [REFERENCE],
     description: 'Flags HTTP subresource references on HTTPS pages, even if the browser upgrades or blocks them. Identifies each resource and attribute; includes network-only URLs and insecure form actions.',

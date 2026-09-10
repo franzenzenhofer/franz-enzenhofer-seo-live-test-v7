@@ -27,7 +27,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `dom:data-nosnippet` | info | Pending | |
 | `gsc:directory-worldwide` | runtime_error | Pending | |
 | `dom:node-count` | info | Reviewed: measurement method in walker and captured facts; added counted-node definition and no arbitrary score implication; existing nested-tree fixture retained | `a69ffba` |
-| `dom:node-depth` | info | Reviewed: depth convention and fallback traversal; added clear nesting meaning and diagnostic limits; existing nested-tree fixture retained | This rule commit |
+| `dom:node-depth` | info | Reviewed: depth convention and fallback traversal; added clear nesting meaning and diagnostic limits; existing nested-tree fixture retained | `f63e1fe` |
 | `speed:first-paint` | ok | Reviewed: FCP thresholds and first-paint-only/missing states retained; added metric meaning, units, single-run limits and investigation steps; existing boundary states retained | `83c6e60` |
 | `google:is-connected` | info | Pending | |
 | `robots:googlebot-url-check` | ok | Pending | |
@@ -65,7 +65,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:robots-noindex` | info | Pending | |
 | `head:unavailable-after` | info | Pending | |
 | `head:meta-viewport` | ok | Pending | |
-| `http:mixed-content` | ok | Pending | |
+| `http:mixed-content` | ok | Reviewed: named offenders, exact attributes, working copy actions and code-level error semantics from 3261b17; added explicit collection scope; unit and headless offender fixtures retained | This rule commit |
 | `http:navigation-path` | info | Pending | |
 | `http:negotiated-protocol` | ok | Pending | |
 | `body:nofollow` | ok | Pending | |
