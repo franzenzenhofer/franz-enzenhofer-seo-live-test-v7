@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { inspectionLabel } from './inspectionLabels'
+
 const text = z.string().optional()
 export const inspectionResponse = z.object({
   inspectionResult: z.object({
@@ -23,13 +25,13 @@ export const inspectionDetails = (inspection: Inspection) => {
   return {
     googleCanonical: status?.googleCanonical, userCanonical: status?.userCanonical,
     canonicalMismatch: status?.googleCanonical && status.userCanonical ? status.googleCanonical !== status.userCanonical : undefined,
-    robotsTxtState: status?.robotsTxtState, indexingState: status?.indexingState,
-    pageFetchState: status?.pageFetchState, crawledAs: status?.crawledAs,
-    sitemaps: status?.sitemap?.slice(0, 10), sitemapCount: status?.sitemap?.length,
-    richResults: rich ? { verdict: rich.verdict, detectedTypeCount: rich.detectedItems?.length,
-      detectedItems: rich.detectedItems?.slice(0, 10).map((group) => ({ richResultType: group.richResultType,
-        itemCount: group.items?.length, items: group.items?.slice(0, 10).map((item) => ({ name: item.name,
-          issueCount: item.issues?.length, issues: item.issues?.slice(0, 10) })) })) } : undefined,
+    robotsTxtState: inspectionLabel(status?.robotsTxtState), indexingState: inspectionLabel(status?.indexingState),
+    pageFetchState: inspectionLabel(status?.pageFetchState), crawledAs: inspectionLabel(status?.crawledAs),
+    sitemaps: status?.sitemap, sitemapCount: status?.sitemap?.length,
+    richResults: rich ? { verdict: inspectionLabel(rich.verdict), detectedTypeCount: rich.detectedItems?.length,
+      detectedItems: rich.detectedItems?.map((group) => ({ richResultType: group.richResultType,
+        itemCount: group.items?.length, items: group.items?.map((item) => ({ name: item.name,
+          issueCount: item.issues?.length, issues: item.issues })) })) } : undefined,
     evidenceSource: 'Google indexed-version inspection; fields describe Google\'s recorded crawl, not this live navigation. Missing fields are unavailable, not passes.',
   }
 }

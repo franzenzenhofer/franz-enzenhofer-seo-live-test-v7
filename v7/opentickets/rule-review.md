@@ -31,7 +31,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `speed:first-paint` | ok | Reviewed: FCP thresholds and first-paint-only/missing states retained; added metric meaning, units, single-run limits and investigation steps; existing boundary states retained | `83c6e60` |
 | `google:is-connected` | info | Reviewed stored/missing credentials and Settings controls; states access-check limits and reconnect steps; existing credential fixture. | `9e46f1b` |
 | `robots:googlebot-url-check` | ok | Pending | |
-| `gsc:url-inspection` | runtime_error | Pending | |
+| `gsc:url-inspection` | runtime_error | Reviewed recorded-versus-live evidence, named API states, exclusion versus error and all returned sitemaps; mocked success and evidence fixtures. | This rule commit |
 | `http:gzip` | ok | Reviewed: exact encoding, source and complete headers remain available; added purpose, measurement limits and server/CDN remedy; removed irrelevant browser-version detail; existing encoding/probe fixtures retained | `ee0ae40` |
 | `body:h1` | ok | Reviewed and fixed: multiple headings now include their text with locations; purpose and missing/empty remediation; existing single/multiple/empty/missing fixtures retained | `966acd5` |
 | `discover:headline-length` | info | Reviewed and fixed: missing versus empty heading wording; full headline and location preserved; added explicit heuristic limits and no-padding guidance; existing short/long fixtures retained | `06e9bc9` |
@@ -121,7 +121,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:shortlink` | info | Pending | |
 | `http:soft-404` | ok | Pending | |
 | `http:hsts` | ok | Pending | |
-| `gsc:top-queries-of-page` | runtime_error | Reviewed API scope and missing/access/error/success branches; explicit Pacific dates and metric meaning; fixture checks with no live account claims. | This rule commit |
+| `gsc:top-queries-of-page` | runtime_error | Reviewed API scope and missing/access/error/success branches; explicit Pacific dates and metric meaning; fixture checks with no live account claims. | `745ff6a` |
 | `dom:top-words` | info | Pending | |
 | `head:twitter-card` | info | Pending | |
 | `body:unsecure-input` | info | Pending | |

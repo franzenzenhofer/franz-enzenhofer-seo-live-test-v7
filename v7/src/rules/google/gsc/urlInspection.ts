@@ -3,7 +3,9 @@ import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
 import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../google-gsc-utils'
 
 import { inspectionResponse, inspectionDetails } from './inspectionData'
-import { inspectionValue, relativeTime } from './gscValue'
+import { inspectionValue } from './gscValue'
+import { inspectionLabel } from './inspectionLabels'
+import { gscRequestIssue } from './searchAnalyticsContext'
 
 import type { Rule } from '@/core/types'
 
@@ -17,6 +19,10 @@ export const gscUrlInspectionRule: Rule = {
   what: 'gsc',
   timeout: { mode: 'api' },
   meta: {
+    userGuide: {
+      check: "Shows Google's recorded inspection of this URL, including indexing, last crawl, the declared preferred URL and Google's selected URL. It does not inspect the live page you are viewing.",
+      action: "Open the linked Search Console inspection. Check whether the reported exclusion or canonical choice is intentional; if not, fix the named crawl/indexing issue on the website, then request a new inspection in Search Console.",
+    },
     provenance: 'google',
     references: [
       'https://developers.google.com/webmaster-tools/v1/urlInspection.index/inspect',
@@ -28,7 +34,7 @@ export const gscUrlInspectionRule: Rule = {
     if (!token) return createNoTokenResult(LABEL, NAME)
 
     const derived = await deriveGscProperty(page.url, token)
-    if (!derived) return createGscPropertyDerivationFailedResult(page.url)
+    if (!derived) return createGscPropertyDerivationFailedResult(page.url, NAME)
 
     const body = { inspectionUrl: page.url, siteUrl: derived.property, languageCode: 'en-US' }
     let response: Response
@@ -50,16 +56,7 @@ export const gscUrlInspectionRule: Rule = {
       }
     }
 
-    if (!response.ok) {
-      return {
-        label: LABEL,
-        message: `URL Inspection API error ${response.status}`,
-        type: 'warn',
-        name: NAME,
-        priority: 0,
-        details: { property: derived.property, propertyType: derived.type, status: response.status },
-      }
-    }
+    if (!response.ok) return gscRequestIssue(response.status, NAME, page.url, derived.property)
 
     const parsed = inspectionResponse.safeParse(await response.json())
     if (!parsed.success) return { label: LABEL, name: NAME, type: 'runtime_error', priority: 0, message: 'URL Inspection response was malformed.' }
@@ -81,23 +78,21 @@ export const gscUrlInspectionRule: Rule = {
     const coverage = indexStatus.coverageState || 'Unknown coverage'
     const referringUrls = indexStatus.referringUrls || []
     const lastCrawl = indexStatus.lastCrawlTime || null
-    const crawlText = lastCrawl ? ` Last crawled ${relativeTime(lastCrawl)}.` : ''
-    const refText = referringUrls.length
-      ? ` Referrer: ${referringUrls[0]}${referringUrls.length > 1 ? ` (+${referringUrls.length - 1} more)` : ''}.`
-      : ' No referring pages reported.'
     const isPass = verdict === 'PASS'
 
     return {
       label: LABEL,
-      message: `${data.inspectionResult?.inspectionResultLink ? 'GSC URL Inspection' : 'URL Inspection'}: ${coverage} (verdict ${verdict}).${crawlText}${refText}`,
-      type: isPass ? 'ok' : 'warn',
+      message: `URL Inspection: ${coverage}. Google reports ${inspectionLabel(verdict)}.`,
+      type: isPass ? 'ok' : verdict === 'FAIL' ? 'warn' : 'info',
       name: NAME,
       priority: isPass ? 700 : 120,
       details: {
+        inspectedUrl: page.url,
+        nextStep: 'Open the Search Console inspection link to review the recorded state or run a live inspection. An intentional exclusion may need no website change.',
         value: inspectionValue(coverage, verdict, lastCrawl),
         property: derived.property,
         propertyType: derived.type,
-        verdict,
+        verdict: inspectionLabel(verdict),
         coverageState: coverage,
         referringUrls,
         lastCrawlTime: lastCrawl,
