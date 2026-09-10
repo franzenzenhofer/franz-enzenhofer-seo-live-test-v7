@@ -19,6 +19,7 @@ test('runtime filtering shows only the current run results', async () => {
     const extensionId = await findExtensionId(context, userDataDir)
     const panel = await context.newPage()
     await panel.goto(`chrome-extension://${extensionId}/src/sidepanel.html`)
+    await page.bringToFront()
     await expect(panel.getByText('Franz Enzenhofer SEO Live Test')).toBeVisible()
     await expect(panel.locator(`[title="${first!.runId}"]`)).toBeVisible()
     const firstRunResults = await panel.getByTestId('result-card').count()

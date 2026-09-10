@@ -115,8 +115,8 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `schema:website-searchaction` | info | Pending | |
 | `http:security-headers` | info | Pending | |
 | `dom:seo-phase-changes` | info | Pending | |
-| `head:title` | info | Pending | |
-| `head-title` | ok | Reviewed: title text, count and matching source are retained; added purpose and missing/empty/duplicate remediation; existing branch fixtures retained | This rule commit |
+| `head:title` | info | Reviewed: full title remains visible and copied; added units and explanation that character count is not a Google limit; existing missing/empty/long fixtures retained | This rule commit |
+| `head-title` | ok | Reviewed: title text, count and matching source are retained; added purpose and missing/empty/duplicate remediation; existing branch fixtures retained | `ea76cd9` |
 | `http:from-cache` | info | Pending | |
 | `head:shortlink` | info | Pending | |
 | `http:soft-404` | ok | Pending | |

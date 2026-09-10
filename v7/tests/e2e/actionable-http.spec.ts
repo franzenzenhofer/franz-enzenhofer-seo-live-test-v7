@@ -15,9 +15,11 @@ test('HTTP findings render readable offenders and a named navigation journey wit
     const page = await context.newPage()
     await page.goto(START)
     await expect.poll(async () => {
-      const snapshot = await readRunSnapshot(context, FINAL)
+      await expect.poll(async () => (await readRunSnapshot(context, FINAL))?.status, { timeout: 30_000 }).toBe('completed')
+    const snapshot = await readRunSnapshot(context, FINAL)
       return snapshot?.results.find((result) => result.ruleId === 'http:mixed-content')?.type
     }, { timeout: 30_000 }).toBe('error')
+    await expect.poll(async () => (await readRunSnapshot(context, FINAL))?.status, { timeout: 30_000 }).toBe('completed')
     const snapshot = await readRunSnapshot(context, FINAL)
     const id = await findExtensionId(context, userDataDir)
     const report = await context.newPage()
@@ -42,6 +44,7 @@ test('HTTP findings render readable offenders and a named navigation journey wit
     expect(await report.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     const panel = await context.newPage()
     await panel.goto(`chrome-extension://${id}/src/sidepanel.html`)
+    await page.bringToFront()
     await expect(panel.getByTestId('result-card').filter({ hasText: 'HTTP: Mixed content' })).toBeVisible()
   } finally {
     await context.close()

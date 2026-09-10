@@ -13,6 +13,10 @@ export const titleLengthRule: Rule = {
   enabled: true,
   what: 'static',
   meta: {
+    userGuide: {
+      check: "Measures the first title element. Google has no fixed character limit: visible space depends on the device and text width. Use this count as editorial context, not a pass/fail SEO threshold.",
+      action: "Write a concise title that accurately distinguishes this page; do not pad or cut useful wording just to reach a character count.",
+    },
     provenance: 'general',
     references: ['https://developers.google.com/search/docs/appearance/title-link'],
     description: 'Measures <title> character length as informational evidence; Google documents no character limit (truncation is display-width based), so no length threshold is enforced.',
@@ -39,7 +43,7 @@ export const titleLengthRule: Rule = {
     return {
       label: LABEL,
       name: NAME,
-      message: `Meta-Title length: ${len}${suffix}`,
+      message: `Title length: ${len} characters${suffix}`,
       type: 'info',
       priority: 760,
       details: {
