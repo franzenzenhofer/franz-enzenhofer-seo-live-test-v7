@@ -12,6 +12,10 @@ export const hasHeaderRule: Rule = {
   enabled: true,
   what: 'http',
   meta: {
+    userGuide: {
+      check: "Checks only the header names configured in http_has_header. An empty configuration means this custom check has no requirements. Presence does not validate a header value or make every listed header necessary for all sites.",
+      action: "Compare the missing list with the intended http_has_header configuration. Add required headers in the application, server or CDN response configuration, or correct the configured list if the requirement is wrong.",
+    },
     provenance: 'franz',
     references: [],
     description:

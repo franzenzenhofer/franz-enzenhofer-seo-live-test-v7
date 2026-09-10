@@ -6,7 +6,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 
 | Rule | Baseline result | Review status | Commit |
 | --- | --- | --- | --- |
-| `http:alt-svc-other` | info | Reviewed: advertised IDs, clear and unparsed states retain the full header; added protocol names and advertisement-versus-usage distinction; existing quic/clear fixtures retained | This rule commit |
+| `http:alt-svc-other` | info | Reviewed: advertised IDs, clear and unparsed states retain the full header; added protocol names and advertisement-versus-usage distinction; existing quic/clear fixtures retained | `0a0282e` |
 | `google:amp-cache-url` | info | Pending | |
 | `head:amphtml` | info | Pending | |
 | `discover:article-structured-data` | warn | Fixed: optional markup, BlogPosting coverage, exact matching script, incomplete parse explanation; absence/presence/malformed copy tests | `4563095` |
@@ -41,7 +41,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:hreflang-multipage` | info | Pending | |
 | `head:hreflang-values` | info | Pending | |
 | `http:headers-present` | info | Pending | |
-| `http:has-header` | info | Pending | |
+| `http:has-header` | info | Reviewed: requested, present and missing lists remain fully copied; added custom-requirement scope and configuration/server remedy; existing all-present/missing fixtures retained | This rule commit |
 | `http-status` | runtime_error | Fixed: named statuses, affected page URL, status-specific remedies, cache revalidation and unavailable evidence; context registration and copy tests | `0a0fba4` |
 | `http:h2-advertised` | info | Pending | |
 | `http:h3-advertised` | info | Pending | |
