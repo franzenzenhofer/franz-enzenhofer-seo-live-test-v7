@@ -60,7 +60,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:meta-charset` | ok | Pending | |
 | `head-meta-description` | ok | Reviewed: description text and duplicate-tag evidence are retained; added search snippet meaning and CMS/template fix; existing absent/empty/duplicate/single fixtures retained | `5009a98` |
 | `head:meta-googlebot` | info | Reviewed missing, multiple, body and case-insensitive tags; exact named sources and noindex/nofollow meaning; focused fixtures. | `ca6d1df` |
-| `head:meta-keywords` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | This rule commit |
+| `head:meta-keywords` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | `2e2af0e` |
 | `head:meta-other-robots` | info | Reviewed and fixed: named crawler instructions replace parser dump; clarified that other-crawler restrictions do not automatically apply to Googlebot; existing non-robots filter fixtures retained | `842add8` |
 | `head:robots-noindex` | info | Reviewed missing, multiple, body and case-insensitive tags; exact named sources and noindex/nofollow meaning; focused fixtures. | `0f9442e` |
 | `head:unavailable-after` | info | Pending | |
@@ -130,7 +130,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `psi:desktop` | ok | Pending | |
 | `psi:mobile-fcp-tbt` | warn | Pending | |
 | `psi:mobile` | ok | Pending | |
-| `http:vary-user-agent` | info | Pending | |
+| `http:vary-user-agent` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | This rule commit |
 | `gsc:property-available` | runtime_error | Reviewed access probes, cache limits, sign-in and success fixtures; preserves rule identity and distinguishes an unavailable probe from an absent property. | `678bcd5` |
 | `http:canonical-host-redirect` | info | Pending | |
 | `http:x-cache` | info | Pending | |
