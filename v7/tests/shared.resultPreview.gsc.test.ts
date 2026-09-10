@@ -48,13 +48,13 @@ describe('gscValue formatters', () => {
     expect(impressionsValue(0)).toBe('0 impressions')
   })
 
-  it('formats the top queries with their impressions', () => {
+  it('summarizes query coverage without unlabeled numbers', () => {
     const rows = [
       { keys: ['franz enzenhofer', 'https://x.test/'], impressions: 961 },
       { keys: ['full stack optimization', 'https://x.test/'], impressions: 1080 },
     ]
-    expect(topQueriesValue(rows)).toBe('franz enzenhofer (961), full stack optimization (1080)')
-    expect(topQueriesValue([])).toBe('')
+    expect(topQueriesValue(rows)).toBe('2 queries; up to 25 returned, ordered by clicks')
+    expect(topQueriesValue([])).toBe('No queries reported')
   })
 
   it('formats the inspection verdict with the last crawl', () => {

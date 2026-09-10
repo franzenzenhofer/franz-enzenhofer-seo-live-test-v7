@@ -105,8 +105,8 @@ describe('GSC rules put the judged value into details.value', () => {
 
   it('top queries: the queries with their impressions', async () => {
     const { value, preview } = await runRule(gscTopQueriesOfPageRule)
-    expect(value).toBe('franz enzenhofer (961), full stack optimization (1080)')
-    expect(preview).toBe('franz enzenhofer (961), full stack optimization (1080)')
+    expect(value).toBe('2 queries; up to 25 returned, ordered by clicks')
+    expect(preview).toBe('2 queries; up to 25 returned, ordered by clicks')
   })
 
   it('historical impressions: the impressions figure', async () => {

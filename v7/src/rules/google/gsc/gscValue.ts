@@ -19,12 +19,9 @@ export const searchAnalyticsValue = (impressions: number, clicks: number): strin
 
 export const impressionsValue = (impressions: number): string => `${impressions} impressions`
 
-/** `franz enzenhofer (961), full stack optimization (1080)` - empty when there are no rows. */
-export const topQueriesValue = (rows: SearchAnalyticsRow[] | undefined, limit = 5): string =>
-  (rows || [])
-    .slice(0, limit)
-    .map((row) => `${(row.keys || [])[0] || ''} (${row.impressions || 0})`)
-    .join(', ')
+/** The count stays compact; every returned query is listed in the evidence. */
+export const topQueriesValue = (rows: SearchAnalyticsRow[] | undefined): string =>
+  rows?.length ? `${rows.length} queries; up to 25 returned, ordered by clicks` : 'No queries reported'
 
 export const relativeTime = (iso?: string | null): string => {
   if (!iso) return ''

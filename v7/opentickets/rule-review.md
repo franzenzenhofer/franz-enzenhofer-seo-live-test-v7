@@ -25,7 +25,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `dom:client-side-rendering` | info | Pending | |
 | `http:common-mobile-setup` | info | Reviewed: viewport text and source are retained; added presence-versus-usability distinction and optional icon meaning; existing viewport/icon fixtures retained | `7e8fea8` |
 | `dom:data-nosnippet` | info | Pending | |
-| `gsc:directory-worldwide` | runtime_error | Reviewed API scope and missing/access/error/success branches; explicit Pacific dates and metric meaning; fixture checks with no live account claims. | This rule commit |
+| `gsc:directory-worldwide` | runtime_error | Reviewed API scope and missing/access/error/success branches; explicit Pacific dates and metric meaning; fixture checks with no live account claims. | `bc00e5f` |
 | `dom:node-count` | info | Reviewed: measurement method in walker and captured facts; added counted-node definition and no arbitrary score implication; existing nested-tree fixture retained | `a69ffba` |
 | `dom:node-depth` | info | Reviewed: depth convention and fallback traversal; added clear nesting meaning and diagnostic limits; existing nested-tree fixture retained | `f63e1fe` |
 | `speed:first-paint` | ok | Reviewed: FCP thresholds and first-paint-only/missing states retained; added metric meaning, units, single-run limits and investigation steps; existing boundary states retained | `83c6e60` |
@@ -121,7 +121,7 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:shortlink` | info | Pending | |
 | `http:soft-404` | ok | Pending | |
 | `http:hsts` | ok | Pending | |
-| `gsc:top-queries-of-page` | runtime_error | Pending | |
+| `gsc:top-queries-of-page` | runtime_error | Reviewed API scope and missing/access/error/success branches; explicit Pacific dates and metric meaning; fixture checks with no live account claims. | This rule commit |
 | `dom:top-words` | info | Pending | |
 | `head:twitter-card` | info | Pending | |
 | `body:unsecure-input` | info | Pending | |
