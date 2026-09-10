@@ -1,4 +1,5 @@
 import type { Result, ResultDetails } from '@/core/types'
+import { boundPresentation } from '@/shared/presentation/bound'
 
 export const RESULT_LIMITS = { array: 10, detailsBytes: 8_192, message: 2_000 } as const
 const MAX_DEPTH = 6
@@ -48,6 +49,7 @@ export const boundResult = (result: Result): Result => ({
   name: result.name.slice(0, 256),
   label: result.label.slice(0, 64),
   message: result.message.slice(0, RESULT_LIMITS.message),
+  ...(result.presentation ? { presentation: boundPresentation(result.presentation) } : {}),
   ...(result.details ? { details: boundDetails(result.details) } : {}),
 })
 

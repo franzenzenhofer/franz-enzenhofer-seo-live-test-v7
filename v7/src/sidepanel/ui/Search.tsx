@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 const FILTER_HINT = [
   'Filter tips',
-  'Types: error warn info ok runtime pending disabled',
+  'Types: error warn info ok runtime pending disabled not_applicable',
   'Tokens: id:head:canonical, label:head, name:canonical, rule:',
   'Priority: p<200, p>=400, priority:100-300',
   'Alt-click a type chip to solo it',

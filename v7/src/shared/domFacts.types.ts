@@ -10,6 +10,7 @@ export type DomElementFact = {
   tag: string
   attrs: Array<[string, string]>
   text?: string
+  original?: { html: string; selector: string }
 }
 
 export type ScanBudget = { general: number; anchor: number }

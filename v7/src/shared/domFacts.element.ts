@@ -1,5 +1,6 @@
 import { CRITICAL_VALUE_LENGTH, isInsecureResource } from './domFacts.critical'
 import type { DomElementFact, FactBucket } from './domFacts.types'
+import { readOriginalMarkup } from './presentation/originalMarkup'
 
 export type { FactBucket }
 export { isCriticalFact } from './domFacts.critical'
@@ -37,10 +38,12 @@ export const factBucket = (element: Element, doc: Document): FactBucket | null =
 export const elementFact = (element: Element, doc: Document, critical = false): DomElementFact => {
   const tag = element.tagName.toLowerCase()
   const text = tag === 'title' ? (element.textContent || '').slice(0, MAX_VALUE_LENGTH) : undefined
+  const original = tag === 'meta' && /^(robots|googlebot)$/i.test(element.getAttribute('name') || '') ? readOriginalMarkup(element) : null
   return {
     location: doc.head?.contains(element) ? 'head' : 'body',
     tag,
     attrs: attributesOf(element, critical ? CRITICAL_VALUE_LENGTH : MAX_VALUE_LENGTH),
     ...(text ? { text } : {}),
+    ...(original ? { original } : {}),
   }
 }

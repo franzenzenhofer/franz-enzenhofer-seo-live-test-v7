@@ -1,5 +1,6 @@
 import type { Result, ResultDetails, Rule } from './types'
 
+import { executionPresentation, validateRulePresentation } from '@/shared/presentation/result'
 import { Logger } from '@/shared/logger'
 
 // Every result carries the rule's spec reference and provenance; values a rule
@@ -17,7 +18,8 @@ export const enrichResult = (res: Result, rule: Rule, runId: string | undefined,
   ruleId: res.ruleId ?? rule.id,
   runIdentifier: runId,
   runIndex: typeof runIndex === 'number' ? runIndex : res.runIndex,
-  details: metaDetails(rule, {
+  presentation: validateRulePresentation(res, rule),
+  details: rule.presentation === 1 ? undefined : metaDetails(rule, {
     ...(rule.meta.userGuide && ['warn', 'error'].includes(res.type)
       && !res.details?.['fix'] && !res.details?.['should'] && !res.details?.['nextStep']
       ? { nextStep: rule.meta.userGuide.action } : {}),
@@ -39,6 +41,7 @@ export const createDisabledResult = (rule: Rule, runId: string | undefined, runI
   label: (rule.id.split(':')[0] || 'RULE').toUpperCase(),
   message: 'Rule disabled in settings. Enable to run checks.',
   type: 'disabled',
+  presentation: executionPresentation(rule, 'Disabled'),
   what: rule.what || null,
   ruleId: rule.id,
   runIdentifier: runId,
@@ -52,6 +55,7 @@ export const createRuntimeError = (rule: Rule, message: string, runId: string | 
   label: 'SYSTEM',
   message: `Rule execution failed: ${rule.name} - ${message}`,
   type: 'runtime_error',
+  presentation: executionPresentation(rule, `Execution failed: ${message}`),
   what: rule.name,
   ruleId: rule.id,
   runIdentifier: runId,

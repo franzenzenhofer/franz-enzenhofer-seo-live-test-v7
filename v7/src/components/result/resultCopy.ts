@@ -3,6 +3,7 @@ import { readResourceIssues, resourceIssueCopy } from '@/shared/resourceIssues'
 import { navigationStepsCopy, readNavigationSteps } from '@/shared/navigationSteps'
 import { detailLabel, readableDetail } from '@/shared/readableDetails'
 import { markdownCode } from '@/shared/markdownFormatting'
+import { presentationCopy } from '@/shared/presentation/copy'
 
 const codeBlock = (label: string, content: string, lang = '') => {
   const trimmed = content.trim()
@@ -17,6 +18,7 @@ const linkLine = (label: string, value: string) => {
 
 export const toResultCopyPayload = (result: Result | null | undefined): string => {
   if (!result) return ''
+  if (result.presentation) return presentationCopy(result)
   const lines: string[] = []
   const header = `### ${result.label}: ${result.name}${result.what ? ` (\`${result.what}\`)` : ''}`
   lines.push(header, '')

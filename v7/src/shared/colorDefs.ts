@@ -1,4 +1,9 @@
 export const resultColors = {
+  not_applicable: {
+    bg: 'bg-slate-50', border: 'border-slate-300', text: 'text-slate-700',
+    dot: 'bg-slate-500', badge: 'bg-slate-100 text-slate-700',
+    full: 'bg-slate-50 border-slate-300 text-slate-700',
+  },
   error: {
     bg: 'bg-red-50',
     border: 'border-red-300',

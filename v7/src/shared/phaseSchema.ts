@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { presentationSchema } from './presentation/schema'
+
 export const phaseIdentitySchema = z.object({
   version: z.literal(1), captureId: z.string().min(1).max(100),
   phase: z.enum(['static', 'idle']), url: z.string().url().max(8_192),
@@ -9,7 +11,8 @@ export type PhaseIdentity = z.infer<typeof phaseIdentitySchema>
 
 const resultSchema = z.object({
   ruleId: z.string().min(1), name: z.string(), label: z.string(), message: z.string(),
-  type: z.enum(['info', 'ok', 'warn', 'error', 'runtime_error', 'pending', 'disabled']),
+  type: z.enum(['info', 'ok', 'warn', 'error', 'runtime_error', 'pending', 'disabled', 'not_applicable']),
+  presentation: presentationSchema.optional(),
 }).passthrough()
 const chunkCount = z.number().int().min(0).max(64)
 export const phaseChunkSchema = phaseIdentitySchema.extend({

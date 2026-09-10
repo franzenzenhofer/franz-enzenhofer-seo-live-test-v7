@@ -1,7 +1,7 @@
 import type { RuleResult } from './types'
 
 export const countResultTypes = (results: RuleResult[]) => {
-  const counts = { ok: 0, warn: 0, error: 0, runtime_error: 0, info: 0, pending: 0, disabled: 0 }
+  const counts = { ok: 0, warn: 0, error: 0, runtime_error: 0, info: 0, pending: 0, disabled: 0, not_applicable: 0 }
   for (const r of results) {
     if (r.type === 'ok') counts.ok++
     else if (r.type === 'warn') counts.warn++
@@ -10,6 +10,7 @@ export const countResultTypes = (results: RuleResult[]) => {
     else if (r.type === 'info') counts.info++
     else if (r.type === 'pending') counts.pending++
     else if (r.type === 'disabled') counts.disabled++
+    else if (r.type === 'not_applicable') counts.not_applicable++
   }
   return counts
 }

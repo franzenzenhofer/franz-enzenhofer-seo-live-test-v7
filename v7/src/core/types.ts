@@ -10,12 +10,12 @@ export type Result = {
   name: string
   label: string
   message: string
-  type: 'info'|'ok'|'warn'|'error'|'runtime_error'|'pending'|'disabled'
+  type: 'info'|'ok'|'warn'|'error'|'runtime_error'|'pending'|'disabled'|'not_applicable'
+  presentation?: import('@/shared/presentation/schema').Presentation
   what?: string|null
   priority?: number|null
   ruleId?: string|null
-  runIdentifier?: string
-  details?: ResultDetails
+  runIdentifier?: string; details?: ResultDetails
   runIndex?: number
 }
 export type RuleInput = 'static' | 'idle' | 'compare' | 'context'
@@ -65,6 +65,7 @@ export type RuleMeta = {
 }
 export type Rule = {
   id: string
+  presentation?: 1
   input?: RuleInput
   name: string
   enabled: boolean

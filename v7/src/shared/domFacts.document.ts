@@ -1,4 +1,5 @@
 import type { DomElementFact, DomPhaseFacts } from './domFacts.types'
+import { markReconstructed, registerOriginal } from './presentation/originalMarkup'
 
 const appendFact = (doc: Document, fact: DomElementFact) => {
   const element = doc.createElement(fact.tag)
@@ -8,6 +9,7 @@ const appendFact = (doc: Document, fact: DomElementFact) => {
   if (fact.text) element.textContent = fact.text
   const parent = fact.location === 'head' ? doc.head : doc.body
   parent?.appendChild(element)
+  if (fact.original) registerOriginal(element, fact.original)
 }
 
 export const domFactsToDocument = (
@@ -15,6 +17,7 @@ export const domFactsToDocument = (
   makeDoc: (markup: string) => Document,
 ) => {
   const doc = makeDoc('')
+  markReconstructed(doc)
   for (const [name, value] of facts.documentAttributes) {
     try { doc.documentElement.setAttribute(name, value) } catch { /* ignore invalid page attributes */ }
   }

@@ -5,7 +5,7 @@ export { resultColors } from './colorDefs'
 
 export type ResultType = keyof typeof resultColors
 
-export const resultTypeOrder = ['error', 'warn', 'info', 'ok', 'runtime_error', 'pending', 'disabled'] as const
+export const resultTypeOrder = ['error', 'warn', 'info', 'ok', 'not_applicable', 'runtime_error', 'pending', 'disabled'] as const
 
 export const resultTypeLabels: Record<ResultType, string> = {
   error: 'failed',
@@ -15,6 +15,7 @@ export const resultTypeLabels: Record<ResultType, string> = {
   ok: 'ok',
   pending: 'pending',
   disabled: 'disabled',
+  not_applicable: 'Not applicable',
 }
 
 export const getResultLabel = (type: string) => resultTypeLabels[type as ResultType] || type

@@ -1,3 +1,4 @@
+import { executionPresentation } from '@/shared/presentation/result'
 import { metaDetails } from '@/core/runHelpers'
 import type { Result, Rule } from '@/core/types'
 
@@ -9,6 +10,7 @@ export const buildPendingResults = (rules: Rule[], runId: string, runIndexByRule
     label: labelFor(rule),
     message: 'Running...',
     type: 'pending',
+    presentation: executionPresentation(rule, 'Checking…'),
     what: rule.what || null,
     ruleId: rule.id,
     runIdentifier: runId,
