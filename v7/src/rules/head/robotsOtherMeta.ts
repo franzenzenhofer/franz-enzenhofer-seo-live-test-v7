@@ -1,5 +1,6 @@
 import type { Rule } from '@/core/types'
 import { parseRobotsDirectives } from '@/shared/robots'
+import { robotsEvidence } from '@/shared/robotsEvidence'
 
 const LABEL = 'HEAD'
 const NAME = 'Meta other robots'
@@ -11,6 +12,10 @@ export const robotsOtherMetaRule: Rule = {
   enabled: true,
   what: 'static',
   meta: {
+    userGuide: {
+      check: "Lists instructions aimed at crawlers other than the generic robots group and Googlebot. A restriction for one named crawler does not automatically block Googlebot. Support for individual directives depends on that crawler.",
+      action: "Confirm which crawler each restriction targets. Change the relevant meta tag only if its noindex or nofollow instruction is unintended, and preserve the intended restrictions for other crawlers.",
+    },
     provenance: 'google',
     references: ['https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag'],
     description: 'Lists agent-specific robots meta tags whose name is neither robots nor googlebot, warning when any carries noindex/nofollow.',
@@ -24,7 +29,7 @@ export const robotsOtherMetaRule: Rule = {
     }
 
     const summary = directives
-      .map((d) => `${d.ua}: ${d.value || '(empty)'}`)
+      .map((d) => d.ua)
       .join('; ')
     const domPaths = directives.map((d) => d.domPath).filter((path): path is string => Boolean(path))
     const hasNoindex = directives.some((d) => d.hasNoindex)
@@ -36,7 +41,7 @@ export const robotsOtherMetaRule: Rule = {
       type: hasNoindex || hasNofollow ? 'warn' : 'info',
       priority: hasNoindex || hasNofollow ? 170 : 620,
       details: {
-        directives,
+        directives: robotsEvidence(directives),
         hasNoindex,
         hasNofollow,
         domPaths,
