@@ -65,8 +65,8 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:robots-noindex` | info | Pending | |
 | `head:unavailable-after` | info | Pending | |
 | `head:meta-viewport` | ok | Pending | |
-| `http:mixed-content` | ok | Reviewed: named offenders, exact attributes, working copy actions and code-level error semantics from 3261b17; added explicit collection scope; unit and headless offender fixtures retained | This rule commit |
-| `http:navigation-path` | info | Pending | |
+| `http:mixed-content` | ok | Reviewed: named offenders, exact attributes, working copy actions and code-level error semantics from 3261b17; added explicit collection scope; unit and headless offender fixtures retained | `286b757` |
+| `http:navigation-path` | info | Reviewed: named HTTP timeline, 308 meaning, actual destination outcome, separate history updates and complete copy from 3261b17; added purpose and intentional redirect guidance; unit and headless journey fixtures retained | This rule commit |
 | `http:negotiated-protocol` | ok | Pending | |
 | `body:nofollow` | ok | Pending | |
 | `http:redirect-efficiency` | ok | Pending | |

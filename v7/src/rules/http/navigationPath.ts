@@ -23,6 +23,10 @@ export const navigationPathRule: Rule = {
   enabled: true,
   what: 'http',
   meta: {
+    userGuide: {
+      check: "Shows how this page loaded, step by step, using captured navigation and response events. Status codes include their names. Browser history updates are shown separately because they do not add HTTP redirects.",
+      action: "Check whether the move is intentional and whether the final destination works. Use a permanent redirect for a permanent move; keep a temporary redirect when the move really is temporary.",
+    },
     provenance: 'google',
     references: [
       'https://developers.google.com/search/docs/crawling-indexing/301-redirects',
