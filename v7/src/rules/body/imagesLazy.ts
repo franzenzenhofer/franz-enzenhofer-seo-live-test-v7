@@ -1,6 +1,6 @@
 import type { Rule } from '@/core/types'
-import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
 import { getDomPaths } from '@/shared/dom-path'
+import { elementEvidence } from '@/shared/elementEvidence'
 import { sampleElements } from '@/shared/domEvidence'
 
 const NOTE = 'Absent loading attribute means eager, the browser default. Use loading=lazy only for images outside the initial viewport; never lazy-load likely LCP images.'
@@ -17,6 +17,10 @@ export const imagesLazyRule: Rule = {
   enabled: true,
   what: 'static',
   meta: {
+    userGuide: {
+      check: 'Counts image loading instructions. Lazy means loading may wait until the image is near the viewport; eager and an omitted loading attribute use immediate loading. This does not measure image position or identify the main visible image.',
+      action: 'Review image placement before changing loading behavior. Load the main visible image promptly and consider lazy loading for images farther down the page.',
+    },
     provenance: 'google',
     references: [
       'https://web.dev/articles/browser-level-image-lazy-loading',
@@ -36,7 +40,6 @@ export const imagesLazyRule: Rule = {
     }
 
     const all = sampleElements(imgs)
-    const sourceHtml = extractHtmlFromList(all.sample)
     return {
       label: 'BODY',
       message: `Image loading: ${lazyCount} lazy, ${eagerCount} eager, ${unsetCount} without loading attribute.`,
@@ -44,8 +47,7 @@ export const imagesLazyRule: Rule = {
       priority: 750,
       name: 'Images lazy-loading',
       details: {
-        sourceHtml,
-        snippet: extractSnippet(sourceHtml),
+        imageLoading: all.sample.map((image) => ({ ...elementEvidence(image), loadingInstruction: image.getAttribute('loading') || '(omitted: eager by default)' })),
         domPaths: getDomPaths(all.sample),
         lazyCount, eagerCount, unsetCount,
         count: all.total, shown: all.shown, truncated: all.truncated,
