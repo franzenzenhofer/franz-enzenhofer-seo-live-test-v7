@@ -62,9 +62,9 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:meta-googlebot` | info | Reviewed missing, multiple, body and case-insensitive tags; exact named sources and noindex/nofollow meaning; focused fixtures. | `ca6d1df` |
 | `head:meta-keywords` | info | Pending | |
 | `head:meta-other-robots` | info | Reviewed and fixed: named crawler instructions replace parser dump; clarified that other-crawler restrictions do not automatically apply to Googlebot; existing non-robots filter fixtures retained | `842add8` |
-| `head:robots-noindex` | info | Reviewed missing, multiple, body and case-insensitive tags; exact named sources and noindex/nofollow meaning; focused fixtures. | This rule commit |
+| `head:robots-noindex` | info | Reviewed missing, multiple, body and case-insensitive tags; exact named sources and noindex/nofollow meaning; focused fixtures. | `0f9442e` |
 | `head:unavailable-after` | info | Pending | |
-| `head:meta-viewport` | ok | Pending | |
+| `head:meta-viewport` | ok | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | This rule commit |
 | `http:mixed-content` | ok | Reviewed: named offenders, exact attributes, working copy actions and code-level error semantics from 3261b17; added explicit collection scope; unit and headless offender fixtures retained | `286b757` |
 | `http:navigation-path` | info | Reviewed: named HTTP timeline, 308 meaning, actual destination outcome, separate history updates and complete copy from 3261b17; added purpose and intentional redirect guidance; unit and headless journey fixtures retained | `38da089` |
 | `http:negotiated-protocol` | ok | Pending | |

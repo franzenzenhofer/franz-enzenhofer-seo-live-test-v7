@@ -3,10 +3,10 @@ import { extractHtml, extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
 import { sampleElements } from '@/shared/domEvidence'
 
-const SELECTOR = 'meta[name="viewport"]'
+const SELECTOR = 'meta[name="viewport" i]'
 const LABEL = 'HEAD'
 const NAME = 'Meta Viewport'
-const TESTED = 'Detected <meta name="viewport"> presence and validated its content.'
+const TESTED = 'Checks width=device-width, initial-scale below 1 and user-scalable=no in the first captured viewport tag.'
 
 const parseViewport = (content: string): Record<string, string> => {
   const entries: Record<string, string> = {}
@@ -32,6 +32,10 @@ export const metaViewportRule: Rule = {
   enabled: true,
   what: 'static',
   meta: {
+    userGuide: {
+      check: "Checks the first viewport tag for width=device-width, an initial scale below 1 and a setting that disables zoom. This is a limited configuration check; it does not establish full mobile usability.",
+      action: "In the page template, use one viewport tag with content=\"width=device-width, initial-scale=1\" and allow users to zoom. Test the actual page at mobile widths.",
+    },
     provenance: 'google',
     references: ['https://developer.chrome.com/docs/lighthouse/pwa/viewport'],
     description: 'Checks meta[name=viewport]: warns when the tag is missing and validates its content (expects width=device-width, flags initial-scale below 1 and user-scalable=no).',
