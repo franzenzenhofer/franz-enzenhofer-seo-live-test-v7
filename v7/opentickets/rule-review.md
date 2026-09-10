@@ -26,9 +26,9 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `http:common-mobile-setup` | info | Reviewed: viewport text and source are retained; added presence-versus-usability distinction and optional icon meaning; existing viewport/icon fixtures retained | `7e8fea8` |
 | `dom:data-nosnippet` | info | Pending | |
 | `gsc:directory-worldwide` | runtime_error | Pending | |
-| `dom:node-count` | info | Pending | |
+| `dom:node-count` | info | Reviewed: measurement method in walker and captured facts; added counted-node definition and no arbitrary score implication; existing nested-tree fixture retained | This rule commit |
 | `dom:node-depth` | info | Pending | |
-| `speed:first-paint` | ok | Reviewed: FCP thresholds and first-paint-only/missing states retained; added metric meaning, units, single-run limits and investigation steps; existing boundary states retained | This rule commit |
+| `speed:first-paint` | ok | Reviewed: FCP thresholds and first-paint-only/missing states retained; added metric meaning, units, single-run limits and investigation steps; existing boundary states retained | `83c6e60` |
 | `google:is-connected` | info | Pending | |
 | `robots:googlebot-url-check` | ok | Pending | |
 | `gsc:url-inspection` | runtime_error | Pending | |
