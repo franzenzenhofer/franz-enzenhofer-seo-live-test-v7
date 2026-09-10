@@ -1,25 +1,23 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, extractSnippet } from '@/shared/html-utils'
-import { getDomPath, getDomPaths } from '@/shared/dom-path'
-import { sampleElements } from '@/shared/domEvidence'
 import { sampleDelimitedTokens } from '@/shared/boundedTokens'
+import { sampleElements } from '@/shared/domEvidence'
+import { textField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
 
-// Constants
-const LABEL = 'HEAD'
 const NAME = 'Meta keywords (ignored by Google)'
 const RULE_ID = 'head:meta-keywords'
 const SELECTOR = 'head > meta[name="keywords" i]'
 
+const checked = [
+  textField('Selector', SELECTOR),
+  textField('Selection', 'All matching elements'),
+  textField('Criterion', 'Google does not use meta keywords metadata for ranking'),
+]
+
 export const metaKeywordsRule: Rule = {
-  id: RULE_ID,
-  name: NAME,
-  enabled: true,
-  what: 'static',
+  id: RULE_ID, name: NAME, presentation: 1, enabled: true, what: 'static',
   meta: {
-    userGuide: {
-      check: "Lists keywords metadata that Google Search ignores for ranking. This is a cleanup recommendation, not an indexing block or proof of a penalty. The metadata may still serve another application.",
-      action: "Remove unused keywords metadata from the template if it has no purpose outside Google SEO. Do not spend time adding or optimizing it for Google rankings.",
-    },
     provenance: 'google',
     references: [
       'https://developers.google.com/search/docs/crawling-indexing/special-tags',
@@ -29,52 +27,34 @@ export const metaKeywordsRule: Rule = {
   },
   async run(page) {
     const elements = sampleElements(page.doc.querySelectorAll(SELECTOR))
-    if (elements.total === 0) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'No meta keywords tag (recommended).',
-        type: 'info',
-        priority: 980,
-        details: {},
-      }
-    }
+    if (!elements.total) return presentResult(metaKeywordsRule, page, {
+      input: 'Idle DOM', type: 'info', priority: 980,
+      values: [textField('Meta keywords tags', 0), textField('Google ranking use', 'Not used')], checked,
+      noMarkup: 'No meta keywords element found',
+    })
 
-    if (elements.total > 1) {
-      const snippet = extractHtml(elements.sample[0]!)
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'Multiple meta keywords tags found; Google does not use them for ranking.',
-        type: 'warn',
-        priority: 300,
-        details: { sourceHtml: snippet, snippet: extractSnippet(snippet), domPaths: getDomPaths(elements.sample), count: elements.total, shown: elements.shown, truncated: elements.truncated },
-      }
-    }
+    const captured = markupEvidence(elements.sample, 'Meta keywords')
+    const evidence = [{ name: 'Capture', fields: [
+      textField('Elements retained', elements.shown), textField('Elements omitted', elements.total - elements.shown), ...captured.fields,
+    ] }]
+    if (elements.total > 1) return presentResult(metaKeywordsRule, page, {
+      input: 'Idle DOM', type: 'warn', priority: 300,
+      values: [textField('Meta keywords tags', elements.total), textField('Google ranking use', 'Not used')],
+      checked, evidence, markup: captured.markup,
+      noMarkup: 'Complete original meta keywords markup not retained',
+    })
 
     const element = elements.sample[0]!
     const content = (element.getAttribute('content') || '').trim()
     const keywords = sampleDelimitedTokens(content)
-    const message = keywords.total === 0
-      ? 'Meta keywords tag is empty; it provides no keywords metadata.'
-      : 'Meta keywords are present; Google does not use them for ranking.'
-
-    return {
-      label: LABEL,
-      name: NAME,
-      message,
-      type: 'warn',
-      priority: 650,
-      details: {
-        sourceHtml: extractHtml(element),
-        snippet: extractSnippet(content || '(empty)'),
-        domPath: getDomPath(element),
-        content,
-        keywords: keywords.values,
-        count: keywords.total,
-        shown: keywords.shown,
-        truncated: keywords.truncated,
-      },
-    }
+    return presentResult(metaKeywordsRule, page, {
+      input: 'Idle DOM', type: 'warn', priority: 650,
+      values: [textField('Meta keywords tags', 1), textField('Keyword tokens', keywords.total), textField('Google ranking use', 'Not used'), ...captured.markup],
+      detailValues: [textField('Content (trimmed)', content || 'Empty'),
+        textField('Keyword samples (trimmed)', keywords.values.join(', ') || 'None'),
+        textField('Keyword tokens shown', keywords.shown), textField('Keyword tokens omitted', keywords.total - keywords.shown)],
+      checked, evidence, markup: captured.markup,
+      noMarkup: 'Complete original meta keywords markup not retained',
+    })
   },
 }
