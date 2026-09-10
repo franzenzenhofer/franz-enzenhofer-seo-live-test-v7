@@ -118,11 +118,11 @@ Baseline: a complete headless run of https://www.example.com/g/286584 redirected
 | `head:title` | info | Reviewed: full title remains visible and copied; added units and explanation that character count is not a Google limit; existing missing/empty/long fixtures retained | `5aae648` |
 | `head-title` | ok | Reviewed: title text, count and matching source are retained; added purpose and missing/empty/duplicate remediation; existing branch fixtures retained | `ea76cd9` |
 | `http:from-cache` | info | Pending | |
-| `head:shortlink` | info | Pending | |
+| `head:shortlink` | info | Reviewed absence, relative destinations and invalid declarations; named URLs, source evidence, conditional remedies and focused fixtures. | This rule commit |
 | `http:soft-404` | ok | Pending | |
 | `http:hsts` | ok | Pending | |
 | `gsc:top-queries-of-page` | runtime_error | Reviewed API scope and missing/access/error/success branches; explicit Pacific dates and metric meaning; fixture checks with no live account claims. | `745ff6a` |
-| `dom:top-words` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | This rule commit |
+| `dom:top-words` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | `7bacfed` |
 | `head:twitter-card` | info | Reviewed source, live baseline and existing rule fixtures; clarified purpose, evidence scope and conditional next step. | `b76d858` |
 | `body:unsecure-input` | info | Pending | |
 | `robots:noindex-unsupported` | info | Pending | |

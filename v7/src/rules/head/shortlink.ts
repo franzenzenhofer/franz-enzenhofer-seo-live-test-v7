@@ -1,3 +1,4 @@
+import { resolvePageWebUrl } from '@/shared/resolvePageWebUrl'
 import type { Rule } from '@/core/types'
 import { extractHtml, extractSnippet } from '@/shared/html-utils'
 import { getDomPath } from '@/shared/dom-path'
@@ -13,9 +14,13 @@ export const shortlinkRule: Rule = {
   enabled: true,
   what: 'static',
   meta: {
+    userGuide: {
+      check: "A shortlink is an optional shorter address for this page. A different URL is expected and is not by itself a canonical conflict. This check resolves the declared address; it does not follow it.",
+      action: "If the declared shortlink is empty or invalid, correct its href in the template or remove the unused declaration. For a valid shortlink, verify it leads to the intended page.",
+    },
     provenance: 'franz',
     references: ['https://developer.wordpress.org/reference/functions/wp_get_shortlink/'],
-    description: 'Detects link[rel=shortlink] in <head>, resolves its href, and surfaces non-self shortlinks as an alternate-URL warning.',
+    description: 'Detects link[rel=shortlink] in <head>, resolves its href, and reports a valid alternate address as information.',
   },
   async run(page) {
     const linkEl = page.doc.querySelector(SELECTOR)
@@ -50,9 +55,9 @@ export const shortlinkRule: Rule = {
       }
     }
 
-    const resolved = new URL(href, page.url).toString()
-    const type: 'info' | 'warn' = resolved === page.url ? 'info' : 'warn'
-    const message = `Shortlink detected: ${resolved}`
+    const resolved = resolvePageWebUrl(href, page)
+    const type: 'info' | 'warn' = resolved ? 'info' : 'warn'
+    const message = resolved ? 'Optional shortlink declared for this page.' : 'Shortlink href is not a valid HTTP or HTTPS URL.'
 
     return {
       label: LABEL,
@@ -64,7 +69,8 @@ export const shortlinkRule: Rule = {
         sourceHtml,
         snippet: extractSnippet(sourceHtml),
         domPath: getDomPath(linkEl),
-        href: resolved,
+        href: resolved || href,
+        pageUrl: page.url,
         hasShortlink,
       },
     }
