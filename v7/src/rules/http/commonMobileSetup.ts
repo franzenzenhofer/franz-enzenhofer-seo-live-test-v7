@@ -13,6 +13,10 @@ export const commonMobileSetupRule: Rule = {
   enabled: true,
   what: 'http',
   meta: {
+    userGuide: {
+      check: "Looks for a viewport declaration that lets a page adapt to device width. This is a markup check, not a complete mobile usability test. The Apple touch icon is optional and unrelated to Google indexing.",
+      action: "Add an appropriate viewport declaration to the page head in the shared template, then check the actual layout at narrow widths. See the viewport rule for content and zoom restrictions.",
+    },
     provenance: 'google',
     references: [
       'https://developers.google.com/search/docs/crawling-indexing/mobile/mobile-sites-mobile-first-indexing',
