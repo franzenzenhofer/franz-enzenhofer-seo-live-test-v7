@@ -1,4 +1,6 @@
+import { PageChangedNotice } from './PageChangedNotice'
 import { RunNow } from './RunNow'
+import { useCurrentPageUrl } from './useCurrentPageUrl'
 import { useRunTarget } from './useRunTarget'
 
 import { LiveTestHeader } from '@/components/LiveTestHeader'
@@ -31,11 +33,14 @@ export const PanelHeader = ({
   debugEnabled,
 }: Props) => {
   const version = chrome.runtime.getManifest().version
-  const { editableUrl, runUrl, onUrlChange, onUrlLoaded } = useRunTarget(url)
+  // The field and the header show the page the tab is on; `url` is the run's.
+  const pageUrl = useCurrentPageUrl()
+  const { editableUrl, runUrl, onUrlChange, onUrlLoaded } = useRunTarget(pageUrl ?? url, url)
 
   return (
     <LiveTestHeader
-      url={url}
+      url={pageUrl ?? url}
+      notice={<PageChangedNotice pageUrl={pageUrl} runUrl={url} />}
       editableUrl={editableUrl}
       onUrlChange={onUrlChange}
       runId={runId}

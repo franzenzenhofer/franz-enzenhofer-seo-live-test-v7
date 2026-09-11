@@ -14,6 +14,8 @@ export type LiveTestHeaderProps = {
   ranAt?: string
   runStatus?: RunStatus
   version?: string
+  /** Rendered under the URL: e.g. the page-changed notice when the run is not this page's. */
+  notice?: ReactNode
   primaryAction?: ReactNode
   secondaryActions?: ReactNode
   onOpenUrl?: (url: string) => void
@@ -28,6 +30,7 @@ export const LiveTestHeader = ({
   ranAt,
   runStatus,
   version,
+  notice,
   primaryAction,
   secondaryActions,
   onOpenUrl,
@@ -57,6 +60,8 @@ export const LiveTestHeader = ({
           onOpenUrl={onOpenUrl}
           onOpenReport={onOpenReport}
         />
+
+        {notice}
 
         {primaryAction && <div>{primaryAction}</div>}
 

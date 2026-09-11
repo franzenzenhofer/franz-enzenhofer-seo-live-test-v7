@@ -14,7 +14,17 @@ const executeRunNow = vi.hoisted(() => vi.fn(async (url?: string) => url || 'htt
 vi.mock('@/sidepanel/utils/runNow', () => ({ executeRunNow }))
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
-vi.stubGlobal('chrome', { runtime: { getManifest: () => ({ version: '7.0.0' }), getURL: (path: string) => `chrome-extension://x/${path}` } })
+// The header also follows the active tab's URL (useCurrentPageUrl); here the tab is on the last run's URL.
+const listeners = { addListener: () => {}, removeListener: () => {} }
+vi.stubGlobal('chrome', {
+  runtime: { getManifest: () => ({ version: '7.0.0' }), getURL: (path: string) => `chrome-extension://x/${path}` },
+  tabs: {
+    onActivated: listeners, onUpdated: listeners,
+    query: async () => [{ id: 5, url: 'https://www.example.com/a/bike' }],
+    get: async () => ({ id: 5, url: 'https://www.example.com/a/bike' }),
+  },
+  storage: { local: { get: async () => ({}) }, onChanged: listeners },
+})
 
 const noop = () => {}
 const header = (url: string) => (
@@ -62,11 +72,11 @@ describe('PanelHeader: what Run test targets', () => {
     expect(executeRunNow).toHaveBeenCalledWith('https://www.example.com/r/other')
   })
 
-  it('forgets the edit when a new run\'s URL arrives from storage', async () => {
+  it('forgets the edit when a new run\'s URL arrives from storage and shows the tab\'s page again', async () => {
     await render('https://www.example.com/a/bike')
     await type('https://typed.test/')
     await render('https://www.example.com/r/2ATSZG006B')
-    expect(input().value).toBe('https://www.example.com/r/2ATSZG006B')
+    expect(input().value).toBe('https://www.example.com/a/bike')
     await clickRun()
     expect(executeRunNow).toHaveBeenCalledWith(undefined)
   })

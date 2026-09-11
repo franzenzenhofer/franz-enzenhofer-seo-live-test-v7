@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 
+import { subscribeActiveTab } from './activeTab'
+
 import { filterDebugResults } from '@/rules/debugRules'
-import { getActiveTabId } from '@/shared/chrome'
 import { useDebugFlag } from '@/shared/hooks/useDebugFlag'
 import { readResults, watchResults, filterResultsByRunId, latestRunId, type Result } from '@/shared/results'
 import { readRunMeta, watchRunMeta, type RunMeta } from '@/shared/runMeta'
@@ -13,30 +14,17 @@ export const useResultsSource = () => {
   const [meta, setMeta] = useState<RunMeta | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
-  useEffect(() => {
-    let currentTabId: number | null = null
-    const onActivated = (info: chrome.tabs.TabActiveInfo) => {
-      currentTabId = info.tabId
-      setTabId(info.tabId)
-      setLoading(true)
-      setRefreshKey((k) => k + 1)
-    }
-    // A URL change in the same tab re-reads, but never blanks the panel to
-    // "Loading…": results and run meta are keyed by tab and the `starting`
-    // state written by Run test must stay visible through the navigation.
-    const onUpdated = (updatedTabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
-      if (updatedTabId === currentTabId && changeInfo.url) setRefreshKey((k) => k + 1)
-    }
-    chrome.tabs.onActivated.addListener(onActivated)
-    chrome.tabs.onUpdated.addListener(onUpdated)
-    getActiveTabId().then((id) => {
-      if (id) { currentTabId = id; setTabId(id) } else { setLoading(false) }
-    }).catch(() => { setLoading(false); return null })
-    return () => {
-      chrome.tabs.onActivated.removeListener(onActivated)
-      chrome.tabs.onUpdated.removeListener(onUpdated)
-    }
-  }, [])
+  // A URL change in the same tab re-reads, but never blanks the panel to
+  // "Loading…": results and run meta are keyed by tab and the `starting`
+  // state written by Run test must stay visible through the navigation.
+  useEffect(() => subscribeActiveTab({
+    onTab: (id, source) => {
+      if (id) setTabId(id)
+      if (source === 'activated') { setLoading(true); setRefreshKey((k) => k + 1) }
+      else if (!id) setLoading(false)
+    },
+    onUrl: () => setRefreshKey((k) => k + 1),
+  }), [])
   useEffect(() => {
     if (!tabId) { setRawItems([]); return }
     Logger.setTabId(tabId)

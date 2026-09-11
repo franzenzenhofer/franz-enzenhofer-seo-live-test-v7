@@ -1,20 +1,20 @@
 import { useEffect, useState } from 'react'
 
 /**
- * What Run test targets. The URL field is prefilled from the LAST run's URL,
- * which is stale after an in-page (pushState) navigation - so the run targets
+ * What Run test targets. The URL field shows the page the tab is on
+ * (`pageUrl`; the last run's URL until the tab is known), and the run targets
  * the tab's current page (`runUrl` undefined) unless the user deliberately
- * edited the field. A run's loaded URL and a new run from storage both reset
- * the edit.
+ * edited the field. A change of the tab's URL, a new run from storage and a
+ * run's loaded URL all reset the edit.
  */
-export const useRunTarget = (lastRunUrl: string) => {
-  const [editableUrl, setEditableUrl] = useState(lastRunUrl || '')
+export const useRunTarget = (pageUrl: string, lastRunUrl = pageUrl) => {
+  const [editableUrl, setEditableUrl] = useState(pageUrl || '')
   const [edited, setEdited] = useState(false)
 
   useEffect(() => {
-    setEditableUrl(lastRunUrl || '')
+    setEditableUrl(pageUrl || '')
     setEdited(false)
-  }, [lastRunUrl])
+  }, [pageUrl, lastRunUrl])
 
   const onUrlChange = (next: string) => {
     setEditableUrl(next)
