@@ -42,6 +42,8 @@ describe('beginManualRun', () => {
     expect(clearTabSessionState).toHaveBeenCalledWith(9, 'manual-run')
     expect(order[0]).toBe('clearTabSessionState')
     expect(order.indexOf('local.remove:results:9')).toBeLessThan(order.indexOf('session.set:audit-manual:9'))
+    // Never zero results under the previous run's terminal status: that is the blank "Click Run test" prompt.
+    expect(order.indexOf('local.set:results-meta:9,ui:lastRun')).toBeLessThan(order.indexOf('local.remove:results:9'))
     expect(local['results:9']).toBeUndefined()
     expect(session['audit-manual:9']).toMatchObject({ requestedAt: expect.any(Number) })
     expect(local['results-meta:9']).toEqual({ url: 'https://example.test/', ranAt: expect.any(String), status: 'starting' })

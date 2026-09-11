@@ -12,12 +12,15 @@ import { writeRunMeta } from '@/shared/runMeta'
  * document, results. Then it records the intent the committed document will be
  * bound to (pipeline/manualRun.ts) and writes the visible `starting` state the
  * panel shows until the run seeds its pending rows.
+ * `starting` is written BEFORE the results are removed: the panel watches both
+ * keys separately, and zero results under the previous run's terminal status
+ * renders the blank "No results yet. Click Run test" prompt (issue #1).
  */
 export const beginManualRun = async (tabId: number, url: string): Promise<void> => {
   await clearTabSessionState(tabId, 'manual-run')
+  await writeRunMeta(tabId, { url, ranAt: new Date().toISOString(), status: 'starting' })
   await chrome.storage.local.remove(resultsKey(tabId))
   await requestManualAudit(tabId)
-  await writeRunMeta(tabId, { url, ranAt: new Date().toISOString(), status: 'starting' })
   await Logger.logDirect(tabId, 'run', 'manual start', { url })
 }
 
