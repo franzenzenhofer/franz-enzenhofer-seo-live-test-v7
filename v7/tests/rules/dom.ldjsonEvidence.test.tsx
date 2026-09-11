@@ -15,6 +15,6 @@ it('labels malformed script numbers and never coerces invalid type objects into 
   expect(copy).toContain('Invalid JSON')
   expect(copy).not.toContain('[object Object]')
   const article = await schemaArticlePresentRule.run(page, { globals: {} })
-  expect(article.message).toContain('Article')
-  expect(article.message).not.toContain('[object Object]')
+  expect(article.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Schema type', value: 'Article', kind: 'text' })
+  expect(toResultCopyPayload(article)).not.toContain('[object Object]')
 })

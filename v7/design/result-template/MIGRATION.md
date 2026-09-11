@@ -66,7 +66,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `head-canonical` | `452ab70` (7.0.238) |
 | `head:shortlink` | `da954d8` (7.0.239) |
 | `dom:ldjson` | `8a504ac` (7.0.240) |
-| `dom:data-nosnippet` | build 7.0.242 |
+| `dom:data-nosnippet` | `03a2160` (7.0.242) |
+| `schema:* (13 rules via createSchemaRule)` | build 7.0.243 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 

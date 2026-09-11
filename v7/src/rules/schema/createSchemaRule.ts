@@ -1,11 +1,13 @@
-import type { Rule, RuleMeta } from '@/core/types'
-import { parseLdDetails, findType, schemaTypes } from '@/shared/structured'
-import { extractHtml, extractSnippet } from '@/shared/html-utils'
-import { getDomPath } from '@/shared/dom-path'
+import { entityEvidence, errorEvidence } from './createSchemaRule.evidence'
 
-/**
- * Validation result with optional missing fields reporting
- */
+import type { Rule, RuleMeta } from '@/core/types'
+import { parseLdDetails, findType } from '@/shared/structured'
+import { sampleElements } from '@/shared/domEvidence'
+import { textField, urlField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
+
+/** Validation result with optional missing-fields reporting. */
 export type SchemaValidationResult = {
   ok: boolean
   missing?: string[]
@@ -13,82 +15,76 @@ export type SchemaValidationResult = {
   fieldsLabel?: string          // e.g. 'recommended' when the checked set is not spec-required
 }
 
-/**
- * Validator function that checks schema data and returns validation result
- */
 export type SchemaValidator = (data: Record<string, unknown>) => SchemaValidationResult | boolean
 
-/**
- * Configuration for creating a schema rule
- */
 export interface SchemaRuleConfig {
-  id: string                    // e.g., 'schema:recipe' or 'schema:article:required'
-  name: string                  // e.g., 'Schema Recipe'
-  types: string | string[]      // Schema.org type(s) to match (e.g., 'Recipe' or ['Article', 'NewsArticle'])
+  id: string
+  name: string
+  types: string | string[]
   validator: SchemaValidator
-  meta: RuleMeta                // provenance + spec references (injected into every result by the runner)
-  searchStrings?: string[]      // Optional: custom strings to search for in script tags
-  fieldsLabel?: string          // Optional: default label for the checked field set (default 'required')
+  meta: RuleMeta
+  searchStrings?: string[]      // unused by the runner; retained for config-shape compatibility
+  fieldsLabel?: string          // default label for the checked field set (default 'required')
   presenceOnly?: boolean
-  deprecated?: string           // Optional: Google retired the feature - every found-branch result is info + this note
-  reference?: string            // Optional: details.reference override when it must differ from meta.references[0]
+  deprecated?: string           // Google retired the feature - every found-branch result is info + this note
+  reference?: string            // extra documentation URL when it must differ from meta.references[0]
 }
 
+const SELECTOR = 'script[type="application/ld+json"]'
+
 /**
- * Factory function to create schema rules (ZERO-POINT DRY pattern)
- * Eliminates ~350 lines of duplicate logic across 10 schema rules
+ * Factory function to create schema rules (ZERO-POINT DRY pattern).
+ * Every rule built from this factory is migrated together in this one file.
  */
 export function createSchemaRule(config: SchemaRuleConfig): Rule {
   const types = Array.isArray(config.types) ? config.types : [config.types]
-  const tested = config.presenceOnly ? `Checked JSON-LD presence for ${types.join(', ')}; fields were not validated.`
-    : `Checked every matching JSON-LD entity for the listed ${config.fieldsLabel || 'required'} fields; this is not full semantic validation.`
-  return {
-    id: config.id, name: config.name, enabled: true, what: 'static', meta: config.meta,
+  const fieldsLabel = config.fieldsLabel || 'required'
+  const tested = config.presenceOnly
+    ? `Checked JSON-LD presence for ${types.join(', ')}; fields were not validated.`
+    : `Checked every matching JSON-LD entity for the listed ${fieldsLabel} fields; this is not full semantic validation.`
+  const rule: Rule = {
+    id: config.id, name: config.name, presentation: 1, enabled: true, what: 'static', meta: config.meta,
     async run(page) {
       const parsed = parseLdDetails(page.doc)
       const matches = parsed.entries.filter(({ node }) => types.some((type) => findType([node], type).length))
-      const extras = { tested, types, parseErrorCount: parsed.errorCount,
-        ...(config.reference ? { reference: config.reference } : {}),
-        ...(config.deprecated ? { note: config.deprecated } : {}) }
-      if (!matches.length) return {
-        label: 'SCHEMA', name: config.name, type: parsed.errorCount ? 'warn' : 'info', priority: 920,
-        message: `No ${types[0]} JSON-LD${parsed.errorCount ? ' identified in successfully parsed blocks' : ''}`,
-        details: { ...extras, parseErrors: parsed.errors },
-      }
+      const { sample, total } = sampleElements(page.doc.querySelectorAll(SELECTOR))
+      const captured = markupEvidence(sample, 'JSON-LD script')
+      const checked = [
+        textField('Selector', SELECTOR), textField('Types checked', types.join(', ')),
+        textField('Criterion', tested), textField('Entity fields', config.presenceOnly ? 'Not validated' : `${fieldsLabel} fields`),
+        ...(config.deprecated ? [textField('Applicable condition', config.deprecated)] : []),
+      ]
+      const errors = errorEvidence(parsed.errors)
+      const captureFields = [textField('Scripts retained', sample.length), textField('Scripts omitted', total - sample.length),
+        textField('Parse errors omitted', parsed.errorCount - parsed.errors.length), ...captured.fields]
+      const detailValues = [textField('Scripts checked', parsed.scriptCount)]
+      const deprecationEvidence = config.reference ? [{ name: 'Deprecation announcement', fields: [urlField('URL', config.reference)] }] : []
+
+      if (!matches.length) return presentResult(rule, page, {
+        input: 'Idle DOM', type: parsed.errorCount ? 'warn' : 'info', priority: 920,
+        values: [textField('Matching entities', 0), textField('JSON-LD parse errors', parsed.errorCount)],
+        detailValues, checked, evidence: [...errors, ...deprecationEvidence, { name: 'Capture', fields: captureFields }],
+        markup: captured.markup, noMarkup: total ? `No matching ${types[0]} JSON-LD entities found` : 'No JSON-LD scripts found',
+      })
+
       const checks = matches.map((entry) => {
         const result = config.validator(entry.node)
-        const validation: SchemaValidationResult = typeof result === 'boolean' ? { ok: result } : result
-        return { ...entry, validation }
+        return { ...entry, validation: (typeof result === 'boolean' ? { ok: result } : result) as SchemaValidationResult }
       })
       const failures = checks.filter(({ validation }) => !validation.ok)
-      const selected = failures[0] || checks[0]!
-      const validation = selected.validation
-      const foundType = schemaTypes(selected.node).join(', ') || types[0]!
-      const fieldsLabel = validation.fieldsLabel || config.fieldsLabel || 'required'
-      let message = config.presenceOnly ? `${foundType} structured data present (presence check only).`
-        : failures.length ? `${foundType} missing: ${validation.missing?.join(', ') || `${fieldsLabel} fields`}`
-          : `${foundType} structured data found and ${fieldsLabel} fields present.`
-      if (checks.length > 1) message += config.presenceOnly ? ` Found ${checks.length} matching entities.` : ` Checked ${checks.length} entities; ${failures.length} with field issues.`
-      if (parsed.errorCount) message += ` ${parsed.errorCount} JSON-LD block(s) could not be parsed; the check is incomplete.`
-      if (config.deprecated) message += ` ${config.deprecated}`
-      const failType = failures.some(({ validation: v }) => (v.failType || 'warn') === 'warn') ? 'warn' : 'info'
+      const failType = failures.some(({ validation }) => (validation.failType || 'warn') === 'warn') ? 'warn' : 'info'
       const type = parsed.errorCount ? 'warn' : config.deprecated ? 'info' : failures.length ? failType : 'ok'
-      const sourceHtml = extractHtml(selected.script)
-      return {
-        label: 'SCHEMA', name: config.name, message, type, priority: type === 'warn' ? 250 : 800,
-        details: { ...extras, foundType, sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(selected.script),
-          ...(validation.missing?.length ? { missing: validation.missing } : {}),
-          entityCount: matches.length, ...(config.presenceOnly ? {} : { issueCount: failures.length }),
-          entities: checks.map(({ node, scriptIndex, validation: v }, index) => ({
-            entity: index + 1, name: [node['name'], node['headline'], node['title'], node['@id']].find(value => typeof value === 'string' && value.trim()) || 'Unnamed entity',
-            schemaType: schemaTypes(node).join(', '), sourceBlock: scriptIndex + 1,
-            fieldCheck: config.presenceOnly ? 'Presence only; fields not checked' : v.ok ? 'Checked fields present' : `Missing ${v.fieldsLabel || config.fieldsLabel || 'required'} fields`,
-            ...(v.missing?.length ? { missingFields: v.missing } : {}),
-          })),
-          sourceBlocks: Array.from(new Set(checks.map(check => check.script))).map(script => ({
-            block: parsed.entries.find(entry => entry.script === script)!.scriptIndex + 1, sourceHtml: extractHtml(script),
-          })) },
-      }
+      const { records, omitted } = entityEvidence(checks, types[0]!, Boolean(config.presenceOnly), fieldsLabel)
+      return presentResult(rule, page, {
+        input: 'Idle DOM', type, priority: type === 'warn' ? 250 : 800,
+        values: [textField('Matching entities', matches.length),
+          ...(config.presenceOnly ? [] : [textField('Entities with field issues', failures.length)]),
+          textField('JSON-LD parse errors', parsed.errorCount)],
+        detailValues, checked,
+        evidence: [...records, ...errors, ...deprecationEvidence, { name: 'Capture', fields: [...captureFields, textField('Entities omitted', omitted)] }],
+        markup: captured.markup, noMarkup: 'Complete original JSON-LD scripts not retained',
+      })
     },
   }
+  return rule
 }

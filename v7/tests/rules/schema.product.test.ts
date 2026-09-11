@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { schemaProductRule } from '@/rules/schema/product'
 
 const D = (h: string) => new DOMParser().parseFromString(h,'text/html')
+const missingFieldsOf = (r: any) => r.presentation?.evidence.flatMap((record: any) => record.fields)
+  .find((field: any) => field.key === 'Missing fields')?.value as string | undefined
 
 const run = async (json: string) =>
   schemaProductRule.run({ html:'', url:'https://ex.com', doc: D(`<script type="application/ld+json">${json}</script>`) } as any, { globals: {} })
@@ -10,6 +12,7 @@ describe('schema: product', () => {
   it('passes with name and a complete offer', async () => {
     const r = await run('{"@type":"Product","name":"Test Product","offers":{"price":99.99,"priceCurrency":"USD"}}')
     expect((r as any).type).toBe('ok')
+    expect(r.details).toBeUndefined()
   })
 
   it('passes when offers is an array (common valid form)', async () => {
@@ -37,29 +40,32 @@ describe('schema: product', () => {
   it('fails when name is missing', async () => {
     const r = await run('{"@type":"Product","offers":{"price":99.99,"priceCurrency":"USD"}}')
     expect((r as any).type).toBe('warn')
-    expect((r as any).message).toContain('name')
+    expect(missingFieldsOf(r)).toContain('name')
   })
 
   it('fails when an offer has no price in any accepted form', async () => {
     const r = await run('{"@type":"Product","name":"Test Product","offers":{"priceCurrency":"USD"}}')
     expect((r as any).type).toBe('warn')
-    expect((r as any).message).toContain('offers.price')
+    expect(missingFieldsOf(r)).toContain('offers.price')
   })
 
   it('reports missing priceCurrency as info (recommended for snippets, required only for merchant listings)', async () => {
     const r = await run('{"@type":"Product","name":"Test Product","offers":{"price":99.99}}')
     expect((r as any).type).toBe('info')
-    expect((r as any).message).toContain('offers.priceCurrency')
+    expect(missingFieldsOf(r)).toContain('offers.priceCurrency')
   })
 
   it('reports all missing fields', async () => {
     const r = await run('{"@type":"Product"}')
     expect((r as any).type).toBe('warn')
-    expect((r as any).message).toContain('missing')
+    const missing = missingFieldsOf(r)
+    expect(missing).toContain('name')
+    expect(r.details).toBeUndefined()
   })
 
   it('handles no schema gracefully', async () => {
     const r = await schemaProductRule.run({ html:'', url:'https://ex.com', doc: D('') } as any, { globals: {} })
     expect((r as any).type).toBe('info')
+    expect(r.details).toBeUndefined()
   })
 })
