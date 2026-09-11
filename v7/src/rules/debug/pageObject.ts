@@ -1,12 +1,14 @@
+import { httpStatusLabel } from '@/shared/httpStatusLabel'
+import { textField, urlField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
 
-const LABEL = 'DEBUG'
 const NAME = 'Page object snapshot'
-const RULE_ID = 'debug:page-object'
 
 export const pageObjectRule: Rule = {
-  id: RULE_ID,
+  id: 'debug:page-object',
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'static',
   meta: {
@@ -15,21 +17,24 @@ export const pageObjectRule: Rule = {
     description: 'Info-only debug dump of the raw page object: URL, status, headers, resource list, cache flag.',
   },
   async run(page) {
-    const summary = {
-      url: page.url,
-      status: page.status,
-      headers: page.headers || {},
-      resources: page.resources || [],
-      resourceCount: (page.resources || []).length,
-      fromCache: page.fromCache ?? null,
-    }
-    return {
-      label: LABEL,
-      name: NAME,
-      message: 'Page snapshot captured (debug).',
+    const headerCount = Object.keys(page.headers || {}).length
+    const resourceCount = (page.resources || []).length
+
+    return presentResult(pageObjectRule, page, {
+      input: 'Page URL + Main-document HTTP response + HTTP response headers + Navigation events',
       type: 'info',
       priority: 900,
-      details: { summary },
-    }
+      values: [
+        /^https?:\/\//i.test(page.url) ? urlField('Page URL', page.url) : textField('Page URL', page.url),
+        textField('Response status', httpStatusLabel(page.status)),
+        textField('Header count', page.headers ? headerCount : 'Not captured'),
+        textField('Resource count', page.resources ? resourceCount : 'Not captured'),
+        textField('Served from cache', page.fromCache === undefined ? 'Not reported' : page.fromCache ? 'Yes' : 'No'),
+      ],
+      checked: [
+        textField('Fields reported', 'Page URL, main-document response status, header count, resource count, cache flag'),
+      ],
+      noMarkup: 'None - this rule reports the raw page object, not document markup',
+    })
   },
 }

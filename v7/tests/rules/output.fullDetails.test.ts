@@ -50,12 +50,12 @@ describe('details carry everything collected (no silent discarding)', () => {
     expect(res.details).toBeUndefined()
   })
 
-  it('debug:page-object carries full headers and all resources', async () => {
+  it('debug:page-object reports the full resource and header counts as labelled scalars, not a dump', async () => {
     const resources = Array.from({ length: 12 }, (_, i) => `https://ex.com/r${i}.js`)
     const res = await pageObjectRule.run(page('', { headers: { a: '1', b: '2' }, resources }), ctx)
-    const summary = res.details?.['summary'] as Record<string, unknown>
-    expect((summary['resources'] as unknown[]).length).toBe(12)
-    expect(summary['headers']).toEqual({ a: '1', b: '2' })
+    const values = Object.fromEntries(res.presentation!.values.map((f) => [f.key, f.value]))
+    expect(values['Resource count']).toBe(12)
+    expect(values['Header count']).toBe(2)
   })
 
   it('PSI summary keeps all run warnings', () => {
