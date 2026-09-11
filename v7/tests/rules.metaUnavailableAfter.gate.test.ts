@@ -12,13 +12,13 @@ const facts = (over: Partial<DomPhaseFacts> = {}): DomPhaseFacts => ({
 })
 
 const run = (staticFacts: DomPhaseFacts, idleFacts: DomPhaseFacts) =>
-  metaUnavailableAfterRule.run({ staticFacts, idleFacts } as unknown as Page, { globals: {} } as never)
+  metaUnavailableAfterRule.run({ url: 'https://example.test/', staticFacts, idleFacts } as unknown as Page, { globals: {} } as never)
 
 describe('head:unavailable-after gating', () => {
   it('still runs when only anchors and resources were sampled', async () => {
     const sampled = facts({ elementsTruncated: true, truncatedBuckets: ['anchor', 'resource'] })
     const res = await run(sampled, facts({ ...sampled, phase: 'idle' }))
-    expect((res as { type: string }).type).not.toBe('runtime_error')
+    expect(res.type).not.toBe('runtime_error')
   })
 
   it('reads the unavailable_after directive from head facts', async () => {
@@ -26,13 +26,14 @@ describe('head:unavailable-after gating', () => {
       elementsTruncated: true, truncatedBuckets: ['anchor'],
       elements: [{ location: 'head', tag: 'meta', attrs: [['name', 'robots'], ['content', 'unavailable_after: 25-Aug-2007 15:00:00 EST']] }],
     })
-    const res = await run(withMeta, facts({ ...withMeta, phase: 'idle' })) as { message: string }
-    expect(res.message).toContain('unavailable_after')
+    const res = await run(withMeta, facts({ ...withMeta, phase: 'idle' }))
+    expect(res.presentation?.values).toContainEqual({ key: 'unavailable_after directives', value: 1, kind: 'text' })
   })
 
   it('refuses only when a critical fact was actually dropped', async () => {
     const lost = facts({ elementsTruncated: true, criticalTruncated: true, truncatedBuckets: ['head'] })
     const res = await run(lost, facts({ ...lost, phase: 'idle' }))
-    expect((res as { type: string }).type).toBe('runtime_error')
+    expect(res.type).toBe('runtime_error')
+    expect(res.presentation?.input).toBe('Not captured')
   })
 })
