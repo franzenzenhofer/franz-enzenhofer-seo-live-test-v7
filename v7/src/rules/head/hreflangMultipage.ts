@@ -1,17 +1,29 @@
+import { checkedTargets, generalFindings, malformedTargets } from './hreflangMultipage.evidence'
 import { checkHreflangTarget, HREFLANG_SELECTOR, resolveHttpHref } from './hreflangTarget'
 import type { HreflangCheck, HreflangTarget } from './hreflangTarget'
 
 import type { Rule } from '@/core/types'
 import { runPool } from '@/core/rulePool'
-import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
-import { getDomPaths } from '@/shared/dom-path'
+import { sampleElements } from '@/shared/domEvidence'
+import { textField, urlField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
 
-const LABEL = 'HEAD'
-const NAME = 'Hreflang Multipage Validation'
-const RULE_ID = 'head:hreflang-multipage'
+const httpUrlField = (key: string, value: string) => {
+  try { return ['http:', 'https:'].includes(new URL(value).protocol) ? urlField(key, value) : textField(key, value) } catch { return textField(key, value || 'Not resolved') }
+}
+
+const checked = [
+  textField('Selector', HREFLANG_SELECTOR),
+  textField('Selection', 'All matches'),
+  textField('Target sampling', 'None - every distinct declared target is checked'),
+  textField('Concurrency', '2 simultaneous target requests'),
+  textField('Operation', 'Fetch each distinct target; verify status, redirect chain, self reference, back reference to canonical, target canonical, and noindex for Googlebot'),
+  textField('Criterion', 'Every distinct target resolves with a self reference, a back reference to canonical, no noindex, and no error'),
+]
 
 export const hreflangMultipageRule: Rule = {
-  id: RULE_ID, name: NAME, enabled: true, what: 'static', timeout: { mode: 'multipage' },
+  id: 'head:hreflang-multipage', name: 'Hreflang Multipage Validation', presentation: 1, enabled: true, what: 'static', timeout: { mode: 'multipage' },
   meta: {
     provenance: 'google',
     references: [
@@ -24,7 +36,11 @@ export const hreflangMultipageRule: Rule = {
     const all = Array.from(page.doc.querySelectorAll(HREFLANG_SELECTOR))
     const head = all.filter((element) => element.parentElement?.tagName.toLowerCase() === 'head')
     const links = head.length ? head : all
-    if (!links.length) return { label: LABEL, name: NAME, message: 'No hreflang links to validate.', type: 'info', priority: 900 }
+    if (!links.length) return presentResult(hreflangMultipageRule, page, {
+      input: 'Static DOM', type: 'info', priority: 900,
+      values: [textField('Hreflang targets declared', 0)], checked,
+      noMarkup: 'No hreflang links to validate',
+    })
     const base = page.baseUri || page.url
     const canonicalHref = page.doc.querySelector('head > link[rel~="canonical" i]')?.getAttribute('href') || ''
     const declaredCanonical = resolveHttpHref(canonicalHref, base)
@@ -48,21 +64,28 @@ export const hreflangMultipageRule: Rule = {
     if (!selfHreflang) issues.push({ level: 'error', text: 'No onpage hreflang self reference to canonical URL.' })
     if (malformed.length) issues.push({ level: 'error', text: `${malformed.length} invalid or empty hreflang target URLs.` })
     const ordered = Array.from(targets.values())
-    const checked: HreflangCheck[] = []
+    const targetChecks: HreflangCheck[] = []
     await runPool({ tasks: ordered.map((target, index) => ({ target, index })), concurrency: 2, signal: ctx.signal,
-      run: async ({ target, index }) => { checked[index] = await checkHreflangTarget(target, { canonical, doc: page.doc }, ctx.signal) } })
-    checked.forEach((check) => issues.push(...check.issues))
+      run: async ({ target, index }) => { targetChecks[index] = await checkHreflangTarget(target, { canonical, doc: page.doc }, ctx.signal) } })
+    targetChecks.forEach((check) => issues.push(...check.issues))
     const type = issues.some((issue) => issue.level === 'error') ? 'error' : issues.length ? 'warn' : 'info'
-    const issueTexts = issues.map((issue) => issue.text)
-    const sourceHtml = extractHtmlFromList(links)
-    return {
-      label: LABEL, name: NAME, type, priority: type === 'error' ? 80 : type === 'warn' ? 200 : 709,
-      message: issueTexts.length ? `Link-Rel-Alternate-Hreflang: ${issueTexts.join(' ')}`
-        : `All ${checked.length} distinct remote hreflang targets checked successfully.`,
-      details: { sourceHtml, snippet: extractSnippet(sourceHtml, 200), domPaths: getDomPaths(links), canonical,
-        canonicalHref: canonicalHref || null, selfHreflang: selfHreflang || null, declarationCount: links.length,
-        targetCount: ordered.length, checkedCount: checked.length, malformed, sampling: 'none',
-        checked: checked.map((check) => ({ ...check, issues: check.issues.map((issue) => issue.text) })), issues: issueTexts },
-    }
+    const captured = markupEvidence(sampleElements(links).sample, 'Hreflang link markup')
+    return presentResult(hreflangMultipageRule, page, {
+      input: ordered.length ? 'Static DOM + hreflang target HTTP responses' : 'Static DOM',
+      type, priority: type === 'error' ? 80 : type === 'warn' ? 200 : 709,
+      values: [textField('Hreflang targets declared', links.length), textField('Distinct targets checked', ordered.length), textField('Issues found', issues.length)],
+      detailValues: [httpUrlField('Canonical URL used for comparison', canonical),
+        textField('Declared canonical href', canonicalHref || 'Not declared'),
+        textField('Self hreflang', selfHreflang || 'Not found'),
+        textField('Malformed target URLs', malformed.length),
+        textField('Hreflang markup location', head.length ? 'Inside <head>' : 'Outside <head>'),
+        textField('Hreflang link markup retained', captured.markup.length),
+        textField('Hreflang link markup omitted', links.length - captured.markup.length)],
+      checked,
+      evidence: [...generalFindings(issues.filter((issue) => !targetChecks.some((check) => check.issues.includes(issue)))),
+        ...malformedTargets(malformed), ...checkedTargets(targetChecks)],
+      markup: captured.markup,
+      noMarkup: 'Complete original hreflang link markup not retained',
+    })
   },
 }

@@ -83,7 +83,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `google:is-connected` | `6177e89` (7.0.258) |
 | `head:meta-other-robots` | `6a0b862` (7.0.259) |
 | `robots:size` | `93037ac` (7.0.260) |
-| `head:twitter-card` | build 7.0.261 |
+| `head:twitter-card` | `4089368` (7.0.261) |
+| `head:hreflang-multipage` | build 7.0.262 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 

@@ -1,8 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { hreflangMultipageRule } from '@/rules/head/hreflangMultipage'
+import { enrichResult } from '@/core/runHelpers'
+import { hreflangMultipageRule as rule } from '@/rules/head/hreflangMultipage'
 
 const doc = (html: string) => new DOMParser().parseFromString(html, 'text/html')
+const run = async (html: string, url: string) => enrichResult(await rule.run({ html: '', url, doc: doc(html) }, { globals: {} }), rule, 'test')
+const value = (result: Awaited<ReturnType<typeof run>>, key: string) => result.presentation?.values.find((field) => field.key === key)?.value
+const detail = (result: Awaited<ReturnType<typeof run>>, key: string) => result.presentation?.detailValues.find((field) => field.key === key)?.value
 const CANONICAL = 'https://ex.test/en'
 
 const targetHtml = (self: string, extra = `<link rel="alternate" hreflang="en" href="${CANONICAL}">`) =>
@@ -31,13 +35,13 @@ describe('hreflang checks every declared target', () => {
       fetched.push(url)
       return response(url, targetHtml(url))
     }))
-    const r = await hreflangMultipageRule.run({ html: '', url: CANONICAL, doc: doc(pageHtml) } as never, { globals: {} })
+    const r = await run(pageHtml, CANONICAL)
     expect(new Set(fetched).size).toBe(9)
-    expect(r.details?.['targetCount']).toBe(9)
-    expect(r.details?.['checkedCount']).toBe(9)
-    expect(r.details?.['sampling']).toBe('none')
+    expect(value(r, 'Distinct targets checked')).toBe(9)
+    expect(r.presentation?.evidence.filter((record) => record.name.startsWith('Target'))).toHaveLength(9)
+    expect(r.presentation?.checked).toContainEqual({ key: 'Target sampling', value: 'None - every distinct declared target is checked', kind: 'text' })
     expect(r.type).toBe('info')
-    expect(r.message).toContain('All 9 distinct remote hreflang targets')
+    expect(value(r, 'Issues found')).toBe(0)
   })
 
   it('fetches a duplicated target URL only once but keeps both declarations', async () => {
@@ -51,12 +55,11 @@ describe('hreflang checks every declared target', () => {
       fetched.push(url)
       return response(url, targetHtml(url))
     }))
-    const r = await hreflangMultipageRule.run({ html: '', url: CANONICAL, doc: doc(html) } as never, { globals: {} })
+    const r = await run(html, CANONICAL)
     expect(fetched.filter((u) => u === 'https://ex.test/de')).toHaveLength(1)
-    expect(r.details?.['declarationCount']).toBe(3)
-    expect(r.details?.['targetCount']).toBe(1)
-    const checked = r.details?.['checked'] as Array<{ declarations: string[] }>
-    expect(checked[0]?.declarations).toEqual(['de', 'de-at'])
+    expect(value(r, 'Hreflang targets declared')).toBe(3)
+    expect(value(r, 'Distinct targets checked')).toBe(1)
+    expect(r.presentation?.evidence[0]?.fields.find((field) => field.key === 'Hreflang declarations')?.value).toBe('de, de-at')
   })
 
   it('reports a failing target without cancelling the valid ones', async () => {
@@ -70,13 +73,14 @@ describe('hreflang checks every declared target', () => {
       if (url.endsWith('/de')) return response(url, '', 404)
       return response(url, targetHtml(url))
     }))
-    const r = await hreflangMultipageRule.run({ html: '', url: CANONICAL, doc: doc(html) } as never, { globals: {} })
-    const checked = r.details?.['checked'] as Array<{ hreflang: string; status?: number; issues: string[] }>
-    expect(checked).toHaveLength(2)
-    expect(checked.find((c) => c.hreflang === 'de')?.status).toBe(404)
-    // The valid target still got its full verdict.
-    expect(checked.find((c) => c.hreflang === 'fr')?.issues).toEqual([])
-    expect(r.message).toContain('HTTP 404')
-    expect(r.details?.['malformed']).toEqual([{ hreflang: 'es', href: 'mailto:hola@ex.test' }])
+    const r = await run(html, CANONICAL)
+    const targets = r.presentation?.evidence.filter((record) => record.name.startsWith('Target'))
+    expect(targets).toHaveLength(2)
+    const de = targets?.find((record) => record.fields.some((field) => field.value === 'de'))
+    expect(de?.fields.find((field) => field.key === 'Status')?.value).toBe('HTTP 404 Not Found')
+    const fr = targets?.find((record) => record.fields.some((field) => field.value === 'fr'))
+    expect(fr?.fields.find((field) => field.key === 'Findings')?.value).toBe('None')
+    expect(r.type).toBe('error')
+    expect(detail(r, 'Malformed target URLs')).toBe(1)
   })
 })

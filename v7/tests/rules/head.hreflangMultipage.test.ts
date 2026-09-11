@@ -1,7 +1,15 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
-import { hreflangMultipageRule } from '@/rules/head/hreflangMultipage'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+import { enrichResult } from '@/core/runHelpers'
+import { hreflangMultipageRule as rule } from '@/rules/head/hreflangMultipage'
+import { toResultCopyPayload } from '@/components/result/resultCopy'
 
 const doc = (h: string) => new DOMParser().parseFromString(h, 'text/html')
+const run = async (html: string, url = 'https://example.com/page') => enrichResult(await rule.run({ html, url, doc: doc(html) }, { globals: {} }), rule, 'test')
+const value = (result: Awaited<ReturnType<typeof run>>, key: string) => result.presentation?.values.find((field) => field.key === key)?.value
+const detail = (result: Awaited<ReturnType<typeof run>>, key: string) => result.presentation?.detailValues.find((field) => field.key === key)?.value
+const targetField = (result: Awaited<ReturnType<typeof run>>, targetIndex: number, key: string) =>
+  result.presentation?.evidence.find((record) => record.name === `Target ${targetIndex}`)?.fields.find((field) => field.key === key)?.value
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -10,8 +18,10 @@ afterEach(() => {
 
 describe('rule: hreflang multipage', () => {
   it('returns info when no links', async () => {
-    const r = await hreflangMultipageRule.run({ html:'', url:'https://example.com', doc: doc('<head></head>') } as any, { globals: {} })
-    expect((r as any).type).toBe('info')
+    const r = await run('<head></head>')
+    expect(r.type).toBe('info'); expect(r.priority).toBe(900)
+    expect(value(r, 'Hreflang targets declared')).toBe(0)
+    expect(r.presentation?.markup).toEqual([])
   })
 
   it('warns with the full hop chain when an alternate URL redirects', async () => {
@@ -31,15 +41,13 @@ describe('rule: hreflang multipage', () => {
       }
       return { status: 200, type: 'basic', url, headers: new Headers(), text: async () => body } as any
     }))
-    const r = await hreflangMultipageRule.run({ html: pageHtml, url: 'https://example.com/page', doc: doc(pageHtml) } as any, { globals: {} })
-    expect((r as any).type).toBe('warn')
-    expect((r as any).message).toContain("'de' URL redirects (1 hop) to https://example.com/de-final")
-    // The message stays a short verdict; the full hop chain lives in details.
-    expect((r as any).message).not.toContain('HTTP 301 -> Location:')
-    const checked = (r as any).details.checked as Array<{ hreflang: string; redirectChain?: unknown; redirectChainText?: string }>
-    expect(checked[0]?.redirectChain).toBeUndefined()
-    expect(checked[0]?.redirectChainText).toContain('HTTP 301 -> Location: https://example.com/de-final')
-    expect(checked[0]?.redirectChainText).toContain('FINAL STATUS HTTP 200')
+    const r = await run(pageHtml, 'https://example.com/page')
+    expect(r.type).toBe('warn'); expect(r.priority).toBe(200)
+    expect(targetField(r, 1, 'Findings')).toContain("'de' URL redirects (1 hop) to https://example.com/de-final")
+    expect(targetField(r, 1, 'Redirect chain')).toContain('HTTP 301 -> Location: https://example.com/de-final')
+    expect(targetField(r, 1, 'Redirect chain')).toContain('FINAL STATUS HTTP 200')
+    expect(r.details).toBeUndefined()
+    expect(toResultCopyPayload(r)).toContain(rule.meta.references[0])
   })
 
   it('accepts equivalent (not byte-identical) URLs: relative hrefs and host casing on the target', async () => {
@@ -62,9 +70,9 @@ describe('rule: hreflang multipage', () => {
       headers: new Headers(),
       text: async () => fetchedBody,
     } as any)))
-    const r = await hreflangMultipageRule.run({ html: pageHtml, url: 'https://example.com/page', doc: doc(pageHtml) } as any, { globals: {} })
-    expect((r as any).type).toBe('info')
-    expect((r as any).details.issues).toEqual([])
+    const r = await run(pageHtml, 'https://example.com/page')
+    expect(r.type).toBe('info')
+    expect(value(r, 'Issues found')).toBe(0)
   })
 
   it('passes when back-reference and self-reference exist', async () => {
@@ -82,7 +90,17 @@ describe('rule: hreflang multipage', () => {
       status: 200,
       text: async () => fetchedBody,
     } as any)))
-    const r = await hreflangMultipageRule.run({ html: pageHtml, url:'https://example.com/page', doc: doc(pageHtml) } as any, { globals: {} })
-    expect((r as any).type).toBe('info')
+    const r = await run(pageHtml, 'https://example.com/page')
+    expect(r.type).toBe('info')
+  })
+
+  it('retains complete original markup for the declared hreflang links', async () => {
+    const pageHtml = '<link rel="canonical" href="https://example.com/page">'
+      + '<link rel="alternate" hreflang="en" href="https://example.com/page">'
+    const r = await run(pageHtml, 'https://example.com/page')
+    expect(r.presentation?.markup.map((field) => field.value)).toEqual([
+      '<link rel="alternate" hreflang="en" href="https://example.com/page">',
+    ])
+    expect(detail(r, 'Self hreflang')).toBe('en')
   })
 })
