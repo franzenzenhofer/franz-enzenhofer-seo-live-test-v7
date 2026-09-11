@@ -112,7 +112,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `body:images-lazy` | `d4f608b` (7.0.289) |
 | `body:nofollow` | `54bf135` (7.0.290) |
 | `a11y:linked-images-alt` | `4d0f6ad` (7.0.291) |
-| `dom:parameterized-links-diff` | build 7.0.292 |
+| `dom:parameterized-links-diff` | `c8276b2` (7.0.292) |
+| `dom:client-side-rendering` | build 7.0.293 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
