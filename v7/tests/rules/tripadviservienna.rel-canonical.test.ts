@@ -44,6 +44,6 @@ describe('Tripadvisor Vienna saved page', () => {
     const page = loadPage()
     const res = await relAlternateMediaRule.run(page as any, { globals: {} })
     expect(res.type).toBe('info')
-    expect(res.message).toMatch(/No rel=alternate media/i)
+    expect(res.presentation?.values).toContainEqual({ key: 'Alternate media links', value: 'Not found', kind: 'text' })
   })
 })
