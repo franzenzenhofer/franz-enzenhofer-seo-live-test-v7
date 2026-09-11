@@ -1,6 +1,7 @@
 import type { Rule } from '@/core/types'
+import { textField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 
-const LABEL = 'SPEED'
 const NAME = 'First Paint'
 const RULE_ID = 'speed:first-paint'
 // FCP thresholds per https://web.dev/articles/fcp: good <= 1.8s, poor > 3.0s.
@@ -10,6 +11,7 @@ const FCP_ERROR_THRESHOLD_MS = 3000
 export const firstPaintRule: Rule = {
   id: RULE_ID,
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'static',
   meta: {
@@ -24,55 +26,42 @@ export const firstPaintRule: Rule = {
   async run(page) {
     const firstPaint = page.navigationTiming?.firstPaint ?? null
     const firstContentfulPaint = page.navigationTiming?.firstContentfulPaint ?? null
+    const checked = [textField('Timing source', 'Performance paint timing entries'), textField('Rounding', 'Milliseconds, rounded to the nearest integer'),
+      textField('FCP thresholds', `ok <= ${FCP_WARN_THRESHOLD_MS}ms; warn <= ${FCP_ERROR_THRESHOLD_MS}ms; error > ${FCP_ERROR_THRESHOLD_MS}ms`)]
+    const paintValue = (ms: number | null) => ms === null ? 'Not recorded' : `${Math.round(ms)}ms`
 
     if (firstPaint === null && firstContentfulPaint === null) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'Paint timing not available.',
-        type: 'info',
-        priority: 900,
-        details: { tested: 'Performance paint timing entries', nextStep: 'Reload the page and rerun the audit to capture a fresh paint timing.' },
-      }
+      return presentResult(firstPaintRule, page, {
+        input: page.navigationTiming ? 'Navigation timing' : 'Not captured', type: 'info', priority: 900,
+        values: [textField('First paint', 'Not recorded'), textField('First contentful paint', 'Not recorded')],
+        detailValues: [textField('Timing completeness', 'Neither paint timing entry was captured')], checked,
+        noMarkup: 'None - this rule reports navigation performance timing, not element markup',
+      })
     }
-
-    const roundedFp = firstPaint !== null ? Math.round(firstPaint) : null
     if (firstContentfulPaint === null) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: `Time to first paint: ${roundedFp}ms (no first-contentful-paint recorded; no official thresholds exist for first paint).`,
-        type: 'info',
-        priority: 750,
-        details: { firstPaint: roundedFp, firstContentfulPaint: null, tested: 'Performance paint timing entries' },
-      }
+      return presentResult(firstPaintRule, page, {
+        input: 'Navigation timing', type: 'info', priority: 750,
+        values: [textField('First paint', paintValue(firstPaint)), textField('First contentful paint', 'Not recorded')],
+        detailValues: [textField('Timing completeness', 'First paint captured; first-contentful-paint not recorded')], checked,
+        noMarkup: 'None - this rule reports navigation performance timing, not element markup',
+      })
     }
-
     const rounded = Math.round(firstContentfulPaint)
     if (rounded <= 0) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'First contentful paint timing could not be calculated.',
-        type: 'runtime_error',
-        priority: 10,
-        details: { firstPaint: roundedFp, firstContentfulPaint, tested: 'Performance paint timing entries', nextStep: 'Reload and rerun; the captured timing was not a usable measurement.' },
-      }
+      return presentResult(firstPaintRule, page, {
+        input: 'Navigation timing', type: 'runtime_error', priority: 10,
+        values: [textField('First paint', paintValue(firstPaint)), textField('First contentful paint', `${rounded}ms`)],
+        detailValues: [textField('Timing completeness', 'First-contentful-paint captured but rounded to a non-positive, unusable value')], checked,
+        noMarkup: 'None - this rule reports navigation performance timing, not element markup',
+      })
     }
-
     const type = rounded > FCP_ERROR_THRESHOLD_MS ? 'error' : rounded > FCP_WARN_THRESHOLD_MS ? 'warn' : 'ok'
     const priority = type === 'error' ? 120 : type === 'warn' ? 400 : 850
-    return {
-      label: LABEL,
-      name: NAME,
-      message: `First contentful paint: ${rounded}ms (good <= ${FCP_WARN_THRESHOLD_MS}ms, poor > ${FCP_ERROR_THRESHOLD_MS}ms).`,
-      type,
-      priority,
-      details: {
-        firstPaint: roundedFp,
-        firstContentfulPaint: rounded,
-        tested: 'Performance paint timing entries',
-      },
-    }
+    return presentResult(firstPaintRule, page, {
+      input: 'Navigation timing', type, priority,
+      values: [textField('First paint', paintValue(firstPaint)), textField('First contentful paint', `${rounded}ms`)],
+      checked,
+      noMarkup: 'None - this rule reports navigation performance timing, not element markup',
+    })
   },
 }

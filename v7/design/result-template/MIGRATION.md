@@ -123,7 +123,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `http:vary-user-agent` | `e31109d` (7.0.301) |
 | `head:robots-nosnippet + head:robots-noimageindex (createRobotsRestrictionRule)` | `7d1ef02` (7.0.302) |
 | `speed:preconnect` | `29c865a` (7.0.303) |
-| `speed:dns-prefetch` | build 7.0.304 |
+| `speed:dns-prefetch` | `7dda8ce` (7.0.304) |
+| `speed:first-paint` | build 7.0.305 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
