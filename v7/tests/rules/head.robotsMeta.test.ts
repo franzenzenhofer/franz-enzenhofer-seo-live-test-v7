@@ -1,47 +1,70 @@
 import { describe, expect, it } from 'vitest'
 
-import { robotsMetaRule } from '@/rules/head/robotsMeta'
+import { robotsMetaRule as rule } from '@/rules/head/robotsMeta'
+import { enrichResult } from '@/core/runHelpers'
+import { toResultCopyPayload } from '@/components/result/resultCopy'
 
 const doc = (h: string) => new DOMParser().parseFromString(h, 'text/html')
-const run = (html: string) => robotsMetaRule.run({ html, url: 'https://ex.com', doc: doc(html) } as any, { globals: {} } as any)
+const run = async (html: string) => enrichResult(
+  await rule.run({ html, url: 'https://ex.com', doc: doc(html) }, { globals: {} }), rule, 'test',
+)
 
 describe('rule: robots meta', () => {
   it('reports absence as info', async () => {
-    const res = await run('<html><head></head></html>')
-    expect(res.type).toBe('info')
-    expect(res.message).toMatch(/No robots meta/)
+    const r = await run('<html><head></head></html>')
+    expect(r.type).toBe('info')
+    expect(r.priority).toBe(700)
+    expect(r.presentation?.values).toContainEqual({ key: 'robots meta tags', value: 0, kind: 'text' })
   })
 
-  it('reports a single harmless tag as info', async () => {
-    const res = await run('<meta name="robots" content="index,follow">')
-    expect(res.type).toBe('info')
-    expect(JSON.stringify(res.details?.['declaredInstructions'])).toContain('index,follow')
+  it('reports a single harmless tag as info and retains its complete original markup', async () => {
+    const html = '<meta name="robots" content="index,follow">'
+    const r = await run(html)
+    expect(r.type).toBe('info')
+    expect(r.priority).toBe(700)
+    expect(r.presentation?.markup[0]?.value).toBe(html)
+    expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Instruction', value: 'index,follow', kind: 'text' })
   })
 
   it('warns on noindex in a single tag', async () => {
-    const res = await run('<meta name="robots" content="noindex">')
-    expect(res.type).toBe('warn')
-    expect((res.details as any).hasNoindex).toBe(true)
+    const r = await run('<meta name="robots" content="noindex">')
+    expect(r.type).toBe('warn')
+    expect(r.priority).toBe(150)
+    expect(r.presentation?.values).toContainEqual({ key: 'Contains noindex', value: 'Yes', kind: 'text' })
+  })
+
+  it('warns on nofollow alone for this rule (unlike head:robots-noindex)', async () => {
+    const r = await run('<meta name="robots" content="nofollow">')
+    expect(r.type).toBe('warn')
+    expect(r.priority).toBe(150)
+    expect(r.presentation?.values).toContainEqual({ key: 'Contains nofollow', value: 'Yes', kind: 'text' })
   })
 
   it('combines multiple robots meta tags instead of warning on multiplicity', async () => {
-    const res = await run('<meta name="robots" content="max-image-preview:large"><meta name="robots" content="notranslate">')
-    expect(res.type).toBe('info')
-    expect((res.details as any).count).toBe(2)
-    expect((res.details as any).hasNoindex).toBe(false)
+    const r = await run('<meta name="robots" content="max-image-preview:large"><meta name="robots" content="notranslate">')
+    expect(r.type).toBe('info')
+    expect(r.presentation?.values).toContainEqual({ key: 'robots meta tags', value: 2, kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Contains noindex', value: 'No', kind: 'text' })
   })
 
   it('surfaces noindex hidden in one of several robots meta tags', async () => {
-    const res = await run('<meta name="robots" content="noindex"><meta name="robots" content="nofollow">')
-    expect(res.type).toBe('warn')
-    expect((res.details as any).hasNoindex).toBe(true)
-    expect((res.details as any).hasNofollow).toBe(true)
-    expect((res.details as any).count).toBe(2)
+    const r = await run('<meta name="robots" content="noindex"><meta name="robots" content="nofollow">')
+    expect(r.type).toBe('warn')
+    expect(r.presentation?.values).toContainEqual({ key: 'robots meta tags', value: 2, kind: 'text' })
+    expect(r.presentation?.evidence.filter(({ name }) => name.startsWith('Meta '))).toHaveLength(2)
   })
-})
 
-it('reads generic restrictions declared outside the head', async () => {
-  const result = await run('<body><meta name="ROBOTS" content="noindex"></body>')
-  expect(result.type).toBe('warn')
-  expect(result.details?.['count']).toBe(1)
+  it('reads generic restrictions declared outside the head', async () => {
+    const r = await run('<body><meta name="ROBOTS" content="noindex"></body>')
+    expect(r.type).toBe('warn')
+    expect(r.presentation?.values).toContainEqual({ key: 'robots meta tags', value: 1, kind: 'text' })
+  })
+
+  it('preserves the documentation reference, userGuide, and removes the legacy details payload', async () => {
+    const r = await run('<meta name="robots" content="index">')
+    expect(r.presentation?.references).toEqual(rule.meta.references)
+    expect(rule.meta.userGuide?.check).toContain('robots meta tags')
+    expect(r.details).toBeUndefined()
+    expect(toResultCopyPayload(r)).not.toContain('[object Object]')
+  })
 })
