@@ -1,26 +1,4 @@
-import { extractHtml } from '@/shared/html-utils'
-
 const MAX_EXAMPLES = 10
-const MAX_SNIPPET_CHARS = 4000
-
-const clampSnippet = (html: string) => (html.length > MAX_SNIPPET_CHARS ? `${html.slice(0, MAX_SNIPPET_CHARS)}…` : html)
-
-export const buildLinkedImageDetails = (elements: Element[], selectors: string[], total = elements.length) => {
-  const preview = elements.slice(0, MAX_EXAMPLES)
-  const html = preview.map(extractHtml).join('\n\n')
-  const snippet = clampSnippet(html.trim())
-  const omitted = Math.max(total - preview.length, 0)
-  const note = omitted ? `${snippet}\n\n…${omitted} more linked images omitted` : snippet
-  return snippet
-    ? {
-        snippet: note,
-        sourceHtml: note,
-        domPaths: selectors.slice(0, preview.length),
-        count: total,
-        sampleCount: preview.length,
-      }
-    : undefined
-}
 
 const normalizeSelector = (href: string | null | undefined, index: number) => {
   const cleanedHref = (href || '').trim().replace(/[\s"]/g, '')

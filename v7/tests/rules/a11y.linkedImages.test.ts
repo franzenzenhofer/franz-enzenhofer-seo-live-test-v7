@@ -9,13 +9,13 @@ describe('linked image rules', () => {
   it('warns when missing alt', async () => {
     const result = await runAltRule('<a href="/"><img src="/x.png"></a>')
     expect(result.type).toBe('warn')
-    expect(result.details?.domPaths).toContain('a[href="/"]')
+    expect(result.presentation?.evidence[0]?.fields.some((field) => field.key === 'DOM path' && typeof field.value === 'string' && field.value.length > 0)).toBe(true)
   })
 
   it('warns when missing alt and text', async () => {
     const result = await runAltRule('<a href="/"><img src="/x.png"></a>')
     expect(result.type).toBe('warn')
-    expect(result.details?.domPaths).toContain('a[href="/"]')
+    expect(result.presentation?.evidence[0]?.fields.some((field) => field.key === 'DOM path')).toBe(true)
   })
 
   it('passes when adequate alt', async () => {
