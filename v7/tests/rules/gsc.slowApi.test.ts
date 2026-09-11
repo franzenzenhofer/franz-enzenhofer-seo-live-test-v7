@@ -1,6 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 beforeEach(() => { vi.resetModules(); vi.restoreAllMocks() })
+// The timeouts are asserted on fake time: real 8 s / 15 s waits cost 23 s per run and
+// broke whenever CPU load delayed the timer past the wall-clock margin.
+afterEach(() => { vi.useRealTimers() })
 
 const store: Record<string, unknown> = {}
 const stubChrome = () => {
@@ -23,6 +26,7 @@ const stubChrome = () => {
  */
 describe('GSC against a slow Google API', () => {
   it('gives up on property derivation instead of hanging all six rules', async () => {
+    vi.useFakeTimers()
     stubChrome()
     // Google accepts the connection and never answers.
     vi.stubGlobal('fetch', vi.fn((_u: string, init?: RequestInit) => new Promise<Response>((_res, rej) => {
@@ -30,13 +34,14 @@ describe('GSC against a slow Google API', () => {
     })))
     const { deriveGscProperty, GSC_PROBE_TIMEOUT_MS } = await import('@/rules/google/gscProperty')
 
-    const started = Date.now()
-    const all = await Promise.all(Array.from({ length: 6 }, () => deriveGscProperty('https://orf.at/x', 'tok')))
-    const elapsed = Date.now() - started
+    let settled = false
+    const all = Promise.all(Array.from({ length: 6 }, () => deriveGscProperty('https://orf.at/x', 'tok'))).finally(() => { settled = true })
+    await vi.advanceTimersByTimeAsync(GSC_PROBE_TIMEOUT_MS - 1)
+    expect(settled).toBe(false)
+    await vi.advanceTimersByTimeAsync(1)
 
-    expect(all.every((r) => r === null)).toBe(true)
-    expect(elapsed).toBeLessThan(GSC_PROBE_TIMEOUT_MS + 2000)
-  }, 30_000)
+    expect((await all).every((r) => r === null)).toBe(true)
+  })
 
   it('reuses a derived property across runs instead of re-probing every time', async () => {
     stubChrome()
@@ -59,14 +64,22 @@ describe('GSC against a slow Google API', () => {
 
 describe('GSC query timeout', () => {
   it('fails a hanging Search Console query loudly instead of holding the row', async () => {
+    vi.useFakeTimers()
     vi.stubGlobal('fetch', vi.fn((_u: string, init?: RequestInit) => new Promise<Response>((_res, rej) => {
       init?.signal?.addEventListener('abort', () => rej(new DOMException('aborted', 'AbortError')))
     })))
     const { gscFetch, GSC_QUERY_TIMEOUT_MS } = await import('@/rules/google/googleFetch')
-    const started = Date.now()
-    await expect(gscFetch('https://www.googleapis.com/x', {})).rejects.toThrow(/did not respond within/)
-    expect(Date.now() - started).toBeLessThan(GSC_QUERY_TIMEOUT_MS + 2000)
-  }, 30_000)
+
+    let settled = false
+    const outcome = gscFetch('https://www.googleapis.com/x', {})
+      .then(() => 'resolved', (error: Error) => error.message)
+      .finally(() => { settled = true })
+    await vi.advanceTimersByTimeAsync(GSC_QUERY_TIMEOUT_MS - 1)
+    expect(settled).toBe(false)
+    await vi.advanceTimersByTimeAsync(1)
+
+    expect(await outcome).toBe(`Search Console did not respond within ${GSC_QUERY_TIMEOUT_MS / 1000}s`)
+  })
 
   it('passes a normal response straight through', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, status: 200 }) as Response))
