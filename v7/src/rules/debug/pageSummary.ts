@@ -1,10 +1,14 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, extractSnippet } from '@/shared/html-utils'
-import { getDomPath } from '@/shared/dom-path'
+import { textField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
+
+const NAME = 'Page summary (debug)'
 
 export const pageSummaryRule: Rule = {
   id: 'debug:page-summary',
-  name: 'Page summary (debug)',
+  name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'static',
   meta: {
@@ -14,25 +18,28 @@ export const pageSummaryRule: Rule = {
   },
   async run(page) {
     const titleEl = page.doc.querySelector('title')
-    const t = (titleEl?.textContent || '').trim()
-    const l = (page.headers && Object.keys(page.headers).length) || 0
-    const res = (page.resources || []).length
-    const sourceHtml = extractHtml(titleEl)
+    const titleText = (titleEl?.textContent || '').trim()
+    const headerCount = (page.headers && Object.keys(page.headers).length) || 0
+    const resourceCount = (page.resources || []).length
+    const captured = markupEvidence(titleEl ? [titleEl] : [], 'Title')
 
-    return {
-      label: 'DEBUG',
-      message: `Title: ${t} · headers: ${l} · resources: ${res}`,
+    return presentResult(pageSummaryRule, page, {
+      input: 'Static DOM + HTTP response headers + Navigation events',
       type: 'info',
       priority: 950,
-      name: 'Page summary (debug)',
-      details: {
-        title: t,
-        sourceHtml,
-        snippet: extractSnippet(sourceHtml),
-        domPath: getDomPath(titleEl),
-        headers: page.headers,
-        resourceCount: res,
-      },
-    }
+      values: [
+        textField('Title text', titleText || 'Not found'),
+        textField('Header count', page.headers ? headerCount : 'Not captured'),
+        textField('Resource count', page.resources ? resourceCount : 'Not captured'),
+      ],
+      checked: [
+        textField('Selector', 'title'),
+        textField('Selection', 'First match'),
+        textField('Fields reported', 'Title element text, HTTP response header count, resource count'),
+      ],
+      detailValues: captured.fields,
+      markup: captured.markup,
+      noMarkup: titleEl ? 'Complete original <title> markup not retained' : 'No matching <title> element found',
+    })
   },
 }
