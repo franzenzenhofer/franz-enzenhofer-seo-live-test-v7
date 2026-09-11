@@ -49,7 +49,7 @@ test.describe('live progress', () => {
     const expandTargets: Array<[string, string]> = [
       ['Meta description', 'expanded-meta-description.png'],
       ['Canonical self-references', 'expanded-canonical.png'],
-      ['Links: internal', 'expanded-internal-links.png'],
+      ['Internal links count', 'expanded-internal-links.png'],
       ['HSTS', 'expanded-hsts.png'],
     ]
     for (const [text, file] of expandTargets) {
