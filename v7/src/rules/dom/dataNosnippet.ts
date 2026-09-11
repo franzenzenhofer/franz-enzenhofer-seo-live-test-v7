@@ -1,6 +1,6 @@
 import type { Rule } from '@/core/types'
 import { sampleElements } from '@/shared/domEvidence'
-import { textField } from '@/shared/presentation/create'
+import {domPathField, textField} from '@/shared/presentation/create'
 import { markupEvidence } from '@/shared/presentation/originalMarkup'
 import { presentResult } from '@/shared/presentation/result'
 
@@ -29,7 +29,7 @@ export const dataNosnippetRule: Rule = {
       name: `${element.tagName.toLowerCase()} data-nosnippet ${index + 1}`,
       fields: [textField('Element text (first 100 characters)', ((element.textContent || '').replace(/\s+/g, ' ').trim() || 'Empty').slice(0, 100)),
         textField('Tag', element.tagName.toLowerCase()), textField('Attribute value', element.getAttribute('data-nosnippet') || 'Empty'),
-        textField('DOM path', captured.selectors[index] || 'Not captured')],
+        domPathField('DOM path', captured.selectors[index], 'Not captured')],
     }))
     const unsupportedTags = [...new Set(unsupported.map((el) => el.tagName.toLowerCase()))]
     return presentResult(dataNosnippetRule, page, {

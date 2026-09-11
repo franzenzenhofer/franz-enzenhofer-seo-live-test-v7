@@ -14,7 +14,7 @@ it('names an image-indexing restriction without implying that page indexing or o
     { key: 'Crawler', value: 'All crawlers (including Googlebot)', kind: 'text' },
     { key: 'Source', value: 'HTML meta tag', kind: 'text' },
     { key: 'Instruction', value: 'noimageindex', kind: 'text' },
-    { key: 'DOM path', value: 'html > head > meta', kind: 'text' },
+    { key: 'DOM path', value: 'html > head > meta', kind: 'path' },
   ] }])
   const copy = toResultCopyPayload(result)
   expect(copy).toContain('All crawlers')

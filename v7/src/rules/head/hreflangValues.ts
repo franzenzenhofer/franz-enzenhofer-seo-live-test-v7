@@ -1,6 +1,6 @@
 import type { Rule } from '@/core/types'
 import { sampleMatchingElements } from '@/shared/domEvidence'
-import { textField } from '@/shared/presentation/create'
+import {domPathField, textField} from '@/shared/presentation/create'
 import { markupEvidence } from '@/shared/presentation/originalMarkup'
 import { presentResult } from '@/shared/presentation/result'
 
@@ -59,7 +59,7 @@ export const hreflangValuesRule: Rule = {
       evidence: invalid.sample.map((el, index) => ({
         name: `Invalid hreflang ${index + 1}`,
         fields: [textField('Attribute value', (el.getAttribute('hreflang') || '').trim() || 'Empty'),
-          textField('DOM path', captured.selectors[index] || 'Not captured')],
+          domPathField('DOM path', captured.selectors[index], 'Not captured')],
       })),
       markup: captured.markup,
       noMarkup: 'Complete original invalid hreflang link markup not retained',

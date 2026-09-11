@@ -1,6 +1,6 @@
 import type { Rule } from '@/core/types'
 import { sampleElements } from '@/shared/domEvidence'
-import { textField, urlField } from '@/shared/presentation/create'
+import {domPathField, textField, urlField} from '@/shared/presentation/create'
 import { markupEvidence } from '@/shared/presentation/originalMarkup'
 import { presentResult } from '@/shared/presentation/result'
 
@@ -38,7 +38,7 @@ export const linkPreloadRule: Rule = {
       detailValues: [textField('Elements retained', shown), textField('Elements omitted', total - shown)],
       checked: [textField('Selector', SELECTOR), textField('Attribute', 'href'), textField('Criterion', 'Descriptive count; no threshold')],
       evidence: [...sample.map((element, index) => ({ name: `Preload link ${index + 1}`, fields: [
-        hrefField(element.getAttribute('href'), page.url), textField('DOM path', captured.selectors[index] || 'Not captured'),
+        hrefField(element.getAttribute('href'), page.url), domPathField('DOM path', captured.selectors[index], 'Not captured'),
       ] })), ...(captureFields.length ? [{ name: 'Capture status', fields: captureFields }] : [])],
       markup: captured.markup, noMarkup: total ? 'Complete original preload link markup not retained' : 'No preload link element found',
     })

@@ -1,4 +1,4 @@
-import { originalField, textField } from '@/shared/presentation/create'
+import {domPathField, originalField, textField} from '@/shared/presentation/create'
 import { parseDirectiveDate } from '@/shared/robotsDate'
 import { isRobotsMetaDirective } from '@/shared/robotsVocabulary'
 import type { DomElementFact, DomPhaseFacts } from '@/shared/domFacts.types'
@@ -44,7 +44,7 @@ export const directiveEvidence = (hits: DirectiveHit[]) => {
     ]
     if (hit.original) {
       markup.push(originalField(`${hit.phase} <meta> markup ${index + 1}`, hit.original.html))
-      fields.push(textField('DOM path', hit.original.selector))
+      fields.push(domPathField('DOM path', hit.original.selector, 'Not captured'))
     } else fields.push(textField('Markup', 'Not retained'))
     return { name: `Directive ${index + 1}`, fields }
   })

@@ -1,5 +1,5 @@
 import { httpStatusLabel } from '@/shared/httpStatusLabel'
-import { textField, urlField } from '@/shared/presentation/create'
+import {domPathField, textField, urlField} from '@/shared/presentation/create'
 import type { EvidenceRecord } from '@/shared/presentation/schema'
 import type { RedirectChain, RedirectHop } from '@/shared/redirectChainTypes'
 
@@ -30,7 +30,7 @@ export const checkedLinks = (checks: LinkCheck[]): EvidenceRecord[] => checks.ma
     ...(check.error ? [textField('Error', check.error)] : []),
     ...(check.redirectChainText ? [textField('Redirect chain', check.redirectChainText)] : []),
     ...(check.redirectChainHops?.length ? [textField('Redirect hops before failure', hopsText(check.redirectChainHops))] : []),
-    textField('DOM path', check.domPath || 'Not captured'),
+    domPathField('DOM path', check.domPath, 'Not captured'),
   ],
 }))
 

@@ -1,4 +1,4 @@
-import { textField, urlField } from '@/shared/presentation/create'
+import {pathField, textField, urlField} from '@/shared/presentation/create'
 import type { DisplayField } from '@/shared/presentation/schema'
 import type { ResourceIssue } from '@/shared/resourceIssues'
 
@@ -17,6 +17,6 @@ export const issueRecord = (issue: ResourceIssue, index: number, prefix: string)
     textField('Element label (excerpt)', excerpt(issue.name)),
     urlField('HTTP URL', issue.url),
     textField('Location', issue.location),
-    ...(issue.selector ? [textField('DOM path', issue.selector)] : []),
+    ...(issue.selector ? [pathField('DOM path', issue.selector)] : []),
   ],
 })

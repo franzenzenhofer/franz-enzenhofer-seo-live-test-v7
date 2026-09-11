@@ -1,6 +1,6 @@
 import type { Rule } from '@/core/types'
 import { sampleElements } from '@/shared/domEvidence'
-import { textField, urlField } from '@/shared/presentation/create'
+import {domPathField, textField, urlField} from '@/shared/presentation/create'
 import { markupEvidence } from '@/shared/presentation/originalMarkup'
 import { presentResult } from '@/shared/presentation/result'
 
@@ -40,7 +40,7 @@ export const nofollowRule: Rule = {
         fields: [textField('Link text (whitespace collapsed, first 100 characters)', excerpt((link.textContent || '').replace(/\s+/g, ' ').trim()) || 'Empty'),
           resolvedHttpField('Href', link.getAttribute('href') || '', page.url),
           textField('Rel value', link.getAttribute('rel') || 'Not declared'),
-          textField('DOM path', captured.selectors[index] || 'Not captured')],
+          domPathField('DOM path', captured.selectors[index], 'Not captured')],
       })), ...(captureStatus.length ? [{ name: 'Capture status', fields: captureStatus }] : [])],
       markup: captured.markup,
       noMarkup: total ? 'Complete original nofollow link markup not retained' : 'No rel=nofollow links found',

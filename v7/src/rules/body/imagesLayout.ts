@@ -1,6 +1,6 @@
 import type { Rule } from '@/core/types'
 import { sampleMatchingElements } from '@/shared/domEvidence'
-import { textField, urlField } from '@/shared/presentation/create'
+import {domPathField, textField, urlField} from '@/shared/presentation/create'
 import { markupEvidence } from '@/shared/presentation/originalMarkup'
 import { presentResult } from '@/shared/presentation/result'
 
@@ -38,7 +38,7 @@ export const imagesLayoutRule: Rule = {
         fields: [textField('Alt text (first 100 characters)', excerpt((image.getAttribute('alt') || '').trim()) || 'Not declared'),
           resolvedHttpField('Source URL', image.getAttribute('src') || '', page.url),
           textField('Missing attributes', ['width', 'height'].filter((key) => !image.getAttribute(key)).join(', ')),
-          textField('DOM path', captured.selectors[index] || 'Not captured')],
+          domPathField('DOM path', captured.selectors[index], 'Not captured')],
       })), ...(captureStatus.length ? [{ name: 'Capture status', fields: captureStatus }] : [])],
       markup: captured.markup,
       noMarkup: missing.total ? 'Complete original markup for affected images not retained' : !images.length ? 'No img elements found' : 'No image with missing dimensions found',

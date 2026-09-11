@@ -23,7 +23,7 @@ it('distinguishes text restrictions from static-image and indexing permission, p
     { key: 'Crawler', value: 'googlebot', kind: 'text' },
     { key: 'Source', value: 'HTML meta tag', kind: 'text' },
     { key: 'Instruction', value: 'max-snippet:0', kind: 'text' },
-    { key: 'DOM path', value: 'html > head > meta', kind: 'text' },
+    { key: 'DOM path', value: 'html > head > meta', kind: 'path' },
   ] })
   const copy = toResultCopyPayload(result)
   expect(copy).toContain('bingbot')

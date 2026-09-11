@@ -1,6 +1,6 @@
 import type { Rule } from '@/core/types'
 import { sampleElements } from '@/shared/domEvidence'
-import { textField, urlField } from '@/shared/presentation/create'
+import {domPathField, textField, urlField} from '@/shared/presentation/create'
 import { markupEvidence } from '@/shared/presentation/originalMarkup'
 import { presentResult } from '@/shared/presentation/result'
 
@@ -61,7 +61,7 @@ export const imagesLazyRule: Rule = {
         fields: [textField('Loading instruction', image.getAttribute('loading') || '(omitted: eager by default)'),
           resolvedHttpField('Source URL', image.getAttribute('src') || '', page.url),
           textField('Alt text (first 100 characters)', excerpt((image.getAttribute('alt') || '').trim()) || 'Not declared'),
-          textField('DOM path', captured.selectors[index] || 'Not captured')],
+          domPathField('DOM path', captured.selectors[index], 'Not captured')],
       })), ...(captureStatus.length ? [{ name: 'Capture status', fields: captureStatus }] : [])],
       markup: captured.markup,
       noMarkup: all.total ? 'Complete original img markup not retained' : 'No img elements found',

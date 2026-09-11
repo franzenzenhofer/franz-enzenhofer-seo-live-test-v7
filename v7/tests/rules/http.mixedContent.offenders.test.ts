@@ -20,7 +20,7 @@ describe('actionable mixed-content evidence', () => {
     expect(record?.fields).toContainEqual({ key: 'Element label (excerpt)', value: 'Alpe-Adria 8 Tage', kind: 'text' })
     expect(record?.fields).toContainEqual({ key: 'HTTP URL', value: 'http://cdn.test/trip.jpg?v=1', kind: 'url' })
     expect(record?.fields).toContainEqual({ key: 'Location', value: '<img> src', kind: 'text' })
-    expect(record?.fields).toContainEqual({ key: 'DOM path', value: 'img[src="http://cdn.test/trip.jpg?v=1"]', kind: 'text' })
+    expect(record?.fields).toContainEqual({ key: 'DOM path', value: 'img[src="http://cdn.test/trip.jpg?v=1"]', kind: 'path' })
     expect(result.presentation?.markup).toHaveLength(1)
     expect(result.presentation?.markup[0]?.value).toBe('<img src="http://cdn.test/trip.jpg?v=1" alt="Alpe-Adria 8 Tage">')
   })

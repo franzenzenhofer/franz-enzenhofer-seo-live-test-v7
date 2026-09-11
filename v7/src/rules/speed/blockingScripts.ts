@@ -1,6 +1,6 @@
 import type { Rule } from '@/core/types'
 import { sampleMatchingElements } from '@/shared/domEvidence'
-import { textField, urlField } from '@/shared/presentation/create'
+import {domPathField, textField, urlField} from '@/shared/presentation/create'
 import { markupEvidence } from '@/shared/presentation/originalMarkup'
 import { presentResult } from '@/shared/presentation/result'
 
@@ -54,7 +54,7 @@ export const blockingScriptsRule: Rule = {
         textField('Criterion', 'Script has src in head and no async/defer; absent or empty type is treated as classic JavaScript')],
       evidence: [...sample.map((element, index) => ({ name: `Blocking script ${index + 1}`, fields: [
         srcField(element.getAttribute('src'), page.url), textField('Type attribute', element.hasAttribute('type') ? element.getAttribute('type') || 'Empty' : 'Absent'),
-        textField('DOM path', captured.selectors[index] || 'Not captured'),
+        domPathField('DOM path', captured.selectors[index], 'Not captured'),
       ] })), ...(captureFields.length ? [{ name: 'Capture status', fields: captureFields }] : [])],
       markup: captured.markup, noMarkup: total ? 'Complete original blocking script markup not retained' : 'No blocking head script found',
     })

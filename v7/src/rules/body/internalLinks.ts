@@ -1,6 +1,6 @@
 import type { Rule } from '@/core/types'
 import { EVIDENCE_LIMIT } from '@/shared/domEvidence'
-import { textField, urlField } from '@/shared/presentation/create'
+import {domPathField, textField, urlField} from '@/shared/presentation/create'
 import { markupEvidence } from '@/shared/presentation/originalMarkup'
 import { presentResult } from '@/shared/presentation/result'
 
@@ -69,7 +69,7 @@ export const internalLinksRule: Rule = {
           name: `${internal ? 'Internal' : 'External'} link ${internal ? index + 1 : index - internalLinks.length + 1}`,
           fields: [textField(`Link text (first ${EXCERPT_LIMIT} characters)`, excerpt((link.textContent || '').replace(/\s+/g, ' ').trim()) || 'Empty'),
             resolvedHttpField('Href', link.getAttribute('href') || '', page.url), textField('Category', internal ? 'Same host' : 'Cross host'),
-            textField('DOM path', captured.selectors[index] || 'Not captured')],
+            domPathField('DOM path', captured.selectors[index], 'Not captured')],
         }
       }),
       markup: captured.markup,

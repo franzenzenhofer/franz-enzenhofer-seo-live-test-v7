@@ -1,6 +1,6 @@
 import type { Rule } from '@/core/types'
 import { EVIDENCE_LIMIT } from '@/shared/domEvidence'
-import { textField, urlField } from '@/shared/presentation/create'
+import {domPathField, textField, urlField} from '@/shared/presentation/create'
 import { markupEvidence } from '@/shared/presentation/originalMarkup'
 import { presentResult } from '@/shared/presentation/result'
 import { isHttps, normalizeUrl } from '@/shared/url-utils'
@@ -103,7 +103,7 @@ export const canonicalHreflangConsistencyRule: Rule = {
     const alternates = retainedSample(hreflangEls, mismatches.map((m) => m.element))
     const captured = markupEvidence(canonicalEl ? [canonicalEl, ...alternates.sample] : alternates.sample, 'Canonical and hreflang')
     const mismatchEvidence = mismatches.map(({ resolved, element }, index) => ({ name: `Non-HTTPS alternate ${index + 1}`, fields: [
-      textField('Language', element.getAttribute('hreflang') || 'Not declared'), safeUrlField('Resolved URL', resolved), textField('DOM path', captured.selectors[index + (canonicalEl ? 1 : 0)] || 'Not captured'),
+      textField('Language', element.getAttribute('hreflang') || 'Not declared'), safeUrlField('Resolved URL', resolved), domPathField('DOM path', captured.selectors[index + (canonicalEl ? 1 : 0)], 'Not captured'),
     ] }))
     const misaligned = !hasCanonicalInCluster || mismatchCount > 0
 

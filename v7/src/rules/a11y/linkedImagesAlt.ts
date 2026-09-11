@@ -1,7 +1,7 @@
 import { evaluateLinkedImages } from './linkedImages'
 
 import type { Rule } from '@/core/types'
-import { textField, urlField } from '@/shared/presentation/create'
+import {domPathField, textField, urlField} from '@/shared/presentation/create'
 import { markupEvidence } from '@/shared/presentation/originalMarkup'
 import { presentResult } from '@/shared/presentation/result'
 
@@ -67,7 +67,7 @@ export const linkedImagesAltRule: Rule = {
         fields: [resolvedHttpField('Link href', link.getAttribute('href') || '', page.url),
           textField('Image alt attribute', link.querySelector('img')?.hasAttribute('alt') ? 'Empty or whitespace only' : 'Absent'),
           textField('Link text', excerpt((link.textContent || '').trim()) || 'Empty'),
-          textField('DOM path', captured.selectors[index] || 'Not captured')],
+          domPathField('DOM path', captured.selectors[index], 'Not captured')],
       })), ...(captureStatus.length ? [{ name: 'Capture status', fields: captureStatus }] : [])],
       markup: captured.markup,
       noMarkup: 'Complete original linked image markup not retained',

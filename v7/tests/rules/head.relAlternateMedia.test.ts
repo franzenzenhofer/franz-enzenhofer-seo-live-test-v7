@@ -37,7 +37,7 @@ describe('rule: rel alternate media', () => {
     expect(r.presentation?.evidence[0]).toEqual({ name: 'Alternate media link 1', fields: [
       { key: 'Media query', value: 'screen-1', kind: 'text' },
       { key: 'Declared URL', value: '/m-1', kind: 'url' },
-      { key: 'DOM path', value: expect.any(String), kind: 'text' },
+      { key: 'DOM path', value: expect.any(String), kind: 'path' },
     ] })
   })
 

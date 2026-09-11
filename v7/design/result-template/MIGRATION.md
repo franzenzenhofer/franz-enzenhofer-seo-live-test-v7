@@ -155,7 +155,7 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `gsc:page-worldwide` | `6e4fab4` (7.0.334) |
 | `gsc:directory-worldwide` | `5e3ec91` (7.0.335) |
 | `debug:page-summary` | `46c6256` (7.0.336) |
-| `debug:page-object` | build 7.0.337 |
+| `debug:page-object` | `fa1e601` (7.0.337) |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 

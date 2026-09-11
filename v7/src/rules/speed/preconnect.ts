@@ -1,6 +1,6 @@
 import type { Rule } from '@/core/types'
 import { sampleElements } from '@/shared/domEvidence'
-import { textField, urlField } from '@/shared/presentation/create'
+import {domPathField, textField, urlField} from '@/shared/presentation/create'
 import { markupEvidence } from '@/shared/presentation/originalMarkup'
 import { presentResult } from '@/shared/presentation/result'
 
@@ -37,7 +37,7 @@ export const preconnectRule: Rule = {
       detailValues: [textField('Elements retained', shown), textField('Elements omitted', total - shown)],
       checked: [textField('Selector', SELECTOR), textField('Selection', 'All matches'), textField('Attribute', 'href'), textField('Criterion', 'Descriptive count; no threshold')],
       evidence: sample.map((element, index) => ({ name: `Preconnect link ${index + 1}`, fields: [
-        hrefField(element.getAttribute('href'), page.url), textField('DOM path', captured.selectors[index] || 'Not captured'),
+        hrefField(element.getAttribute('href'), page.url), domPathField('DOM path', captured.selectors[index], 'Not captured'),
       ] })),
       markup: captured.markup, noMarkup: total ? 'Complete original preconnect link markup not retained' : 'No preconnect link element found',
     })

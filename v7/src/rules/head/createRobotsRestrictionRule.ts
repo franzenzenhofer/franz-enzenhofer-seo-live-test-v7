@@ -2,7 +2,7 @@ import { robotsMetaPairs } from './robotsMarkup'
 
 import type { Rule } from '@/core/types'
 import { sampleElements } from '@/shared/domEvidence'
-import { textField } from '@/shared/presentation/create'
+import {pathField, textField} from '@/shared/presentation/create'
 import { markupEvidence } from '@/shared/presentation/originalMarkup'
 import { presentResult } from '@/shared/presentation/result'
 import { parseRobotsDirectives } from '@/shared/robots'
@@ -60,7 +60,7 @@ export const createRobotsRestrictionRule = (config: Config): Rule => {
             textField('Crawler', match.ua === 'robots' ? 'All crawlers (including Googlebot)' : match.ua),
             textField('Source', match.source === 'meta' ? 'HTML meta tag' : 'HTTP response header'),
             textField('Instruction', match.token),
-            ...(match.domPath ? [textField('DOM path', match.domPath)] : []),
+            ...(match.domPath ? [pathField('DOM path', match.domPath)] : []),
             ...(match.headerKey ? [textField('Header name', match.headerKey)] : []),
           ],
         })),
