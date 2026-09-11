@@ -16,7 +16,7 @@ export const states = {
   na: { label: 'Not applicable', icon: 'circle-minus', border: 'border-slate-300', tint: 'bg-slate-50', ink: 'text-slate-500' },
 }
 export const icon = (name, label, classes = 'h-4 w-4') => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 ${classes}" ${label ? `role="img" aria-label="${escapeHtml(label)}"><title>${escapeHtml(label)}</title>` : 'aria-hidden="true">'}${icons[name]}</svg>`
-const rows = pairs => `<dl class="space-y-1.5">${pairs.map(([key, value]) => `<div class="flex items-baseline gap-2"><dt class="shrink-0 text-sm leading-5 text-slate-600">${escapeHtml(key)}:</dt><dd class="min-w-0 flex-1 text-sm leading-5 text-slate-950 [overflow-wrap:anywhere]">${linkedValue(value)}</dd></div>`).join('')}</dl>`
+const rows = pairs => `<dl class="space-y-1.5">${pairs.map(([key, value]) => `<div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5"><dt class="shrink-0 text-sm leading-5 text-slate-600">${escapeHtml(key)}:</dt><dd class="min-w-0 grow basis-40 text-sm leading-5 text-slate-950 [overflow-wrap:anywhere]">${linkedValue(value)}</dd></div>`).join('')}</dl>`
 const source = (item, instance) => {
   const visibleMarkup = item.values.filter(field => field[2] === 'markup' && isCompleteOriginal(field)).map(([, value]) => value)
   const remaining = (item.sources || []).filter(markup => !visibleMarkup.includes(markup))
@@ -35,7 +35,7 @@ const overviewField = (field, index, instance) => {
   if (typeof key !== 'string' || !key.trim()) throw new Error('Every result value requires a visible key')
   const fieldId = `${instance}-value-${index}`
   const label = format === 'markup' && isCompleteOriginal(field) ? `<label for="${fieldId}">${escapeHtml(key)}:</label>` : `${escapeHtml(key)}:`
-  return `<div class="${format === 'markup' ? '' : 'flex items-baseline gap-2'}"><dt class="${format === 'markup' ? 'mb-1' : 'shrink-0'} text-sm text-slate-600">${label}</dt><dd class="min-w-0 text-base font-medium leading-6 text-slate-950 [overflow-wrap:anywhere]">${primaryValue(field, fieldId)}</dd></div>`
+  return `<div class="${format === 'markup' ? '' : 'flex flex-wrap items-baseline gap-x-2 gap-y-0.5'}"><dt class="${format === 'markup' ? 'mb-1' : 'shrink-0'} text-sm text-slate-600">${label}</dt><dd class="min-w-0 grow basis-40 text-base font-medium leading-6 text-slate-950 [overflow-wrap:anywhere]">${primaryValue(field, fieldId)}</dd></div>`
 }
 const references = item => `<section class="space-y-1 border-t border-slate-200/80 pt-2" aria-label="References"><h3 class="text-sm font-semibold text-slate-900">References</h3><ul class="space-y-1">${referencesFor(item).map(url => `<li class="text-sm leading-5 [overflow-wrap:anywhere]"><a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="text-blue-700 underline underline-offset-2" data-reference-url>${escapeHtml(url)}</a></li>`).join('')}</ul></section>`
 const metadata = item => [['Rule ID', item.id], ['Run position', String(item.runPosition)], ['Sort priority', item.sortPriority === null ? 'Not assigned' : String(item.sortPriority)]]

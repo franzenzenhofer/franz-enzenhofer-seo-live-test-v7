@@ -41,6 +41,13 @@ test('HTTP findings render readable offenders and a named navigation journey wit
     await mixed.screenshot({ path: 'test-results/mixed-content-card.png' })
     await navigation.screenshot({ path: 'test-results/navigation-journey-card.png' })
     expect(await report.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    // No value is squeezed beside a long label: each is at least 10rem wide or spans its whole row
+    // (a 160-character excerpt once wrapped one word per line in a 65px column).
+    const squeezed = await report.evaluate(() => [...document.querySelectorAll('[data-field-row] > dd')].filter((dd) => {
+      const width = dd.getBoundingClientRect().width
+      return width > 0 && width < Math.min(160, (dd.parentElement as HTMLElement).clientWidth) - 1
+    }).map((dd) => `${dd.previousElementSibling?.textContent} ${Math.round(dd.getBoundingClientRect().width)}px`))
+    expect(squeezed).toEqual([])
     const panel = await context.newPage()
     await panel.goto(`chrome-extension://${id}/src/sidepanel.html`)
     await page.bringToFront()
