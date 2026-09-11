@@ -10,24 +10,12 @@ export interface GoogleCredentials {
   vars: Record<string, unknown>
 }
 
-export const GSC_API_REFERENCE = 'https://developers.google.com/webmaster-tools/search-console-api-original/v3/how-tos/search_analytics'
 export const PSI_API_REFERENCE = 'https://developers.google.com/speed/docs/insights/v5/about'
 
 export const extractGoogleCredentials = (ctx: Ctx): GoogleCredentials => {
   const token = (ctx.globals as { googleApiAccessToken?: string | null }).googleApiAccessToken || null
   const vars = (ctx.globals as { variables?: Record<string, unknown> }).variables || {}
   return { token, vars }
-}
-
-export const createNoTokenResult = (label = 'GSC', name = 'googleRule') => {
-  return {
-    label,
-    message: 'Google Search Console not authenticated. Sign in with Google in settings.',
-    type: 'runtime_error' as const,
-    name,
-    priority: -1000,
-    details: { nextStep: 'Open Settings > Google Account > Sign In, then rerun this page test. Use an account with access to this site in Search Console.', reference: GSC_API_REFERENCE },
-  }
 }
 
 export const extractPSIKey = (ctx: Ctx): string | null => {

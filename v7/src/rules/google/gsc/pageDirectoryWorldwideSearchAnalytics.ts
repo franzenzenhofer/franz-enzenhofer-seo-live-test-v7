@@ -1,17 +1,22 @@
 import { gscFetch } from '../googleFetch'
-import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
-import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../google-gsc-utils'
+import { extractGoogleCredentials } from '../google-utils'
+import { deriveGscProperty } from '../google-gsc-utils'
 
-import { searchAnalyticsValue, totalsOf, type SearchAnalyticsRow } from './gscValue'
-import { searchAnalyticsPeriod, searchAnalyticsScope, gscRequestIssue } from './searchAnalyticsContext'
+import { totalsOf, type SearchAnalyticsRow } from './gscValue'
+import { searchAnalyticsPeriod, searchAnalyticsScope } from './searchAnalyticsContext'
+import { gscNoTokenFacts, gscPropertyMissingFacts, gscApiIssueFacts, gscNetworkErrorFacts, GSC_NOT_MARKUP } from './gscFacts'
 
+import { textField, urlField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
 
 const NAME = 'Directory worldwide analytics'
+const API = 'Search Console searchAnalytics.query (directory prefix regex)'
 
 export const gscDirectoryWorldwideRule: Rule = {
   id: 'gsc:directory-worldwide',
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'gsc',
   meta: {
@@ -27,10 +32,10 @@ export const gscDirectoryWorldwideRule: Rule = {
   },
   async run(page, ctx) {
     const { token } = extractGoogleCredentials(ctx)
-    if (!token) return createNoTokenResult('GSC', NAME)
+    if (!token) return presentResult(gscDirectoryWorldwideRule, page, gscNoTokenFacts())
 
     const derived = await deriveGscProperty(page.url, token)
-    if (!derived) return createGscPropertyDerivationFailedResult(page.url, NAME)
+    if (!derived) return presentResult(gscDirectoryWorldwideRule, page, gscPropertyMissingFacts(page.url))
 
     const { property, type: propertyType } = derived
     const directoryUrl = new URL(page.url)
@@ -38,29 +43,35 @@ export const gscDirectoryWorldwideRule: Rule = {
     const prefixPattern = '^' + dir.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     const period = searchAnalyticsPeriod()
     const body = { ...period, type: 'web', dataState: 'final', dimensionFilterGroups: [{ groupType: 'and', filters: [{ dimension: 'page', operator: 'includingRegex', expression: prefixPattern }] }] }
+    let j: { rows?: SearchAnalyticsRow[] }
     try {
-      const r = await gscFetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(property)}/searchAnalytics/query`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify(body) })
-      if (!r.ok) return gscRequestIssue(r.status, NAME, page.url, property)
-      const j = await r.json() as { rows?: SearchAnalyticsRow[] }
-      const { impressions: imp, clicks: cl } = totalsOf(j.rows)
-      return {
-        label: 'GSC',
-        message: `Directory impressions ${imp}.`,
-        type: 'info',
-        priority: 750,
-        name: NAME,
-        details: { url: page.url, value: searchAnalyticsValue(imp, cl), property, propertyType, directory: dir, impressions: imp, clicks: cl, ...searchAnalyticsScope(period), apiResponse: j },
+      const response = await gscFetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(property)}/searchAnalytics/query`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify(body) })
+      if (!response.ok) {
+        const facts = gscApiIssueFacts(API, response.status, property, propertyType)
+        return presentResult(gscDirectoryWorldwideRule, page, { ...facts, detailValues: [...(facts.detailValues || []), urlField('Directory', dir)] })
       }
+      j = await response.json() as { rows?: SearchAnalyticsRow[] }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      return {
-        label: 'GSC',
-        message: `GSC request failed: ${message}`,
-        type: 'runtime_error',
-        name: NAME,
-        priority: -1000,
-        details: { url: page.url, property, propertyType, directory: dir },
-      }
+      const facts = gscNetworkErrorFacts(API, message, property, propertyType)
+      return presentResult(gscDirectoryWorldwideRule, page, { ...facts, detailValues: [...(facts.detailValues || []), urlField('Directory', dir)] })
     }
+
+    const { impressions: imp, clicks: cl } = totalsOf(j.rows)
+    const scope = searchAnalyticsScope(period)
+
+    return presentResult(gscDirectoryWorldwideRule, page, {
+      input: 'Page URL + Search Console API response',
+      type: 'info',
+      priority: 750,
+      values: [textField('Directory impressions', imp), textField('Directory clicks', cl)],
+      detailValues: [urlField('Directory', dir), textField('Property', property), textField('Property type', propertyType)],
+      checked: [
+        textField('API', API),
+        textField('Reporting period', scope.reportingPeriod), textField('Search type', scope.searchType),
+        textField('Data availability', scope.dataAvailability), textField('Metric definitions', scope.metricDefinitions),
+      ],
+      noMarkup: GSC_NOT_MARKUP,
+    })
   },
 }
