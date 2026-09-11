@@ -7,7 +7,6 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { gscPageWorldwideRule } from '@/rules/google/gsc/pageWorldwideSearchAnalytics'
 import { gscDirectoryWorldwideRule } from '@/rules/google/gsc/pageDirectoryWorldwideSearchAnalytics'
 import { gscTopQueriesOfPageRule } from '@/rules/google/gsc/topQueriesOfPage'
-import { gscIsIndexedRule } from '@/rules/google/gsc/isIndexed'
 import { gscUrlInspectionRule } from '@/rules/google/gsc/urlInspection'
 import { resultPreview } from '@/shared/resultPreview'
 
@@ -105,11 +104,8 @@ describe('GSC rules put the judged value into details.value', () => {
     expect(preview).toBe('2 queries; up to 25 returned, ordered by clicks')
   })
 
-  it('historical impressions: the impressions figure', async () => {
-    const { value, preview } = await runRule(gscIsIndexedRule)
-    expect(value).toBe('10664 impressions')
-    expect(preview).toBe('10664 impressions')
-  })
+  // gsc:is-indexed is migrated to the presentation contract; its overview-value coverage now lives in
+  // tests/rules/google.gsc.isIndexed.test.ts (presentation.values, not details.value).
 
   it('URL inspection: the coverage verdict and the last crawl', async () => {
     const { value, preview } = await runRule(gscUrlInspectionRule)
@@ -119,7 +115,7 @@ describe('GSC rules put the judged value into details.value', () => {
 
   it('shows no property name in any preview but the property rule', async () => {
     const previews = await Promise.all(
-      [gscPageWorldwideRule, gscDirectoryWorldwideRule, gscTopQueriesOfPageRule, gscIsIndexedRule, gscUrlInspectionRule]
+      [gscPageWorldwideRule, gscDirectoryWorldwideRule, gscTopQueriesOfPageRule, gscUrlInspectionRule]
         .map(async (rule) => (await runRule(rule)).preview),
     )
     expect(previews.some((preview) => preview.includes('sc-domain'))).toBe(false)

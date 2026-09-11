@@ -1,17 +1,22 @@
 import { gscFetch } from '../googleFetch'
-import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
-import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../google-gsc-utils'
+import { extractGoogleCredentials } from '../google-utils'
+import { deriveGscProperty } from '../google-gsc-utils'
 
 import { impressionsValue, totalsOf, type SearchAnalyticsRow } from './gscValue'
-import { searchAnalyticsPeriod, searchAnalyticsScope, gscRequestIssue } from './searchAnalyticsContext'
+import { searchAnalyticsPeriod, searchAnalyticsScope } from './searchAnalyticsContext'
+import { gscNoTokenFacts, gscPropertyMissingFacts, gscApiIssueFacts, gscNetworkErrorFacts, GSC_NOT_MARKUP } from './gscFacts'
 
+import { textField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
 
 const NAME = 'Historical search impressions'
+const API = 'Search Console searchAnalytics.query (page filter)'
 
 export const gscIsIndexedRule: Rule = {
   id: 'gsc:is-indexed',
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'gsc',
   meta: {
@@ -28,31 +33,42 @@ export const gscIsIndexedRule: Rule = {
   },
   async run(page, ctx) {
     const { token } = extractGoogleCredentials(ctx)
-    if (!token) return createNoTokenResult('GSC', NAME)
+    if (!token) return presentResult(gscIsIndexedRule, page, gscNoTokenFacts())
 
     const derived = await deriveGscProperty(page.url, token)
-    if (!derived) return createGscPropertyDerivationFailedResult(page.url, NAME)
+    if (!derived) return presentResult(gscIsIndexedRule, page, gscPropertyMissingFacts(page.url))
 
     const { property, type: propertyType } = derived
     const period = searchAnalyticsPeriod()
     const body = { ...period, type: 'web', dataState: 'final', dimensions: ['page'], dimensionFilterGroups: [{ groupType: 'and', filters: [{ dimension: 'page', operator: 'equals', expression: page.url }] }] }
+    let response: Response
     try {
-      const r = await gscFetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(property)}/searchAnalytics/query`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify(body) })
-      if (!r.ok) return gscRequestIssue(r.status, NAME, page.url, property)
-      const j = await r.json() as { rows?: SearchAnalyticsRow[] }
-      const { impressions: imp } = totalsOf(j.rows)
-      return { label: 'GSC', message: imp > 0 ? `Historical search impressions: ${imp}; this does not establish current indexing.` : 'No search impressions reported; indexing state cannot be inferred from this.',
-        type: 'info', priority: 800, name: NAME, details: { url: page.url, value: impressionsValue(imp), property, propertyType, impressions: imp, ...searchAnalyticsScope(period), apiResponse: j } }
+      response = await gscFetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(property)}/searchAnalytics/query`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify(body) })
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      return {
-        label: 'GSC',
-        message: `GSC request failed: ${message}`,
-        type: 'runtime_error',
-        name: NAME,
-        priority: -1000,
-        details: { url: page.url, property, propertyType },
-      }
+      return presentResult(gscIsIndexedRule, page, gscNetworkErrorFacts(API, message, property, propertyType))
     }
+    if (!response.ok) return presentResult(gscIsIndexedRule, page, gscApiIssueFacts(API, response.status, property, propertyType))
+
+    const j = await response.json() as { rows?: SearchAnalyticsRow[] }
+    const { impressions: imp } = totalsOf(j.rows)
+    const scope = searchAnalyticsScope(period)
+    return presentResult(gscIsIndexedRule, page, {
+      input: 'Page URL + Search Console API response',
+      type: 'info',
+      priority: 800,
+      values: [textField('Historical search impressions', impressionsValue(imp))],
+      detailValues: [textField('Property', property), textField('Property type', propertyType)],
+      checked: [
+        textField('API', API),
+        textField('Reporting period', scope.reportingPeriod),
+        textField('Search type', scope.searchType),
+        textField('Data state', 'final'),
+        textField('Filter', 'page equals the tested page URL'),
+        textField('Metric', 'Impressions, summed over the returned rows'),
+        textField('Criterion', 'None - informational observation without a pass/fail threshold'),
+      ],
+      noMarkup: GSC_NOT_MARKUP,
+    })
   },
 }
