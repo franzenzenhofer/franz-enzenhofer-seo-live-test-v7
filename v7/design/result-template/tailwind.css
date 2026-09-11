@@ -491,6 +491,16 @@ video {
 /* Make elements with the HTML hidden attribute stay hidden by default */
 [hidden]:where(:not([hidden="until-found"])) {
   display: none;
+} .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 } .visible {
   visibility: visible;
 } .fixed {
@@ -735,8 +745,8 @@ video {
 } .py-8 {
   padding-top: 2rem;
   padding-bottom: 2rem;
-} .pb-3 {
-  padding-bottom: 0.75rem;
+} .pb-2 {
+  padding-bottom: 0.5rem;
 } .pb-6 {
   padding-bottom: 1.5rem;
 } .pt-0\.5 {
@@ -775,6 +785,8 @@ video {
   font-weight: 600;
 } .uppercase {
   text-transform: uppercase;
+} .leading-4 {
+  line-height: 1rem;
 } .leading-5 {
   line-height: 1.25rem;
 } .leading-6 {

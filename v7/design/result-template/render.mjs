@@ -56,9 +56,11 @@ export const card = (item, expanded, instance, options = {}) => {
         </div>
       </div>
     </header>
-    <div class="px-3 pt-1.5">${rows([['Checked input', item.input], ...(options.disabled && item.status !== 'disabled' ? [['Next run', 'Disabled']] : [])])}</div>
-    <dl class="space-y-2 px-3 pb-3 pt-1.5">${item.values.map((field, index) => overviewField(field, index, instance)).join('')}</dl>
+    ${options.disabled && item.status !== 'disabled' ? `<div class="px-3 pt-1.5">${rows([['Next run', 'Disabled']])}</div>` : ''}
+    <dl class="space-y-2 px-3 pb-2 pt-1.5">${item.values.map((field, index) => overviewField(field, index, instance)).join('')}</dl>
+    ${expanded ? '' : `<p class="px-3 pb-2 text-xs leading-4 text-slate-500 [overflow-wrap:anywhere]" data-checked-input><span class="sr-only">Checked input: </span>${escapeHtml(item.input)}</p>`}
     <div id="${detailId}" ${expanded ? '' : 'hidden'} class="space-y-2 border-t border-slate-200/80 px-3 py-2.5">
+      ${rows([['Checked input', item.input]])}
       ${item.detailValues?.length ? `<section aria-label="Extracted values">${rows(item.detailValues)}</section>` : ''}
       <section aria-label="Check performed">${rows(item.checked)}</section>
       ${item.facts ? `<section class="space-y-1.5 border-t border-slate-200/80 pt-2"><h3 class="text-sm font-semibold text-slate-900">Evidence</h3>${rows(item.facts)}</section>` : ''}

@@ -15,8 +15,8 @@ Every rule must be reviewed and changed individually by hand, however long it ta
 Display these in order:
 
 1. Accessible status icon, speaking rule name, optional separate favorite star, Copy, an icon-only details toggle and actions menu.
-2. `Checked input:` with the actual input used in this execution. Distinguish Static DOM, Idle DOM, page URL, HTTP response headers, navigation events and combined inputs. Configured input is not proof that it was received or checked.
-3. Compact labelled results. A number is always attached to its meaning and unit. Booleans use explicit factual words such as Found / Not found, Present / Absent, or Yes / No. Do not render serialized objects or unlabelled arrays.
+2. Compact labelled results. A number is always attached to its meaning and unit. Booleans use explicit factual words such as Found / Not found, Present / Absent, or Yes / No. Do not render serialized objects or unlabelled arrays.
+3. The checked input: the actual input used in this execution. Distinguish Static DOM, Idle DOM, page URL, HTTP response headers, navigation events and combined inputs. Configured input is not proof that it was received or checked. Placement (user decision 2026-09-11, to save space): the collapsed card shows only the value, e.g. `Static DOM`, as small muted text at the bottom left, and screen readers hear `Checked input: Static DOM`. The expanded card drops that line and shows `Checked input:` as the first labelled row below the divider.
 
 Do not repeat a large status sentence such as “Check passed”. Status is communicated through color and a library icon with an accessible name. Include the status as text in copied reports and filter controls.
 
@@ -26,7 +26,7 @@ For a title or heading presence check, the overview may include complete origina
 
 Expansion preserves the overview and reveals, in this order:
 
-1. Useful extracted values as labelled plain text. A title check includes `Title: [text without tags]` in addition to the full original `<title>` field. Never infer a complete text value from an incomplete capture.
+1. `Checked input:` as the first labelled row below the divider, then useful extracted values as labelled plain text. A title check includes `Title: [text without tags]` in addition to the full original `<title>` field. Never infer a complete text value from an incomplete capture.
 2. What was checked: exact selectors, relevant attributes or headers, crawler, matching operation, applicable condition and criterion/threshold. These are concise labelled facts, not prose paragraphs.
 3. Evidence records, individually labelled and attributable: element text or alt text, the element's DOM path, attribute, resource URL, observed status and other relevant facts. Terminology (user decision 2026-09-11): `Selector` always means the CSS selector the rule actually queried and appears under What was checked; the generated location of a found element is always labelled `DOM path`, never `Selector`. HTTP statuses include their standard reason phrase, e.g. `308 Permanent Redirect`. A DOM path is always emitted as the typed `path` field kind (`pathField` / `domPathField`, never matched by label text): the card shows a path longer than 60 characters as start … end with an Expand/Collapse button (`aria-expanded`) that reveals the complete, selectable value, while copy, search and bounded transport always carry the complete path.
 4. Complete retrieved markup for inspected elements. If already displayed in the overview, do not duplicate the same field. If none was retrieved, state the exact reason: no matching elements, not applicable, not captured, or capture incomplete. HTTP-only checks instead retain original response/header evidence where available; do not invent HTML for them.
