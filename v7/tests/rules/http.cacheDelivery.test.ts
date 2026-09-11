@@ -1,49 +1,56 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { cacheDeliveryRule } from '@/rules/http/cacheDelivery'
+import { enrichResult } from '@/core/runHelpers'
+import { toResultCopyPayload } from '@/components/result/resultCopy'
 
-const P = (headers: Record<string, string> = { 'content-type': 'text/html' }) =>
-  ({ html: '', url: 'https://ex.com', doc: new DOMParser().parseFromString('<p/>', 'text/html'), headers })
+const P = (headers?: Record<string, string>) => ({ html: '', url: 'https://ex.com', doc: new DOMParser().parseFromString('<p/>', 'text/html'), headers })
+const run = async (headers?: Record<string, string>) => enrichResult(await cacheDeliveryRule.run(P(headers) as never, { globals: {} }), cacheDeliveryRule, 'test')
 
 describe('rule: cache delivery (Age header)', () => {
   it('returns runtime_error when headers not captured', async () => {
-    const r = await cacheDeliveryRule.run(P({}) as any, { globals: {} })
-    expect(r.type).toBe('runtime_error')
-    expect(r.message).toContain('Hard Reload')
+    const result = await run(undefined)
+    expect(result.type).toBe('runtime_error')
+    expect(result.priority).toBe(50)
   })
 
-  it('does not claim origin delivery when Age header is absent (RFC 9111 5.1)', async () => {
-    const r = await cacheDeliveryRule.run(P() as any, { globals: {} })
-    expect(r.type).toBe('info')
-    expect(r.message).toBe('No Age header (no evidence of shared-cache delivery)')
-    expect((r.details as any).isFromCache).toBe(false)
+  it('does not claim cache delivery when Age header is absent (RFC 9111 5.1)', async () => {
+    const result = await run({ 'content-type': 'text/html' })
+    expect(result.type).toBe('info')
+    expect(result.priority).toBe(900)
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Cache indication', value: 'No evidence of shared-cache delivery' }))
   })
 
   it('treats Age: 0 as cache-mediated, not fresh from origin (RFC 9111 5.1)', async () => {
-    const r = await cacheDeliveryRule.run(P({ 'content-type': 'text/html', age: '0' }) as any, { globals: {} })
-    expect(r.type).toBe('info')
-    expect(r.message).toContain('passed through a cache')
-    expect(r.message).not.toContain('Fresh from origin')
-    expect((r.details as any).isFromCache).toBe(true)
+    const result = await run({ 'content-type': 'text/html', age: '0' })
+    expect(result.type).toBe('info')
+    expect(result.priority).toBe(750)
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Cache indication', value: 'Delivered via a shared/proxy cache' }))
   })
 
   it('reports seconds for small ages', async () => {
-    const r = await cacheDeliveryRule.run(P({ 'content-type': 'text/html', age: '42' }) as any, { globals: {} })
-    expect(r.message).toContain('42 seconds (From cache)')
-    expect((r.details as any).isFromCache).toBe(true)
+    const result = await run({ age: '42' })
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Age', value: '42 seconds' }))
   })
 
   it('reports minutes and hours for larger ages', async () => {
-    const minutes = await cacheDeliveryRule.run(P({ 'content-type': 'text/html', age: '600' }) as any, { globals: {} })
-    expect(minutes.message).toContain('10 minutes (From cache)')
-    const hours = await cacheDeliveryRule.run(P({ 'content-type': 'text/html', age: '7200' }) as any, { globals: {} })
-    expect(hours.message).toContain('2 hours (From cache)')
+    const minutes = await run({ age: '600' })
+    expect(minutes.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Age', value: '10 minutes' }))
+    const hours = await run({ age: '7200' })
+    expect(hours.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Age', value: '2 hours' }))
   })
-})
 
-it.each(['NaN', '-1', '1.5'])('identifies malformed Age %s instead of displaying a made-up duration', async age => {
-  const result = await cacheDeliveryRule.run(P({ Age: age }), { globals: {} })
-  expect(result.type).toBe('warn')
-  expect(result.message).not.toContain('NaN hours')
-  expect(result.details?.['ageValue']).toBeNull()
+  it.each(['NaN', '-1', '1.5'])('identifies malformed Age %s instead of displaying a made-up duration', async (age) => {
+    const result = await run({ Age: age })
+    expect(result.type).toBe('warn')
+    expect(result.priority).toBe(900)
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Age', value: 'Invalid value' }))
+  })
+
+  it('preserves the original Age header value verbatim and references without advice', async () => {
+    const result = await run({ age: '42' })
+    const copy = toResultCopyPayload(result)
+    for (const value of ['Age: 42', ...cacheDeliveryRule.meta.references]) expect(copy).toContain(value)
+    expect(result.details).toBeUndefined()
+  })
 })

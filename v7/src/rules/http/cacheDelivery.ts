@@ -1,18 +1,16 @@
+import { headersNotCapturedResult } from '@/rules/http/headersNotCaptured'
 import { headerValue } from '@/shared/headerValue'
+import { hasHeaders } from '@/shared/http-utils'
+import { textField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
-import { extractSnippet } from '@/shared/html-utils'
-import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
-// Constants
-const LABEL = 'HTTP'
-const NAME = 'Cache Delivery (Age Header)'
-const RULE_ID = 'http:cache-delivery'
+const format = (ageValue: number): string => ageValue === 0 ? '0 seconds'
+  : ageValue < 60 ? `${ageValue} seconds`
+    : ageValue < 3600 ? `${Math.floor(ageValue / 60)} minutes` : `${Math.floor(ageValue / 3600)} hours`
 
 export const cacheDeliveryRule: Rule = {
-  id: RULE_ID,
-  name: NAME,
-  enabled: true,
-  what: 'http',
+  id: 'http:cache-delivery', name: 'Cache Delivery (Age Header)', presentation: 1, enabled: true, what: 'http',
   meta: {
     userGuide: {
       check: "Age is a cache-reported estimate in seconds since the response was generated or validated. It concerns an intermediary cache, not necessarily the browser cache or the age of the page content.",
@@ -26,49 +24,24 @@ export const cacheDeliveryRule: Rule = {
     description: 'Reports the Age response header (info-only), interpreting its presence as evidence of shared/proxy-cache delivery and formatting the age in seconds/minutes/hours.',
   },
   async run(page) {
-    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
-    // 1. Extract Age header
+    if (!hasHeaders(page.headers)) return headersNotCapturedResult(cacheDeliveryRule, page, 'Age')
     const ageHeader = headerValue(page.headers, 'age')
-    const ageValue = ageHeader && /^\d+$/.test(ageHeader) && Number.isSafeInteger(Number(ageHeader)) ? Number(ageHeader) : null
-
-    // 2. Determine states (RFC 9111 5.1: presence of Age implies a cache was
-    // in the path; absence proves nothing about origin contact)
     const hasAgeHeader = ageHeader.length > 0
+    const ageValue = ageHeader && /^\d+$/.test(ageHeader) && Number.isSafeInteger(Number(ageHeader)) ? Number(ageHeader) : null
     const isFromCache = hasAgeHeader && ageValue !== null
-
-    // 3. Build message (Quantified, showing value)
-    let message = ''
-    if (!hasAgeHeader) {
-      message = 'No Age header (no evidence of shared-cache delivery)'
-    } else if (ageValue === null) {
-      message = 'Age header is invalid: expected a non-negative whole number of seconds.'
-    } else if (ageValue === 0) {
-      message = 'Age: 0 - response passed through a cache but was just generated/validated at the origin'
-    } else if (ageValue < 60) {
-      message = `Age: ${ageValue} seconds (From cache)`
-    } else if (ageValue < 3600) {
-      const minutes = Math.floor(ageValue / 60)
-      message = `Age: ${minutes} minutes (From cache)`
-    } else {
-      const hours = Math.floor(ageValue / 3600)
-      message = `Age: ${hours} hours (From cache)`
-    }
-
-    // 4. Build evidence (Chain of Evidence)
-    return {
-      label: LABEL,
-      name: NAME,
-      message,
-      type: hasAgeHeader && ageValue === null ? 'warn' : 'info',
-      priority: isFromCache ? 750 : 900,
-      details: {
-        snippet: extractSnippet(ageHeader || '(not present)'),
-        ageHeader,
-        ageValue,
-        ageUnit: 'seconds',
-        isFromCache,
-      },
-    }
+    const type = hasAgeHeader && ageValue === null ? 'warn' : 'info'
+    const priority = isFromCache ? 750 : 900
+    const cacheIndication = !hasAgeHeader ? 'No evidence of shared-cache delivery'
+      : ageValue === null ? 'Age header value is invalid' : 'Delivered via a shared/proxy cache'
+    return presentResult(cacheDeliveryRule, page, {
+      input: 'HTTP response headers', type, priority,
+      values: [textField('Age header', ageHeader || 'Not present'),
+        textField('Age', ageValue !== null ? format(ageValue) : hasAgeHeader ? 'Invalid value' : 'Not present'),
+        textField('Cache indication', cacheIndication)],
+      checked: [textField('Header', 'Age'), textField('Valid format', 'Non-negative whole number of seconds'),
+        textField('Criterion', 'Informational; presence indicates cache-mediated delivery')],
+      evidence: hasAgeHeader ? [{ name: 'Age header', fields: [textField('Age', ageHeader)] }] : [],
+      noMarkup: 'None - this rule checks the HTTP response, not document markup',
+    })
   },
 }
-
