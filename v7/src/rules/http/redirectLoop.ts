@@ -1,18 +1,22 @@
+import { navigationPathSteps } from './navigationPathSteps'
+import { combineInputs, httpUrlField, navigationStepEvidence } from './navigationStepEvidence'
+
 import { NavigationLedgerSchema } from '@/background/history/types'
 import type { Rule, Result } from '@/core/types'
-import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
-import { redirectChainDetails } from '@/shared/redirectChainFormat'
-import { headerChainToRedirectChain } from '@/shared/redirectChainFromEvents'
+import { hasHeaders } from '@/shared/http-utils'
+import { textField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 
-const LABEL = 'HTTP'
 const NAME = 'Redirect Loop Detection'
-const RULE_ID = 'http:redirect-loop'
+const NOT_MARKUP = 'None - this rule checks recorded navigation events, not document markup'
+const CHECKED = [
+  textField('Navigation source', 'Recorded navigation ledger redirect and client-redirect hops'),
+  textField('Duplicate detection', 'Same URL appearing more than once among the traced redirect hops'),
+  textField('Criterion', 'No URL repeats within the traced redirect hops'),
+]
 
 export const redirectLoopRule: Rule = {
-  id: RULE_ID,
-  name: NAME,
-  enabled: true,
-  what: 'http',
+  id: 'http:redirect-loop', name: NAME, presentation: 1, enabled: true, what: 'http',
   meta: {
     provenance: 'standard',
     references: [
@@ -24,88 +28,41 @@ export const redirectLoopRule: Rule = {
   },
 
   async run(page, ctx): Promise<Result> {
-    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
+    const build = (type: Result['type'], priority: number, input: string, values: ReturnType<typeof textField>[], detailValues: ReturnType<typeof textField>[] = [], evidence: ReturnType<typeof navigationStepEvidence> = []) =>
+      presentResult(redirectLoopRule, page, { input, type, priority, values, detailValues, checked: CHECKED, evidence, noMarkup: NOT_MARKUP })
+
+    if (!hasHeaders(page.headers)) return build('runtime_error', 50, 'Not captured', [textField('HTTP response headers', 'Not captured')])
+
     const raw = (ctx.globals as { navigationLedger?: unknown }).navigationLedger
     const ledgerResult = NavigationLedgerSchema.safeParse(raw)
-
     if (!ledgerResult.success || ledgerResult.data.trace.length === 0) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'No navigation data available for loop detection.',
-        type: 'info',
-        priority: 900,
-        details: {},
-      }
+      return build('info', 900, 'HTTP response headers', [textField('Navigation data', 'Not captured')])
     }
 
     const { trace } = ledgerResult.data
-    // Full hop-by-hop main-document chain (URL, status, Location) from webRequest.
-    const chainDetails = redirectChainDetails(headerChainToRedirectChain(page.headerChain, page.status))
-
-    // Filter to only actual redirects (not 'load' or 'history_api')
+    const steps = navigationPathSteps(page, trace)
+    const evidence = navigationStepEvidence(steps, page.headerChain)
+    const input = combineInputs('Navigation events', (page.headerChain?.length ?? 0) > 0 && 'Main-document HTTP response')
     const redirectTrace = trace.filter((hop) => hop.type === 'http_redirect' || hop.type === 'client_redirect')
 
     if (redirectTrace.length === 0) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'No redirects detected (direct load).',
-        type: 'ok',
-        priority: 800,
-        details: {
-          trace,
-          ...chainDetails,
-          redirectCount: 0,
-        },
-      }
+      return build('ok', 800, input, [textField('Redirects observed', 0), textField('Loop detected', 'No')], [], evidence)
     }
 
-    const urls = redirectTrace.map((hop) => hop.url)
     const urlCounts = new Map<string, number>()
-
-    for (const url of urls) {
-      urlCounts.set(url, (urlCounts.get(url) || 0) + 1)
-    }
-
-    const loopUrls = Array.from(urlCounts.entries())
-      .filter(([, count]) => count > 1)
-      .map(([url, count]) => ({ url, count }))
+    for (const hop of redirectTrace) urlCounts.set(hop.url, (urlCounts.get(hop.url) || 0) + 1)
+    const loopUrls = Array.from(urlCounts.entries()).filter(([, count]) => count > 1).map(([url, count]) => ({ url, count }))
 
     if (loopUrls.length === 0) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: `No redirect loops detected (${redirectTrace.length} redirect${redirectTrace.length > 1 ? 's' : ''} checked).`,
-        type: 'ok',
-        priority: 800,
-        details: {
-          trace,
-          ...chainDetails,
-          redirectCount: redirectTrace.length,
-          uniqueUrlCount: urlCounts.size,
-        },
-      }
+      return build('ok', 800, input, [textField('Redirect hops checked', redirectTrace.length), textField('Loop detected', 'No')],
+        [textField('Unique URLs visited', urlCounts.size)], evidence)
     }
 
-    const loopDesc = loopUrls.map((l) => `  ${l.url} (visited ${l.count} times)`).join('\n')
-    const firstLoop = loopUrls[0]
-    const message =
-      loopUrls.length === 1 && firstLoop
-        ? `Redirect loop detected!\n\n${loopDesc}\n\nThe same URL appears ${firstLoop.count} times in the redirect chain.`
-        : `Redirect loops detected (${loopUrls.length} URLs)!\n\n${loopDesc}`
-
-    return {
-      label: LABEL,
-      name: NAME,
-      message,
-      type: 'error',
-      priority: 50,
-      details: {
-        trace,
-        ...chainDetails,
-        loopUrls,
-      },
-    }
+    return build('error', 50, input, [textField('Loop detected', 'Yes'), textField('Looping URLs', loopUrls.length)],
+      [textField('Redirect hops checked', redirectTrace.length)],
+      [...evidence, ...loopUrls.map((loop, index) => ({
+        name: `Loop ${index + 1}`,
+        fields: [httpUrlField('URL', loop.url), textField('Occurrences', loop.count)],
+      }))])
   },
 }

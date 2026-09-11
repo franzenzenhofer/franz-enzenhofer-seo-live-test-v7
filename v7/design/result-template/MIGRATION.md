@@ -133,7 +133,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `body:internal-link-status` | `6bead3e` (7.0.311) |
 | `http:headers-present` | `0261794` (7.0.312) |
 | `http:has-header` | `8e1c51b` (7.0.313) |
-| `http:redirect-canonical-chain` | build 7.0.314 |
+| `http:redirect-canonical-chain` | `65decf4` (7.0.314) |
+| `http:redirect-loop` | build 7.0.315 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
