@@ -1,34 +1,61 @@
 import { describe, it, expect } from 'vitest'
-import { xRobotsRule } from '@/rules/http/xRobots'
 
-const P = (h: Record<string,string>) => ({ html:'', url:'', doc: new DOMParser().parseFromString('<p/>','text/html'), headers: h })
+import { xRobotsRule } from '@/rules/http/xRobots'
+import { enrichResult } from '@/core/runHelpers'
+import { toResultCopyPayload } from '@/components/result/resultCopy'
+
+const P = (h: Record<string, string>) => ({ html: '', url: '', doc: new DOMParser().parseFromString('<p/>', 'text/html'), headers: h })
 
 describe('rule: http x-robots-tag', () => {
+  it('returns runtime_error when headers not captured', async () => {
+    const r = await xRobotsRule.run(P({}), { globals: {} })
+    expect(r.type).toBe('runtime_error')
+    expect(r.priority).toBe(50)
+    expect(r.presentation?.input).toBe('Not captured')
+  })
+
   it('reports present', async () => {
     const r = await xRobotsRule.run(P({ 'x-robots-tag': 'noindex' }), { globals: {} })
-    expect((r as any).message.includes('X-Robots-Tag')).toBe(true)
+    expect(r.presentation?.values).toContainEqual({ key: 'X-Robots-Tag', value: 'noindex', kind: 'text' })
   })
 
   it('warns when the header carries noindex', async () => {
     const r = await xRobotsRule.run(P({ 'x-robots-tag': 'noindex' }), { globals: {} })
-    expect((r as any).type).toBe('warn')
-    expect(((r as any).details as any).hasNoindex).toBe(true)
+    expect(r.type).toBe('warn')
+    expect(r.priority).toBe(150)
+    expect(r.presentation?.values).toContainEqual({ key: 'Contains noindex', value: 'Yes', kind: 'text' })
   })
 
   it('warns when the header carries nofollow', async () => {
     const r = await xRobotsRule.run(P({ 'x-robots-tag': 'nofollow' }), { globals: {} })
-    expect((r as any).type).toBe('warn')
-    expect(((r as any).details as any).hasNofollow).toBe(true)
+    expect(r.type).toBe('warn')
+    expect(r.presentation?.values).toContainEqual({ key: 'Contains nofollow', value: 'Yes', kind: 'text' })
   })
 
   it('stays info for non-blocking directives', async () => {
     const r = await xRobotsRule.run(P({ 'x-robots-tag': 'noarchive' }), { globals: {} })
-    expect((r as any).type).toBe('info')
+    expect(r.type).toBe('info')
+    expect(r.priority).toBe(750)
   })
 
   it('stays info without the header', async () => {
     const r = await xRobotsRule.run(P({ 'content-type': 'text/html' }), { globals: {} })
-    expect((r as any).type).toBe('info')
-    expect((r as any).message).toMatch(/No X-Robots-Tag/)
+    expect(r.type).toBe('info')
+    expect(r.priority).toBe(900)
+    expect(r.presentation?.values).toContainEqual({ key: 'X-Robots-Tag', value: 'Not present', kind: 'text' })
+  })
+
+  it('names the crawler and instruction per directive, and the header for multi-agent headers', async () => {
+    const r = await xRobotsRule.run(P({ 'x-robots-tag': 'googlebot: noindex' }), { globals: {} })
+    const record = r.presentation?.evidence[0]
+    expect(record?.fields).toContainEqual({ key: 'Crawler', value: 'googlebot', kind: 'text' })
+    expect(record?.fields).toContainEqual({ key: 'Instruction', value: 'noindex', kind: 'text' })
+  })
+
+  it('copies references and labelled facts without legacy details', async () => {
+    const result = enrichResult(await xRobotsRule.run(P({ 'x-robots-tag': 'noindex' }), { globals: {} }), xRobotsRule, 'test')
+    const copy = toResultCopyPayload(result)
+    for (const value of ['noindex', ...xRobotsRule.meta.references]) expect(copy).toContain(value)
+    expect(result.details).toBeUndefined()
   })
 })
