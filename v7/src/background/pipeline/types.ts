@@ -2,6 +2,10 @@ import type { ResourceFact } from '@/shared/resourceFacts'
 
 export type EventRec = {
   documentId?: string
+  /** webRequest frame identity (0 = main frame); see storeFrames.resourceScope. */
+  frameId?: number
+  parentFrameId?: number
+  parentDocumentId?: string
   t: string
   u?: string
   h?: Record<string, string | undefined>
@@ -35,4 +39,5 @@ export type ResourceLedger = {
   truncated: boolean
   bytes: number
 }
-export type Run = { id: number; documentId?: string; ev: EventRec[]; domDone?: boolean; eventDropped?: number; resources?: ResourceLedger }
+/** frames: subframe IDs of the run's document seen so far (bounded), for nested iframes. */
+export type Run = { id: number; documentId?: string; ev: EventRec[]; domDone?: boolean; eventDropped?: number; resources?: ResourceLedger; frames?: number[] }

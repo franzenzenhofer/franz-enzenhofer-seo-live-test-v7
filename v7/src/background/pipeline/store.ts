@@ -3,6 +3,7 @@ import { getRun, MAX_EVENTS, removeRunState, setRun } from './storeCore'
 import { addResource, flushResources, isResourceEvent, RESOURCE_LIMITS } from './storeResources'
 import { serializePerTab } from './tabSerial'
 import { phaseEventState } from './phaseProgress'
+import { rememberFrame, resourceScope } from './storeFrames'
 
 export { RESOURCE_LIMITS }
 
@@ -13,9 +14,11 @@ const addEventUnsafe = async (tabId: number, ev: EventRec) => {
     // tab is dropped instead of resurrecting a record nothing ever cleans up.
     const current = await getRun(tabId)
     if (!current) return false
-    // They answer to the same document identity as phase events: a request
-    // belonging to a superseded document is not this run's evidence.
-    if (ev.documentId && current.documentId && ev.documentId !== current.documentId) return false
+    // They answer to the run's document identity, frame-aware: iframe requests
+    // carry their own documentId; superseded documents are not this run's evidence.
+    const scope = resourceScope(current, ev)
+    if (scope === 'foreign') return false
+    if (scope === 'frame') await rememberFrame(tabId, current, ev.frameId)
     await addResource(tabId, ev)
     return true
   }
