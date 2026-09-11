@@ -1,18 +1,30 @@
 import type { Rule } from '@/core/types'
 import { fetchStatusTextOnce } from '@/shared/fetchOnce'
-import { extractSnippet } from '@/shared/html-utils'
+import { httpStatusLabel } from '@/shared/httpStatusLabel'
+import { textField, urlField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 
-const LABEL = 'ROBOTS'
 const NAME = 'robots.txt size'
 const RULE_ID = 'robots:size'
 const MAX_BYTES = 512000
 const BYTES_PER_KIB = 1024
+const TIMEOUT_MS = 1500
+const NO_MARKUP = 'None - this rule checks robots.txt, not document markup'
 
 const toKiB = (bytes: number) => Number((bytes / BYTES_PER_KIB).toFixed(1))
+const LIMIT_KIB = toKiB(MAX_BYTES)
+
+const checkedFacts = (criterion: string) => [
+  textField('Fetch target', 'origin/robots.txt'),
+  textField('Timeout', `${TIMEOUT_MS} ms`),
+  textField('Limit', `${MAX_BYTES} bytes (${LIMIT_KIB} KiB)`),
+  textField('Criterion', criterion),
+]
 
 export const robotsTxtSizeRule: Rule = {
   id: RULE_ID,
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'http',
   meta: {
@@ -28,17 +40,33 @@ export const robotsTxtSizeRule: Rule = {
     try {
       const url = new URL(page.url)
       if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-        return { label: LABEL, name: NAME, message: `Skipped: ${url.protocol} URL`, type: 'info', priority: 900, details: { protocol: url.protocol } }
+        return presentResult(robotsTxtSizeRule, page, {
+          input: 'Page URL', type: 'info', priority: 900,
+          values: [textField('robots.txt size', 'Not checked'), textField('Reason', `Skipped - ${url.protocol} URL`)],
+          checked: checkedFacts('Page URL uses the http or https scheme'), noMarkup: NO_MARKUP,
+        })
       }
       origin = url.origin
     } catch {
-      return { label: LABEL, name: NAME, message: 'Invalid URL. Cannot fetch robots.txt.', type: 'info', priority: 900, details: {} }
+      return presentResult(robotsTxtSizeRule, page, {
+        input: 'Page URL', type: 'info', priority: 900,
+        values: [textField('robots.txt size', 'Not checked'), textField('Reason', 'Invalid page URL')],
+        checked: checkedFacts('Page URL uses the http or https scheme'), noMarkup: NO_MARKUP,
+      })
     }
 
     const robotsTxtUrl = `${origin}/robots.txt`
-    const fetched = await fetchStatusTextOnce(robotsTxtUrl, 1500, ctx.signal)
+    const fetched = await fetchStatusTextOnce(robotsTxtUrl, TIMEOUT_MS, ctx.signal)
     if (!fetched?.ok) {
-      return { label: LABEL, name: NAME, message: 'robots.txt not reachable.', type: 'info', priority: 850, details: { robotsTxtUrl, status: fetched?.status } }
+      return presentResult(robotsTxtSizeRule, page, {
+        input: fetched ? 'robots.txt response' : 'Not captured', type: 'info', priority: 850,
+        values: [textField('robots.txt size', 'Not checked'), textField('Reason', 'robots.txt not reachable')],
+        detailValues: [urlField('robots.txt URL', robotsTxtUrl)],
+        checked: checkedFacts('Bytes read at or above the 512000 byte limit Google reads'),
+        evidence: [{ name: 'robots.txt fetch', fields: [urlField('robots.txt URL', robotsTxtUrl),
+          textField('HTTP status', fetched ? httpStatusLabel(fetched.status) : 'No response received')] }],
+        noMarkup: NO_MARKUP,
+      })
     }
 
     // The shared probe stops at exactly the limit Google reads, so an oversize
@@ -46,27 +74,15 @@ export const robotsTxtSizeRule: Rule = {
     const bytes = fetched.bytes
     const exceeds = fetched.truncated
     const sizeKiB = toKiB(bytes)
-    const limitKiB = toKiB(MAX_BYTES)
-    const message = exceeds
-      ? `robots.txt is larger than the ${limitKiB} KiB limit; Google ignores everything after the first ${limitKiB} KiB.`
-      : `robots.txt size ${sizeKiB} KiB within ${limitKiB} KiB limit.`
 
-    return {
-      label: LABEL,
-      name: NAME,
-      message,
-      type: exceeds ? 'warn' : 'info',
-      priority: exceeds ? 220 : 820,
-      details: {
-        bytes,
-        bytesRead: bytes,
-        truncatedAtLimit: exceeds,
-        sizeKiB,
-        limitBytes: MAX_BYTES,
-        limitKiB,
-        robotsTxtUrl,
-        snippet: extractSnippet(fetched.text, 150),
-      },
-    }
+    return presentResult(robotsTxtSizeRule, page, {
+      input: 'robots.txt response', type: exceeds ? 'warn' : 'info', priority: exceeds ? 220 : 820,
+      values: [textField('robots.txt size', exceeds ? `${sizeKiB} KiB or more (truncated at the limit)` : `${sizeKiB} KiB`),
+        textField('Within limit', exceeds ? 'No' : 'Yes')],
+      detailValues: [urlField('robots.txt URL', robotsTxtUrl), textField('Bytes read', `${bytes} bytes`)],
+      checked: checkedFacts('Bytes read at or above the 512000 byte limit Google reads'),
+      evidence: [{ name: 'robots.txt fetch', fields: [urlField('robots.txt URL', robotsTxtUrl), textField('HTTP status', httpStatusLabel(fetched.status))] }],
+      noMarkup: NO_MARKUP,
+    })
   },
 }
