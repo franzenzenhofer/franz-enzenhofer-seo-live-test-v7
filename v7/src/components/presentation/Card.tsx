@@ -26,7 +26,7 @@ export const PresentationCard = ({ result, index, displayIndex, defaultExpanded 
       <span className={`mt-1 ${color.text}`}><Icon name={glyph} label={status} className={result.type === 'pending' ? 'h-5 w-5 motion-safe:animate-spin' : 'h-5 w-5'} /></span>
       <h2 className="min-w-0 flex-1 pt-0.5 text-base font-semibold leading-6 text-slate-950 [overflow-wrap:anywhere]">{view.name}{isPinned && <Icon name="star" label="Favorited" className="ml-1 inline-block h-4 w-4 fill-amber-400 text-amber-600" />}</h2>
       <CopyResult content={presentationCopy({ ...result, runIndex: number })} />
-      <button type="button" className={`${actionClass} border border-slate-300 bg-white/80`} aria-expanded={open} aria-controls={id} onClick={() => setOpen(!open)}>{open ? 'Hide' : 'Details'}<Icon name={open ? 'chevron-up' : 'chevron-down'} /></button>
+      <button type="button" className={actionClass} aria-expanded={open} aria-controls={id} aria-label={open ? 'Hide details' : 'Show details'} title={open ? 'Hide details' : 'Show details'} onClick={() => setOpen(!open)}><Icon name={open ? 'minimize-2' : 'maximize-2'} /></button>
       <Actions favorite={isPinned} disabled={isDisabled} onFavorite={onTogglePin} onDisable={disable} onReport={report} />
     </header>
     <div className="px-3 pt-1.5"><Fields pageUrl={view.pageUrl} fields={[textField('Checked input', view.input), ...(isDisabled && result.type !== 'disabled' ? [textField('Next run', 'Disabled')] : [])]} /></div>

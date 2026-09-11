@@ -48,7 +48,7 @@ export const card = (item, expanded, instance, options = {}) => {
       <span class="mt-1 ${state.ink}">${icon(state.icon, state.label, item.status === 'pending' ? 'h-5 w-5 motion-safe:animate-spin' : 'h-5 w-5')}</span>
       <h2 class="min-w-0 flex-1 pt-0.5 text-base font-semibold leading-6 text-slate-950">${escapeHtml(item.name)}${options.favorite ? ` ${icon('star', 'Favorited', 'ml-0.5 inline-block h-4 w-4 fill-amber-400 text-amber-600 align-[-2px]')}` : ''}</h2>
       <button class="${actionClass}" data-copy aria-label="Copy result" title="Copy result">${icon('copy')}</button>
-      <button class="${actionClass} border border-slate-300 bg-white/80" data-toggle aria-expanded="${expanded}" aria-controls="${detailId}">${expanded ? 'Hide' : 'Details'}${icon(expanded ? 'chevron-up' : 'chevron-down')}</button>
+      <button class="${actionClass}" data-toggle aria-expanded="${expanded}" aria-controls="${detailId}" aria-label="${expanded ? 'Hide details' : 'Show details'}" title="${expanded ? 'Hide details' : 'Show details'}">${icon(expanded ? 'minimize-2' : 'maximize-2')}</button>
       <div class="relative -mr-1 shrink-0" data-actions>
         <button class="${actionClass}" data-menu-toggle aria-label="Result actions" aria-haspopup="menu" aria-expanded="false" aria-controls="${instance}-menu">${icon('ellipsis-vertical')}</button>
         <div id="${instance}-menu" role="menu" aria-label="Result actions" hidden class="absolute right-0 top-full z-20 mt-1 w-52 rounded-lg border border-slate-200 bg-white p-1 shadow-lg">

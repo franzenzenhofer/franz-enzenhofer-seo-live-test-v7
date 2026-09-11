@@ -38,9 +38,9 @@ test.describe('report view', () => {
     await report.waitForTimeout(3000)
 
     const cards = await report.locator('[data-testid="result-card"]').count()
-    // Expanded cards offer "Hide"; collapsed ones offer "Details".
-    const hide = await report.getByRole('button', { name: 'Hide' }).count()
-    const details = await report.getByRole('button', { name: 'Details' }).count()
+    // Expanded cards offer "Hide details"; collapsed ones offer "Show details" (icon-only toggle).
+    const hide = await report.getByRole('button', { name: 'Hide details', exact: true }).count()
+    const details = await report.getByRole('button', { name: 'Show details', exact: true }).count()
     console.log(`REPORT cards=${cards} expanded(Hide)=${hide} collapsed(Details)=${details}`)
     await report.screenshot({ path: 'test-results/report-expanded.png' })
     expect(cards).toBeGreaterThan(50)

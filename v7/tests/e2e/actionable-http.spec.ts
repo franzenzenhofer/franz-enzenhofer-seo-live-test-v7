@@ -22,8 +22,8 @@ test('HTTP findings render readable offenders and a named navigation journey wit
     await report.setViewportSize({ width: 420, height: 1000 })
     await report.goto(`chrome-extension://${id}/src/report.html?runid=${snapshot!.runId}`)
     const mixed = report.getByTestId('result-card').filter({ has: report.getByRole('heading', { name: 'Mixed content', exact: true }) })
-    // The full report renders every card expanded: the toggle already reads "Hide".
-    await expect(mixed.getByRole('button', { name: 'Hide', exact: true })).toHaveAttribute('aria-expanded', 'true')
+    // The full report renders every card expanded: the icon toggle is already named "Hide details".
+    await expect(mixed.getByRole('button', { name: 'Hide details', exact: true })).toHaveAttribute('aria-expanded', 'true')
     const evidence = mixed.getByRole('region', { name: 'Evidence' })
     await expect(evidence.getByRole('heading', { name: /^Mixed-content resource \d+$/ })).toHaveCount(2)
     await expect(evidence).toContainText('Alpe-Adria 8 Tage')

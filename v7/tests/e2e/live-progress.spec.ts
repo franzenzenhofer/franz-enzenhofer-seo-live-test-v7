@@ -55,7 +55,7 @@ test.describe('live progress', () => {
     for (const [text, file] of expandTargets) {
       const card = side.locator('[data-testid="result-card"]', { hasText: text }).first()
       if (!(await card.count())) continue
-      await card.getByRole('button', { name: 'Details' }).click()
+      await card.getByRole('button', { name: 'Show details', exact: true }).click()
       await side.waitForTimeout(200)
       await card.screenshot({ path: `${SHOTS}/${file}` })
     }

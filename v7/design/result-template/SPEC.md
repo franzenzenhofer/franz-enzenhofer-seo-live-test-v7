@@ -14,7 +14,7 @@ Every rule must be reviewed and changed individually by hand, however long it ta
 
 Display these in order:
 
-1. Accessible status icon, speaking rule name, optional separate favorite star, Copy, bordered Details button and actions menu.
+1. Accessible status icon, speaking rule name, optional separate favorite star, Copy, an icon-only details toggle and actions menu.
 2. `Checked input:` with the actual input used in this execution. Distinguish Static DOM, Idle DOM, page URL, HTTP response headers, navigation events and combined inputs. Configured input is not proof that it was received or checked.
 3. Compact labelled results. A number is always attached to its meaning and unit. Booleans use explicit factual words such as Found / Not found, Present / Absent, or Yes / No. Do not render serialized objects or unlabelled arrays.
 
@@ -72,7 +72,7 @@ Favoriting does not change status. Disabling a rule after a completed result pre
 
 ## Interactions and accessibility
 
-Details/Hide is visibly a button, with a chevron, `aria-expanded` and a relationship to its detail region. Status icons have accessible names; purely decorative icons are hidden from assistive technology. Favorite uses a distinct filled library star, never replaces status.
+The details toggle is an icon-only button (maximize / minimize icon, no text, no chevron; user decision 2026-09-11 to save header space) with the accessible name and tooltip "Show details" / "Hide details", `aria-expanded` and `aria-controls` pointing to its detail region. Status icons have accessible names; purely decorative icons are hidden from assistive technology. Favorite uses a distinct filled library star, never replaces status.
 
 Actions: Favorite/Unfavorite, Disable/Enable rule, Open in full report. Preserve existing application settings and report navigation. Unavailable actions are disabled or absent with an accurate explanation, never silently inert. Open in full report targets the same run and rule result.
 
