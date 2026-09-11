@@ -88,7 +88,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `head:unavailable-after` | `2bdb435` (7.0.263) |
 | `google:amp-cache-url` | `2688cc0` (7.0.264) |
 | `head:canonical-signals-conflict` | `5cb94a0` (7.0.265) |
-| `head:canonical-https-preference` | build 7.0.266 |
+| `head:canonical-https-preference` | `f670a89` (7.0.266) |
+| `head:robots-max-image-preview` | build 7.0.267 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
