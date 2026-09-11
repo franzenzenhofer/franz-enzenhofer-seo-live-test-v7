@@ -58,7 +58,7 @@ export const card = (item, expanded, instance, options = {}) => {
     </header>
     ${options.disabled && item.status !== 'disabled' ? `<div class="px-3 pt-1.5">${rows([['Next run', 'Disabled']])}</div>` : ''}
     <dl class="space-y-2 px-3 pb-2 pt-1.5">${item.values.map((field, index) => overviewField(field, index, instance)).join('')}</dl>
-    ${expanded ? '' : `<p class="px-3 pb-2 text-xs leading-4 text-slate-500 [overflow-wrap:anywhere]" data-checked-input><span class="sr-only">Checked input: </span>${escapeHtml(item.input)}</p>`}
+    ${expanded ? '' : `<p class="px-3 pb-2 text-right text-xs leading-4 text-slate-500 [overflow-wrap:anywhere]" data-checked-input><span class="sr-only">Checked input: </span>${escapeHtml(item.input)}</p>`}
     <div id="${detailId}" ${expanded ? '' : 'hidden'} class="space-y-2 border-t border-slate-200/80 px-3 py-2.5">
       ${rows([['Checked input', item.input]])}
       ${item.detailValues?.length ? `<section aria-label="Extracted values">${rows(item.detailValues)}</section>` : ''}

@@ -16,7 +16,7 @@ Display these in order:
 
 1. Accessible status icon, speaking rule name, optional separate favorite star, Copy, an icon-only details toggle and actions menu.
 2. Compact labelled results. A number is always attached to its meaning and unit. Booleans use explicit factual words such as Found / Not found, Present / Absent, or Yes / No. Do not render serialized objects or unlabelled arrays.
-3. The checked input: the actual input used in this execution. Distinguish Static DOM, Idle DOM, page URL, HTTP response headers, navigation events and combined inputs. Configured input is not proof that it was received or checked. Placement (user decision 2026-09-11, to save space): the collapsed card shows only the value, e.g. `Static DOM`, as small muted text at the bottom left, and screen readers hear `Checked input: Static DOM`. The expanded card drops that line and shows `Checked input:` as the first labelled row below the divider.
+3. The checked input: the actual input used in this execution. Distinguish Static DOM, Idle DOM, page URL, HTTP response headers, navigation events and combined inputs. Configured input is not proof that it was received or checked. Placement (user decision 2026-09-11, to save space): the collapsed card shows only the value, e.g. `Static DOM`, as small muted text at the bottom right, and screen readers hear `Checked input: Static DOM`. The expanded card drops that line and shows `Checked input:` as the first labelled row below the divider.
 
 Do not repeat a large status sentence such as “Check passed”. Status is communicated through color and a library icon with an accessible name. Include the status as text in copied reports and filter controls.
 

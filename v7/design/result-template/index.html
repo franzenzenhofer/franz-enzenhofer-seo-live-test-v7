@@ -55,7 +55,7 @@ ${i(a)}</textarea>`:`<p class="text-xs font-normal text-slate-600">${M(e)}</p><c
     </header>
     ${r.disabled&&e.status!=="disabled"?`<div class="px-3 pt-1.5">${x([["Next run","Disabled"]])}</div>`:""}
     <dl class="space-y-2 px-3 pb-2 pt-1.5">${e.values.map((n,o)=>V(n,o,a)).join("")}</dl>
-    ${t?"":`<p class="px-3 pb-2 text-xs leading-4 text-slate-500 [overflow-wrap:anywhere]" data-checked-input><span class="sr-only">Checked input: </span>${i(e.input)}</p>`}
+    ${t?"":`<p class="px-3 pb-2 text-right text-xs leading-4 text-slate-500 [overflow-wrap:anywhere]" data-checked-input><span class="sr-only">Checked input: </span>${i(e.input)}</p>`}
     <div id="${l}" ${t?"":"hidden"} class="space-y-2 border-t border-slate-200/80 px-3 py-2.5">
       ${x([["Checked input",e.input]])}
       ${e.detailValues?.length?`<section aria-label="Extracted values">${x(e.detailValues)}</section>`:""}

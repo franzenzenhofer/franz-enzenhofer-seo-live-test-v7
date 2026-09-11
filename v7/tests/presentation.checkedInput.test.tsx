@@ -16,10 +16,11 @@ const overviewKeys = (doc: Document) => [...doc.querySelectorAll('dt')].filter((
 const smallLine = (doc: Document) => doc.querySelector('[data-testid="checked-input"]')!
 
 describe('checked input placement (saves a line per card)', () => {
-  it('collapsed: shows only the value as small text at the bottom left, no full-size row', () => {
+  it('collapsed: shows only the value as small text at the bottom right, no full-size row', () => {
     const doc = card({ defaultExpanded: false })
     expect(smallLine(doc).hasAttribute('hidden')).toBe(false)
     expect(smallLine(doc).className).toContain('text-xs')
+    expect(smallLine(doc).className).toContain('text-right')
     expect(smallLine(doc).textContent).toBe('Checked input: Static DOM')
     expect(smallLine(doc).querySelector('.sr-only')?.textContent).toBe('Checked input: ')
     expect(smallLine(doc).nextElementSibling).toBe(details(doc))

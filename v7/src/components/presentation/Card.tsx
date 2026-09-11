@@ -30,7 +30,7 @@ export const PresentationCard = ({ result, index, displayIndex, defaultExpanded 
       <Actions favorite={isPinned} disabled={isDisabled} onFavorite={onTogglePin} onDisable={disable} onReport={report} />
     </header>
     <div className="px-3 pb-2 pt-1.5"><Fields fields={[...(isDisabled && result.type !== 'disabled' ? [textField('Next run', 'Disabled')] : []), ...view.values]} pageUrl={view.pageUrl} /></div>
-    <p hidden={open} data-testid="checked-input" className="px-3 pb-2 text-xs leading-4 text-slate-500 [overflow-wrap:anywhere]"><span className="sr-only">Checked input: </span>{view.input}</p>
+    <p hidden={open} data-testid="checked-input" className="px-3 pb-2 text-right text-xs leading-4 text-slate-500 [overflow-wrap:anywhere]"><span className="sr-only">Checked input: </span>{view.input}</p>
     <div id={id} hidden={!open} className="space-y-2 border-t border-slate-200/80 px-3 py-2.5"><Fields fields={[textField('Checked input', view.input)]} pageUrl={view.pageUrl} /><Details view={view} result={{ ...result, runIndex: number }} /></div>
   </article>
 }

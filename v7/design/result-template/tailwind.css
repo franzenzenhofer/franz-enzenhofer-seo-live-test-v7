@@ -759,6 +759,8 @@ video {
   padding-top: 1rem;
 } .text-left {
   text-align: left;
+} .text-right {
+  text-align: right;
 } .align-\[-2px\] {
   vertical-align: -2px;
 } .font-mono {
