@@ -77,6 +77,18 @@ If you add another HTML document (e.g. an onboarding page), wire it like every o
 2. If it renders React, wrap the root in `<ErrorBoundary>` (the one in `src/sidepanel/ui/ErrorBoundary.tsx`).
 3. Use `useStorageListener` from `src/shared/hooks/useStorageListener.ts` for any storage subscription -- it shares the process-wide `chrome.storage.onChanged` listener and disposes correctly on unmount.
 
+## Run test (manual run) - the contract
+
+One click = one document load, visible from the first millisecond (issue #1).
+
+1. Panel `src/sidepanel/utils/runNow.ts`: validates the URL, then sends `panel:run-start` and WAITS for the acknowledgement.
+2. Background `src/background/manualRunStart.ts`: `clearTabSessionState` (finalize alarm, run record, session, logs, ledger, audit document), removes `results:<tabId>`, writes the intent `audit-manual:<tabId>` and the run meta `status: 'starting'` (no runId yet). The panel renders that state until pending rows arrive.
+3. Panel `src/shared/hardRefresh.ts`: clears service workers + CacheStorage in the current document, then EXACTLY ONE navigation - `tabs.reload({ bypassCache: true })` for the tab's own URL, one `tabs.update({ url })` otherwise. Never update-then-reload: two documents race for one run.
+4. Background `src/background/pipeline/manualRun.ts` on the main-frame `nav:commit`: binds the intent to that `documentId` (`audit-document:<tabId>`, `run.manual`), arms a 15 s watchdog. `authorizeAudit` grants only that document (also with auto-run off) and consumes the intent then.
+5. If no phase ever lands, the watchdog finalize writes one visible `system:no-page-report` row and `status: 'skipped'` instead of waiting forever.
+
+Refuse on review: a second navigation in the Run test path; a manual authorization that is not tied to the committed `documentId`; a code path that clears `results-meta` without writing a terminal state or `starting`.
+
 ## Things to refuse on review
 
 - Top-level `await` in any SW entry point.

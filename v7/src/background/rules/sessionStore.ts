@@ -1,6 +1,6 @@
 import type { RunStatus } from '@/shared/runStatus'
 
-export type SessionStatus = Exclude<RunStatus, 'pending'>
+export type SessionStatus = Exclude<RunStatus, 'pending' | 'starting'>
 export type SessionRecord = {
   tabId: number; runId: string; status: SessionStatus; startedAt: string
   /** Monotonic run generation: an older run may never supersede a newer one. */

@@ -9,6 +9,7 @@ export type RunMetaDisplayProps = {
 }
 
 const statusColors: Record<RunStatus, string> = {
+  starting: 'bg-amber-100 text-amber-800 animate-pulse',
   pending: 'bg-sky-100 text-sky-800',
   running: 'bg-amber-100 text-amber-800',
   completed: 'bg-green-100 text-green-800',

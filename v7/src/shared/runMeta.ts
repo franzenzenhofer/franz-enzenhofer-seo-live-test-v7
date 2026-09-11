@@ -1,6 +1,7 @@
 import type { RunStatus } from './runStatus'
 
-export type RunMeta = { url: string; ranAt: string; runId: string; status: RunStatus }
+/** runId is absent only while `status === 'starting'`: the run has not been created yet. */
+export type RunMeta = { url: string; ranAt: string; runId?: string; status: RunStatus }
 
 export const runMetaKey = (tabId: number) => `results-meta:${tabId}`
 const LAST_KEY = 'ui:lastRun'

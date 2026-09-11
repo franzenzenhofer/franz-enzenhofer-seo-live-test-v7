@@ -13,6 +13,7 @@ export const RunRow = ({ run }: Props): React.JSX.Element => {
   }
 
   const statusColors: Record<RunState['status'], string> = {
+    starting: 'text-amber-700 bg-amber-50',
     completed: 'text-green-700 bg-green-50',
     running: 'text-blue-700 bg-blue-50',
     pending: 'text-yellow-700 bg-yellow-50',

@@ -1,6 +1,7 @@
 import { handleProbeChainMessage } from '../probes/handler'
 import { abortSession } from '../rules/sessions'
 import type { ProbeChainMessage } from '../probes/handler'
+import { handleRunStart } from '../manualRunStart'
 
 import { handleLogsBridgeMessage } from './logsBridge'
 import { handleAuditMessage } from './phaseMessages'
@@ -23,10 +24,11 @@ const handlePanelClean = (tabId: number | null): void => {
 
 export const handleMessage = (msg: unknown, sender: Sender, send?: (resp?: unknown) => void) => {
   incr('msg.in')
-  const st = msg as { event?: string; data?: unknown; type?: string; tabId?: number; channel?: string; message?: string; t?: string; d?: { tabId?: number }; context?: string; kind?: string; stack?: string } | null
+  const st = msg as { event?: string; data?: unknown; type?: string; tabId?: number; channel?: string; message?: string; t?: string; d?: { tabId?: number; url?: string }; context?: string; kind?: string; stack?: string } | null
   const tabId = st?.tabId || sender.tab?.id || null
   if (st?.channel === 'crash') { incr('crashnet.fired'); handleCrashReport(st); return false }
   if (st?.t === 'panel:clean') { handlePanelClean(st.d?.tabId ?? null); return false }
+  if (st?.t === 'panel:run-start') return handleRunStart(st.d, send)
   if (st && (st.type === 'audit:eligibility' || st.event)) return handleAuditMessage(st, sender, send)
   if (st?.channel === 'log' && st.message) {
     if (!isValidTabId(tabId)) {
