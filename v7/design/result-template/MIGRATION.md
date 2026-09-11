@@ -108,7 +108,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `head:canonical-nav-consistency` | `d65788f` (7.0.285) |
 | `head-robots-meta + head:robots-noindex + head:meta-googlebot (createRobotsMetaRule)` | `c3919eb` (7.0.286) |
 | `head:robots-max-snippet + head:robots-max-video-preview (createRobotsNumberRule)` | `45f9c3e` (7.0.287) |
-| `body:images-layout` | build 7.0.288 |
+| `body:images-layout` | `0f614a0` (7.0.288) |
+| `body:images-lazy` | build 7.0.289 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
