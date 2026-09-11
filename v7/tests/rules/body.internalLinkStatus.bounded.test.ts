@@ -1,10 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { internalLinkStatusRule } from '@/rules/body/internalLinkStatus'
+import { enrichResult } from '@/core/runHelpers'
+import { internalLinkStatusRule as rule } from '@/rules/body/internalLinkStatus'
 import { collectDomFacts } from '@/shared/domFacts.collect'
 import { domFactsToDocument } from '@/shared/domFacts.document'
 
 const makeDoc = (html: string) => new DOMParser().parseFromString(html, 'text/html')
+const value = (result: Awaited<ReturnType<typeof rule.run>>, key: string) => result.presentation?.values.find((field) => field.key === key)?.value
+const detail = (result: Awaited<ReturnType<typeof rule.run>>, key: string) => result.presentation?.detailValues.find((field) => field.key === key)?.value
 
 describe('rule: internal link status on the bounded fact document', () => {
   afterEach(() => vi.restoreAllMocks())
@@ -15,16 +18,14 @@ describe('rule: internal link status on the bounded fact document', () => {
     const facts = collectDomFacts(makeDoc(`<html><head><title>T</title></head><body>${links}</body></html>`), 'static')
     expect(facts.truncatedBuckets).toContain('anchor')
     const doc = domFactsToDocument(facts, makeDoc)
-    const r = await internalLinkStatusRule.run(
+    const r = await enrichResult(await rule.run(
       { html: '', url: 'https://example.com/', doc, staticFacts: facts } as never,
       { globals: {} },
-    )
+    ), rule, 'test')
     expect(r.type).toBe('ok')
-    expect(r.details?.['pageAnchorCount']).toBe(300)
-    expect(r.details?.['anchorEvidenceTruncated']).toBe(true)
+    expect(detail(r, 'Internal link anchors counted')).toBe(300)
     // The message must not present the tiny bounded sample as the page total.
-    expect(r.message).not.toMatch(/sample of \d+ internal links\.$/)
-    expect(r.message).toContain('300')
+    expect(detail(r, 'Sampled from')).toContain('300 eligible internal link anchors')
   })
 
   it('still probes internal links when the first anchors are all nav/cross-host (orf.at shape)', async () => {
@@ -43,31 +44,32 @@ describe('rule: internal link status on the bounded fact document', () => {
     expect(facts.internalLinkCandidates).toHaveLength(5)
     expect(facts.internalLinkCandidates?.every((c) => c.url.includes('/story'))).toBe(true)
     const doc = domFactsToDocument(facts, makeDoc)
-    const r = await internalLinkStatusRule.run(
+    const r = await enrichResult(await rule.run(
       { html: '', url: source.URL, doc, staticFacts: facts } as never,
       { globals: {} },
-    )
+    ), rule, 'test')
     expect(r.type).toBe('ok')
-    expect(r.details?.['sampleSize']).toBe(5)
-    expect(r.details?.['internalLinkCount']).toBe(36)
-    expect(r.message).toContain('36 eligible internal link anchors')
+    expect(value(r, 'Links tested')).toBe(5)
+    expect(detail(r, 'Internal link anchors counted')).toBe(36)
+    expect(detail(r, 'Sampled from')).toContain('36 eligible internal link anchors')
   })
 
   it('separates "no internal links" from "candidates did not fit the budget"', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ status: 200 }))
     const doc = makeDoc('<html><head><title>T</title></head><body><p>x</p></body></html>')
     const empty = collectDomFacts(doc, 'static')
-    const none = await internalLinkStatusRule.run(
-      { html: '', url: 'https://example.com/', doc, staticFacts: empty } as never, { globals: {} })
-    expect(none.type).toBe('info')
-    expect(none.message).toBe('No internal links found to test.')
+    const none = await enrichResult(await rule.run(
+      { html: '', url: 'https://example.com/', doc, staticFacts: empty } as never, { globals: {} }), rule, 'test')
+    expect(none.type).toBe('info'); expect(none.priority).toBe(900)
+    expect(none.presentation?.input).toBe('Static DOM + Page URL')
+    expect(value(none, 'Internal links found')).toBe(0)
 
     const squeezed = { ...empty, internalLinkCount: 12, internalLinkCandidatesOmitted: 12 }
-    const cut = await internalLinkStatusRule.run(
-      { html: '', url: 'https://example.com/', doc, staticFacts: squeezed } as never, { globals: {} })
-    expect(cut.type).toBe('runtime_error')
-    expect(cut.message).toContain('12 internal link anchors were counted')
-    expect(cut.details?.['candidateOmissions']).toBe(12)
+    const cut = await enrichResult(await rule.run(
+      { html: '', url: 'https://example.com/', doc, staticFacts: squeezed } as never, { globals: {} }), rule, 'test')
+    expect(cut.type).toBe('runtime_error'); expect(cut.priority).toBe(900)
+    expect(value(cut, 'Internal link anchors counted')).toBe(12)
+    expect(detail(cut, 'Candidate URLs omitted by evidence budget')).toBe(12)
   })
 
   it('fails loudly instead of claiming "no internal links" when a payload carries no candidate list', async () => {
@@ -84,11 +86,12 @@ describe('rule: internal link status on the bounded fact document', () => {
       internalLinkCandidates: undefined,
       internalLinkCount: undefined,
     }
-    const r = await internalLinkStatusRule.run(
+    const r = await enrichResult(await rule.run(
       { html: '', url: 'https://example.com/', doc, staticFacts: facts } as never,
       { globals: {} },
-    )
-    expect(r.type).toBe('runtime_error')
-    expect(r.message).not.toContain('No internal links found')
+    ), rule, 'test')
+    expect(r.type).toBe('runtime_error'); expect(r.priority).toBe(900)
+    expect(r.presentation?.noMarkup).not.toContain('no internal links found to test')
+    expect(r.presentation?.noMarkup).toContain("bounded DOM capture kept none of the page's anchors")
   })
 })
