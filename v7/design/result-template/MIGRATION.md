@@ -70,7 +70,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `schema:* (13 rules via createSchemaRule)` | `c6fc258` (7.0.243) |
 | `head-hreflang` | `ef02775` (7.0.244) |
 | `head:amphtml` | `d8f29e7` (7.0.245) |
-| `head:canonical-header` | build 7.0.246 |
+| `head:canonical-header` | `30f1e9b` (7.0.246) |
+| `head:robots-meta-list` | build 7.0.247 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 

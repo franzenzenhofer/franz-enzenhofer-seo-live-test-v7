@@ -47,9 +47,8 @@ describe('robots meta directive classification (shared parser)', () => {
 describe('head:robots-meta-list with mixed head', () => {
   it('counts only real robots metas', async () => {
     const res = await robotsMetaListRule.run(page(MIXED_HEAD), { globals: {} })
-    expect(res.message).toContain('1 robots meta tag')
-    expect(res.message).not.toContain('viewport')
-    expect(res.message).not.toContain('generator')
+    expect(res.presentation?.values).toContainEqual({ key: 'Robots meta tags', value: 1, kind: 'text' })
+    expect(res.presentation?.values).toContainEqual({ key: 'Crawlers listed', value: 'robots', kind: 'text' })
   })
 })
 
