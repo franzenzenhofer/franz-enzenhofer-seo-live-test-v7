@@ -6,5 +6,6 @@ it.each(['http://[', 'javascript:void(0)'])('identifies invalid web canonical %s
   const doc = new DOMParser().parseFromString(`<link rel="canonical" href="${href}">`, 'text/html')
   const result = await canonicalHttpsPreferenceRule.run({ html: '', url: 'https://example.test/', doc }, { globals: {} })
   expect(result.type).toBe('warn')
-  expect(result.details?.['canonicalUrl']).toBe(href)
+  expect(result.presentation?.values).toContainEqual({ key: 'Canonical href (observed)', value: href, kind: 'text' })
+  expect(result.details).toBeUndefined()
 })
