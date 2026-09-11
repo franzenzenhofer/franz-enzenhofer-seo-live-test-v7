@@ -11,7 +11,8 @@ describe('canonical header and signal rules', () => {
     const page = { html: '', url: 'https://ex.com', doc: doc('<p/>'), headers: { link: '<https://ex.com>; rel="canonical"' } }
     const res = await canonicalHeaderRule.run(page as any, { globals: {} })
     expect(res.type).toBe('ok')
-    expect((res.details as any).canonicalUrl).toBe('https://ex.com')
+    expect(res.presentation?.values).toContainEqual({ key: 'Canonical URL 1', value: 'https://ex.com', kind: 'url' })
+    expect(res.details).toBeUndefined()
   })
 
   it('errors when HTML and HTTP canonicals differ', async () => {
