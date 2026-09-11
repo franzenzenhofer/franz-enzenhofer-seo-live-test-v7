@@ -1,17 +1,12 @@
-import { headerValue, advertisedProtocol } from '@/shared/headerValue'
+import { headersNotCapturedResult } from '@/rules/http/headersNotCaptured'
+import { advertisedProtocol, headerValue } from '@/shared/headerValue'
+import { hasHeaders } from '@/shared/http-utils'
+import { textField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
-import { extractSnippet } from '@/shared/html-utils'
-import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
-
-const LABEL = 'HTTP'
-const NAME = 'HTTP/2 Advertised (Alt-Svc)'
-const RULE_ID = 'http:h2-advertised'
 
 export const http2AdvertisedRule: Rule = {
-  id: RULE_ID,
-  name: NAME,
-  enabled: true,
-  what: 'http',
+  id: 'http:h2-advertised', name: 'HTTP/2 Advertised (Alt-Svc)', presentation: 1, enabled: true, what: 'http',
   meta: {
     userGuide: {
       check: "Reports whether the server advertises HTTP/2 in Alt-Svc, an alternative-service response header. Advertisement does not establish which protocol this load actually used, and absence does not prove a lack of support.",
@@ -25,25 +20,17 @@ export const http2AdvertisedRule: Rule = {
     description: 'Reports (info-only) whether the Alt-Svc header advertises an h2 alternative service.',
   },
   async run(page) {
-    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
+    if (!hasHeaders(page.headers)) return headersNotCapturedResult(http2AdvertisedRule, page, 'Alt-Svc')
     const altSvcHeader = headerValue(page.headers, 'alt-svc')
     const advertisesHttp2 = advertisedProtocol(altSvcHeader, 'h2')
-    const message = advertisesHttp2
-      ? 'The server advertises HTTP/2 as an alternative service.'
-      : altSvcHeader
-        ? 'Alt-Svc is present without an HTTP/2 advertisement.'
-        : 'No Alt-Svc advertisement captured. This does not determine HTTP/2 support; see the negotiated protocol.'
-    return {
-      label: LABEL,
-      name: NAME,
-      message,
-      type: 'info',
-      priority: advertisesHttp2 ? 750 : 850,
-      details: {
-        snippet: extractSnippet(altSvcHeader || '(not present)'),
-        altSvcHeader,
-        advertisesHttp2,
-      },
-    }
+    return presentResult(http2AdvertisedRule, page, {
+      input: 'HTTP response headers', type: 'info', priority: advertisesHttp2 ? 750 : 850,
+      values: [textField('Alt-Svc header', altSvcHeader || 'Not present'),
+        textField('HTTP/2 advertised', advertisesHttp2 ? 'Yes' : 'No')],
+      checked: [textField('Header', 'Alt-Svc'), textField('ALPN token', 'h2'),
+        textField('Criterion', 'Informational only; does not prove the connection used HTTP/2')],
+      evidence: altSvcHeader ? [{ name: 'Alt-Svc header', fields: [textField('Alt-Svc', altSvcHeader)] }] : [],
+      noMarkup: 'None - this rule checks the HTTP response, not document markup',
+    })
   },
 }
