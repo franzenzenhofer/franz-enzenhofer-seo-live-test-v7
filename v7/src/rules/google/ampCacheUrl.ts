@@ -1,7 +1,8 @@
 import { resolvePageWebUrl } from '@/shared/resolvePageWebUrl'
 import type { Rule } from '@/core/types'
-import { extractHtml, extractSnippet } from '@/shared/html-utils'
-import { getDomPath } from '@/shared/dom-path'
+import { textField, urlField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
 
 const findAmp = (d: Document) => {
   const el = d.querySelector('link[rel~="amphtml" i]')
@@ -24,9 +25,16 @@ const ampCache = (href: string) => {
   }
 }
 
+const checked = [
+  textField('Selector', 'link[rel~="amphtml" i]'), textField('Selection', 'First match'),
+  textField('Calculation', 'Publisher subdomain of cdn.ampproject.org, /c/[s/]host/path?query, from the resolved amphtml href'),
+  textField('Supported hostnames', 'Plain ASCII hostnames without a port; punycode/IDN and hostnames over 63 encoded characters are not calculable'),
+]
+
 export const ampCacheUrlRule: Rule = {
   id: 'google:amp-cache-url',
   name: 'AMP Cache URL',
+  presentation: 1,
   enabled: true,
   what: 'static',
   meta: {
@@ -40,37 +48,32 @@ export const ampCacheUrlRule: Rule = {
   },
   async run(page) {
     const amp = findAmp(page.doc)
-    if (!amp.href) {
-      return {
-        label: 'HEAD',
-        message: 'No amphtml link - AMP Cache URL not applicable.',
-        type: 'info',
-        priority: 950,
-        name: 'AMP Cache URL',
-        details: { tested: 'Checked for <link rel="amphtml"> (presence itself is graded by head:amphtml).' },
-      }
-    }
+    if (!amp.href) return presentResult(ampCacheUrlRule, page, {
+      input: 'Idle DOM', label: 'HEAD', type: 'info', priority: 950,
+      values: [textField('AMP Cache URL', 'Not applicable - no amphtml link')], checked,
+      noMarkup: 'No matching amphtml link found',
+    })
 
+    const captured = markupEvidence([amp.element!], 'AMP link markup')
     const resolved = resolvePageWebUrl(amp.href, page)
+    const declaredBase = page.doc.querySelector('base[href]')
+    const baseHref = declaredBase?.getAttribute('href')?.trim() || ''
+    const baseWasRead = Boolean(baseHref)
+    const baseCapture = baseWasRead ? markupEvidence([declaredBase!], '<base>') : null
     const url = resolved ? ampCache(resolved) : ''
-    const sourceHtml = extractHtml(amp.element)
-
-    return url
-      ? {
-          label: 'HEAD',
-          message: 'AMP Cache URL derived from amphtml link.',
-          type: 'info',
-          priority: 700,
-          name: 'AMP Cache URL',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(amp.element), href: amp.href, ampUrl: resolved, ampCacheUrl: url },
-        }
-      : {
-          label: 'HEAD',
-          message: resolved ? 'AMP Cache address could not be calculated for this hostname or port.' : 'AMP declaration does not contain a valid HTTP or HTTPS URL.',
-          type: resolved ? 'info' : 'warn',
-          priority: 400,
-          name: 'AMP Cache URL',
-          details: { sourceHtml, snippet: extractSnippet(sourceHtml), domPath: getDomPath(amp.element), href: amp.href },
-        }
+    const common = {
+      input: 'Idle DOM', label: 'HEAD',
+      detailValues: [resolved ? urlField('Declared amphtml href', amp.href) : textField('Declared amphtml href', amp.href),
+        urlField('Page URL', page.url), baseWasRead ? urlField('Base href', baseHref) : textField('Base href', 'Not declared')],
+      checked, evidence: [{ name: 'Match', fields: captured.fields }, ...(baseCapture ? [{ name: 'Base URL', fields: baseCapture.fields }] : [])],
+      markup: [...captured.markup, ...(baseCapture ? baseCapture.markup : [])],
+      noMarkup: 'Complete original amphtml source markup not retained',
+    }
+    if (url) return presentResult(ampCacheUrlRule, page, { ...common, type: 'info', priority: 700,
+      values: [textField('AMP Cache URL', 'Derived'), urlField('Cache URL', url)] })
+    if (resolved) return presentResult(ampCacheUrlRule, page, { ...common, type: 'info', priority: 400,
+      values: [textField('AMP Cache URL', 'Not calculable for this hostname or port')] })
+    return presentResult(ampCacheUrlRule, page, { ...common, type: 'warn', priority: 400,
+      values: [textField('AMP Cache URL', 'Not applicable - amphtml href is not a valid HTTP(S) URL')] })
   },
 }

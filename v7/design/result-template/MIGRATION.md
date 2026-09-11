@@ -85,7 +85,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `robots:size` | `93037ac` (7.0.260) |
 | `head:twitter-card` | `4089368` (7.0.261) |
 | `head:hreflang-multipage` | `945e5d1` (7.0.262) |
-| `head:unavailable-after` | build 7.0.263 |
+| `head:unavailable-after` | `2bdb435` (7.0.263) |
+| `google:amp-cache-url` | build 7.0.264 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
