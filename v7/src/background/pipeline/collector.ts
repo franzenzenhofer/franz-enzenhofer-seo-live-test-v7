@@ -10,10 +10,16 @@ import { Logger } from '@/shared/logger'
 const collectionQueues = new Map<number, Promise<void>>()
 export const flushCollection = (tabId: number) => collectionQueues.get(tabId) || Promise.resolve()
 
-const collectEvent = async (tabId: number, ev: import('./types').EventRec) => {
+/**
+ * Resolves whether the store accepted the event. A drop is an expected outcome,
+ * not a failure: the store discards stale traffic by design (no run for the tab
+ * after finalize/cleanup, a superseded document, the previous page's aborted
+ * requests). Only real failures (storage errors) reject.
+ */
+const collectEvent = async (tabId: number, ev: import('./types').EventRec): Promise<boolean> => {
   if (!isValidTabId(tabId)) {
     await logSystem(`collector:drop tabId=${tabId ?? 'null'} type="${ev.t}"`)
-    return
+    return false
   }
   await Logger.logDirect(tabId, 'event', 'receive', { type: ev.t, url: ev.u || 'no-url', hasData: !!ev.d, status: ev.s })
   if (ev.t === 'nav:before') {
@@ -27,9 +33,13 @@ const collectEvent = async (tabId: number, ev: import('./types').EventRec) => {
       await chrome.storage.local.remove(`results:${tabId}`)
       await Logger.logDirect(tabId, 'event', 'clear results', { reason: 'autoClear' })
     }
-    return
+    return true
   }
-  if (!await addEvent(tabId, ev)) throw new Error('Event does not match current capture')
+  if (!await addEvent(tabId, ev)) {
+    // Tab log, not the system log: its 200-entry ring would be flooded by webRequest bursts.
+    await Logger.logDirect(tabId, 'event', 'drop', { type: ev.t, url: ev.u || 'no-url', documentId: ev.documentId ?? 'none' })
+    return false
+  }
   await Logger.logDirect(tabId, 'event', 'add', { type: ev.t, tabId })
   if (ev.t === 'dom:document_end') await finalizeIfIdleAlreadyDone(tabId)
   if (ev.t.startsWith('dom:')) {
@@ -38,11 +48,12 @@ const collectEvent = async (tabId: number, ev: import('./types').EventRec) => {
     log(tabId, `${ev.t} nodes=${nodes}`).catch((err) => console.error('[collector] log failed', err))
     await Logger.logDirect(tabId, 'dom', 'event', { type: ev.t, nodes, results: data?.results?.length || 0, url: ev.u || 'no-url' })
   }
+  return true
 }
 
-export const pushEvent = (tabId: number, ev: import('./types').EventRec) => {
+export const pushEvent = (tabId: number, ev: import('./types').EventRec): Promise<boolean> => {
   const task = flushCollection(tabId).then(() => collectEvent(tabId, ev))
-  collectionQueues.set(tabId, task.catch(() => {}))
+  collectionQueues.set(tabId, task.then(() => undefined, () => undefined))
   return task
 }
 

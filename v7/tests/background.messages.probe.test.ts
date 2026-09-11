@@ -9,7 +9,7 @@ globalThis.chrome = {
   },
 }
 
-vi.mock('@/background/pipeline/collector', () => ({ pushEvent: vi.fn().mockResolvedValue(undefined), markDomPhase: vi.fn() }))
+vi.mock('@/background/pipeline/collector', () => ({ pushEvent: vi.fn().mockResolvedValue(true), markDomPhase: vi.fn() }))
 
 import { handleMessage } from '@/background/listeners/messages'
 import { handleProbeChainMessage } from '@/background/probes/handler'

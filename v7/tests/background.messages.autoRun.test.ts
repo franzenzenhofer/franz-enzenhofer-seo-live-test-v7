@@ -5,7 +5,7 @@ import { describe, it, expect, vi } from 'vitest'
 globalThis.chrome = { storage: { local: { get: vi.fn(async ()=> ({ 'ui:autoRun': false })) } } }
 
 vi.mock('@/background/pipeline/collector', () => ({
-  pushEvent: vi.fn().mockResolvedValue(undefined),
+  pushEvent: vi.fn().mockResolvedValue(true),
   markDomPhase: vi.fn(),
   flushCollection: vi.fn().mockResolvedValue(undefined),
 }))

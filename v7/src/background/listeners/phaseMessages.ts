@@ -22,7 +22,8 @@ export const handleAuditMessage = (
     if (!contract.ok) throw new Error(contract.reason)
     if (!await isAuthorizedDocument(sender)) throw new Error('document is not authorized')
     const tabId = sender.tab!.id!
-    await pushEvent(tabId, { t: `dom:${event}`, u: (data as { url: string }).url, documentId: sender.documentId, d: data })
+    const accepted = await pushEvent(tabId, { t: `dom:${event}`, u: (data as { url: string }).url, documentId: sender.documentId, d: data })
+    if (!accepted) throw new Error('phase event does not match the current capture')
     if (event === 'document_idle') await markDomPhase(tabId, sender.documentId)
     send?.({ accepted: true })
   }
