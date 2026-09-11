@@ -1,8 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { persistResults, KEEP_LAST_RUNS, type PersistableResult } from '@/background/rules/persistResults'
+import { STORAGE_KEYS } from '@/shared/storage-keys'
 
 const storageState: Record<string, unknown> = {}
+const sessionState: Record<string, unknown> = {}
+
+// The service worker never receives its own runtime.sendMessage: with no other
+// extension context open Chrome rejects it. persistResults runs in the SW.
+const NO_RECEIVER = 'Could not establish connection. Receiving end does not exist.'
 
 const createChromeStub = () => {
   const get = vi.fn(async (key?: string) => {
@@ -13,15 +19,22 @@ const createChromeStub = () => {
     Object.entries(value).forEach(([k, v]) => { storageState[k] = v })
   })
   const remove = vi.fn(async (key: string) => { delete storageState[key] })
-  return { storage: { local: { get, set, remove } }, runtime: { sendMessage: vi.fn() } }
+  const session = {
+    get: vi.fn(async (key: string) => ({ [key]: sessionState[key] })),
+    set: vi.fn(async (value: Record<string, unknown>) => { Object.assign(sessionState, value) }),
+  }
+  return { storage: { local: { get, set, remove }, session }, runtime: { sendMessage: vi.fn(() => Promise.reject(new Error(NO_RECEIVER))) } }
 }
 
 const makeRun = (runId: string, count: number, padding = 0): PersistableResult[] =>
   Array.from({ length: count }, (_, i) => ({ name: `r${i}`, type: 'info', ruleId: `rule:${i}`, runIdentifier: runId, message: 'x'.repeat(padding) }))
 
+const tabLogs = (tabId: number) => (sessionState[`logs:${tabId}`] as string[] | undefined) ?? []
+
 describe('persistResults retention', () => {
   beforeEach(() => {
     Object.keys(storageState).forEach((k) => delete storageState[k])
+    Object.keys(sessionState).forEach((k) => delete sessionState[k])
     // @ts-expect-error test shim
     globalThis.chrome = createChromeStub()
   })
@@ -57,6 +70,17 @@ describe('persistResults retention', () => {
     expect(seenRuns.has('run-new')).toBe(true)
   })
 
+  it('logs eviction through storage, never through runtime.sendMessage', async () => {
+    storageState[STORAGE_KEYS.UI.DEBUG] = true
+    const prev: PersistableResult[] = [
+      ...makeRun('run-old', 1, 1_200_000),
+      ...makeRun('run-mid', 1, 1_200_000),
+    ]
+    await persistResults(7, 'results:7', prev, makeRun('run-new', 1, 1_200_000))
+    expect(chrome.runtime.sendMessage).not.toHaveBeenCalled()
+    expect(tabLogs(7).some((line) => line.includes('retention') && line.includes('run-old'))).toBe(true)
+  })
+
   it('keeps results without a runIdentifier (legacy rows)', async () => {
     const key = 'results:9'
     const prev: PersistableResult[] = [
@@ -78,5 +102,8 @@ describe('persistResults retention', () => {
     const stored = storageState['results:11'] as PersistableResult[]
     expect(stored).toHaveLength(3)
     expect(stored.every((row) => !('details' in row))).toBe(true)
+    expect(chrome.runtime.sendMessage).not.toHaveBeenCalled()
+    // A quota degradation is always retained (warn category), even with debug logging off.
+    expect(tabLogs(11).some((line) => line.includes('storage degraded') && line.includes('QUOTA_BYTES'))).toBe(true)
   })
 })

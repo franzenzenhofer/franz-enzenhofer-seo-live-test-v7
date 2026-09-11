@@ -43,23 +43,27 @@ const trimToLastNRuns = (results: PersistableResult[], keep: number): Persistabl
   return results.filter((r) => !r.runIdentifier || keepSet.has(r.runIdentifier))
 }
 
-const evictUntilUnderSoftCap = (tabId: number, key: string, merged: PersistableResult[]): PersistableResult[] => {
-  let current = merged
-  while (toBytes(current) > RESULTS_SOFT_BYTES) {
-    const order = uniqueRunIdsInOrder(current)
+const evictUntilUnderSoftCap = (merged: PersistableResult[]): { kept: PersistableResult[]; evicted: string[] } => {
+  let kept = merged
+  const evicted: string[] = []
+  while (toBytes(kept) > RESULTS_SOFT_BYTES) {
+    const order = uniqueRunIdsInOrder(kept)
     if (order.length <= 1) break
     const oldest = order[0]!
-    current = current.filter((r) => r.runIdentifier !== oldest)
-    Logger.logDirectSend(tabId, 'storage', 'retention', { key, evicted: oldest, remainingRuns: order.length - 1 })
+    kept = kept.filter((r) => r.runIdentifier !== oldest)
+    evicted.push(oldest)
   }
-  return current
+  return { kept, evicted }
 }
 
+// Runs in the service worker, which never receives its own runtime.sendMessage:
+// log straight to storage (Logger.logDirect), never through the message channel.
 export const persistResults = async (tabId: number, key: string, prev: PersistableResult[] | undefined, add: PersistableResult[]): Promise<number> => {
   const prevFiltered = filterPrev(prev || [], add)
   const merged = dedupRunner([...prevFiltered, ...add])
   const trimmed = trimToLastNRuns(merged, KEEP_LAST_RUNS)
-  const capped = evictUntilUnderSoftCap(tabId, key, trimmed)
+  const { kept: capped, evicted } = evictUntilUnderSoftCap(trimmed)
+  if (evicted.length) await Logger.logDirect(tabId, 'storage', 'retention', { key, evicted: evicted.join(','), remainingRuns: uniqueRunIdsInOrder(capped).length })
   const finalBytes = toBytes(capped)
   if (finalBytes > RESULTS_HARD_BYTES) {
     throw new Error(`Persisted results too large (${finalBytes} bytes) for ${key}; refusing to overwrite existing runs`)
@@ -75,7 +79,7 @@ export const persistResults = async (tabId: number, key: string, prev: Persistab
       const retryReason = retryError instanceof Error ? retryError.message : String(retryError)
       throw new Error(`Failed to persist degraded results for ${key}: ${retryReason}`)
     })
-    Logger.logDirectSend(tabId, 'storage', 'degraded', { key, results: degraded.length, reason })
+    await Logger.logDirect(tabId, 'warn', 'storage degraded', { key, results: degraded.length, reason })
     return degraded.length
   }
 }
