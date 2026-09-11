@@ -1,15 +1,17 @@
-import { extractPSIKey } from '../google-utils'
-
+import { requestPsi, psiApi, PSI_NOT_MARKUP } from './psiFacts'
 import { psiScoreVerdict, summarizePSI } from './summary'
 
-import { runPSI, getPSIKey } from '@/shared/psi'
+import { textField, urlField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
 
 const NAME = 'V5 Desktop score'
+const STRATEGY = 'desktop'
 
 export const psiDesktopRule: Rule = {
   id: 'psi:desktop',
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'psi',
   meta: {
@@ -22,13 +24,33 @@ export const psiDesktopRule: Rule = {
     description: 'Runs the PSI v5 API with strategy=desktop and grades the Lighthouse performance score.',
   },
   async run(page, ctx) {
-    const userKey = extractPSIKey(ctx)
-    const key = getPSIKey(userKey)
-    const j = await runPSI(page.url, 'desktop', key)
-    const summary = summarizePSI(j, page.url, 'desktop')
-    if (summary.score === undefined) return { label: 'PSI', name: NAME, message: 'Desktop performance score unavailable.', type: 'info', priority: 900, details: { ...summary } }
+    const outcome = await requestPsi(page.url, STRATEGY, ctx)
+    if (!outcome.ok) return presentResult(psiDesktopRule, page, outcome.facts)
+
+    const summary = summarizePSI(outcome.json, page.url, STRATEGY)
+    if (summary.score === undefined) {
+      return presentResult(psiDesktopRule, page, {
+        input: 'Page URL + PageSpeed Insights API response',
+        type: 'info',
+        priority: 900,
+        values: [textField('Desktop performance score', 'Not reported by PageSpeed Insights')],
+        detailValues: [urlField('PageSpeed Insights report', summary.testUrl)],
+        checked: [...psiApi(STRATEGY), textField('Metric', 'Lighthouse performance category score')],
+        noMarkup: PSI_NOT_MARKUP,
+      })
+    }
+
     const verdict = psiScoreVerdict(summary.score)
-    const msg = `Desktop performance: ${summary.score}/100 [View report](${summary.testUrl})`
-    return { label: 'PSI', message: msg, type: verdict.type, priority: verdict.priority, name: NAME, details: { ...summary } }
+    return presentResult(psiDesktopRule, page, {
+      input: 'Page URL + PageSpeed Insights API response',
+      type: verdict.type,
+      priority: verdict.priority,
+      values: [textField('Desktop performance score', `${summary.score}/100`)],
+      detailValues: [urlField('PageSpeed Insights report', summary.testUrl), urlField('Final tested URL', summary.finalDisplayedUrl || page.url)],
+      checked: [...psiApi(STRATEGY),
+        textField('Metric', 'Lighthouse performance category score (0-100)'),
+        textField('Criterion', '90-100 passed, 50-89 warning, 0-49 failed')],
+      noMarkup: PSI_NOT_MARKUP,
+    })
   },
 }
