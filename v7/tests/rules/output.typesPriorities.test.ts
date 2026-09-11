@@ -19,8 +19,8 @@ const ctx = { globals: {} }
 describe('result types and priorities match the finding', () => {
   it('http:x-cache uses cacheStatus, not a fake HTTP status key', async () => {
     const res = await xCacheRule.run(page('', { headers: { 'x-cache': 'HIT from edge' } }), ctx)
-    expect(res.details?.['cacheStatus']).toBe('HIT')
-    expect(res.details?.['status']).toBeUndefined()
+    expect(res.presentation?.values).toContainEqual({ key: 'Cache status', value: 'HIT', kind: 'text' })
+    expect(res.details).toBeUndefined()
   })
 
   it('http:negotiated-protocol treats h2 as a passing state', async () => {
