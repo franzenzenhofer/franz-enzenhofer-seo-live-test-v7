@@ -1,11 +1,13 @@
-import { extractPSIKey } from '../google-utils'
-
+import { requestPsi, psiApi, PSI_NOT_MARKUP } from './psiFacts'
 import { summarizePSI } from './summary'
 
-import { runPSI, getPSIKey } from '@/shared/psi'
+import { textField, urlField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
+import type { DisplayField } from '@/shared/presentation/schema'
 import type { Rule } from '@/core/types'
 
 const NAME = 'V5 Mobile FCP/TBT'
+const STRATEGY = 'mobile'
 // FCP thresholds per https://web.dev/articles/fcp: good <= 1.8s, poor > 3.0s.
 const FCP_WARN_MS = 1800
 const FCP_ERROR_MS = 3000
@@ -22,6 +24,7 @@ const worst = (grades: Grade[]): Grade => (grades.includes('error') ? 'error' : 
 export const psiMobileFcpTbtRule: Rule = {
   id: 'psi:mobile-fcp-tbt',
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'psi',
   meta: {
@@ -34,32 +37,37 @@ export const psiMobileFcpTbtRule: Rule = {
     description: 'Grades mobile FCP (good <=1800ms, poor >3000ms) and TBT (good <200ms, poor >600ms) from the PSI mobile run.',
   },
   async run(page, ctx) {
-    const userKey = extractPSIKey(ctx)
-    const key = getPSIKey(userKey)
-    const j = await runPSI(page.url, 'mobile', key)
-    const summary = summarizePSI(j, page.url, 'mobile')
+    const outcome = await requestPsi(page.url, STRATEGY, ctx)
+    if (!outcome.ok) return presentResult(psiMobileFcpTbtRule, page, outcome.facts)
+
+    const summary = summarizePSI(outcome.json, page.url, STRATEGY)
     const grades: Grade[] = []
-    const parts: string[] = []
-    if (typeof summary.fcpMs === 'number') {
-      grades.push(gradeFcp(summary.fcpMs))
-      parts.push(`FCP ${summary.fcpMs}ms (good <= ${FCP_WARN_MS}ms, poor > ${FCP_ERROR_MS}ms)`)
+    const values: DisplayField[] = []
+    if (typeof summary.fcpMs === 'number') { grades.push(gradeFcp(summary.fcpMs)); values.push(textField('First Contentful Paint (FCP)', `${summary.fcpMs} ms`)) }
+    if (typeof summary.tbtMs === 'number') { grades.push(gradeTbt(summary.tbtMs)); values.push(textField('Total Blocking Time (TBT)', `${summary.tbtMs} ms`)) }
+
+    const checked = [...psiApi(STRATEGY),
+      textField('FCP criterion', `Passed <= ${FCP_WARN_MS}ms, warning above that, failed > ${FCP_ERROR_MS}ms`),
+      textField('TBT criterion', `Passed < ${TBT_WARN_MS}ms, warning from that, failed > ${TBT_ERROR_MS}ms`)]
+    const detailValues = [urlField('PageSpeed Insights report', summary.testUrl)]
+
+    if (!values.length) {
+      return presentResult(psiMobileFcpTbtRule, page, {
+        input: 'Page URL + PageSpeed Insights API response',
+        type: 'info',
+        priority: 700,
+        values: [textField('Mobile FCP/TBT', 'Not reported by PageSpeed Insights')],
+        detailValues, checked,
+        noMarkup: PSI_NOT_MARKUP,
+      })
     }
-    if (typeof summary.tbtMs === 'number') {
-      grades.push(gradeTbt(summary.tbtMs))
-      parts.push(`TBT ${summary.tbtMs}ms (good < ${TBT_WARN_MS}ms, poor > ${TBT_ERROR_MS}ms)`)
-    }
-    if (!parts.length) {
-      return { label: 'PSI', message: `Metrics unavailable [View report](${summary.testUrl})`, type: 'info', priority: 700, name: NAME, details: { ...summary } }
-    }
+
     const type = worst(grades)
     const priority = type === 'error' ? 120 : type === 'warn' ? 300 : 850
-    return {
-      label: 'PSI',
-      message: `${parts.join(', ')} [View report](${summary.testUrl})`,
-      type,
-      priority,
-      name: NAME,
-      details: { ...summary },
-    }
+    return presentResult(psiMobileFcpTbtRule, page, {
+      input: 'Page URL + PageSpeed Insights API response',
+      type, priority, values, detailValues, checked,
+      noMarkup: PSI_NOT_MARKUP,
+    })
   },
 }
