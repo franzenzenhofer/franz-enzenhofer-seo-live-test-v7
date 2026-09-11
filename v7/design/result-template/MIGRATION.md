@@ -98,7 +98,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `http:h3-advertised` | `50211b9` (7.0.273) |
 | `http:alt-svc-other` | `f1ee0ce` (7.0.274) |
 | `http:negotiated-protocol` | `e43d204` (7.0.275) |
-| `http:cache-delivery` | build 7.0.276 |
+| `http:cache-delivery` | `a42056e` (7.0.276) |
+| `http:from-cache` | build 7.0.278 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
