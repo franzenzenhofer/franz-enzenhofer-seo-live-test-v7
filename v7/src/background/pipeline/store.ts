@@ -54,6 +54,12 @@ const setDomDoneUnsafe = async (tabId: number, documentId?: string): Promise<Dom
   return r.ev.some((e) => e.t === 'dom:document_end') ? 'ready' : 'awaiting-static'
 }
 
+// Called on the nav:commit of a Run test navigation, so the record exists.
+const markManualUnsafe = async (tabId: number) => {
+  const r = (await getRun(tabId)) || { id: Date.now(), ev: [] }
+  await setRun(tabId, { ...r, manual: true })
+}
+
 const popRunUnsafe = async (tabId: number, expectedId?: number): Promise<Run | null> => {
   await flushResources(tabId)
   const r = await getRun(tabId)
@@ -75,6 +81,8 @@ export const addEvent = (tabId: number, ev: EventRec) => serializePerTab(tabId, 
 
 export const setDomDone = (tabId: number, documentId?: string) =>
   serializePerTab(tabId, () => setDomDoneUnsafe(tabId, documentId))
+
+export const markManualRun = (tabId: number) => serializePerTab(tabId, () => markManualUnsafe(tabId))
 
 export const popRun = (tabId: number, expectedId?: number) => serializePerTab(tabId, () => popRunUnsafe(tabId, expectedId))
 

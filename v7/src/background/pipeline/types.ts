@@ -39,5 +39,8 @@ export type ResourceLedger = {
   truncated: boolean
   bytes: number
 }
-/** frames: subframe IDs of the run's document seen so far (bounded), for nested iframes. */
-export type Run = { id: number; documentId?: string; ev: EventRec[]; domDone?: boolean; eventDropped?: number; resources?: ResourceLedger; frames?: number[] }
+/**
+ * frames: subframe IDs of the run's document seen so far (bounded), for nested iframes.
+ * manual: the run was requested by Run test and bound to its committed document (manualRun.ts).
+ */
+export type Run = { id: number; documentId?: string; ev: EventRec[]; domDone?: boolean; eventDropped?: number; resources?: ResourceLedger; frames?: number[]; manual?: boolean }

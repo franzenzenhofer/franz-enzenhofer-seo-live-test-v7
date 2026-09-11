@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { authorizeAudit, isAuthorizedDocument } from '@/background/pipeline/auditAccess'
-import { manualAuditKey } from '@/shared/auditIntent'
+import { bindManualRun } from '@/background/pipeline/manualRun'
+import { auditDocumentKey, manualAuditKey } from '@/shared/auditIntent'
 
 const local: Record<string, unknown> = {}
 const session: Record<string, unknown> = {}
@@ -71,19 +72,57 @@ describe('audit authorization', () => {
     expect(await isAuthorizedDocument(sender())).toBe(false)
   })
 
-  it('honours one manual run while auto-run is off, and consumes the intent', async () => {
+  it('authorizes the document the manual run was bound to while auto-run is off, for both phases', async () => {
     local['ui:autoRun'] = false
     session[manualAuditKey(7)] = { requestedAt: Date.now() }
+    expect(await bindManualRun(7, 'doc-1')).toBe(true)
     expect(await authorizeAudit(sender())).toBe(true)
     expect(session[manualAuditKey(7)]).toBeUndefined()
+    // document_idle asks again for the same document: still the manual document.
+    expect(await authorizeAudit(sender())).toBe(true)
+    expect(await isAuthorizedDocument(sender())).toBe(true)
+    expect((session['run:7'] as { manual?: boolean }).manual).toBe(true)
     // A later document in the same tab gets no free ride from the spent intent.
     currentDocumentId = 'doc-2'
     expect(await authorizeAudit(sender({ documentId: 'doc-2' }))).toBe(false)
   })
 
-  it('ignores a manual intent that has expired', async () => {
+  it('never lets a document that merely asks first claim the intent: only the committed document is bound', async () => {
+    local['ui:autoRun'] = false
+    session[manualAuditKey(7)] = { requestedAt: Date.now() }
+    // No nav:commit yet - the intent alone authorizes nothing and is kept for the load.
+    expect(await authorizeAudit(sender())).toBe(false)
+    expect(session[manualAuditKey(7)]).toBeDefined()
+    await bindManualRun(7, 'doc-2')
+    // The stale document is still the frame's current one for a moment, but doc-2 holds the binding.
+    expect(await authorizeAudit(sender())).toBe(false)
+    currentDocumentId = 'doc-2'
+    expect(await authorizeAudit(sender({ documentId: 'doc-2' }))).toBe(true)
+  })
+
+  it('keeps the intent across a redirect that replaces the bound document before it asked', async () => {
+    local['ui:autoRun'] = false
+    session[manualAuditKey(7)] = { requestedAt: Date.now() }
+    await bindManualRun(7, 'doc-1')
+    // nav:before of the redirect target drops the binding (clearTabSessionState), the commit binds again.
+    delete session[auditDocumentKey(7)]
+    expect(await bindManualRun(7, 'doc-2')).toBe(true)
+    currentDocumentId = 'doc-2'
+    expect(await authorizeAudit(sender({ documentId: 'doc-2' }))).toBe(true)
+  })
+
+  it('drops a manual intent that has expired instead of binding it', async () => {
     local['ui:autoRun'] = false
     session[manualAuditKey(7)] = { requestedAt: Date.now() - 60_000 }
+    expect(await bindManualRun(7, 'doc-1')).toBe(false)
+    expect(session[manualAuditKey(7)]).toBeUndefined()
     expect(await authorizeAudit(sender())).toBe(false)
+  })
+
+  it('records the CMS refusal for a bound manual document too', async () => {
+    session[manualAuditKey(7)] = { requestedAt: Date.now() }
+    await bindManualRun(7, 'doc-1')
+    expect(await authorizeAudit(sender({ url: 'https://example.test/wp-admin/edit.php' }))).toBe(false)
+    expect((local['results-meta:7'] as { status: string }).status).toBe('skipped')
   })
 })

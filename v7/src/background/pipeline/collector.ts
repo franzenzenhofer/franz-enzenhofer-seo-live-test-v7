@@ -3,6 +3,7 @@ import { clearTabSessionState } from '../tabCleanup'
 import { addEvent, peekRun, setDomDone } from './store'
 import { scheduleFinalize, onAlarm } from './alarms'
 import { finalizeTab } from './finalize'
+import { bindManualRun } from './manualRun'
 
 import { log, logSystem, isValidTabId } from '@/shared/logs'
 import { Logger } from '@/shared/logger'
@@ -41,6 +42,7 @@ const collectEvent = async (tabId: number, ev: import('./types').EventRec): Prom
     return false
   }
   await Logger.logDirect(tabId, 'event', 'add', { type: ev.t, tabId })
+  if (ev.t === 'nav:commit' && ev.documentId) await bindManualRun(tabId, ev.documentId)
   if (ev.t === 'dom:document_end') await finalizeIfIdleAlreadyDone(tabId)
   if (ev.t.startsWith('dom:')) {
     const data = ev.d as { facts?: { nodeCount?: number }; results?: unknown[] } | undefined
