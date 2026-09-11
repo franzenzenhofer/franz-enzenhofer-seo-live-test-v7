@@ -1,3 +1,5 @@
+import { combineInputs } from '@/rules/http/navigationStepEvidence'
+import { httpResponseInput } from '@/shared/httpResponseInput'
 import { httpStatusLabel } from '@/shared/httpStatusLabel'
 import { textField, urlField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
@@ -21,7 +23,7 @@ export const pageObjectRule: Rule = {
     const resourceCount = (page.resources || []).length
 
     return presentResult(pageObjectRule, page, {
-      input: 'Page URL + Main-document HTTP response + HTTP response headers + Navigation events',
+      input: combineInputs('Page URL', httpResponseInput(page), 'Navigation events'),
       type: 'info',
       priority: 900,
       values: [
