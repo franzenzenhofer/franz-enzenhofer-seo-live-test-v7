@@ -1,9 +1,8 @@
 import type { Rule } from '@/core/types'
-import { extractHtml, extractSnippet } from '@/shared/html-utils'
-import { getDomPath } from '@/shared/dom-path'
+import { textField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
 
-// Constants
-const LABEL = 'HEAD'
 const NAME = 'Twitter Card'
 const RULE_ID = 'head:twitter-card'
 const SELECTOR = 'head > meta[name="twitter:card" i]'
@@ -11,9 +10,15 @@ const SELECTOR = 'head > meta[name="twitter:card" i]'
 // Valid Twitter Card types per spec
 const VALID_CARD_TYPES = ['summary', 'summary_large_image', 'app', 'player']
 
+const checked = [
+  textField('Selector', SELECTOR), textField('Selection', 'First match'), textField('Attribute', 'content'),
+  textField('Valid card types', VALID_CARD_TYPES.join(', ')), textField('Criterion', 'Content matches a supported card type'),
+]
+
 export const twitterCardRule: Rule = {
   id: RULE_ID,
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'static',
   meta: {
@@ -26,60 +31,25 @@ export const twitterCardRule: Rule = {
     description: 'Checks meta[name=twitter:card] presence and validates its value against {summary, summary_large_image, app, player}.',
   },
   async run(page) {
-    // 1. Query with precision selector
     const element = page.doc.querySelector(SELECTOR)
+    if (!element) return presentResult(twitterCardRule, page, {
+      input: 'Static DOM', type: 'info', priority: 900,
+      values: [textField('twitter:card', 'Not found')], checked,
+      noMarkup: 'No matching twitter:card meta element found',
+    })
 
-    // 2. Extract card type and handle whitespace
-    const cardType = (element?.getAttribute('content') || '').trim()
-
-    // 3. Determine states (Binary Logic)
-    const isPresent = Boolean(element)
-    const hasCardType = isPresent && cardType.length > 0
-    const isValidType = hasCardType && VALID_CARD_TYPES.includes(cardType)
-
-    // 4. Build message (Quantified, showing the value)
-    let message = ''
-    let type: 'ok' | 'warn' | 'info' = 'info'
-    let priority = 700
-
-    if (!isPresent) {
-      message = 'No twitter:card meta tag found. A preview may use suitable Open Graph metadata.'
-      type = 'info'
-      priority = 900
-    } else if (!hasCardType) {
-      message = 'twitter:card meta tag present but content is empty.'
-      type = 'warn'
-      priority = 500
-    } else if (isValidType) {
-      message = `twitter:card=${cardType}`
-      type = 'ok'
-      priority = 750
-    } else {
-      message = `twitter:card=${cardType} (Invalid card type. Valid: ${VALID_CARD_TYPES.join(', ')})`
-      type = 'warn'
-      priority = 400
+    const cardType = (element.getAttribute('content') || '').trim()
+    const captured = markupEvidence([element], 'Twitter card markup')
+    const common = {
+      input: 'Static DOM',
+      evidence: captured.fields.length ? [{ name: 'Source locations', fields: captured.fields }] : [],
+      markup: captured.markup, noMarkup: 'Complete original twitter:card markup not retained',
     }
+    if (!cardType) return presentResult(twitterCardRule, page, { ...common, type: 'warn', priority: 500,
+      values: [textField('twitter:card', 'Empty')], checked })
 
-    // 5. Build evidence (Chain of Evidence)
-    const details = isPresent
-      ? {
-          sourceHtml: extractHtml(element),
-          snippet: extractSnippet(cardType || '(empty)'),
-          domPath: getDomPath(element),
-          cardType,
-          isValidType,
-          validCardTypes: VALID_CARD_TYPES,
-        }
-      : { validCardTypes: VALID_CARD_TYPES }
-
-    return {
-      label: LABEL,
-      name: NAME,
-      message,
-      type,
-      priority,
-      details,
-    }
+    const isValidType = VALID_CARD_TYPES.includes(cardType)
+    return presentResult(twitterCardRule, page, { ...common, type: isValidType ? 'ok' : 'warn', priority: isValidType ? 750 : 400,
+      values: [textField('twitter:card', cardType), textField('Card type valid', isValidType ? 'Yes' : 'No')], checked })
   },
 }
-
