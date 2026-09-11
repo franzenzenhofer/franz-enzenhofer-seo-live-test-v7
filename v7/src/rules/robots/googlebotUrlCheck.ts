@@ -1,17 +1,29 @@
+import { matchingRuleEvidence } from './googlebotUrlCheck.evidence'
+
 import parse from '@/vendor/robots'
 import type { Rule } from '@/core/types'
 import { fetchStatusTextOnce } from '@/shared/fetchOnce'
+import { httpStatusLabel } from '@/shared/httpStatusLabel'
+import { textField, urlField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 import { robotsPolicyState } from '@/shared/robotsPolicy'
 
-const LABEL = 'ROBOTS'
 const NAME = 'Googlebot URL allowed'
+const RULE_ID = 'robots:googlebot-url-check'
+const TIMEOUT_MS = 1500
+const NO_MARKUP = 'None - this rule checks robots.txt, not document markup'
 const USER_AGENT = 'Googlebot'
+const OTHER_AGENTS = ['Googlebot-News', 'Googlebot-Image']
+
+const checkedFacts = (criterion: string) => [
+  textField('Fetch target', 'origin/robots.txt'),
+  textField('Timeout', `${TIMEOUT_MS} ms`),
+  textField('Crawler', USER_AGENT),
+  textField('Criterion', criterion),
+]
 
 export const googlebotUrlCheckRule: Rule = {
-  id: 'robots:googlebot-url-check',
-  name: NAME,
-  enabled: true,
-  what: 'http',
+  id: RULE_ID, name: NAME, presentation: 1, enabled: true, what: 'http',
   meta: {
     provenance: 'google',
     references: [
@@ -25,32 +37,42 @@ export const googlebotUrlCheckRule: Rule = {
     try {
       origin = new URL(page.url).origin
     } catch {
-      return { label: LABEL, message: 'Invalid URL', type: 'info', priority: 900, name: NAME, details: { url: page.url } }
+      return presentResult(googlebotUrlCheckRule, page, {
+        input: 'Page URL', type: 'info', priority: 900,
+        values: [textField('Googlebot crawl permission', 'Not checked'), textField('Reason', 'Invalid page URL')],
+        checked: checkedFacts('robots.txt permits this URL for Googlebot'), noMarkup: NO_MARKUP,
+      })
     }
-    const response = await fetchStatusTextOnce(`${origin}/robots.txt`, 1500, ctx.signal)
+    const response = await fetchStatusTextOnce(`${origin}/robots.txt`, TIMEOUT_MS, ctx.signal)
     const state = robotsPolicyState(response)
-    if (state === 'unknown')
-      return {
-        label: LABEL,
-        message: 'robots.txt unavailable; current crawl permission cannot be determined.',
-        type: 'info',
-        priority: 850,
-        name: NAME,
-        details: { origin, robotsTxt: '' },
-      }
-    const txt = state === 'allow' ? '' : response?.text || ''
-    const res = parse(txt, page.url, USER_AGENT) as Record<string, unknown>
-    const allowed = Boolean(res['allowed'])
-    return {
-      label: LABEL,
-      message: allowed
-        ? `${USER_AGENT} is allowed to crawl this URL.`
-        : `${USER_AGENT} is disallowed from crawling this URL by robots.txt.`,
-      type: allowed ? 'ok' : 'error',
-      priority: allowed ? 800 : 60,
-      name: NAME,
-      details: { url: page.url, userAgent: USER_AGENT, allowed, robotsTxt: txt, status: response?.status,
-        agents: Object.fromEntries(['Googlebot', 'Googlebot-News', 'Googlebot-Image'].map((agent) => [agent, parse(txt, page.url, agent).allowed])) },
+    const robotsTxtUrl = `${origin}/robots.txt`
+    if (state === 'unknown') {
+      return presentResult(googlebotUrlCheckRule, page, {
+        input: response ? 'robots.txt response' : 'Not captured', type: 'info', priority: 850,
+        values: [textField('Googlebot crawl permission', 'Not checked'),
+          textField('HTTP status', response ? httpStatusLabel(response.status) : 'No response received')],
+        detailValues: [/^https?:/i.test(origin) ? urlField('robots.txt URL', robotsTxtUrl) : textField('robots.txt URL', robotsTxtUrl)],
+        checked: checkedFacts('robots.txt permits this URL for Googlebot'), noMarkup: NO_MARKUP,
+      })
     }
+    const txt = state === 'allow' ? '' : response?.text || ''
+    const allowed = Boolean((parse(txt, page.url, USER_AGENT) as Record<string, unknown>)['allowed'])
+    // Same path @/vendor/robots' parse() matches against: pathname + search, not the full URL.
+    const path = (() => { try { const u = new URL(page.url); return u.pathname + u.search } catch { return '/' } })()
+    const { groupLabel, matches } = matchingRuleEvidence(txt, path, USER_AGENT)
+    const comparison = OTHER_AGENTS.map((agent) => textField(agent, (parse(txt, page.url, agent) as Record<string, unknown>)['allowed'] ? 'Allowed' : 'Disallowed'))
+    return presentResult(googlebotUrlCheckRule, page, {
+      input: 'robots.txt response', type: allowed ? 'ok' : 'error', priority: allowed ? 800 : 60,
+      values: [textField('Googlebot crawl permission', allowed ? 'Allowed' : 'Disallowed'), textField('HTTP status', httpStatusLabel(response!.status))],
+      detailValues: [urlField('robots.txt URL', robotsTxtUrl), urlField('Checked URL', page.url)],
+      checked: checkedFacts('robots.txt permits this URL for Googlebot'),
+      evidence: [
+        { name: 'Applicable user-agent group', fields: [textField('Group', groupLabel),
+          ...(matches.length ? [] : [textField('Matching rule', 'None - default allow applies')])] },
+        ...matches.map((m) => ({ name: `Line ${m.line}`, fields: [textField('Line', m.line), textField('Directive', m.key === 'allow' ? 'Allow' : 'Disallow'), textField('Value', m.val)] })),
+        { name: 'Other crawlers', fields: comparison },
+      ],
+      noMarkup: NO_MARKUP,
+    })
   },
 }
