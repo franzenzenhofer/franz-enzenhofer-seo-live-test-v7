@@ -125,7 +125,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `speed:preconnect` | `29c865a` (7.0.303) |
 | `speed:dns-prefetch` | `7dda8ce` (7.0.304) |
 | `speed:first-paint` | `6072402` (7.0.305) |
-| `url:history-state-update` | build 7.0.306 |
+| `url:history-state-update` | `390c009` (7.0.306) |
+| `robots:blocked-resources` | build 7.0.307 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 

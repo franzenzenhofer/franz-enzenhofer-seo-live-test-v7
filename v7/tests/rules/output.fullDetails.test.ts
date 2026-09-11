@@ -39,11 +39,13 @@ describe('details carry everything collected (no silent discarding)', () => {
 
   it('robots:blocked-resources names each blocked resource', async () => {
     // @ts-expect-error network stub
-    globalThis.fetch = vi.fn().mockResolvedValue({ ok: true, text: async () => 'User-agent: *\nDisallow: /blocked' })
-    const resources = ['https://ex.com/blocked/a.js', 'https://ex.com/blocked/b.js', 'https://ex.com/open/c.js', 'https://cdn.other/d.js']
-    const res = await robotsBlockedResourcesRule.run(page('<p/>', { resources }), ctx)
-    expect(res.details?.['blockedResources']).toEqual(['https://ex.com/blocked/a.js', 'https://ex.com/blocked/b.js'])
-    expect(res.details?.['allowedCount']).toBe(1)
+    globalThis.fetch = vi.fn().mockResolvedValue({ ok: true, status: 200, text: async () => 'User-agent: *\nDisallow: /blocked' })
+    const resources = ['https://fulldetails.test/blocked/a.js', 'https://fulldetails.test/blocked/b.js', 'https://fulldetails.test/open/c.js', 'https://cdn.other/d.js']
+    const res = await robotsBlockedResourcesRule.run(page('<p/>', { url: 'https://fulldetails.test/page', resources }), ctx)
+    const urls = res.presentation?.evidence.filter((record) => record.name.startsWith('Blocked resource')).flatMap((record) => record.fields.map((f) => f.value))
+    expect(urls).toEqual(['https://fulldetails.test/blocked/a.js', 'https://fulldetails.test/blocked/b.js'])
+    expect(res.presentation?.detailValues.find((f) => f.key === 'Allowed resources')?.value).toBe(1)
+    expect(res.details).toBeUndefined()
   })
 
   it('debug:page-object carries full headers and all resources', async () => {

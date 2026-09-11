@@ -1,28 +1,37 @@
+import { coverageDetails } from './blockedResources.evidence'
+
 import parse from '@/vendor/robots'
 import type { Rule } from '@/core/types'
 import { fetchStatusTextOnce } from '@/shared/fetchOnce'
-import { extractSnippet } from '@/shared/html-utils'
+import { httpStatusLabel } from '@/shared/httpStatusLabel'
+import { textField, urlField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 import { robotsPolicyState } from '@/shared/robotsPolicy'
 
-const LABEL = 'ROBOTS'
 const NAME = 'robots.txt Blocked Resources'
 const RULE_ID = 'robots:blocked-resources'
+const TIMEOUT_MS = 1500
+const MAX_SHOWN = 10
+const NO_MARKUP = 'None - this rule checks robots.txt, not document markup'
+const USER_AGENT = 'Googlebot'
 
-// Matching is by ORIGIN: robots.txt is scheme+host+port scoped, so
-// https://x.test and http://x.test answer to different files.
+// robots.txt is scoped by ORIGIN: scheme+host+port, so https://x.test and
+// http://x.test answer to different files.
 const sameOrigin = (a: string, b: string) => {
-  try {
-    return new URL(a).origin === new URL(b).origin
-  } catch {
-    return false
-  }
+  try { return new URL(a).origin === new URL(b).origin } catch { return false }
 }
 
+const checkedFacts = (criterion: string) => [
+  textField('Fetch target', 'origin/robots.txt'),
+  textField('Timeout', `${TIMEOUT_MS} ms`),
+  textField('Crawler', USER_AGENT),
+  textField('Same-origin matching', 'Resource URL and page URL share scheme, host and port'),
+  textField('Criterion', criterion),
+]
+const CRITERION = 'Every retained same-origin resource is allowed by robots.txt for Googlebot'
+
 export const robotsBlockedResourcesRule: Rule = {
-  id: RULE_ID,
-  name: NAME,
-  enabled: true,
-  what: 'http',
+  id: RULE_ID, name: NAME, presentation: 1, enabled: true, what: 'http',
   meta: {
     provenance: 'google',
     references: [
@@ -36,88 +45,50 @@ export const robotsBlockedResourcesRule: Rule = {
     const list = page.resources || []
     const resourceCount = list.length
     if (!resourceCount) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'No resource requests captured for analysis.',
-        type: 'info',
-        priority: 900,
-        details: {
-          snippet: extractSnippet('(no resources)'),
-          resourceCount: 0,
-        },
-      }
+      return presentResult(robotsBlockedResourcesRule, page, {
+        input: 'Not captured', type: 'info', priority: 900,
+        values: [textField('Same-origin resources checked', 'Not checked'), textField('Reason', 'No resource requests captured')],
+        checked: checkedFacts(CRITERION), noMarkup: NO_MARKUP,
+      })
     }
-    // The ledger is bounded: a verdict may only speak for the URLs it retained.
-    const coverage = page.resourceCoverage || null
-    const coverageNote = coverage?.truncated
-      ? ` Evidence covers ${coverage.retained} retained URLs; ${coverage.dropped} observations were not retained and are unchecked.`
-      : ''
     const base = new URL(page.url)
-    // Shared single-flight fetch: all robots rules reuse one robots.txt request per run.
-    const r = await fetchStatusTextOnce(`${base.origin}/robots.txt`, 1500, ctx.signal)
-    const policy = robotsPolicyState(r)
+    const robotsTxtUrl = `${base.origin}/robots.txt`
+    const response = await fetchStatusTextOnce(robotsTxtUrl, TIMEOUT_MS, ctx.signal)
+    const policy = robotsPolicyState(response)
     if (policy === 'unknown') {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'robots.txt not reachable. Cannot check for blocked resources.',
-        type: 'info',
-        priority: 850,
-        details: {
-          snippet: extractSnippet('(robots.txt not reachable)'),
-          resourceCount,
-        },
-      }
+      return presentResult(robotsBlockedResourcesRule, page, {
+        input: response ? 'Resource requests + robots.txt response' : 'Resource requests', type: 'info', priority: 850,
+        values: [textField('Same-origin resources checked', 'Not checked'),
+          textField('HTTP status', response ? httpStatusLabel(response.status) : 'No response received')],
+        detailValues: [urlField('robots.txt URL', robotsTxtUrl), textField('Resources retained', resourceCount), ...coverageDetails(page)],
+        checked: checkedFacts(CRITERION), noMarkup: NO_MARKUP,
+      })
     }
-    const robotsTxt = policy === 'allow' ? '' : r?.text || ''
-    const userAgent = 'Googlebot'
-    const blockedResources: string[] = []
-    let sameOriginCount = 0
-    for (const resourceUrl of list) {
-      if (!sameOrigin(page.url, resourceUrl)) continue
-      sameOriginCount++
-      const result = parse(robotsTxt, resourceUrl, userAgent) as Record<string, unknown>
-      // The parser already resolves an equal-specificity allow/disallow tie to
-      // allowed (least restrictive rule wins), so only its verdict counts here.
-      if (!result['allowed']) blockedResources.push(resourceUrl)
+    const robotsTxt = policy === 'allow' ? '' : response?.text || ''
+    const sameOriginUrls = list.filter((url) => sameOrigin(page.url, url))
+    const blocked = sameOriginUrls.filter((url) => !((parse(robotsTxt, url, USER_AGENT) as Record<string, unknown>)['allowed']))
+    const crossOriginCount = resourceCount - sameOriginUrls.length
+    const common = {
+      input: 'Resource requests + robots.txt response',
+      detailValues: [urlField('robots.txt URL', robotsTxtUrl), textField('HTTP status', httpStatusLabel(response!.status)),
+        textField('Resources retained', resourceCount), textField('Cross-origin resources', crossOriginCount), ...coverageDetails(page)],
+      checked: checkedFacts(CRITERION),
+      noMarkup: NO_MARKUP,
     }
-    const blockedCount = blockedResources.length
-    // Cross-host resources answer to their own hosts' robots.txt files, so
-    // the verdict may only speak for the same-host resources it checked.
-    const crossOriginCount = resourceCount - sameOriginCount
-    const crossOriginNote = crossOriginCount ? ` (${crossOriginCount} cross-origin, governed by their own robots.txt)` : ''
-    const hasBlockedResources = blockedCount > 0
-    if (!sameOriginCount) {
-      return {
-        label: LABEL, name: NAME, type: 'info', priority: 850,
-        message: `No same-origin resources to check against robots.txt${crossOriginNote}.`,
-        details: { snippet: extractSnippet(robotsTxt, 150), robotsTxt, resourceCount, sameOriginCount, crossOriginCount, userAgent, coverage },
-      }
+    if (!sameOriginUrls.length) {
+      return presentResult(robotsBlockedResourcesRule, page, { ...common, type: 'info', priority: 850,
+        values: [textField('Same-origin resources checked', 0), textField('Cross-origin resources', crossOriginCount)],
+        detailValues: common.detailValues.filter((field) => field.key !== 'Cross-origin resources') })
     }
-    const message = hasBlockedResources
-      ? `${blockedCount} of ${sameOriginCount} same-origin resource${sameOriginCount > 1 ? 's' : ''} disallowed by robots.txt for ${userAgent}.${coverageNote}`
-      : `All ${sameOriginCount} retained same-origin resources allowed for ${userAgent}${crossOriginNote}.${coverageNote}`
-    return {
-      label: LABEL,
-      name: NAME,
-      message,
-      type: hasBlockedResources ? 'warn' : 'ok',
-      priority: hasBlockedResources ? 200 : 800,
-      details: {
-        snippet: extractSnippet(robotsTxt, 150),
-        robotsTxt,
-        resourceCount,
-        sameOriginCount,
-        crossOriginCount,
-        blockedCount,
-        allowedCount: sameOriginCount - blockedCount,
-        ...(blockedResources.length ? { blockedResources } : {}),
-        hasBlockedResources,
-        userAgent,
-        resourceDropped: page.resourceDropped || 0,
-        coverage,
-      },
+    if (blocked.length) {
+      const shown = blocked.slice(0, MAX_SHOWN)
+      return presentResult(robotsBlockedResourcesRule, page, { ...common, type: 'warn', priority: 200,
+        values: [textField('Blocked resources', blocked.length), textField('Same-origin resources checked', sameOriginUrls.length)],
+        detailValues: [...common.detailValues, textField('Allowed resources', sameOriginUrls.length - blocked.length)],
+        evidence: [...shown.map((url, index) => ({ name: `Blocked resource ${index + 1}`, fields: [urlField('Resource URL', url)] })),
+          ...(blocked.length > shown.length ? [{ name: 'Blocked resources omitted', fields: [textField('Omitted', blocked.length - shown.length)] }] : [])] })
     }
+    return presentResult(robotsBlockedResourcesRule, page, { ...common, type: 'ok', priority: 800,
+      values: [textField('Blocked resources', 0), textField('Same-origin resources checked', sameOriginUrls.length)] })
   },
 }
