@@ -1,12 +1,13 @@
 import { headerValue } from '@/shared/headerValue'
+import { hasHeaders } from '@/shared/http-utils'
+import { textField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
-import { extractSnippet } from '@/shared/html-utils'
-import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
-const LABEL = 'HTTP'
 const NAME = 'Strict-Transport-Security (HSTS)'
 const RULE_ID = 'http:hsts'
 const PRELOAD_MIN_MAX_AGE = 31536000
+const NO_MARKUP = 'None - this rule checks the HTTP response, not document markup'
 
 const parseMaxAge = (header: string): number | null => {
   const declarations = header.split(';').map(part => part.trim()).filter(part => /^max-age(?:\s|=|$)/i.test(part))
@@ -27,6 +28,7 @@ const isHttpsUrl = (url: string): boolean => {
 export const hstsRule: Rule = {
   id: RULE_ID,
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'http',
   meta: {
@@ -45,62 +47,57 @@ export const hstsRule: Rule = {
       'Checks the Strict-Transport-Security response header: warns when absent, reports max-age / includeSubDomains / preload when present.',
   },
   async run(page) {
-    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
+    if (!hasHeaders(page.headers)) {
+      return presentResult(hstsRule, page, {
+        input: 'Not captured', type: 'runtime_error', priority: 50,
+        values: [textField('Header capture', 'Not captured')],
+        checked: [textField('Header name', 'Strict-Transport-Security'), textField('Capture requirement', 'Response headers must be captured')],
+        noMarkup: NO_MARKUP,
+      })
+    }
     const hstsHeader = headerValue(page.headers, 'strict-transport-security')
     const hasHsts = Boolean(hstsHeader)
+    const protocol = isHttpsUrl(page.url) ? 'HTTPS' : 'HTTP'
+    const evidence = [{ name: 'Retrieved response header', fields: [textField('Header value', hasHsts ? hstsHeader : 'Not present'), textField('Header lookup', 'Case-insensitive')] }]
     if (!hasHsts) {
-      const https = isHttpsUrl(page.url)
-      return {
-        label: LABEL,
-        name: NAME,
-        message: https
-          ? 'Missing Strict-Transport-Security header. HTTPS sites should use HSTS.'
-          : 'No Strict-Transport-Security header. HSTS only applies to HTTPS responses; browsers ignore it over HTTP.',
-        type: https ? 'warn' : 'info',
-        priority: https ? 300 : 900,
-        details: {
-          snippet: extractSnippet('(not present)'),
-          hstsHeader: '',
-          hasHsts: false,
-        },
-      }
+      const https = protocol === 'HTTPS'
+      return presentResult(hstsRule, page, {
+        input: 'HTTP response headers', type: https ? 'warn' : 'info', priority: https ? 300 : 900,
+        values: [textField('Strict-Transport-Security', 'Not present'), textField('Page protocol', protocol)],
+        checked: [textField('Header name', 'Strict-Transport-Security'), textField('Page protocol check', 'HTTPS or HTTP from the tested page URL'), textField('Header applicability', 'HTTPS response')],
+        evidence, noMarkup: NO_MARKUP,
+      })
     }
     const maxAge = parseMaxAge(hstsHeader)
     const includeSubDomains = /(?:^|;)\s*includeSubDomains\s*(?:;|$)/i.test(hstsHeader)
     const preload = /(?:^|;)\s*preload\s*(?:;|$)/i.test(hstsHeader)
     const preloadEligible = maxAge !== null && maxAge >= PRELOAD_MIN_MAX_AGE && includeSubDomains
-    let message = `HSTS: max-age=${maxAge}${includeSubDomains ? ', includeSubDomains' : ''}${preload ? ', preload' : ''}`
     let type: 'ok' | 'warn' = 'ok'
     let priority = 750
-    if (!isHttpsUrl(page.url)) {
-      message = 'HSTS was sent over HTTP; browsers ignore this policy on an insecure response.'
+    if (protocol !== 'HTTPS') {
       type = 'warn'
     } else if (maxAge === null) {
-      message = 'HSTS needs one valid max-age duration in whole seconds within the numeric range supported by this check.'
       type = 'warn'
     } else if (maxAge === 0) {
-      message = 'HSTS max-age=0 requests removal of this host policy. An inherited or preloaded HSTS policy may still apply.'
       type = 'warn'
       priority = 300
-    } else if (preload && !preloadEligible) {
-      message += ' (preload requires max-age >= 31536000 and includeSubDomains)'
     }
-    return {
-      label: LABEL,
-      name: NAME,
-      message,
-      type,
-      priority,
-      details: {
-        snippet: extractSnippet(hstsHeader),
-        hstsHeader,
-        hasHsts: true,
-        maxAge,
-        durationUnit: 'seconds',
-        preloadStatus: 'The preload token does not prove acceptance into a browser preload list; eligibility and list membership were not checked.',
-        includeSubDomains,
-        preload,
-      },
-    }
+    const eligibility = preload ? (preloadEligible ? 'Eligible by checked thresholds' : 'Not eligible by checked thresholds') : 'Not evaluated'
+    return presentResult(hstsRule, page, {
+      input: 'HTTP response headers', type, priority,
+      values: [
+        textField('Strict-Transport-Security', hstsHeader), textField('Page protocol', protocol),
+        textField('max-age seconds', maxAge === null ? 'Invalid or not parsed' : maxAge),
+        textField('includeSubDomains', includeSubDomains ? 'Present' : 'Not present'),
+        textField('preload', preload ? 'Present' : 'Not present'),
+      ],
+      detailValues: [textField('Preload eligibility', eligibility)],
+      checked: [
+        textField('Header name', 'Strict-Transport-Security'), textField('Page protocol check', 'HTTPS or HTTP from the tested page URL'),
+        textField('max-age parsing', 'One whole-second numeric declaration'), textField('includeSubDomains detection', 'Directive token, case-insensitive'),
+        textField('preload detection', 'Directive token, case-insensitive'), textField('Preload threshold', `max-age at least ${PRELOAD_MIN_MAX_AGE} seconds and includeSubDomains present`),
+      ],
+      evidence, noMarkup: NO_MARKUP,
+    })
   },
 }
