@@ -1,14 +1,16 @@
-import type { Result, Rule } from '@/core/types'
-import { extractSnippet } from '@/shared/html-utils'
-import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
-import { followRedirectChain } from '@/shared/redirectChain'
-import { redirectChainDetails } from '@/shared/redirectChainFormat'
-import { RedirectChainError } from '@/shared/redirectChainTypes'
-import type { RedirectChain } from '@/shared/redirectChainTypes'
+import { chainDetailValues, chainEvidence, soft404Verdict } from './soft404.evidence'
 
-const LABEL = 'HTTP'
+import { hasHeaders } from '@/shared/http-utils'
+import { followRedirectChain } from '@/shared/redirectChain'
+import { RedirectChainError } from '@/shared/redirectChainTypes'
+import { httpStatusLabel } from '@/shared/httpStatusLabel'
+import { textField, urlField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
+import type { Rule } from '@/core/types'
+
 const NAME = 'Soft 404 Probe'
 const RULE_ID = 'http:soft-404'
+const NO_MARKUP = 'None - this rule checks the HTTP response, not document markup'
 
 const buildProbeUrl = (rawUrl: string): string => {
   const u = new URL(rawUrl)
@@ -21,49 +23,19 @@ const buildProbeUrl = (rawUrl: string): string => {
   return u.toString()
 }
 
-/** " after 2 redirects" / " after redirect(s)" (count not observable) / "". */
-const redirectPhrase = (chain: RedirectChain): string => {
-  if (!chain.redirected) return ''
-  if (chain.hopsHidden) return ' after redirect(s)'
-  return ` after ${chain.redirectCount} redirect${chain.redirectCount === 1 ? '' : 's'}`
-}
-
-const verdict = (chain: RedirectChain): Pick<Result, 'message' | 'type' | 'priority'> => {
-  const status = chain.finalStatus
-  const after = redirectPhrase(chain)
-  if (chain.loop || chain.capped) {
-    const what = chain.loop ? 'loops' : `exceeds the ${chain.maxHops}-hop cap`
-    return { message: `Non-existing URL probe never resolved: the redirect chain ${what}.`, type: 'error', priority: 40 }
-  }
-  // Google treats all 4xx except 429 the same: content doesn't exist. 410 is as valid as 404.
-  if (status === 404 || status === 410) {
-    return chain.redirected
-      ? { message: `Non-existing URL returned HTTP ${status}${after} (should be a direct ${status}).`, type: 'info', priority: 700 }
-      : { message: `Non-existing URL returned HTTP ${status} (expected).`, type: 'ok', priority: 900 }
-  }
-  if (status === 200) {
-    return { message: `Soft 404: Non-existing URL returned HTTP 200${after} (should be 404).`, type: 'error', priority: 50 }
-  }
-  // A rate limit or a server error says nothing about how this site handles a
-  // missing URL. Reporting either as a soft 404 would be an invented finding.
-  if (status === 429) {
-    return { message: `Soft 404 probe inconclusive: the non-existing URL answered HTTP 429 (rate limited)${after}.`, type: 'warn', priority: 600 }
-  }
-  if (status >= 500) {
-    return { message: `Soft 404 probe inconclusive: the non-existing URL answered HTTP ${status} (server error)${after}.`, type: 'warn', priority: 600 }
-  }
-  if (status >= 400) {
-    return { message: `Non-existing URL returned HTTP ${status}${after}; like any 4xx this tells Google the content does not exist.`, type: 'ok', priority: 850 }
-  }
-  if (status >= 300) {
-    return { message: `Soft 404 probe inconclusive: the non-existing URL answered HTTP ${status} and the redirect could not be followed.`, type: 'warn', priority: 600 }
-  }
-  return { message: `Soft 404 probe inconclusive: the non-existing URL answered HTTP ${status || 'no response'}${after}.`, type: 'warn', priority: 600 }
-}
+const checked = [
+  textField('Probe target', 'Randomly generated non-existent URL in the page directory'),
+  textField('Pass criterion', 'Direct HTTP 404 or 410, or any other 4xx except 429'),
+  textField('Error criterion', 'HTTP 200, redirect loop or hop cap exceeded'),
+  textField('Information criterion', 'HTTP 404 or 410 reached after a redirect'),
+  textField('Inconclusive (warning)', 'HTTP 429, 5xx, unfollowable 3xx or no status'),
+  textField('Redirect handling', 'Followed up to the configured hop cap'),
+]
 
 export const soft404Rule: Rule = {
   id: RULE_ID,
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'http',
   meta: {
@@ -76,54 +48,51 @@ export const soft404Rule: Rule = {
       "Probes a randomly generated non-existent URL in the page's directory and expects a direct HTTP 404 or 410. A 200 is reported as a soft 404; a rate limit, server error or unfollowable redirect is reported as inconclusive, never as a finding.",
   },
   async run(page, ctx) {
-    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
+    if (!hasHeaders(page.headers)) {
+      return presentResult(soft404Rule, page, {
+        input: 'Not captured', type: 'runtime_error', priority: 50,
+        values: [textField('Header capture', 'Not captured')],
+        checked: [textField('Capture requirement', 'Main-document response headers must be captured before probing')],
+        noMarkup: NO_MARKUP,
+      })
+    }
     let probeUrl: string
     try {
       probeUrl = buildProbeUrl(page.url)
     } catch {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'Cannot build probe URL for soft 404 check.',
-        type: 'runtime_error',
-        priority: 10,
-        details: { url: page.url },
-      }
+      return presentResult(soft404Rule, page, {
+        input: 'Page URL', type: 'runtime_error', priority: 10,
+        values: [textField('Probe URL', 'Could not be built')],
+        checked,
+        noMarkup: NO_MARKUP,
+      })
     }
 
     try {
       const { chain } = await followRedirectChain(probeUrl, { signal: ctx.signal })
-      const status = chain.finalStatus
-      const { finalUrl, redirected } = chain
-      const snippet = extractSnippet(`${status} ${finalUrl}`, 200)
-      // Short verdict + measurements; the full hop-by-hop chain lives in details.
-      const base = verdict(chain)
-      return {
-        label: LABEL,
-        name: NAME,
-        message: base.message,
-        type: base.type,
-        priority: base.priority,
-        details: {
-          probeUrl, finalUrl, status, redirected, redirectCount: chain.redirectCount,
-          ...redirectChainDetails(chain),
-          snippet,
-        },
-      }
+      const verdict = soft404Verdict(chain)
+      return presentResult(soft404Rule, page, {
+        input: 'Page URL + Soft 404 probe HTTP response', type: verdict.type, priority: verdict.priority,
+        values: [
+          urlField('Probed URL', probeUrl),
+          textField('Final status', httpStatusLabel(chain.finalStatus > 0 ? chain.finalStatus : undefined)),
+          textField('Classification', verdict.classification),
+        ],
+        detailValues: chainDetailValues(chain),
+        checked,
+        evidence: chainEvidence(chain.hops),
+        noMarkup: NO_MARKUP,
+      })
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       const hops = error instanceof RedirectChainError ? error.hops : []
-      return {
-        label: LABEL,
-        name: NAME,
-        message: `Soft 404 probe failed: ${message}`,
-        type: 'runtime_error',
-        priority: 5,
-        details: {
-          url: page.url, probeUrl,
-          ...(hops.length ? { redirectChainHops: hops } : {}),
-        },
-      }
+      return presentResult(soft404Rule, page, {
+        input: hops.length ? 'Page URL + Soft 404 probe HTTP response' : 'Page URL', type: 'runtime_error', priority: 5,
+        values: [urlField('Probed URL', probeUrl), textField('Probe failure', message)],
+        checked,
+        evidence: chainEvidence(hops),
+        noMarkup: NO_MARKUP,
+      })
     }
   },
 }

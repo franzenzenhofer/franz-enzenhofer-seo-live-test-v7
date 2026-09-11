@@ -149,7 +149,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `gsc:property-available` | `ac4613d` (7.0.328) |
 | `gsc:is-indexed` | `616e03e` (7.0.329) |
 | `gsc:url-inspection` | `9f2d6c4` (7.0.330) |
-| `http:mixed-content` | build 7.0.331 |
+| `http:mixed-content` | `2e1c22b` (7.0.331) |
+| `http:soft-404` | build 7.0.332 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
