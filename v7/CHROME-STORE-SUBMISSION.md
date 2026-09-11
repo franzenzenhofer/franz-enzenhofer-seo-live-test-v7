@@ -1,10 +1,10 @@
 # Chrome Web Store Submission Guide
 
-**Ready to upload:** 7.0.364 - `v7/zip-build/latest-build.zip`, built September 11, 2026 with every gate
-(typecheck, lint, presentation lint, unit suite, headless e2e). Same 11 permissions and `<all_urls>` as 7.0.122
-(`src/manifest.parts.ts` unchanged since then), so no permission warning for users. Before uploading, check
-7.0.122 on the Status page: if it is still pending review, use **Cancel review** (see below) first - 7.0.364
-contains everything in 7.0.122.
+**In review:** 7.0.364, submitted September 11, 2026 - status "Pending review", with "Publish automatically
+after it has passed review" on. The uploaded zip is kept as `trash/chrome-store-submitted-7.0.364.zip`
+(sha256 723160bcac2011c1...). Built with every gate (typecheck, lint, presentation lint, unit suite, headless
+e2e). Same 11 permissions and `<all_urls>` as 7.0.122 (`src/manifest.parts.ts` unchanged since then), so no
+permission warning for users. The draft package page showed identical permission lists for 7.0.364 and 7.0.122.
 
 What's new since 7.0.122 (store change notes):
 - Every one of the 130 rules shows its evidence: the input actually checked, labelled values, the selectors
@@ -19,11 +19,11 @@ What's new since 7.0.122 (store change notes):
   raise errors.
 - Compact result cards: an icon-only details toggle and the checked input as small text.
 
-**Currently published:** 7.0.117 - approved and live September 9, 2026, 609 users.
-It fixes the session-storage quota exhaustion that broke Run test (orphan run records
+**Currently published:** 7.0.122 (status "Published" on September 11, 2026, 609 users).
+**Before that:** 7.0.117 - approved and live September 9, 2026. It fixes the session-storage quota exhaustion that broke Run test (orphan run records
 grown from post-run subresource traffic). Submitted 18:23 CEST, published ~19:00 CEST -
 a package-only update with no permission changes cleared review in well under an hour.
-**In review:** 7.0.122, submitted September 10, 2026 - status "Pending review", with
+**7.0.122** (now live) was submitted September 10, 2026 - it went through "Pending review" with
 "Publish automatically after it has passed review" on. The CMS back-office / action-URL probe
 safety fix (a WordPress agency's report: the link checker trashed posts and logged editors out).
 Same 11 permissions and `<all_urls>` as 7.0.117, so no permission warning for users.
