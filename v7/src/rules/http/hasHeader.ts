@@ -1,14 +1,17 @@
+import { hasHeaders } from '@/shared/http-utils'
+import { textField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
-import { extractSnippet } from '@/shared/html-utils'
-import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
-const LABEL = 'HTTP'
 const NAME = 'HTTP Header Presence (Configurable)'
 const RULE_ID = 'http:has-header'
+const NO_MARKUP = 'None - this rule checks the HTTP response, not document markup'
+const CONFIG_VAR = 'http_has_header'
 
 export const hasHeaderRule: Rule = {
   id: RULE_ID,
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'http',
   meta: {
@@ -22,60 +25,55 @@ export const hasHeaderRule: Rule = {
       'User-configurable presence check: reads the comma-separated "http_has_header" variable and reports ok when all requested response headers are present, warn listing the missing ones otherwise.',
   },
   async run(page, ctx) {
-    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
+    if (!hasHeaders(page.headers)) {
+      return presentResult(hasHeaderRule, page, {
+        input: 'Not captured', type: 'runtime_error', priority: 50,
+        values: [textField('Header capture', 'Not captured')],
+        checked: [textField('Configuration variable', CONFIG_VAR), textField('Capture requirement', 'Response headers must be captured')],
+        noMarkup: NO_MARKUP,
+      })
+    }
     const vars = (ctx.globals as { variables?: Record<string, unknown> }).variables || {}
-    const raw = String((vars as Record<string, unknown>)['http_has_header'] || '').trim()
+    const raw = String((vars as Record<string, unknown>)[CONFIG_VAR] || '').trim()
     if (!raw) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'No headers configured. Set "http_has_header" variable (comma-separated list).',
-        type: 'info',
-        priority: 900,
-        details: { httpHeaders: page.headers || {} },
-      }
+      return presentResult(hasHeaderRule, page, {
+        input: 'HTTP response headers', type: 'info', priority: 900,
+        values: [textField('Configured headers', 'None')],
+        checked: [textField('Configuration variable', CONFIG_VAR), textField('Configured headers', 'None')],
+        noMarkup: NO_MARKUP,
+      })
     }
     const requestedHeaders = raw.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
     const presentHeaders: string[] = []
     const missingHeaders: string[] = []
     requestedHeaders.forEach((header) => {
       const value = page.headers?.[header] || ''
-      if (value) {
-        presentHeaders.push(header)
-      } else {
-        missingHeaders.push(header)
-      }
+      if (value) presentHeaders.push(header)
+      else missingHeaders.push(header)
     })
     const allPresent = missingHeaders.length === 0
-    let message = ''
     let type: 'ok' | 'warn' = 'ok'
     let priority = 700
     if (allPresent) {
-      message = `All ${requestedHeaders.length} headers present: ${requestedHeaders.join(', ')}`
-      type = 'ok'
       priority = 750
     } else if (presentHeaders.length === 0) {
-      message = `All ${requestedHeaders.length} headers missing: ${missingHeaders.join(', ')}`
       type = 'warn'
       priority = 200
     } else {
-      message = `${missingHeaders.length} missing: ${missingHeaders.join(', ')} (${presentHeaders.length} present)`
       type = 'warn'
       priority = 300
     }
-    return {
-      label: LABEL,
-      name: NAME,
-      message,
-      type,
-      priority,
-      details: {
-        httpHeaders: page.headers || {},
-        snippet: extractSnippet(raw),
-        requestedHeaders,
-        presentHeaders,
-        missingHeaders,
-      },
-    }
+    return presentResult(hasHeaderRule, page, {
+      input: 'HTTP response headers', type, priority,
+      values: [
+        textField('Configured headers', requestedHeaders.join(', ')),
+        textField('All present', allPresent ? 'Yes' : 'No'),
+        textField('Present count', presentHeaders.length),
+        textField('Missing count', missingHeaders.length),
+      ],
+      checked: [textField('Configuration variable', CONFIG_VAR), textField('Configured headers', requestedHeaders.join(', ')), textField('Criterion', 'Every configured header name is present with a non-empty value')],
+      evidence: requestedHeaders.map((header) => ({ name: header, fields: [textField('Present', presentHeaders.includes(header) ? 'Yes' : 'No')] })),
+      noMarkup: NO_MARKUP,
+    })
   },
 }
