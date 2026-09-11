@@ -1,18 +1,22 @@
+import { navigationPathSteps } from './navigationPathSteps'
+import { combineInputs, navigationStepEvidence } from './navigationStepEvidence'
+
 import { NavigationLedgerSchema } from '@/background/history/types'
 import type { Rule, Result } from '@/core/types'
-import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
-import { redirectChainDetails } from '@/shared/redirectChainFormat'
-import { headerChainToRedirectChain } from '@/shared/redirectChainFromEvents'
+import { hasHeaders } from '@/shared/http-utils'
+import { textField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 
-const LABEL = 'HTTP'
 const NAME = 'Observed Redirect Efficiency'
-const RULE_ID = 'http:redirect-efficiency'
+const NOT_MARKUP = 'None - this rule checks recorded navigation events, not document markup'
+const CHECKED = [
+  textField('Navigation source', 'Recorded navigation ledger redirect and client-redirect hops'),
+  textField('Warning threshold', '2 or more redirect hops before the final response'),
+  textField('Criterion', 'Fewer than 2 redirect hops before the final response'),
+]
 
 export const redirectEfficiencyRule: Rule = {
-  id: RULE_ID,
-  name: NAME,
-  enabled: true,
-  what: 'http',
+  id: 'http:redirect-efficiency', name: NAME, presentation: 1, enabled: true, what: 'http',
   meta: {
     provenance: 'general',
     references: [
@@ -24,24 +28,21 @@ export const redirectEfficiencyRule: Rule = {
   },
 
   async run(page, ctx): Promise<Result> {
-    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
+    const build = (type: Result['type'], priority: number, input: string, values: ReturnType<typeof textField>[], detailValues: ReturnType<typeof textField>[] = [], evidence: ReturnType<typeof navigationStepEvidence> = []) =>
+      presentResult(redirectEfficiencyRule, page, { input, type, priority, values, detailValues, checked: CHECKED, evidence, noMarkup: NOT_MARKUP })
+
+    if (!hasHeaders(page.headers)) return build('runtime_error', 50, 'Not captured', [textField('HTTP response headers', 'Not captured')])
+
     const raw = (ctx.globals as { navigationLedger?: unknown }).navigationLedger
     const ledgerResult = NavigationLedgerSchema.safeParse(raw)
-
     if (!ledgerResult.success || ledgerResult.data.trace.length === 0) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'No navigation data available for redirect analysis.',
-        type: 'info',
-        priority: 900,
-        details: {},
-      }
+      return build('info', 900, 'HTTP response headers', [textField('Navigation data', 'Not captured')])
     }
 
     const { trace } = ledgerResult.data
-    // Full hop-by-hop main-document chain (URL, status, Location) from webRequest.
-    const chainDetails = redirectChainDetails(headerChainToRedirectChain(page.headerChain, page.status))
+    const steps = navigationPathSteps(page, trace)
+    const evidence = navigationStepEvidence(steps, page.headerChain)
+    const input = combineInputs('Navigation events', (page.headerChain?.length ?? 0) > 0 && 'Main-document HTTP response')
     const totalHops = trace.length
     const redirects = trace.filter((h) => h.type === 'http_redirect' || h.type === 'client_redirect')
     const httpRedirects = redirects.filter((h) => h.type === 'http_redirect')
@@ -50,43 +51,13 @@ export const redirectEfficiencyRule: Rule = {
     const permRedirects = httpRedirects.filter((h) => h.statusCode === 301 || h.statusCode === 308)
 
     if (redirects.length === 0) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'Direct load with no redirects - the page loaded without any intermediate hops.',
-        type: 'ok',
-        priority: 900,
-        details: { ...chainDetails, totalHops, redirects: 0, httpRedirects: 0, clientRedirects: 0 },
-      }
+      return build('ok', 900, input, [textField('Redirect hops', 0), textField('Total hops', totalHops)], [], evidence)
     }
 
-    const facts = [
-      `HTTP redirects: ${httpRedirects.length} (${permRedirects.length} permanent, ${tempRedirects.length} temporary)`,
-      `Client-side redirects: ${clientRedirects.length}`,
-      `Total hops: ${totalHops}`,
-    ].join('\n')
-
-    const hopWord = `redirect hop${redirects.length > 1 ? 's' : ''}`
     const isChain = redirects.length >= 2
-
-    return {
-      label: LABEL,
-      name: NAME,
-      message: isChain
-        ? `Redirect chain: ${redirects.length} ${hopWord} - each redirect adds latency before the page can load.\n\n${facts}`
-        : `${redirects.length} ${hopWord} observed.\n\n${facts}`,
-      type: isChain ? 'warn' : 'ok',
-      priority: isChain ? 200 : 800,
-      details: {
-        trace,
-        ...chainDetails,
-        totalHops,
-        redirects: redirects.length,
-        httpRedirects: httpRedirects.length,
-        clientRedirects: clientRedirects.length,
-        permanentRedirects: permRedirects.length,
-        temporaryRedirects: tempRedirects.length,
-      },
-    }
+    return build(isChain ? 'warn' : 'ok', isChain ? 200 : 800, input,
+      [textField('Redirect hops', redirects.length), textField('HTTP redirects', httpRedirects.length), textField('Client-side redirects', clientRedirects.length)],
+      [textField('Permanent redirects', permRedirects.length), textField('Temporary redirects', tempRedirects.length), textField('Total hops', totalHops)],
+      evidence)
   },
 }
