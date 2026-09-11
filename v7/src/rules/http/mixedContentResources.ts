@@ -40,8 +40,15 @@ const elementIssue = (element: Element): ResourceIssue[] => {
   }]
 }
 
+// Same detection as mixedContentResources, but paired with the source Element so
+// callers can retrieve original markup for offenders that came from the DOM
+// (network-only offenders in `page.resources` have no matching element).
+export const mixedContentElementIssues = (page: Page): Array<{ element: Element; issue: ResourceIssue }> =>
+  Array.from(page.doc.querySelectorAll(Object.keys(ATTRIBUTES).join(',')))
+    .flatMap((element) => elementIssue(element).map((issue) => ({ element, issue })))
+
 export const mixedContentResources = (page: Page) => {
-  const issues = Array.from(page.doc.querySelectorAll(Object.keys(ATTRIBUTES).join(','))).flatMap(elementIssue)
+  const issues = mixedContentElementIssues(page).map((entry) => entry.issue)
   const forms = issues.filter((issue) => issue.kind === 'Form')
   const elements = issues.filter((issue) => issue.kind !== 'Form')
   const elementUrls = new Set(elements.map((issue) => issue.url))

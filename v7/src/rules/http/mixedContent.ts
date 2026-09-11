@@ -1,15 +1,31 @@
-import { mixedContentResources, resourceSummary } from './mixedContentResources'
+import { mixedContentElementIssues, mixedContentResources, resourceSummary } from './mixedContentResources'
+import { issueRecord } from './mixedContent.evidence'
 
+import { EVIDENCE_LIMIT, sampleElements } from '@/shared/domEvidence'
+import { textField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
+import type { ResourceIssue } from '@/shared/resourceIssues'
 import type { Rule } from '@/core/types'
 
-const LABEL = 'HTTP'
 const NAME = 'Mixed content'
-const REFERENCE = 'https://www.w3.org/TR/mixed-content/'
-const FIX = 'Update the listed URLs in your HTML, CMS content, templates or third-party configuration to HTTPS. Verify each HTTPS endpoint works; otherwise replace or remove the resource.'
+const CHECKED_ELEMENTS = 'script, link, img, iframe, video, audio, source, embed, object, form'
+const CHECKED_ATTRIBUTES = 'src, href, data, action'
+const DOM_INPUT = 'Static DOM + Page URL + Navigation events'
+
+const countFields = (label: string, total: number, shown: number) =>
+  total > shown ? [textField(`${label} retained`, shown), textField(`${label} omitted`, total - shown)] : []
+
+const offenderMarkup = (elementIssues: Array<{ element: Element; issue: ResourceIssue }>, kind: (k: string) => boolean) => {
+  const { sample, total } = sampleElements(elementIssues.filter((entry) => kind(entry.issue.kind)).map((entry) => entry.element))
+  const captured = markupEvidence(sample, 'Mixed-content element')
+  return { captured, total }
+}
 
 export const mixedContentRule: Rule = {
   id: 'http:mixed-content',
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'http',
   meta: {
@@ -18,46 +34,56 @@ export const mixedContentRule: Rule = {
       action: "Replace each listed HTTP URL with a working HTTPS resource or remove the dependency. Correct the template, CMS field or third-party configuration responsible for the URL.",
     },
     provenance: 'standard',
-    references: [REFERENCE],
+    references: ['https://www.w3.org/TR/mixed-content/'],
     description: 'Flags HTTP subresource references on HTTPS pages, even if the browser upgrades or blocks them. Identifies each resource and attribute; includes network-only URLs and insecure form actions.',
   },
   async run(page) {
-    const base = { label: LABEL, name: NAME }
     if (!/^https:\/\//i.test(page.url)) {
-      return { ...base, message: 'Page is not HTTPS; mixed content check skipped.', type: 'info', priority: 900, details: {} }
+      return presentResult(mixedContentRule, page, {
+        input: 'Page URL', type: 'info', priority: 900,
+        values: [textField('Page protocol', (/^([a-z][a-z\d+.-]*):/i.exec(page.url)?.[1] || 'Unknown').toUpperCase())],
+        checked: [textField('Required protocol', 'HTTPS'), textField('Applicability', 'Mixed content only applies to HTTPS pages')],
+        noMarkup: 'Not applicable - page is not HTTPS',
+      })
     }
     const { resources, forms } = mixedContentResources(page)
+    const elementIssues = mixedContentElementIssues(page)
+    const checked = [textField('Inspected elements', CHECKED_ELEMENTS), textField('Inspected attributes', CHECKED_ATTRIBUTES),
+      textField('Criterion', 'No explicit http:// URL in a fetching attribute or captured network resource (error) and no http:// form action (warning) on an HTTPS page')]
+
     if (resources.length) {
-      return {
-        ...base,
-        message: `${resources.length} mixed-content resource${resources.length === 1 ? ' uses' : 's use'} HTTP on this HTTPS page (${resourceSummary(resources)}).${forms.length ? ` Also found ${resourceSummary(forms)} with insecure actions.` : ''}`,
-        type: 'error',
-        priority: 80,
-        details: {
-          resourceIssues: [...resources, ...forms],
-          problem: 'These HTTP URLs are errors in the site code, even when the browser automatically upgrades or blocks the requests.',
-          fix: FIX,
-          count: resources.length,
-          ...(forms.length ? { insecureFormActionCount: forms.length } : {}),
-          reference: REFERENCE,
-        },
-      }
+      const shown = resources.slice(0, EVIDENCE_LIMIT)
+      const shownForms = forms.slice(0, EVIDENCE_LIMIT)
+      const { captured, total } = offenderMarkup(elementIssues, (k) => k !== 'Form')
+      return presentResult(mixedContentRule, page, {
+        input: DOM_INPUT, type: 'error', priority: 80,
+        values: [textField('Mixed-content resources', resources.length), textField('Insecure form actions', forms.length)],
+        detailValues: [textField('Resource kinds', resourceSummary(resources)), ...countFields('Evidence records', resources.length, shown.length), ...countFields('Form evidence records', forms.length, shownForms.length)],
+        checked,
+        evidence: [...shown.map((issue, index) => issueRecord(issue, index, 'Mixed-content resource')),
+          ...shownForms.map((issue, index) => issueRecord(issue, index, 'Insecure form action'))],
+        markup: captured.markup,
+        noMarkup: total ? 'Complete original mixed-content markup not retained' : 'No matching mixed-content element found; offenders are network-only',
+      })
     }
     if (forms.length) {
-      return {
-        ...base,
-        message: `${resourceSummary(forms)} on this HTTPS page ${forms.length === 1 ? 'has an insecure HTTP action' : 'have insecure HTTP actions'}.`,
-        type: 'warn',
-        priority: 200,
-        details: {
-          resourceIssues: forms,
-          problem: 'These forms send submitted data to an insecure HTTP endpoint.',
-          fix: 'Update each form action to a working HTTPS endpoint before accepting submissions.',
-          count: forms.length,
-          reference: REFERENCE,
-        },
-      }
+      const shown = forms.slice(0, EVIDENCE_LIMIT)
+      const { captured, total } = offenderMarkup(elementIssues, (k) => k === 'Form')
+      return presentResult(mixedContentRule, page, {
+        input: DOM_INPUT, type: 'warn', priority: 200,
+        values: [textField('Insecure form actions', forms.length)],
+        detailValues: [textField('Resource kinds', resourceSummary(forms)), ...countFields('Evidence records', forms.length, shown.length)],
+        checked: [textField('Inspected elements', 'form'), textField('Inspected attribute', 'action'), textField('Criterion', 'No explicit http:// form action on an HTTPS page')],
+        evidence: shown.map((issue, index) => issueRecord(issue, index, 'Insecure form action')),
+        markup: captured.markup,
+        noMarkup: total ? 'Complete original form markup not retained' : 'No matching form element found',
+      })
     }
-    return { ...base, message: 'No HTTP subresource references or insecure form actions found in the inspected HTML and captured resource URLs.', type: 'ok', priority: 850, details: {} }
+    return presentResult(mixedContentRule, page, {
+      input: DOM_INPUT, type: 'ok', priority: 850,
+      values: [textField('Mixed-content resources', 0), textField('Insecure form actions', 0)],
+      checked,
+      noMarkup: 'No matching mixed-content element found',
+    })
   },
 }
