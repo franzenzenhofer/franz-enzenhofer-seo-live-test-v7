@@ -44,7 +44,7 @@ export const markupEvidence = (elements: Element[], label = 'Markup') => {
     if (captured) {
       markup.push(originalField(`${label} ${index + 1}`, captured.html))
     } else fields.push(textField(`${label} ${index + 1}`, 'Complete original markup not retained'))
-    if (selector) fields.push(textField(`Selector ${index + 1}`, selector))
+    if (selector) fields.push(textField(`DOM path ${index + 1}`, selector))
   }
   return { markup, fields, selectors }
 }

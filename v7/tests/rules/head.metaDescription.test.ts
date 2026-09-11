@@ -15,7 +15,7 @@ describe('meta description', () => {
     const r = await run('<meta name="description" content="First"><meta name="DESCRIPTION" content="Second">')
     expect(r.type).toBe('error'); expect(r.presentation?.values[0].value).toBe(2)
     expect(r.presentation?.markup).toHaveLength(2)
-    expect(r.presentation?.evidence[0].fields).toContainEqual({ key: 'Selector 2', value: 'html > head > meta:nth-of-type(2)', kind: 'text' })
+    expect(r.presentation?.evidence[0].fields).toContainEqual({ key: 'DOM path 2', value: 'html > head > meta:nth-of-type(2)', kind: 'text' })
   })
   it('reports a complete original element and its content separately', async () => {
     const html = '<meta name="DESCRIPTION" data-origin="cms" content="Hello world">'

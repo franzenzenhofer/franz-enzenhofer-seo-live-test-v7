@@ -20,7 +20,7 @@ export const ldjsonRule: Rule = {
     const parsed = parseLdDetails(page.doc)
     const types = [...new Set(parsed.entries.flatMap(({ node }) => schemaTypes(node)))]
     const captured = markupEvidence(scripts.sample, 'JSON-LD script markup')
-    const captureFields = captured.fields.filter((field) => !field.key.startsWith('Selector'))
+    const captureFields = captured.fields.filter((field) => !field.key.startsWith('DOM path'))
     const errorsOutsideSample = parsed.errors.filter(({ scriptIndex }) => scriptIndex >= scripts.shown)
     const evidence = scripts.sample.map((_script, index) => {
       const declaredTypes = [...new Set(parsed.entries.filter(({ scriptIndex }) => scriptIndex === index).flatMap(({ node }) => schemaTypes(node)))]
@@ -29,7 +29,7 @@ export const ldjsonRule: Rule = {
         name: `JSON-LD script ${index + 1}`,
         fields: [textField('Script number', index + 1), textField('Declared types', declaredTypes.join(', ') || 'None declared'),
           textField('Syntax', error ? 'Invalid JSON' : 'Parsed JSON'), ...(error ? [textField('Problem', error.message)] : []),
-          textField('Selector', captured.selectors[index] || 'Not captured')],
+          textField('DOM path', captured.selectors[index] || 'Not captured')],
       }
     })
     const parseEvidence = errorsOutsideSample.map(({ scriptIndex, message }) => ({
