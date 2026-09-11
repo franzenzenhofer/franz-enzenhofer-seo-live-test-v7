@@ -79,7 +79,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `fix:collapsible-dom-paths` | `888a7a8` (7.0.253) |
 | `http:gzip` | `36d9db8` (7.0.255) |
 | `robots-exists` | `45309cc` (7.0.256) |
-| `head:rel-alternate-media` | build 7.0.257 |
+| `head:rel-alternate-media` | `365b36c` (7.0.257) |
+| `google:is-connected` | build 7.0.258 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
