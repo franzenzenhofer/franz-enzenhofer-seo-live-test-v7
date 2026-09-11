@@ -1,5 +1,24 @@
 # Chrome Web Store Submission Guide
 
+**Ready to upload:** 7.0.364 - `v7/zip-build/latest-build.zip`, built September 11, 2026 with every gate
+(typecheck, lint, presentation lint, unit suite, headless e2e). Same 11 permissions and `<all_urls>` as 7.0.122
+(`src/manifest.parts.ts` unchanged since then), so no permission warning for users. Before uploading, check
+7.0.122 on the Status page: if it is still pending review, use **Cancel review** (see below) first - 7.0.364
+contains everything in 7.0.122.
+
+What's new since 7.0.122 (store change notes):
+- Every one of the 130 rules shows its evidence: the input actually checked, labelled values, the selectors
+  queried, each element's DOM path, the complete original markup and documentation links.
+- Run test fixed (GitHub issue #1): one page load, a visible "Starting test run" state, the first result rows
+  within about 1.5 s, also with auto-run off.
+- In-page navigations (Next.js, React and other single-page apps) are tested: the panel follows the new URL,
+  says when the shown results belong to the previous URL, and with auto-run on a new test starts by itself.
+- The HTTP status rule names its source: the navigation response or a separate HEAD request.
+- Fixes: the "Cannot create item with duplicate id open_panel" error after updates, lost log lines, a failed run
+  when two tabs finish at once, iframe requests now count as page resources, stale network events no longer
+  raise errors.
+- Compact result cards: an icon-only details toggle and the checked input as small text.
+
 **Currently published:** 7.0.117 - approved and live September 9, 2026, 609 users.
 It fixes the session-storage quota exhaustion that broke Run test (orphan run records
 grown from post-run subresource traffic). Submitted 18:23 CEST, published ~19:00 CEST -
@@ -22,7 +41,7 @@ returns the item to draft and re-enables both "Upload new package" and "Submit
 for review". It is not on the Status page or the Package tab, which is why it
 looks at first as though a pending submission cannot be withdrawn.
 
-**Last updated:** September 10, 2026
+**Last updated:** September 11, 2026
 
 ## Files to Upload
 
