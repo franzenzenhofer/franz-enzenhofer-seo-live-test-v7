@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react'
-
 import { RunNow } from './RunNow'
+import { useRunTarget } from './useRunTarget'
 
 import { LiveTestHeader } from '@/components/LiveTestHeader'
 import { openUrlInCurrentTab } from '@/shared/openUrlInCurrentTab'
@@ -32,22 +31,18 @@ export const PanelHeader = ({
   debugEnabled,
 }: Props) => {
   const version = chrome.runtime.getManifest().version
-  const [editableUrl, setEditableUrl] = useState(url || '')
-
-  useEffect(() => {
-    setEditableUrl(url || '')
-  }, [url])
+  const { editableUrl, runUrl, onUrlChange, onUrlLoaded } = useRunTarget(url)
 
   return (
     <LiveTestHeader
       url={url}
       editableUrl={editableUrl}
-      onUrlChange={setEditableUrl}
+      onUrlChange={onUrlChange}
       runId={runId}
       ranAt={ranAt}
       runStatus={status}
       version={version}
-      primaryAction={<RunNow url={editableUrl} onUrlNormalized={setEditableUrl} starting={starting} />}
+      primaryAction={<RunNow url={runUrl} onUrlLoaded={onUrlLoaded} starting={starting} />}
       onOpenUrl={openUrlInCurrentTab}
       onOpenReport={onOpenReport}
       secondaryActions={

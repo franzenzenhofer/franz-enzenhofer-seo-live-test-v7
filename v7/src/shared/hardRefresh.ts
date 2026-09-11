@@ -53,12 +53,22 @@ const clearPageCaches = async (tabId: number): Promise<void> => {
  */
 export type HardRefreshPlan = { navigation: 'reload' | 'navigate'; clearCaches: boolean; target: string }
 
-const sameDocumentUrl = (current: string | undefined, url: string) => Boolean(current) && new URL(current!).href === new URL(url).href
-const sameOrigin = (current: string | undefined, url: string) => Boolean(current) && new URL(current!).origin === new URL(url).origin
+// The panel validates its field (runNow.normalizeRunUrl) before this runs; a
+// malformed URL here is a programming error and fails with a message that says so.
+const parseUrl = (value: string, role: string) => {
+  try {
+    return new URL(value)
+  } catch {
+    throw new Error(`Run test: ${role} is not a valid URL: ${value}`)
+  }
+}
 
 export const planHardRefresh = (currentUrl: string | undefined, url?: string): HardRefreshPlan => {
-  if (!url || sameDocumentUrl(currentUrl, url)) return { navigation: 'reload', clearCaches: true, target: currentUrl || '' }
-  return { navigation: 'navigate', clearCaches: sameOrigin(currentUrl, url), target: url }
+  if (!url) return { navigation: 'reload', clearCaches: true, target: currentUrl || '' }
+  const target = parseUrl(url, 'the target')
+  const current = currentUrl ? parseUrl(currentUrl, 'the tab URL') : null
+  if (current && current.href === target.href) return { navigation: 'reload', clearCaches: true, target: current.href }
+  return { navigation: 'navigate', clearCaches: current?.origin === target.origin, target: url }
 }
 
 export const hardRefreshTab = async (tabId: number, url?: string): Promise<HardRefreshPlan> => {

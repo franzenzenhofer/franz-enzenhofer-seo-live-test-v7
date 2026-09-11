@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const order: string[] = []
-const hardRefreshTab = vi.hoisted(() => vi.fn(async () => ({ navigation: 'reload', clearCaches: true, target: 'https://example.test/' })))
+const hardRefreshTab = vi.hoisted(() => vi.fn(async (_tabId: number, url?: string) => ({ navigation: url ? 'navigate' : 'reload', clearCaches: true, target: url || 'https://example.test/' })))
 vi.mock('@/shared/hardRefresh', () => ({ hardRefreshTab: (...args: unknown[]) => { order.push('hardRefresh'); return hardRefreshTab(...args as [number, string?]) } }))
 vi.mock('@/shared/logs', () => ({ log: vi.fn(async () => {}) }))
 
@@ -28,7 +28,8 @@ beforeEach(() => {
 
 describe('executeRunNow', () => {
   it('asks the background to kill the live state and mark the run starting BEFORE the single navigation', async () => {
-    await executeRunNow()
+    // No URL: the tab's CURRENT page is reloaded and reported back as the loaded URL.
+    expect(await executeRunNow()).toBe('https://example.test/')
     expect(order).toEqual([
       'send:{"t":"panel:run-start","d":{"tabId":7,"url":"https://example.test/"}}',
       'hardRefresh',
@@ -52,6 +53,16 @@ describe('executeRunNow', () => {
     hardRefreshTab.mockRejectedValueOnce(new Error('No tab with id'))
     await expect(executeRunNow()).rejects.toThrow('No tab with id')
     expect(local['results-meta:7']).toBeUndefined()
+  })
+
+  it('rejects a malformed URL visibly (the button shows the message) before anything is touched', async () => {
+    await expect(executeRunNow('https://exa mple.test/')).rejects.toThrow('Invalid URL. Use a full URL like https://example.com/path')
+    expect(order).toEqual([])
+  })
+
+  it('accepts a scheme-less entry by assuming https', async () => {
+    expect(await executeRunNow('example.test')).toBe('https://example.test')
+    expect(hardRefreshTab).toHaveBeenCalledWith(7, 'https://example.test')
   })
 
   it('still refuses restricted and unsafe pages before touching anything', async () => {

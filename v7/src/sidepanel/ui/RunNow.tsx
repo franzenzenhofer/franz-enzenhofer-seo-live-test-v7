@@ -6,13 +6,15 @@ import { ValidationMessage } from '@/shared/components/ValidationMessage'
 import type { ValidationResult } from '@/shared/validation-types'
 
 type Props = {
+  /** Only set when the user edited the field; otherwise the tab's current page is tested. */
   url?: string
-  onUrlNormalized?: (next: string) => void
+  /** Receives the URL that was actually loaded, so the field shows the tested page. */
+  onUrlLoaded?: (loaded: string) => void
   /** The run meta says the run is starting (RunStarting.isRunStarting): keep the button busy. */
   starting?: boolean
 }
 
-export const RunNow = ({ url, onUrlNormalized, starting = false }: Props) => {
+export const RunNow = ({ url, onUrlLoaded, starting = false }: Props) => {
   const [clicking, setClicking] = useState(false)
   const [error, setError] = useState<ValidationResult | null>(null)
   // Busy from the click until the run has visible rows, not just until the navigation was issued.
@@ -22,8 +24,8 @@ export const RunNow = ({ url, onUrlNormalized, starting = false }: Props) => {
     setClicking(true)
     setError(null)
     try {
-      const normalized = await executeRunNow(url)
-      if (normalized && onUrlNormalized) onUrlNormalized(normalized)
+      const loaded = await executeRunNow(url)
+      if (loaded && onUrlLoaded) onUrlLoaded(loaded)
     } catch (err) {
       console.warn('[panel] Run Now failed', err)
       const message = err instanceof Error ? err.message : 'Run failed'

@@ -35,7 +35,8 @@ const startRunInBackground = async (tabId: number, url: string) => {
 
 /**
  * Run test: kill everything known about the page, clear its caches, load it
- * ONCE and show the run starting right away (issue #1).
+ * ONCE and show the run starting right away (issue #1). Without a URL the
+ * tab's CURRENT page is reloaded. Resolves with the URL that was loaded.
  */
 export const executeRunNow = async (url?: string) => {
   const normalizedUrl = normalizeRunUrl(url)
@@ -51,11 +52,11 @@ export const executeRunNow = async (url?: string) => {
   await log(tabId, '========== NEW TEST RUN STARTED ==========')
   await startRunInBackground(tabId, normalizedUrl || tab.url || '')
   try {
-    await hardRefreshTab(tabId, normalizedUrl)
+    const plan = await hardRefreshTab(tabId, normalizedUrl)
+    return plan.target
   } catch (error) {
     // No navigation happened, so no run will come: do not leave the panel "starting".
     await clearRunMeta(tabId)
     throw error
   }
-  return normalizedUrl
 }
