@@ -121,7 +121,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `http:x-cache` | `6c2a6ae` (7.0.299) |
 | `http:x-robots` | `b9d497c` (7.0.300) |
 | `http:vary-user-agent` | `e31109d` (7.0.301) |
-| `head:robots-nosnippet + head:robots-noimageindex (createRobotsRestrictionRule)` | build 7.0.302 |
+| `head:robots-nosnippet + head:robots-noimageindex (createRobotsRestrictionRule)` | `7d1ef02` (7.0.302) |
+| `speed:preconnect` | build 7.0.303 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 

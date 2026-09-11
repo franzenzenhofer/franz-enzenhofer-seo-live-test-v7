@@ -1,11 +1,18 @@
 import type { Rule } from '@/core/types'
-import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
-import { getDomPaths } from '@/shared/dom-path'
 import { sampleElements } from '@/shared/domEvidence'
+import { textField, urlField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
+
+const SELECTOR = 'link[rel="preconnect"]'
+const isHttpUrl = (value: string, base: string) => { try { return /^https?:$/.test(new URL(value, base).protocol) } catch { return false } }
+const hrefField = (raw: string | null, base: string) => !raw ? textField('Href', raw === null ? 'Absent' : 'Empty')
+  : isHttpUrl(raw, base) ? urlField('Href', raw) : textField('Href', raw)
 
 export const preconnectRule: Rule = {
   id: 'speed:preconnect',
   name: 'rel=preconnect',
+  presentation: 1,
   enabled: true,
   what: 'static',
   meta: {
@@ -21,26 +28,18 @@ export const preconnectRule: Rule = {
     description: 'Info-only count of <link rel="preconnect"> elements with their hrefs.',
   },
   async run(page) {
-    const links = page.doc.querySelectorAll('link[rel="preconnect"]')
-    const n = links.length
-    const evidence = sampleElements(links)
-    const sourceHtml = n ? extractHtmlFromList(evidence.sample) : ''
-    const domPaths = n ? getDomPaths(evidence.sample) : []
-    return {
-      label: 'SPEED',
-      message: n ? `preconnect links: ${n}` : 'No preconnect links',
-      type: 'info',
-      priority: n ? 750 : 900,
-      name: 'rel=preconnect',
-      details: {
-        ...(n ? { sourceHtml, snippet: extractSnippet(sourceHtml) } : {}),
-        urls: Array.from(links, (el) => el.getAttribute('href') || '').filter(Boolean),
-        count: n,
-        shown: evidence.shown,
-        truncated: evidence.truncated,
-        domPaths,
-        tested: 'Queried <link rel="preconnect">',
-      },
-    }
+    const links = page.doc.querySelectorAll(SELECTOR)
+    const { sample, total, shown } = sampleElements(links)
+    const captured = markupEvidence(sample, 'Preconnect link markup')
+    return presentResult(preconnectRule, page, {
+      input: 'Static DOM', type: 'info', priority: total ? 750 : 900,
+      values: [textField('Preconnect links', total)],
+      detailValues: [textField('Elements retained', shown), textField('Elements omitted', total - shown)],
+      checked: [textField('Selector', SELECTOR), textField('Selection', 'All matches'), textField('Attribute', 'href'), textField('Criterion', 'Descriptive count; no threshold')],
+      evidence: sample.map((element, index) => ({ name: `Preconnect link ${index + 1}`, fields: [
+        hrefField(element.getAttribute('href'), page.url), textField('DOM path', captured.selectors[index] || 'Not captured'),
+      ] })),
+      markup: captured.markup, noMarkup: total ? 'Complete original preconnect link markup not retained' : 'No preconnect link element found',
+    })
   },
 }
