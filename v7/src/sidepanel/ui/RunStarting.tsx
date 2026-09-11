@@ -8,7 +8,12 @@ import type { RunMeta } from '@/shared/runMeta'
 export const isRunStarting = (meta: RunMeta | null, resultCount: number): boolean =>
   resultCount === 0 && (meta?.status === 'starting' || meta?.status === 'running')
 
-export const RunStarting = ({ url }: { url: string }) => (
+// Only Run test reloads with an empty cache; an automatic run (`running`, no rows yet) checks the page as loaded.
+const detail = (url: string, status: RunMeta['status'] | undefined) => status === 'starting'
+  ? `Reloading ${url || 'the page'} with an empty cache. Results appear as soon as the page reports back.`
+  : `Checking ${url || 'the page'}. Results appear as soon as the rules report back.`
+
+export const RunStarting = ({ url, status }: { url: string; status: RunMeta['status'] | undefined }) => (
   <div
     role="status"
     aria-live="polite"
@@ -18,9 +23,7 @@ export const RunStarting = ({ url }: { url: string }) => (
     <span aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-amber-300 border-t-amber-700" />
     <div className="space-y-0.5">
       <p className="font-semibold">Starting test run…</p>
-      <p className="break-all text-amber-800">
-        Reloading {url || 'the page'} with an empty cache. Results appear as soon as the page reports back.
-      </p>
+      <p className="break-all text-amber-800">{detail(url, status)}</p>
     </div>
   </div>
 )

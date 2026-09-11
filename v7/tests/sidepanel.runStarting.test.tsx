@@ -25,12 +25,18 @@ describe('isRunStarting', () => {
 
 describe('RunStarting', () => {
   it('announces the starting run with the URL as a live status region', () => {
-    const html = renderToStaticMarkup(<RunStarting url="https://example.test/page" />)
+    const html = renderToStaticMarkup(<RunStarting url="https://example.test/page" status="starting" />)
     expect(html).toContain('role="status"')
     expect(html).toContain('aria-live="polite"')
     expect(html).toContain('Starting test run…')
-    expect(html).toContain('https://example.test/page')
+    expect(html).toContain('Reloading https://example.test/page with an empty cache.')
     expect(html).not.toContain('No results yet')
+  })
+
+  it('does not claim a cache-bypassing reload for an automatic run that is seeding its rows', () => {
+    const html = renderToStaticMarkup(<RunStarting url="https://example.test/page" status="running" />)
+    expect(html).toContain('Checking https://example.test/page.')
+    expect(html).not.toContain('empty cache')
   })
 })
 

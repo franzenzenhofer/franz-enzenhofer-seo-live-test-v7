@@ -12,6 +12,7 @@ import type { ResultSortMode } from './resultSort'
 
 import type { Result } from '@/shared/results'
 import { createDefaultTypeVisibility } from '@/shared/resultFilterState'
+import type { RunStatus } from '@/shared/runStatus'
 
 type Props = {
   show: Record<string, boolean>
@@ -22,6 +23,7 @@ type Props = {
   /** Run test clicked, no rows yet (RunStarting.isRunStarting). */
   starting: boolean
   startingUrl: string
+  startingStatus: RunStatus | undefined
   debugEnabled: boolean
   sortMode: ResultSortMode
   setSortMode: (mode: ResultSortMode) => void
@@ -29,7 +31,7 @@ type Props = {
   logUi?: (action: string, data?: Record<string, unknown>) => void
 }
 
-export const ResultsSection = ({ show, setShow, query, setQuery, results, starting, startingUrl, debugEnabled, sortMode, setSortMode, tabId, logUi }: Props) => {
+export const ResultsSection = ({ show, setShow, query, setQuery, results, starting, startingUrl, startingStatus, debugEnabled, sortMode, setSortMode, tabId, logUi }: Props) => {
   const parsed = useFilterParser(query)
   const activeTypes = parsed.hasTypeFilter ? parsed.types : Object.entries(show).filter(([, v]) => v).map(([k]) => k)
   const resetFilters = () => { setShow(() => createDefaultTypeVisibility()); setQuery('') }
@@ -50,7 +52,7 @@ export const ResultsSection = ({ show, setShow, query, setQuery, results, starti
         sortMode={sortMode}
         onSortModeChange={setSortMode}
       />}
-      {starting ? <RunStarting url={startingUrl} /> : <Results
+      {starting ? <RunStarting url={startingUrl} status={startingStatus} /> : <Results
         items={results}
         types={activeTypes}
         q={parsed.text}

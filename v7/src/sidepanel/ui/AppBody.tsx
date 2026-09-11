@@ -65,6 +65,7 @@ export const AppBody = ({
         results={results}
         starting={starting}
         startingUrl={meta?.url || ''}
+        startingStatus={meta?.status}
         debugEnabled={debugEnabled}
         sortMode={sortMode}
         setSortMode={setSortMode}
