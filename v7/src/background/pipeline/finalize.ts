@@ -4,6 +4,7 @@ import { determineTrigger } from '../rules/triggerDetect'
 import { peekRun, popRun, resetRun } from './store'
 import { scheduleFinalize } from './alarms'
 import { hasNavAfterDom } from './runGuards'
+import { settleUnreportedManualRun } from './manualRun'
 
 import { Logger } from '@/shared/logger'
 
@@ -25,6 +26,12 @@ export const finalizeTab = async (tabId: number) => {
     return
   }
   if (!run.domDone && !run.ev.some((e) => e.t.startsWith('dom:'))) {
+    // A manual run got here from its watchdog: nothing reported, so the user
+    // sees why instead of a panel that says "starting" forever.
+    if (run.manual) {
+      await settleUnreportedManualRun(tabId, run)
+      return
+    }
     // Events accumulating for the NEXT page (late requests after the previous
     // pop). Executing this would supersede - and thereby abort - the run that
     // is still streaming results. Leave it; document_idle re-arms the finalize.

@@ -29,6 +29,8 @@ beforeEach(() => {
   vi.stubGlobal('chrome', {
     storage: { local: area(local), session: area(session) },
     webNavigation: { getFrame: async () => ({ documentId: currentDocumentId }) },
+    // bindManualRun arms the manual-run watchdog (background.manualRun.watchdog.test.ts covers it).
+    alarms: { clear: async () => true, create: async () => {} },
   })
 })
 
