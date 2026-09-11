@@ -1,8 +1,15 @@
 import type { Rule } from '@/core/types'
-import { fetchTextOnce } from '@/shared/fetchOnce'
+import { fetchStatusTextOnce } from '@/shared/fetchOnce'
+import { httpStatusLabel } from '@/shared/httpStatusLabel'
+import { textField, urlField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 
-const LABEL = 'ROBOTS'
 const NAME = 'robots.txt Sitemap reference'
+const RULE_ID = 'robots:sitemap-reference'
+const TIMEOUT_MS = 1500
+const MAX_SHOWN = 20
+const NO_MARKUP = 'None - this rule checks robots.txt, not document markup'
+const SITEMAP_LINE = /^\s*sitemap\s*:\s*\S+.*$/i
 
 const isAbsoluteHttpUrl = (value: string): boolean => {
   try {
@@ -13,18 +20,22 @@ const isAbsoluteHttpUrl = (value: string): boolean => {
   }
 }
 
-const sitemapValuesOf = (txt: string): string[] => {
-  const matches = txt.match(/^\s*sitemap\s*:\s*\S+.*$/gim) || []
-  return matches
-    .map((line) => line.replace(/^\s*sitemap\s*:\s*/i, '').trim())
-    .filter(Boolean)
-}
+// Same selection as the original global/multiline regex, applied per line so
+// each declared Sitemap value keeps its 1-based source line number.
+const sitemapOccurrences = (txt: string) => txt.split(/\r\n|\r|\n/).reduce<Array<{ line: number; value: string }>>((acc, line, index) => {
+  if (SITEMAP_LINE.test(line)) acc.push({ line: index + 1, value: line.replace(/^\s*sitemap\s*:\s*/i, '').trim() })
+  return acc
+}, [])
+
+const checkedFacts = (criterion: string) => [
+  textField('Fetch target', 'origin/robots.txt'),
+  textField('Timeout', `${TIMEOUT_MS} ms`),
+  textField('Pattern', 'Line matches /^\\s*sitemap\\s*:\\s*\\S+.*$/i'),
+  textField('Criterion', criterion),
+]
 
 export const robotsSitemapReferenceRule: Rule = {
-  id: 'robots:sitemap-reference',
-  name: NAME,
-  enabled: true,
-  what: 'http',
+  id: RULE_ID, name: NAME, presentation: 1, enabled: true, what: 'http',
   meta: {
     provenance: 'google',
     references: [
@@ -38,61 +49,50 @@ export const robotsSitemapReferenceRule: Rule = {
     try {
       const url = new URL(page.url)
       if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-        return {
-          label: LABEL,
-          message: `Skipped: ${url.protocol} URL`,
-          type: 'info',
-          priority: 900,
-          name: NAME,
-          details: { protocol: url.protocol, origin: url.origin || '' },
-        }
+        return presentResult(robotsSitemapReferenceRule, page, {
+          input: 'Page URL', type: 'info', priority: 900,
+          values: [textField('Sitemap references', 'Not checked'), textField('Reason', `Skipped - ${url.protocol} URL`)],
+          checked: checkedFacts('Page URL uses the http or https scheme'), noMarkup: NO_MARKUP,
+        })
       }
       origin = url.origin
     } catch {
-      return { label: LABEL, message: 'Invalid URL', type: 'info', priority: 900, name: NAME, details: { url: page.url } }
+      return presentResult(robotsSitemapReferenceRule, page, {
+        input: 'Page URL', type: 'info', priority: 900,
+        values: [textField('Sitemap references', 'Not checked'), textField('Reason', 'Invalid page URL')],
+        checked: checkedFacts('Page URL uses the http or https scheme'), noMarkup: NO_MARKUP,
+      })
     }
-    const txt = await fetchTextOnce(`${origin}/robots.txt`, 1500, ctx.signal)
-    if (!txt)
-      return {
-        label: LABEL,
-        message: 'robots.txt not reachable',
-        type: 'info',
-        priority: 850,
-        name: NAME,
-        details: { origin, robotsTxt: '' },
-      }
-    const values = sitemapValuesOf(txt)
-    if (!values.length) {
-      // A robots.txt Sitemap line is only one of Google's documented submission
-      // methods (Search Console report/API, robots.txt, WebSub) - absence is not a defect.
-      return {
-        label: LABEL,
-        message: 'No Sitemap reference in robots.txt. Sitemaps may still be submitted via Search Console or its API.',
-        type: 'info',
-        priority: 820,
-        name: NAME,
-        details: { sitemapCount: 0, robotsTxt: txt },
-      }
+    const robotsTxtUrl = `${origin}/robots.txt`
+    const fetched = await fetchStatusTextOnce(robotsTxtUrl, TIMEOUT_MS, ctx.signal)
+    if (!fetched?.ok) {
+      return presentResult(robotsSitemapReferenceRule, page, {
+        input: fetched ? 'robots.txt response' : 'Not captured', type: 'info', priority: 850,
+        values: [textField('Sitemap references', 'Not checked'), textField('HTTP status', fetched ? httpStatusLabel(fetched.status) : 'No response received')],
+        detailValues: [urlField('robots.txt URL', robotsTxtUrl)],
+        checked: checkedFacts('robots.txt is reachable to read Sitemap declarations'), noMarkup: NO_MARKUP,
+      })
     }
-    const urls = values.filter(isAbsoluteHttpUrl)
-    const invalid = values.filter((v) => !isAbsoluteHttpUrl(v))
-    if (invalid.length) {
-      return {
-        label: LABEL,
-        message: `${invalid.length} invalid Sitemap value${invalid.length > 1 ? 's' : ''} in robots.txt (must be a fully qualified URL): ${invalid.join(', ')}`,
-        type: 'warn',
-        priority: 400,
-        name: NAME,
-        details: { sitemapCount: values.length, sitemapUrls: urls, invalidSitemapUrls: invalid, robotsTxt: txt },
-      }
+    const occurrences = sitemapOccurrences(fetched.text)
+    const invalidOccurrences = occurrences.filter((o) => !isAbsoluteHttpUrl(o.value))
+    const shown = occurrences.slice(0, MAX_SHOWN)
+    const evidence = shown.map((o) => ({ name: `Line ${o.line}`, fields: [textField('Line', o.line),
+      ...(isAbsoluteHttpUrl(o.value) ? [urlField('Sitemap URL', o.value)] : [textField('Sitemap value', o.value)]),
+      textField('Valid', isAbsoluteHttpUrl(o.value) ? 'Yes' : 'No')] }))
+    const detailValues = [urlField('robots.txt URL', robotsTxtUrl),
+      ...(occurrences.length > MAX_SHOWN ? [textField('Sitemap lines omitted from evidence', occurrences.length - MAX_SHOWN)] : [])]
+    const common = { input: 'robots.txt response', detailValues, checked: checkedFacts('Every declared Sitemap value is an absolute HTTP(S) URL'), evidence, noMarkup: NO_MARKUP }
+    if (!occurrences.length) {
+      return presentResult(robotsSitemapReferenceRule, page, { ...common, type: 'info', priority: 820,
+        values: [textField('Sitemap references', 0), textField('HTTP status', httpStatusLabel(fetched.status))],
+        checked: checkedFacts('No Sitemap line required; other submission methods exist') })
     }
-    return {
-      label: LABEL,
-      message: `${urls.length} Sitemap${urls.length > 1 ? 's' : ''} referenced in robots.txt.`,
-      type: 'ok',
-      priority: 820,
-      name: NAME,
-      details: { sitemapCount: urls.length, sitemapUrls: urls, robotsTxt: txt },
+    if (invalidOccurrences.length) {
+      return presentResult(robotsSitemapReferenceRule, page, { ...common, type: 'warn', priority: 400,
+        values: [textField('Sitemap references', occurrences.length), textField('Invalid values', invalidOccurrences.length),
+          textField('HTTP status', httpStatusLabel(fetched.status))] })
     }
+    return presentResult(robotsSitemapReferenceRule, page, { ...common, type: 'ok', priority: 820,
+      values: [textField('Sitemap references', occurrences.length), textField('HTTP status', httpStatusLabel(fetched.status))] })
   },
 }

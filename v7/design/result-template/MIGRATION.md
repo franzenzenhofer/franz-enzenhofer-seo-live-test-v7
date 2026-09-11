@@ -139,7 +139,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `http:navigation-path` | `269dd2c` (7.0.318) |
 | `http:canonical-host-redirect` | `019c6ca` (7.0.319) |
 | `url:trailing-slash` | `8cc2b04` (7.0.320) |
-| `robots:noindex-unsupported` | build 7.0.321 |
+| `robots:noindex-unsupported` | `2851b7d` (7.0.321) |
+| `robots:sitemap-reference` | build 7.0.322 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
