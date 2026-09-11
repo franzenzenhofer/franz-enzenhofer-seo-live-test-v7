@@ -1,47 +1,23 @@
-import type { Rule } from '@/core/types'
-import { extractSnippet } from '@/shared/html-utils'
-import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
-import { normalizeUrl } from '@/shared/url-utils'
-import { anonymousFetch } from '@/shared/probeFetch'
+import {
+  encodingEvidence, fetchHeadHeaders, headerRecord, headerSourceLabel,
+  isHtmlLike, KNOWN_ENCODINGS, normalizeHeaders, parseEncodings,
+} from './gzip.evidence'
 
-const LABEL = 'HTTP'
+import { hasHeaders } from '@/shared/http-utils'
+import { normalizeUrl } from '@/shared/url-utils'
+import { textField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
+import type { Rule } from '@/core/types'
+
 const NAME = 'Gzip/Brotli Compression'
 const RULE_ID = 'http:gzip'
-
-const KNOWN_ENCODINGS: Record<string, { note: string; accepted: boolean }> = {
-  br: { note: 'Brotli (modern, recommended)', accepted: true },
-  gzip: { note: 'Gzip (widely supported, recommended)', accepted: true },
-  zstd: { note: 'Zstandard compression', accepted: true },
-  deflate: { note: 'Deflate (legacy but accepted; prefer gzip or Brotli)', accepted: true },
-  compress: { note: 'LZW compress (obsolete)', accepted: false },
-  identity: { note: 'identity (no compression)', accepted: false },
-}
-
-const parseEncodings = (encodingHeader: string | null | undefined) =>
-  (encodingHeader || '')
-    .split(',')
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean)
-const isHtmlLike = (headers: Record<string, string>) => {
-  const ct = (headers['content-type'] || '').toLowerCase()
-  return ct.includes('text/html') || ct.includes('application/xhtml+xml')
-}
-const normalizeHeaders = (headers?: Record<string, string>): Record<string, string> =>
-  Object.fromEntries(Object.entries(headers || {}).map(([k, v]) => [k.toLowerCase(), v]))
-const fetchHeadHeaders = async (url: string, signal?: AbortSignal) => {
-  try {
-    const r = await anonymousFetch(url, { method: 'HEAD', redirect: 'follow', signal })
-    const h: Record<string, string> = {}
-    r.headers.forEach((v, k) => { h[k.toLowerCase()] = v })
-    return h
-  } catch {
-    return undefined
-  }
-}
+const ACCEPTED_CODINGS = 'br, gzip, zstd, deflate'
+const NO_MARKUP = 'None - this rule checks the HTTP response, not document markup'
 
 export const gzipRule: Rule = {
   id: RULE_ID,
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'http',
   meta: {
@@ -77,68 +53,45 @@ export const gzipRule: Rule = {
         headerSource = 'probe'
       }
     }
-    if (!hasHeaders(headers)) return noHeadersResult(LABEL, NAME)
+    if (!hasHeaders(headers)) {
+      return presentResult(gzipRule, page, {
+        input: 'Not captured', type: 'runtime_error', priority: 50,
+        values: [textField('Header capture', 'Not captured')],
+        checked: [textField('Header name', 'Content-Encoding'), textField('Capture requirement', 'Response headers must be captured or re-probed')],
+        noMarkup: NO_MARKUP,
+      })
+    }
 
     const encodingHeader = headers['content-encoding'] || ''
     const encodings = parseEncodings(encodingHeader)
-    const details = encodings.map((enc) => ({ encoding: enc, ...(KNOWN_ENCODINGS[enc] || { note: 'Unknown encoding', accepted: false }) }))
     const hasAccepted = encodings.some((e) => KNOWN_ENCODINGS[e]?.accepted === true)
+    const checked = [
+      textField('Header name', 'Content-Encoding'),
+      textField('Header source', headerSourceLabel(headerSource)),
+      textField('Accepted codings', ACCEPTED_CODINGS),
+    ]
+    const evidence = [headerRecord(headers), ...(encodings.length ? encodingEvidence(encodings) : [])]
 
     if (!encodings.length) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'No content-encoding header. Enable gzip or Brotli compression.',
-        type: 'warn',
-        priority: 150,
-        details: {
-          httpHeaders: headers || {},
-          snippet: extractSnippet('(not present)'),
-          encoding: '',
-          compressionType: null,
-          isCompressed: false,
-          encodings,
-          notes: details,
-          headerSource,
-        },
-      }
+      return presentResult(gzipRule, page, {
+        input: 'HTTP response headers', type: 'warn', priority: 150,
+        values: [textField('Content-Encoding', 'Not present'), textField('Compression', 'Not detected'), textField('Header source', headerSource)],
+        checked, evidence, noMarkup: NO_MARKUP,
+      })
     }
-
     if (hasAccepted) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: `Content compressed with ${encodings.join(', ')}.`,
-        type: 'ok',
-        priority: 800,
-        details: {
-          httpHeaders: headers || {},
-          snippet: extractSnippet(encodingHeader),
-          encoding: encodingHeader,
-          compressionType: encodings.join(', '),
-          isCompressed: true,
-          encodings,
-          notes: details,
-          headerSource,
-        },
-      }
+      return presentResult(gzipRule, page, {
+        input: 'HTTP response headers', type: 'ok', priority: 800,
+        values: [textField('Content-Encoding', encodingHeader), textField('Compression', 'Supported coding detected'), textField('Header source', headerSource)],
+        detailValues: [textField('Encoding tokens', encodings.length)],
+        checked, evidence, noMarkup: NO_MARKUP,
+      })
     }
-    return {
-      label: LABEL,
-      name: NAME,
-      message: `Unsupported content-encoding: ${encodings.join(', ')}. Use gzip, Brotli, or Zstandard.`,
-      type: 'warn',
-      priority: 150,
-      details: {
-        httpHeaders: headers || {},
-        snippet: extractSnippet(encodingHeader),
-        encoding: encodingHeader,
-        compressionType: encodings.join(', '),
-        isCompressed: true,
-        encodings,
-        notes: details,
-        headerSource,
-      },
-    }
+    return presentResult(gzipRule, page, {
+      input: 'HTTP response headers', type: 'warn', priority: 150,
+      values: [textField('Content-Encoding', encodingHeader), textField('Compression', 'Unsupported coding only'), textField('Header source', headerSource)],
+      detailValues: [textField('Encoding tokens', encodings.length)],
+      checked, evidence, noMarkup: NO_MARKUP,
+    })
   },
 }
