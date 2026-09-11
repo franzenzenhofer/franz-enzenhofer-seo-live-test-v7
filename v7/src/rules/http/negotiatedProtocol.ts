@@ -1,18 +1,13 @@
+import { textField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
-
-const LABEL = 'HTTP'
-const NAME = 'Negotiated Network Protocol'
-const RULE_ID = 'http:negotiated-protocol'
 
 const isHttp3 = (proto: string) => /^h3\b|^hq\b|quic/i.test(proto)
 const isHttp2 = (proto: string) => /^h2\b/i.test(proto)
 const isLegacy = (proto: string) => /^http\/1/i.test(proto)
 
 export const negotiatedProtocolRule: Rule = {
-  id: RULE_ID,
-  name: NAME,
-  enabled: true,
-  what: 'http',
+  id: 'http:negotiated-protocol', name: 'Negotiated Network Protocol', presentation: 1, enabled: true, what: 'http',
   meta: {
     provenance: 'google',
     references: [
@@ -23,25 +18,23 @@ export const negotiatedProtocolRule: Rule = {
   },
   async run(page) {
     const proto = page.navigationTiming?.nextHopProtocol || ''
+    const checked = [textField('Signal', 'Navigation Timing API nextHopProtocol'),
+      textField('Criterion', 'ok for HTTP/2 or HTTP/3; error when an HTTPS page negotiates HTTP/1.x; info otherwise')]
+    const evidence = proto ? [{ name: 'Navigation timing', fields: [textField('nextHopProtocol', proto)] }] : []
+    const noMarkup = 'None - this rule checks navigation timing, not document markup'
+    if (!proto) return presentResult(negotiatedProtocolRule, page, {
+      input: 'Not captured', type: 'info', priority: 900,
+      values: [textField('Negotiated protocol', 'Not captured')],
+      checked, evidence, noMarkup,
+    })
     const isHttps = page.url.startsWith('https:')
-    const details = { navigationTiming: page.navigationTiming || null, url: page.url, nextHopProtocol: proto }
-    if (!proto) {
-      return { label: LABEL, name: NAME, type: 'info', priority: 900, details,
-        message: 'Network protocol not captured (nextHopProtocol unavailable).' }
-    }
-    if (isHttp3(proto)) {
-      return { label: LABEL, name: NAME, type: 'ok', priority: 800, details,
-        message: `Network protocol: ${proto} (HTTP/3 – optimal performance).` }
-    }
-    if (isHttp2(proto)) {
-      return { label: LABEL, name: NAME, type: 'ok', priority: 780, details,
-        message: `Network protocol: ${proto} (HTTP/2; HTTP/3 would be optimal).` }
-    }
-    if (isLegacy(proto) && isHttps) {
-      return { label: LABEL, name: NAME, type: 'error', priority: 200, details,
-        message: `Network protocol: ${proto} (outdated). Upgrade to HTTP/2 or HTTP/3.` }
-    }
-    return { label: LABEL, name: NAME, type: 'info', priority: 800, details,
-      message: `Network protocol: ${proto}.` }
+    const type = isHttp3(proto) || isHttp2(proto) ? 'ok' : isLegacy(proto) && isHttps ? 'error' : 'info'
+    const priority = isHttp3(proto) ? 800 : isHttp2(proto) ? 780 : isLegacy(proto) && isHttps ? 200 : 800
+    return presentResult(negotiatedProtocolRule, page, {
+      input: 'Navigation events + Page URL', type, priority,
+      values: [textField('Negotiated protocol', proto)],
+      detailValues: [textField('HTTPS page', isHttps ? 'Yes' : 'No')],
+      checked, evidence, noMarkup,
+    })
   },
 }

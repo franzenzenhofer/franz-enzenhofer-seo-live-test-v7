@@ -1,39 +1,59 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { negotiatedProtocolRule } from '@/rules/http/negotiatedProtocol'
+import { enrichResult } from '@/core/runHelpers'
+import { toResultCopyPayload } from '@/components/result/resultCopy'
 
-const P = (proto?: string, url = 'https://ex.com', headers: Record<string, string> = { 'content-type': 'text/html' }) =>
-  ({ html: '', url, doc: new DOMParser().parseFromString('<p/>', 'text/html'), navigationTiming: { nextHopProtocol: proto || '' }, headers })
+const P = (proto?: string, url = 'https://ex.com') =>
+  ({ html: '', url, doc: new DOMParser().parseFromString('<p/>', 'text/html'), navigationTiming: { nextHopProtocol: proto || '' } })
+const run = async (proto?: string, url?: string) => enrichResult(await negotiatedProtocolRule.run(P(proto, url) as never, { globals: {} }), negotiatedProtocolRule, 'test')
 
 describe('rule: negotiated protocol', () => {
   it('reads the protocol from navigation timing, not from response headers', async () => {
-    const r = await negotiatedProtocolRule.run(P('h2', 'https://ex.com', {}) as any, { globals: {} })
-    expect(r.type).toBe('ok')
-    expect(r.details?.nextHopProtocol).toBe('h2')
+    const result = await run('h2')
+    expect(result.type).toBe('ok')
+    expect(result.presentation?.input).toBe('Navigation events + Page URL')
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Negotiated protocol', value: 'h2' }))
   })
 
   it('says the protocol was not captured when navigation timing has none', async () => {
-    const r = await negotiatedProtocolRule.run(P('') as any, { globals: {} })
-    expect(r.type).toBe('info')
-    expect(r.message).toContain('not captured')
+    const result = await run('')
+    expect(result.type).toBe('info')
+    expect(result.presentation?.input).toBe('Not captured')
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Negotiated protocol', value: 'Not captured' }))
   })
 
-  it('errors when HTTPS negotiates http/1.1 (outdated)', async () => {
-    const r = await negotiatedProtocolRule.run(P('http/1.1') as any, { globals: {} })
-    expect(r.type).toBe('error')
-    expect(r.message).toContain('outdated')
-    expect(r.message).toContain('HTTP/2 or HTTP/3')
+  it('errors when HTTPS negotiates http/1.1 (outdated) with the criterion stated in checked, not values', async () => {
+    const result = await run('http/1.1')
+    expect(result.type).toBe('error')
+    expect(result.priority).toBe(200)
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Negotiated protocol', value: 'http/1.1' }))
+    expect(result.presentation?.detailValues).toContainEqual(expect.objectContaining({ key: 'HTTPS page', value: 'Yes' }))
+    expect(result.presentation?.checked).toContainEqual(expect.objectContaining({ key: 'Criterion', value: expect.stringContaining('HTTP/1.x') }))
   })
 
-  it('treats h2 as passing and mentions HTTP/3', async () => {
-    const r = await negotiatedProtocolRule.run(P('h2') as any, { globals: {} })
-    expect(r.type).toBe('ok')
-    expect(r.message).toContain('HTTP/3')
+  it('does not error http/1.1 over plain HTTP', async () => {
+    const result = await run('http/1.1', 'http://ex.com')
+    expect(result.type).toBe('info')
+    expect(result.presentation?.detailValues).toContainEqual(expect.objectContaining({ key: 'HTTPS page', value: 'No' }))
   })
 
-  it('reports ok for h3 (optimal)', async () => {
-    const r = await negotiatedProtocolRule.run(P('h3') as any, { globals: {} })
-    expect(r.type).toBe('ok')
-    expect(r.message).toContain('optimal')
+  it('treats h2 as a passing state', async () => {
+    const result = await run('h2')
+    expect(result.type).toBe('ok')
+    expect(result.priority).toBe(780)
+  })
+
+  it('reports ok for h3', async () => {
+    const result = await run('h3')
+    expect(result.type).toBe('ok')
+    expect(result.priority).toBe(800)
+  })
+
+  it('copies the negotiated protocol and references without advice', async () => {
+    const result = await run('h3')
+    const copy = toResultCopyPayload(result)
+    for (const value of ['Negotiated protocol: h3', ...negotiatedProtocolRule.meta.references]) expect(copy).toContain(value)
+    expect(result.details).toBeUndefined()
   })
 })
