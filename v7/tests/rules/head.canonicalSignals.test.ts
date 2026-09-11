@@ -24,6 +24,8 @@ describe('canonical header and signal rules', () => {
     }
     const res = await canonicalSignalsConflictRule.run(page as any, { globals: {} })
     expect(res.type).toBe('error')
+    expect(res.priority).toBe(80)
+    expect(res.details).toBeUndefined()
   })
 
   it('errors on multiple canonical HTTP headers (owned by head:canonical-header)', async () => {
@@ -51,7 +53,7 @@ describe('canonical header and signal rules', () => {
     }
     const res = await canonicalSignalsConflictRule.run(page as any, { globals: {} })
     expect(res.type).toBe('warn')
-    expect(res.message).toContain('choose one method')
+    expect(res.presentation?.values).toContainEqual({ key: 'Comparison', value: 'Canonicals agree', kind: 'text' })
   })
 
   it('flags HTTPS to HTTP downgrade', async () => {
