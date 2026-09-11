@@ -101,7 +101,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `http:cache-delivery` | `a42056e` (7.0.276) |
 | `http:from-cache` | `a142ab7` (7.0.278) |
 | `http:security-headers` | `4b1c05c` (7.0.280) |
-| `http:common-mobile-setup` | build 7.0.281 |
+| `http:common-mobile-setup` | `73a593f` (7.0.281) |
+| `http:unavailable-after` | build 7.0.282 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
