@@ -114,7 +114,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `a11y:linked-images-alt` | `4d0f6ad` (7.0.291) |
 | `dom:parameterized-links-diff` | `c8276b2` (7.0.292) |
 | `dom:client-side-rendering` | `5e2996d` (7.0.293) |
-| `dom:seo-phase-changes` | build 7.0.295 |
+| `dom:seo-phase-changes` | `986a6e0` (7.0.295) |
+| `speed:link-preload` | build 7.0.296 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
