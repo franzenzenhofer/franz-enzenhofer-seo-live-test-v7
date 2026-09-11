@@ -1,17 +1,12 @@
-import { headerValue, advertisedProtocol } from '@/shared/headerValue'
+import { headersNotCapturedResult } from '@/rules/http/headersNotCaptured'
+import { advertisedProtocol, headerValue } from '@/shared/headerValue'
+import { hasHeaders } from '@/shared/http-utils'
+import { textField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
-import { extractSnippet } from '@/shared/html-utils'
-import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
-
-const LABEL = 'HTTP'
-const NAME = 'HTTP/3 Advertised (Alt-Svc)'
-const RULE_ID = 'http:h3-advertised'
 
 export const http3AdvertisedRule: Rule = {
-  id: RULE_ID,
-  name: NAME,
-  enabled: true,
-  what: 'http',
+  id: 'http:h3-advertised', name: 'HTTP/3 Advertised (Alt-Svc)', presentation: 1, enabled: true, what: 'http',
   meta: {
     userGuide: {
       check: "Reports whether the server advertises HTTP/3 in Alt-Svc, an alternative-service response header. Advertisement does not establish which protocol this load actually used, and absence does not prove a lack of support.",
@@ -25,25 +20,17 @@ export const http3AdvertisedRule: Rule = {
     description: 'Reports (info-only) whether the Alt-Svc header advertises HTTP/3 via the h3 (or h3-draft) ALPN token.',
   },
   async run(page) {
-    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
+    if (!hasHeaders(page.headers)) return headersNotCapturedResult(http3AdvertisedRule, page, 'Alt-Svc')
     const altSvcHeader = headerValue(page.headers, 'alt-svc')
     const advertisesHttp3 = advertisedProtocol(altSvcHeader, 'h3')
-    const message = advertisesHttp3
-      ? 'The server advertises HTTP/3 as an alternative service.'
-      : altSvcHeader
-        ? 'Alt-Svc is present without an HTTP/3 advertisement.'
-        : 'No Alt-Svc advertisement captured. HTTP/3 capability is undetermined; see the negotiated protocol.'
-    return {
-      label: LABEL,
-      name: NAME,
-      message,
-      type: 'info',
-      priority: advertisesHttp3 ? 750 : 850,
-      details: {
-        snippet: extractSnippet(altSvcHeader || '(not present)'),
-        altSvcHeader,
-        advertisesHttp3,
-      },
-    }
+    return presentResult(http3AdvertisedRule, page, {
+      input: 'HTTP response headers', type: 'info', priority: advertisesHttp3 ? 750 : 850,
+      values: [textField('Alt-Svc header', altSvcHeader || 'Not present'),
+        textField('HTTP/3 advertised', advertisesHttp3 ? 'Yes' : 'No')],
+      checked: [textField('Header', 'Alt-Svc'), textField('ALPN token', 'h3 (or h3-NN draft)'),
+        textField('Criterion', 'Informational only; does not prove the connection used HTTP/3')],
+      evidence: altSvcHeader ? [{ name: 'Alt-Svc header', fields: [textField('Alt-Svc', altSvcHeader)] }] : [],
+      noMarkup: 'None - this rule checks the HTTP response, not document markup',
+    })
   },
 }

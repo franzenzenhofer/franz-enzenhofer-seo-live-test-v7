@@ -94,7 +94,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `http:hsts` | `e8e9f80` (7.0.269) |
 | `dom:top-words` | `1875ad0` (7.0.270) |
 | `http:https-scheme` | `312b707` (7.0.271) |
-| `http:h2-advertised` | build 7.0.272 |
+| `http:h2-advertised` | `4011d41` (7.0.272) |
+| `http:h3-advertised` | build 7.0.273 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
