@@ -73,7 +73,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `head:canonical-header` | `30f1e9b` (7.0.246) |
 | `head:robots-meta-list` | `fda84aa` (7.0.247) |
 | `head:hreflang-values` | `c4b6505` (7.0.248) |
-| `dom:node-count` | build 7.0.250 |
+| `dom:node-count` | `b840e87` (7.0.250) |
+| `dom:node-depth` | build 7.0.251 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 

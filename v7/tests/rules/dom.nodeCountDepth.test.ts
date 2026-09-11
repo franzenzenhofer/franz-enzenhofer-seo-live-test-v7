@@ -8,6 +8,8 @@ import { presentationSchema } from '@/shared/presentation/schema'
 const D = (h: string) => new DOMParser().parseFromString(h, 'text/html')
 const runCount = async (html: string, idleFacts?: { nodeCount?: number }) =>
   enrichResult(await nodeCountRule.run({ html, url: 'https://ex.com', doc: D(html), idleFacts } as never, { globals: {} }), nodeCountRule, 'test')
+const runDepth = async (html: string, idleFacts?: { maxDepth?: number }) =>
+  enrichResult(await nodeDepthRule.run({ html, url: 'https://ex.com', doc: D(html), idleFacts } as never, { globals: {} }), nodeDepthRule, 'test')
 const value = (result: Awaited<ReturnType<typeof runCount>>, key: string) => result.presentation?.values.find((field) => field.key === key)?.value
 
 describe('rule: DOM node count', () => {
@@ -29,10 +31,20 @@ describe('rule: DOM node count', () => {
   })
 })
 
-describe('rule: dom node depth (not yet migrated)', () => {
-  it('measures depth', async () => {
-    const doc = D('<div><span><b>x</b></span></div>')
-    const d = await nodeDepthRule.run({ html: '', url: 'https://ex.com', doc } as never, { globals: {} })
-    expect((d as { message: string }).message.includes('Max depth')).toBe(true)
+describe('rule: DOM node depth', () => {
+  it('reports fallback parsed tree depth including text nodes', async () => {
+    const result = await runDepth('<div><span>Text</span></div>')
+    expect(result.type).toBe('info'); expect(result.priority).toBe(800)
+    expect(typeof value(result, 'Maximum node depth')).toBe('number')
+    expect(result.presentation?.markup).toEqual([])
+    expect(result.presentation?.input).toBe('Idle DOM')
+    expect(result.details).toBeUndefined()
+    expect(presentationSchema.safeParse(result.presentation).success).toBe(true)
+  })
+
+  it('uses the idle facts depth when one is present', async () => {
+    const result = await runDepth('<div>Different</div>', { maxDepth: 19 })
+    expect(value(result, 'Maximum node depth')).toBe(19)
+    expect(result.presentation?.detailValues).toContainEqual({ key: 'Depth source', value: 'Idle DOM facts', kind: 'text' })
   })
 })
