@@ -1,11 +1,18 @@
 import type { Rule } from '@/core/types'
-import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
-import { getDomPaths } from '@/shared/dom-path'
 import { sampleElements } from '@/shared/domEvidence'
+import { textField, urlField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
+
+const SELECTOR = 'link[rel="dns-prefetch"]'
+const isHttpUrl = (value: string, base: string) => { try { return /^https?:$/.test(new URL(value, base).protocol) } catch { return false } }
+const hrefField = (raw: string | null, base: string) => !raw ? textField('Href', raw === null ? 'Absent' : 'Empty')
+  : isHttpUrl(raw, base) ? urlField('Href', raw) : textField('Href', raw)
 
 export const dnsPrefetchRule: Rule = {
   id: 'speed:dns-prefetch',
   name: 'rel=dns-prefetch',
+  presentation: 1,
   enabled: true,
   what: 'static',
   meta: {
@@ -18,26 +25,18 @@ export const dnsPrefetchRule: Rule = {
     description: 'Info-only count of <link rel="dns-prefetch"> elements with their target hrefs.',
   },
   async run(page) {
-    const links = page.doc.querySelectorAll('link[rel="dns-prefetch"]')
-    const n = links.length
-    const evidence = sampleElements(links)
-    const sourceHtml = n ? extractHtmlFromList(evidence.sample) : ''
-    const domPaths = n ? getDomPaths(evidence.sample) : []
-    return {
-      label: 'SPEED',
-      message: n ? `dns-prefetch links: ${n}` : 'No dns-prefetch links',
-      type: 'info',
-      priority: n ? 750 : 900,
-      name: 'rel=dns-prefetch',
-      details: {
-        ...(n ? { sourceHtml, snippet: extractSnippet(sourceHtml) } : {}),
-        urls: Array.from(links, (el) => el.getAttribute('href') || '').filter(Boolean),
-        count: n,
-        shown: evidence.shown,
-        truncated: evidence.truncated,
-        domPaths,
-        tested: 'Queried <link rel="dns-prefetch">',
-      },
-    }
+    const links = page.doc.querySelectorAll(SELECTOR)
+    const { sample, total, shown } = sampleElements(links)
+    const captured = markupEvidence(sample, 'DNS-prefetch link markup')
+    return presentResult(dnsPrefetchRule, page, {
+      input: 'Static DOM', type: 'info', priority: total ? 750 : 900,
+      values: [textField('DNS-prefetch links', total)],
+      detailValues: [textField('Elements retained', shown), textField('Elements omitted', total - shown)],
+      checked: [textField('Selector', SELECTOR), textField('Selection', 'All matches'), textField('Attribute', 'href'), textField('Criterion', 'Descriptive count; no threshold')],
+      evidence: sample.map((element, index) => ({ name: `DNS-prefetch link ${index + 1}`, fields: [
+        hrefField(element.getAttribute('href'), page.url), textField('DOM path', captured.selectors[index] || 'Not captured'),
+      ] })),
+      markup: captured.markup, noMarkup: total ? 'Complete original dns-prefetch link markup not retained' : 'No dns-prefetch link element found',
+    })
   },
 }
