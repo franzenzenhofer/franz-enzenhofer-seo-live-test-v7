@@ -18,6 +18,15 @@ This supersedes every earlier instruction to stop after five or ten rules. Conti
 - Keep work on the current single branch, `main`; do not create parallel worktrees or branches. Do not push or publish.
 - At final completion, produce the handover prompt, copy it to the clipboard and call `say`, as explicitly requested. The user additionally explicitly authorized and requested shutting down this computer **only after ALL rule migrations, individual commits and testing are complete**. Before shutdown, create and verify a fresh final build, commit all task work and the handover, verify the committed package version matches the built manifest, and inspect git status for uncommitted task changes. Preserve unrelated user work. Save the handover and clipboard, report completion, then shut down. Never shut down on partial completion, failed verification, compaction or a handover to continue unfinished work.
 
+## Handover to Claude Code (2026-09-11 14:35)
+
+Codex timed out after `og:url` (22/130). Claude Code continues with the same contract and one-rule-per-commit gates.
+
+- All Codex `/tmp` drafts were preserved in `trash/codex-migration-patches-20260911/` (review notes in `REVIEW-NOTES.md`); `/tmp` is wiped on reboot.
+- Pipeline: 11 subagents (batches A-K by rule family) each work in an isolated scratch copy of committed HEAD, never in this repository, and write one patch plus notes per rule to `trash/migration-work-20260911/patches/` following `trash/migration-work-20260911/BRIEF.md`. Codex drafts are their starting point where one exists.
+- The primary agent reviews each patch against the original rule, applies it, runs the full build (typecheck, lint incl. presentation lint, unit suite, headless e2e, zip) and commits it separately. A factory (`createRobots*Rule`, `createSchemaRule`) is migrated together with the rules it builds in one commit, because a half-migrated factory would require a dual code path.
+- The shutdown authorization was given to Codex in its session; Claude Code does not shut the computer down without a fresh instruction.
+
 ## Resume instructions
 
 1. Read this file, `SPEC.md`, `LINTING.md`, repository `AGENTS.md` and applicable global instructions. Never expose credentials from global files.
@@ -52,6 +61,8 @@ This supersedes every earlier instruction to stop after five or ten rules. Conti
 | `head:meta-charset` | `f89aa6e` |
 | `og-title` | `8df4a0d` |
 | `og:description` | `5982688` |
+| `og:url` | `493bf94` |
+| `og:image` | build 7.0.237 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 

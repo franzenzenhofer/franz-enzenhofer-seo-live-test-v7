@@ -54,12 +54,12 @@ describe('verdicts carry the judged value', () => {
     expect(res.presentation?.values).toContainEqual({ key: 'Content (trimmed)', value: 'width=device-width, initial-scale=1', kind: 'text' })
   })
 
-  it('og:image carries the image URL in its key', async () => {
+  it('og:image carries the declared image URL in its overview values', async () => {
     const res = await ogImageRule.run(
       page('<head><meta property="og:image" content="https://ex.com/img.jpg"></head>'),
       ctx,
     )
-    expect(res.details?.['ogImage']).toBe('https://ex.com/img.jpg')
+    expect(res.presentation?.values).toContainEqual({ key: 'Declared URL (trimmed)', value: 'https://ex.com/img.jpg', kind: 'url' })
     expect(typeof res.priority).toBe('number')
   })
 

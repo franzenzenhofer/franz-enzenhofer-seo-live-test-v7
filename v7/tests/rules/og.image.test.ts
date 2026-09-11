@@ -1,12 +1,43 @@
-import { describe, it, expect } from 'vitest'
-import { ogImageRule } from '@/rules/og/image'
+import { describe, expect, it } from 'vitest'
 
-const D = (h: string) => new DOMParser().parseFromString(h,'text/html')
+import { enrichResult } from '@/core/runHelpers'
+import { ogImageRule as rule } from '@/rules/og/image'
+import { toResultCopyPayload } from '@/components/result/resultCopy'
 
-describe('rule: og image', () => {
-  it('warns relative', async () => {
-    const r = await ogImageRule.run({ html:'', url:'https://ex.com', doc: D('<meta property="og:image" content="/a.jpg">') } as any, { globals: {} })
-    expect((r as any).type).toBe('warn')
+const doc = (h: string) => new DOMParser().parseFromString(h, 'text/html')
+const run = async (html: string) => enrichResult(await rule.run({ html, url: 'https://example.test/', doc: doc(html) }, { globals: {} }), rule, 'test')
+const value = (result: Awaited<ReturnType<typeof run>>, key: string) => result.presentation?.values.find((field) => field.key === key)?.value
+const detail = (result: Awaited<ReturnType<typeof run>>, key: string) => result.presentation?.detailValues.find((field) => field.key === key)?.value
+
+describe('Open Graph image rule', () => {
+  it('warns when the image declaration is absent', async () => {
+    const result = await run('<title>x</title>')
+    expect(result.type).toBe('warn'); expect(result.priority).toBe(500); expect(value(result, 'og:image')).toBe('Absent')
+    expect(result.presentation?.markup).toEqual([])
+    expect(result.label).toBe('HEAD')
+  })
+
+  it('warns for an empty or relative image URL and preserves source markup', async () => {
+    const empty = await run('<meta property="og:image" data-source="cms" content="">')
+    expect(empty.type).toBe('warn'); expect(empty.priority).toBe(350); expect(value(empty, 'og:image')).toBe('Not absolute')
+    expect(value(empty, 'Declared URL (trimmed)')).toBe('Empty')
+    const relative = await run('<meta property="og:image" content="/a.jpg">')
+    expect(relative.type).toBe('warn'); expect(relative.priority).toBe(350); expect(value(relative, 'Declared URL (trimmed)')).toBe('/a.jpg')
+    expect(relative.presentation?.markup[0].value).toBe('<meta property="og:image" content="/a.jpg">')
+  })
+
+  it('reports an absolute image URL as informational and preserves the reference in copy', async () => {
+    const html = '<meta name="og:image" data-source="cms" content="https://example.test/photo.jpg">'
+    const result = await run(html)
+    expect(result.type).toBe('info'); expect(result.priority).toBe(760); expect(value(result, 'og:image')).toBe('Absolute URL')
+    expect(value(result, 'Declared URL (trimmed)')).toBe('https://example.test/photo.jpg')
+    expect(result.details).toBeUndefined(); expect(toResultCopyPayload(result)).toContain(rule.meta.references[0])
+  })
+
+  it('retains only a bounded sample of duplicate image declarations', async () => {
+    const html = Array.from({ length: 11 }, (_, index) => `<meta property="og:image" content="https://example.test/${index + 1}.jpg">`).join('')
+    const result = await run(html)
+    expect(detail(result, 'Elements omitted')).toBe(1)
+    expect(result.presentation?.markup).toHaveLength(10)
   })
 })
-
