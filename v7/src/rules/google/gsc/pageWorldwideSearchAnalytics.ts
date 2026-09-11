@@ -1,17 +1,21 @@
 import { gscFetch } from '../googleFetch'
-import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
-import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../google-gsc-utils'
+import { extractGoogleCredentials } from '../google-utils'
+import { deriveGscProperty } from '../google-gsc-utils'
 
-import { searchAnalyticsValue } from './gscValue'
-import { searchAnalyticsPeriod, searchAnalyticsScope, gscRequestIssue } from './searchAnalyticsContext'
+import { searchAnalyticsPeriod, searchAnalyticsScope } from './searchAnalyticsContext'
+import { gscNoTokenFacts, gscPropertyMissingFacts, gscApiIssueFacts, gscNetworkErrorFacts, GSC_NOT_MARKUP } from './gscFacts'
 
+import { textField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
 
 const NAME = 'Page worldwide analytics'
+const API = 'Search Console searchAnalytics.query (page filter)'
 
 export const gscPageWorldwideRule: Rule = {
   id: 'gsc:page-worldwide',
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'gsc',
   meta: {
@@ -27,39 +31,41 @@ export const gscPageWorldwideRule: Rule = {
   },
   async run(page, ctx) {
     const { token } = extractGoogleCredentials(ctx)
-    if (!token) return createNoTokenResult('GSC', NAME)
+    if (!token) return presentResult(gscPageWorldwideRule, page, gscNoTokenFacts())
 
     const derived = await deriveGscProperty(page.url, token)
-    if (!derived) return createGscPropertyDerivationFailedResult(page.url, NAME)
+    if (!derived) return presentResult(gscPageWorldwideRule, page, gscPropertyMissingFacts(page.url))
 
     const { property, type: propertyType } = derived
     const period = searchAnalyticsPeriod()
     const body = { ...period, type: 'web', dataState: 'final', dimensions: ['page'], dimensionFilterGroups: [{ groupType: 'and', filters: [{ dimension: 'page', operator: 'equals', expression: page.url }] }] }
+    let j: { rows?: Array<{ clicks?: number, impressions?: number, keys?: string[] }> }
     try {
-      const r = await gscFetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(property)}/searchAnalytics/query`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify(body) })
-      if (!r.ok) return gscRequestIssue(r.status, NAME, page.url, property)
-      const j = await r.json() as { rows?: Array<{ clicks?: number, impressions?: number, keys?: string[] }> }
-      const row = (j.rows || []).find(r => (r.keys||[])[0] === page.url)
-      const imp = row?.impressions || 0
-      const cl = row?.clicks || 0
-      return {
-        label: 'GSC',
-        message: `Impressions ${imp}, Clicks ${cl}`,
-        type: 'info',
-        priority: 750,
-        name: NAME,
-        details: { url: page.url, value: searchAnalyticsValue(imp, cl), property, propertyType, impressions: imp, clicks: cl, ...searchAnalyticsScope(period), apiResponse: j },
-      }
+      const response = await gscFetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(property)}/searchAnalytics/query`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify(body) })
+      if (!response.ok) return presentResult(gscPageWorldwideRule, page, gscApiIssueFacts(API, response.status, property, propertyType))
+      j = await response.json() as { rows?: Array<{ clicks?: number, impressions?: number, keys?: string[] }> }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      return {
-        label: 'GSC',
-        message: `GSC request failed: ${message}`,
-        type: 'runtime_error',
-        name: NAME,
-        priority: -1000,
-        details: { url: page.url, property, propertyType },
-      }
+      return presentResult(gscPageWorldwideRule, page, gscNetworkErrorFacts(API, message, property, propertyType))
     }
+
+    const row = (j.rows || []).find((r) => (r.keys || [])[0] === page.url)
+    const imp = row?.impressions || 0
+    const cl = row?.clicks || 0
+    const scope = searchAnalyticsScope(period)
+
+    return presentResult(gscPageWorldwideRule, page, {
+      input: 'Page URL + Search Console API response',
+      type: 'info',
+      priority: 750,
+      values: [textField('Impressions', imp), textField('Clicks', cl)],
+      detailValues: [textField('Property', property), textField('Property type', propertyType)],
+      checked: [
+        textField('API', API),
+        textField('Reporting period', scope.reportingPeriod), textField('Search type', scope.searchType),
+        textField('Data availability', scope.dataAvailability), textField('Metric definitions', scope.metricDefinitions),
+      ],
+      noMarkup: GSC_NOT_MARKUP,
+    })
   },
 }

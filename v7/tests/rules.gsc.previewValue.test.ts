@@ -4,7 +4,6 @@ import { createServer, type IncomingMessage, type Server } from 'node:http'
 import { JSDOM } from 'jsdom'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 
-import { gscPageWorldwideRule } from '@/rules/google/gsc/pageWorldwideSearchAnalytics'
 import { gscDirectoryWorldwideRule } from '@/rules/google/gsc/pageDirectoryWorldwideSearchAnalytics'
 import { resultPreview } from '@/shared/resultPreview'
 
@@ -84,11 +83,8 @@ describe('GSC rules put the judged value into details.value', () => {
   // gsc:property-available is migrated to the presentation contract; its overview-value coverage now
   // lives in tests/rules/google.gsc.propertyAvailable.test.ts (presentation.values, not details.value).
 
-  it('page analytics: the impressions and clicks', async () => {
-    const { value, preview } = await runRule(gscPageWorldwideRule)
-    expect(value).toBe('10664 impressions, 571 clicks')
-    expect(preview).toBe('10664 impressions, 571 clicks')
-  })
+  // gsc:page-worldwide is migrated to the presentation contract; its overview-value coverage now lives
+  // in tests/rules/google.gsc.pageWorldwide.test.ts (presentation.values, not details.value).
 
   it('directory analytics: the impressions and clicks of the directory', async () => {
     const { value, preview } = await runRule(gscDirectoryWorldwideRule)
@@ -107,7 +103,7 @@ describe('GSC rules put the judged value into details.value', () => {
 
   it('shows no property name in any preview but the property rule', async () => {
     const previews = await Promise.all(
-      [gscPageWorldwideRule, gscDirectoryWorldwideRule]
+      [gscDirectoryWorldwideRule]
         .map(async (rule) => (await runRule(rule)).preview),
     )
     expect(previews.some((preview) => preview.includes('sc-domain'))).toBe(false)
