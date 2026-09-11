@@ -11,6 +11,7 @@ type Props = {
   runId?: string
   ranAt?: string
   status?: RunStatus
+  starting: boolean
   onOpenReport: () => void
   onClean: () => void
   onOpenLogs: () => void
@@ -23,6 +24,7 @@ export const PanelHeader = ({
   runId,
   ranAt,
   status,
+  starting,
   onOpenReport,
   onClean,
   onOpenLogs,
@@ -45,7 +47,7 @@ export const PanelHeader = ({
       ranAt={ranAt}
       runStatus={status}
       version={version}
-      primaryAction={<RunNow url={editableUrl} onUrlNormalized={setEditableUrl} />}
+      primaryAction={<RunNow url={editableUrl} onUrlNormalized={setEditableUrl} starting={starting} />}
       onOpenUrl={openUrlInCurrentTab}
       onOpenReport={onOpenReport}
       secondaryActions={

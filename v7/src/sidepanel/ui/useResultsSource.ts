@@ -21,8 +21,11 @@ export const useResultsSource = () => {
       setLoading(true)
       setRefreshKey((k) => k + 1)
     }
+    // A URL change in the same tab re-reads, but never blanks the panel to
+    // "Loading…": results and run meta are keyed by tab and the `starting`
+    // state written by Run test must stay visible through the navigation.
     const onUpdated = (updatedTabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
-      if (updatedTabId === currentTabId && changeInfo.url) { setLoading(true); setRefreshKey((k) => k + 1) }
+      if (updatedTabId === currentTabId && changeInfo.url) setRefreshKey((k) => k + 1)
     }
     chrome.tabs.onActivated.addListener(onActivated)
     chrome.tabs.onUpdated.addListener(onUpdated)

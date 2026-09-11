@@ -2,6 +2,7 @@ import type { Dispatch, SetStateAction } from 'react'
 
 import { PanelHeader } from './PanelHeader'
 import { ResultsSection } from './ResultsSection'
+import { isRunStarting } from './RunStarting'
 import type { ResultSortMode } from './resultSort'
 
 import type { Result } from '@/shared/results'
@@ -41,6 +42,7 @@ export const AppBody = ({
   tabId?: number | null
   logUi?: (action: string, data?: Record<string, unknown>) => void
 }) => {
+  const starting = isRunStarting(meta, results.length)
   return (
     <div className="dt-panel w-[360px]">
       <PanelHeader
@@ -48,6 +50,7 @@ export const AppBody = ({
         runId={runId || meta?.runId}
         ranAt={meta?.ranAt}
         status={meta?.status}
+        starting={starting}
         onOpenReport={onOpenReport}
         onClean={onClean}
         onOpenLogs={onOpenLogs}
@@ -60,6 +63,8 @@ export const AppBody = ({
         query={query}
         setQuery={setQuery}
         results={results}
+        starting={starting}
+        startingUrl={meta?.url || ''}
         debugEnabled={debugEnabled}
         sortMode={sortMode}
         setSortMode={setSortMode}
