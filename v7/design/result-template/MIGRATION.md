@@ -136,7 +136,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `http:redirect-canonical-chain` | `65decf4` (7.0.314) |
 | `http:redirect-loop` | `b456f98` (7.0.315) |
 | `http:redirect-efficiency` | `243e482` (7.0.317) |
-| `http:navigation-path` | build 7.0.318 |
+| `http:navigation-path` | `269dd2c` (7.0.318) |
+| `http:canonical-host-redirect` | build 7.0.319 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
