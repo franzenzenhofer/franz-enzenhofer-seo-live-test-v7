@@ -70,7 +70,7 @@ describe('verdicts carry the judged value', () => {
 
   it('http:headers-present reports the header count', async () => {
     const res = await headersPresentRule.run(page('', { headers: { a: '1', b: '2', c: '3' } }), ctx)
-    expect(res.message).toContain('3')
-    expect(res.details?.['headerCount']).toBe(3)
+    expect(res.presentation?.values).toContainEqual({ key: 'Headers captured', value: 3, kind: 'text' })
+    expect(res.details).toBeUndefined()
   })
 })

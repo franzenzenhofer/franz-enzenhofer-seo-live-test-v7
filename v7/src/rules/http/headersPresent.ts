@@ -1,12 +1,19 @@
+import { httpStatusLabel } from '@/shared/httpStatusLabel'
+import { textField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
 
-const LABEL = 'HTTP'
 const NAME = 'HTTP Header Captured'
 const RULE_ID = 'http:headers-present'
+const NO_MARKUP = 'None - this rule checks the HTTP response, not document markup'
+
+const cacheField = (fromCache: boolean | undefined) =>
+  textField('Served from cache', fromCache === true ? 'Yes' : fromCache === false ? 'No' : 'Not reported')
 
 export const headersPresentRule: Rule = {
   id: RULE_ID,
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'http',
   meta: {
@@ -17,23 +24,21 @@ export const headersPresentRule: Rule = {
   },
   async run(page) {
     const headerCount = Object.keys(page.headers || {}).length
+    const values = [
+      textField('Headers captured', headerCount),
+      textField('Main-document status', httpStatusLabel(page.status)),
+      cacheField(page.fromCache),
+    ]
+    const checked = [textField('Measurement', 'Count of captured HTTP response header names'), textField('Criterion', 'At least one header captured')]
     if (!headerCount) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'No HTTP headers captured. Page may have been served from cache; header-dependent checks might fail.',
-        type: 'warn',
-        priority: 350,
-        details: { httpHeaders: page.headers || {}, headerCount, status: page.status, fromCache: page.fromCache ?? null },
-      }
+      return presentResult(headersPresentRule, page, {
+        input: 'Not captured', type: 'warn', priority: 350,
+        values, checked, noMarkup: NO_MARKUP,
+      })
     }
-    return {
-      label: LABEL,
-      name: NAME,
-      message: `${headerCount} HTTP response headers captured${typeof page.status === 'number' ? ` (HTTP ${page.status})` : ''}.`,
-      type: 'info',
-      priority: 900,
-      details: { httpHeaders: page.headers || {}, headerCount, status: page.status, fromCache: page.fromCache ?? null },
-    }
+    return presentResult(headersPresentRule, page, {
+      input: 'HTTP response headers', type: 'info', priority: 900,
+      values, checked, noMarkup: NO_MARKUP,
+    })
   },
 }

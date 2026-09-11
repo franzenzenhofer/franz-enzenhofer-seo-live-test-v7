@@ -130,7 +130,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `head:canonical-hreflang-consistency` | `207b7a2` (7.0.308) |
 | `head:canonical-noindex-conflict` | `a052920` (7.0.309) |
 | `body:internal-links` | `b7bbbc6` (7.0.310) |
-| `body:internal-link-status` | build 7.0.311 |
+| `body:internal-link-status` | `6bead3e` (7.0.311) |
+| `http:headers-present` | build 7.0.312 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
