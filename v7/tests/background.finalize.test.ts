@@ -58,6 +58,13 @@ describe('finalizeTab', () => {
     expect(resetRun).toHaveBeenCalledWith(6)
   })
 
+  it('executes a run whose page rewrote its address in place after the capture (same-URL history update)', async () => {
+    storedRun = { id: 9, ev: [{ t: 'nav:commit', u: 'https://app.example/a' }, { t: 'dom:document_idle' }, { t: 'nav:history', u: 'https://app.example/a' }], domDone: true }
+    await finalizeTab(9)
+    expect(runRulesOn).toHaveBeenCalledTimes(1)
+    expect(resetRun).not.toHaveBeenCalled()
+  })
+
   it('never executes a run that has no dom phase (would abort the in-flight session)', async () => {
     storedRun = { id: 6, ev: [{ t: 'req:mainHeaders', u: 'https://next.example' }] }
     await finalizeTab(8)

@@ -4,6 +4,7 @@ import { addEvent, peekRun, setDomDone } from './store'
 import { scheduleFinalize, onAlarm } from './alarms'
 import { finalizeTab } from './finalize'
 import { bindManualRun } from './manualRun'
+import { collectHistoryUpdate } from './softNavigation'
 
 import { log, logSystem, isValidTabId } from '@/shared/logs'
 import { Logger } from '@/shared/logger'
@@ -34,6 +35,11 @@ const collectEvent = async (tabId: number, ev: import('./types').EventRec): Prom
       await chrome.storage.local.remove(`results:${tabId}`)
       await Logger.logDirect(tabId, 'event', 'clear results', { reason: 'autoClear' })
     }
+    return true
+  }
+  if (ev.t === 'nav:history') {
+    const outcome = await collectHistoryUpdate(tabId, ev)
+    await Logger.logDirect(tabId, 'event', 'history update', { url: ev.u || 'no-url', outcome })
     return true
   }
   if (!await addEvent(tabId, ev)) {

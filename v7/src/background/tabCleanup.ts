@@ -1,5 +1,6 @@
 import { clearLedger } from './history/listeners'
 import { clearFinalize } from './pipeline/alarms'
+import { cancelRecapture } from './pipeline/softNavRecapture'
 import { resetRun } from './pipeline/store'
 import { abortSession } from './rules/sessions'
 
@@ -20,6 +21,7 @@ const clearPendingResults = async (tabId: number): Promise<void> => {
 }
 
 export const clearTabSessionState = async (tabId: number, reason: string): Promise<void> => {
+  cancelRecapture(tabId)
   await Promise.all([
     clearFinalize(tabId),
     resetRun(tabId),

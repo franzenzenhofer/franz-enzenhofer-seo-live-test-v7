@@ -39,8 +39,14 @@ export type ResourceLedger = {
   truncated: boolean
   bytes: number
 }
+/** The soft navigation (history update) this run captures: its URL and when it was recorded (softNavGuard.ts). */
+export type SoftNavigation = { url: string; at: number }
 /**
  * frames: subframe IDs of the run's document seen so far (bounded), for nested iframes.
  * manual: the run was requested by Run test and bound to its committed document (manualRun.ts).
+ * softNav: the run re-captures the same document after a history update (softNavigation.ts).
  */
-export type Run = { id: number; documentId?: string; ev: EventRec[]; domDone?: boolean; eventDropped?: number; resources?: ResourceLedger; frames?: number[]; manual?: boolean }
+export type Run = {
+  id: number; documentId?: string; ev: EventRec[]; domDone?: boolean; eventDropped?: number
+  resources?: ResourceLedger; frames?: number[]; manual?: boolean; softNav?: SoftNavigation
+}

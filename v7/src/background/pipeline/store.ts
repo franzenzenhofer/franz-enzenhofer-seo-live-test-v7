@@ -4,6 +4,7 @@ import { addResource, flushResources, isResourceEvent, RESOURCE_LIMITS } from '.
 import { serializePerTab } from './tabSerial'
 import { phaseEventState } from './phaseProgress'
 import { rememberFrame, resourceScope } from './storeFrames'
+import { acceptsSoftNavPhase } from './softNavGuard'
 
 export { RESOURCE_LIMITS }
 
@@ -24,6 +25,7 @@ const addEventUnsafe = async (tabId: number, ev: EventRec) => {
   }
   const r = (await getRun(tabId)) || { id: Date.now(), ev: [] }
   if (ev.documentId && r.documentId && ev.documentId !== r.documentId) return false
+  if (!acceptsSoftNavPhase(r, ev)) return false
   const phaseState = phaseEventState(r.ev, ev)
   if (phaseState === 'invalid') return false
   if (phaseState === 'duplicate') return true
@@ -60,6 +62,16 @@ const markManualUnsafe = async (tabId: number) => {
   await setRun(tabId, { ...r, manual: true })
 }
 
+// A history update to another URL replaces whatever was collected for the
+// previous route: the new record holds the update and captures for its URL only.
+const startSoftNavUnsafe = async (tabId: number, ev: EventRec, manual: boolean, now: number) => {
+  await removeRunState(tabId)
+  const run: Run = { id: now, ev: [ev], softNav: { url: ev.u || '', at: now } }
+  if (ev.documentId) run.documentId = ev.documentId
+  if (manual) run.manual = true
+  await setRun(tabId, run)
+}
+
 const popRunUnsafe = async (tabId: number, expectedId?: number): Promise<Run | null> => {
   await flushResources(tabId)
   const r = await getRun(tabId)
@@ -83,6 +95,9 @@ export const setDomDone = (tabId: number, documentId?: string) =>
   serializePerTab(tabId, () => setDomDoneUnsafe(tabId, documentId))
 
 export const markManualRun = (tabId: number) => serializePerTab(tabId, () => markManualUnsafe(tabId))
+
+export const startSoftNavRun = (tabId: number, ev: EventRec, manual: boolean, now = Date.now()) =>
+  serializePerTab(tabId, () => startSoftNavUnsafe(tabId, ev, manual, now))
 
 export const popRun = (tabId: number, expectedId?: number) => serializePerTab(tabId, () => popRunUnsafe(tabId, expectedId))
 

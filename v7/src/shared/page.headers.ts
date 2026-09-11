@@ -1,20 +1,12 @@
 import type { HeaderHop, HeaderResult } from './pageHeaderTypes'
+import { stripFragment } from './softNavigation'
 
 import type { EventRec } from '@/background/pipeline/types'
 
 // Only the fragment is dropped - it never reaches the server. A trailing slash
 // or a query string is a DIFFERENT URL and may well answer with different
 // headers, so this comparison must not blur them together.
-const normalizeUrl = (u?: string): string => {
-  if (!u) return ''
-  try {
-    const url = new URL(u)
-    url.hash = ''
-    return url.href
-  } catch { return u.replace(/#.*$/, '') }
-}
-
-const urlsMatch = (a?: string, b?: string): boolean => normalizeUrl(a) === normalizeUrl(b)
+const urlsMatch = (a?: string, b?: string): boolean => stripFragment(a || '') === stripFragment(b || '')
 const parseStatus = (raw?: Record<string, string | undefined>): number | undefined => {
   if (!raw) return undefined
   const s = raw['status'] || raw['Status'] || ''

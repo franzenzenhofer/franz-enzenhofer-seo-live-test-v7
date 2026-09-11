@@ -1,5 +1,6 @@
 import { handleHighlightMessage } from './highlight'
 import { captureDomPhase } from './domCapture'
+import { handleRecaptureMessage } from './recapture'
 import { contentTabId, getContentTabId } from './tabContext'
 
 import { PageInfo, type PageInfoT } from '@/shared/schemas'
@@ -15,6 +16,7 @@ captureDomPhase('document_idle', contentTabId, getContentTabId).catch(() => {})
 
 chrome.runtime.onMessage.addListener((msg, _s, reply) => {
   if (handleHighlightMessage(msg, reply)) return true
+  if (handleRecaptureMessage(msg, reply)) return true
   if (msg?.type !== 'getPageInfo') return
   const data = PageInfo.parse(extractPageInfo())
   reply(data satisfies PageInfoT)

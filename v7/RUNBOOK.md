@@ -89,6 +89,39 @@ One click = one document load, visible from the first millisecond (issue #1).
 
 Refuse on review: a second navigation in the Run test path; a manual authorization that is not tied to the committed `documentId`; a code path that clears `results-meta` without writing a terminal state or `starting`.
 
+## Soft navigation (history API) - the contract
+
+A pushState / replaceState / same-document back-forward changes the tab's URL without a new document: no
+`nav:before`, no new content script, no main-frame HTTP response. Chrome reports it as
+`webNavigation.onHistoryStateUpdated` ("Fired when the frame's history was updated to a new URL";
+https://developer.chrome.com/docs/extensions/reference/api/webNavigation#event-onHistoryStateUpdated). A pure
+fragment change is `onReferenceFragmentUpdated` and is not a page change
+(https://developer.chrome.com/docs/extensions/reference/api/webNavigation#event-onReferenceFragmentUpdated);
+every URL comparison here drops the fragment (`src/shared/softNavigation.ts`).
+
+1. Collector `src/background/pipeline/softNavigation.ts` (`collectHistoryUpdate`, called for every main-frame
+   `nav:history`): same URL -> recorded only; a different URL before any DOM phase of a document load -> part of
+   that load (utm stripping, canonicalising); a different URL after the DOM was captured, or with no run at all ->
+   a soft navigation: the previous record is replaced (`startSoftNavRun`, `Run.softNav = { url, at }`).
+2. Auto-run off and no Run test in flight: nothing runs, the record is dropped. The panel reads the tab URL and
+   marks the run it shows as not this page's (`src/sidepanel/ui/useCurrentPageUrl.ts`, `PageChangedNotice`).
+3. Auto-run on, or a Run test still in flight (its watchdog is re-armed): `requestRecapture`
+   (`softNavRecapture.ts`) debounces per tab - `SOFT_NAV_DEBOUNCE_MS` after the last update, at most
+   `SOFT_NAV_MAX_DEFER_MS` after the first - then checks `webNavigation.getFrame` still shows that URL in that
+   `documentId` and sends `audit:recapture` with `tabs.sendMessage(tabId, msg, { frameId: 0, documentId })`
+   (https://developer.chrome.com/docs/extensions/reference/api/tabs#method-sendMessage).
+4. Content `src/content/recapture.ts`: waits for the DOM to go quiet (`domSettle.ts`, bounded by
+   `DOM_SETTLE_MAX_MS`), re-checks `location.href`, then runs `document_end` and `document_idle` exactly like a
+   load - through `audit:eligibility` / `authorizeAudit` (same documentId, same guards). A newer request supersedes.
+5. Store guard `softNavGuard.ts`: a soft-navigation record accepts only phase events whose identity URL matches
+   its URL and whose `capturedAt` is after the history update - a stale capture of the previous route never lands.
+6. The run has no main-frame response events: `pageFromEvents` probes the URL with a HEAD and rules label the
+   source (`http-status`: "HEAD probe of the page URL ..."); `url:history-state-update` reports the soft
+   navigation, `http:navigation-path` shows the `history_api` hop from the ledger.
+
+Refuse on review: a recapture that bypasses `authorizeAudit`; a phase accepted into a `softNav` record without the
+URL + time guard; an unbounded wait for the SPA's DOM; a run per keystroke.
+
 ## Things to refuse on review
 
 - Top-level `await` in any SW entry point.
@@ -100,6 +133,8 @@ Refuse on review: a second navigation in the Run test path; a manual authorizati
 - Removing `chrome.runtime.lastError` checks in callback-form APIs.
 - Adding a permission without a justification line in `src/manifest.parts.ts`.
 - A request to a page-derived URL that bypasses `src/shared/probeFetch.ts` or sends credentials.
+- A history update (`nav:history`) treated as a document load, or a soft-navigation run that reuses the previous
+  document's main-frame response.
 
 ## Verification
 
