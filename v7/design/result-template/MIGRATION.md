@@ -147,7 +147,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `psi:desktop` | `99723e9` (7.0.326) |
 | `psi:mobile-fcp-tbt` | `1c0590e` (7.0.327) |
 | `gsc:property-available` | `ac4613d` (7.0.328) |
-| `gsc:is-indexed` | build 7.0.329 |
+| `gsc:is-indexed` | `616e03e` (7.0.329) |
+| `gsc:url-inspection` | build 7.0.330 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
