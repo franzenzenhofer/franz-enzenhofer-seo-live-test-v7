@@ -62,7 +62,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `og-title` | `8df4a0d` |
 | `og:description` | `5982688` |
 | `og:url` | `493bf94` |
-| `og:image` | build 7.0.237 |
+| `og:image` | `784a762` (7.0.237) |
+| `head-canonical` | build 7.0.238 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
