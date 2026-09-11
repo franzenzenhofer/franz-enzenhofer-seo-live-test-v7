@@ -91,7 +91,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `head:canonical-https-preference` | `f670a89` (7.0.266) |
 | `head:robots-max-image-preview` | `97105b1` (7.0.267) |
 | `head:robots-agent-conflicts` | `7735421` (7.0.268) |
-| `http:hsts` | build 7.0.269 |
+| `http:hsts` | `e8e9f80` (7.0.269) |
+| `dom:top-words` | build 7.0.270 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
