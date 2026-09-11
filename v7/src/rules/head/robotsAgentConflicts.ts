@@ -1,33 +1,41 @@
-import type { Rule } from '@/core/types'
-import { parseRobotsDirectives, groupByUa } from '@/shared/robots'
-import type { RobotsDirective } from '@/shared/robots'
-import { resolveEffectiveRobots } from '@/shared/effectiveRobots'
+import { robotsMetaPairs } from './robotsMarkup'
 
-const LABEL = 'HEAD'
+import type { Rule } from '@/core/types'
+import { sampleElements } from '@/shared/domEvidence'
+import { resolveEffectiveRobots } from '@/shared/effectiveRobots'
+import { textField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
+import { groupByUa, parseRobotsDirectives } from '@/shared/robots'
+import type { RobotsDirective } from '@/shared/robots'
+
 const NAME = 'Robots agent conflicts'
 const RULE_ID = 'head:robots-agent-conflicts'
 const WELL_KNOWN = new Set([
-  'robots',
-  'googlebot',
-  'googlebot-image',
-  'googlebot-news',
-  'googlebot-video',
-  'googlebot-smartphone',
-  'bingbot',
-  'slurp',
-  'baiduspider',
-  'duckduckbot',
+  'robots', 'googlebot', 'googlebot-image', 'googlebot-news', 'googlebot-video',
+  'googlebot-smartphone', 'bingbot', 'slurp', 'baiduspider', 'duckduckbot',
 ])
 
 // A conflict needs an explicit positive token (index/follow/all) on one side
 // against a negative on the other; a merely absent token is additive, since
 // the spec applies the most restrictive rule (sum of the negative rules).
 const hasExplicitToken = (list: RobotsDirective[], names: readonly string[]): boolean =>
-  list.some((d) => d.tokens.some((token) => names.includes(token.trim().toLowerCase())))
+  list.some((directive) => directive.tokens.some((token) => names.includes(token.trim().toLowerCase())))
+
+const effectiveFields = (policy: ReturnType<typeof resolveEffectiveRobots>) => [
+  textField('Noindex', policy.noindex ? 'Yes' : 'No'),
+  textField('Nofollow', policy.nofollow ? 'Yes' : 'No'),
+  textField('Nosnippet', policy.nosnippet ? 'Yes' : 'No'),
+  textField('Noimageindex', policy.noimageindex ? 'Yes' : 'No'),
+  textField('Max snippet', policy.maxSnippet === null ? 'Not set' : `${policy.maxSnippet} characters`),
+  textField('Max video preview', policy.maxVideoPreview === null ? 'Not set' : `${policy.maxVideoPreview} seconds`),
+  textField('Max image preview', policy.maxImagePreview ?? 'Not set'),
+]
 
 export const robotsAgentConflictsRule: Rule = {
   id: RULE_ID,
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'static',
   meta: {
@@ -36,67 +44,65 @@ export const robotsAgentConflictsRule: Rule = {
     description: 'Compares robots directives (meta and X-Robots-Tag) across user agents, warning when an explicit index/follow/all token opposes a global noindex/nofollow (or vice versa) and noting nonstandard agent names.',
   },
   async run(page) {
+    const headersCaptured = page.headers !== undefined || page.responseHeaderFields !== undefined
     const directives = parseRobotsDirectives(page.doc, page.headers, page.responseHeaderFields)
+    const common = { input: headersCaptured ? 'Static DOM + HTTP response headers' : 'Static DOM' }
     if (!directives.length) {
-      return { label: LABEL, name: NAME, message: 'No robots directives found.', type: 'info', priority: 920 }
+      return presentResult(robotsAgentConflictsRule, page, {
+        ...common, type: 'info', priority: 920,
+        values: [textField('Robots directives found', 0)],
+        checked: [textField('Comparison', 'Global robots directives vs each named crawler'),
+          textField('Header', headersCaptured ? 'X-Robots-Tag' : 'Not captured')],
+        noMarkup: 'No robots directive found',
+      })
     }
     const byUa = groupByUa(directives)
-    const domPaths = directives.map((d) => d.domPath).filter((path): path is string => Boolean(path))
     const robotsGlobal = byUa['robots'] || []
     const hasGlobal = robotsGlobal.length > 0
     const globalNoindex = robotsGlobal.some((d) => d.hasNoindex)
     const globalNofollow = robotsGlobal.some((d) => d.hasNofollow)
     const globalExplicitIndex = hasExplicitToken(robotsGlobal, ['index', 'all'])
     const globalExplicitFollow = hasExplicitToken(robotsGlobal, ['follow', 'all'])
-
     const conflicts: Array<{ ua: string; directive: string }> = []
-    const effective: Record<string, { noindex: boolean; nofollow: boolean }> = {
-      googlebot: resolveEffectiveRobots(directives),
-    }
+    const effective: Record<string, ReturnType<typeof resolveEffectiveRobots>> = { googlebot: resolveEffectiveRobots(directives) }
     Object.entries(byUa).forEach(([ua, list]) => {
       if (ua === 'robots') return
-      const uaNoindex = list.some((d) => d.hasNoindex)
-      const uaNofollow = list.some((d) => d.hasNofollow)
       effective[ua] = resolveEffectiveRobots(directives, ua)
       if (!hasGlobal) return
       if (globalNoindex && hasExplicitToken(list, ['index', 'all'])) conflicts.push({ ua, directive: 'index vs global noindex' })
-      if (globalExplicitIndex && uaNoindex) conflicts.push({ ua, directive: 'ua noindex vs global index' })
+      if (globalExplicitIndex && list.some((d) => d.hasNoindex)) conflicts.push({ ua, directive: 'ua noindex vs global index' })
       if (globalNofollow && hasExplicitToken(list, ['follow', 'all'])) conflicts.push({ ua, directive: 'follow vs global nofollow' })
-      if (globalExplicitFollow && uaNofollow) conflicts.push({ ua, directive: 'ua nofollow vs global follow' })
+      if (globalExplicitFollow && list.some((d) => d.hasNofollow)) conflicts.push({ ua, directive: 'ua nofollow vs global follow' })
     })
-
     const unusualAgents = Object.keys(byUa).filter((ua) => ua !== 'robots' && !WELL_KNOWN.has(ua))
-
-    if (conflicts.length || unusualAgents.length) {
-      const conflictText = conflicts.length
-        ? `${conflicts.length} conflicting agent-specific robots directive${conflicts.length > 1 ? 's' : ''}`
-        : ''
-      const agentText = unusualAgents.length
-        ? `${unusualAgents.length} nonstandard robots agent${unusualAgents.length > 1 ? 's' : ''}`
-        : ''
-      return {
-        label: LABEL,
-        name: NAME,
-        message: `${[conflictText, agentText].filter(Boolean).join(' and ')} detected.`,
-        type: conflicts.length ? 'warn' : 'info',
-        priority: conflicts.length ? 180 : 800,
-        details: {
-          conflicts,
-          unusualAgents,
-          effective,
-          directives,
-          domPaths,
-        },
-      }
-    }
-
-    return {
-      label: LABEL,
-      name: NAME,
-      message: 'Robots directives consistent across agents (most restrictive rule per agent applies).',
-      type: 'ok',
-      priority: 850,
-      details: { effective, domPaths },
-    }
+    const { sample, total } = sampleElements(robotsMetaPairs(page.doc).map((pair) => pair.element))
+    const captured = markupEvidence(sample, 'Robots meta tag')
+    return presentResult(robotsAgentConflictsRule, page, {
+      ...common,
+      type: conflicts.length ? 'warn' : unusualAgents.length ? 'info' : 'ok',
+      priority: conflicts.length ? 180 : unusualAgents.length ? 800 : 850,
+      values: [textField('Robots directives found', directives.length), textField('Conflicting directives', conflicts.length),
+        textField('Nonstandard agents', unusualAgents.length)],
+      detailValues: [textField('Meta elements retained', sample.length), textField('Meta elements omitted', total - sample.length)],
+      checked: [textField('Comparison', 'Global robots directives vs each named crawler'),
+        textField('Header', headersCaptured ? 'X-Robots-Tag' : 'Not captured'),
+        textField('Known crawler agents', Array.from(WELL_KNOWN).join(', ')),
+        textField('Criterion', 'An explicit positive token on one side against an explicit negative on the other is a conflict; absence is additive')],
+      evidence: [
+        ...directives.map((directive, index) => ({ name: `Instruction ${index + 1}`, fields: [
+          textField('Source', directive.source === 'meta' ? 'HTML meta tag' : 'HTTP response header'),
+          textField('Crawler', directive.ua === 'robots' ? 'All crawlers (including Googlebot)' : directive.ua),
+          textField('Instruction', directive.value),
+          ...(directive.headerKey ? [textField('Header name', directive.headerKey)] : []),
+        ] })),
+        ...conflicts.map((conflict, index) => ({ name: `Conflict ${index + 1}`, fields: [
+          textField('Crawler', conflict.ua), textField('Conflict', conflict.directive),
+        ] })),
+        ...unusualAgents.map((ua, index) => ({ name: `Nonstandard agent ${index + 1}`, fields: [textField('Crawler', ua)] })),
+        ...Object.entries(effective).map(([ua, policy]) => ({ name: `Effective policy: ${ua}`, fields: effectiveFields(policy) })),
+      ],
+      markup: captured.markup,
+      noMarkup: total ? 'Complete original robots meta markup not retained' : 'No robots meta element found',
+    })
   },
 }

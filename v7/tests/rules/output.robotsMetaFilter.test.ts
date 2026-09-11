@@ -64,23 +64,25 @@ describe('head:robots-agent-conflicts with mixed head', () => {
   it('does not claim agent-specific directives for standard metas', async () => {
     const res = await robotsAgentConflictsRule.run(page(MIXED_HEAD), { globals: {} })
     expect(res.type).toBe('ok')
-    expect(res.message).not.toMatch(/review conflicts/)
+    expect(res.presentation?.values).toContainEqual({ key: 'Conflicting directives', value: 0, kind: 'text' })
   })
 
-  it('counts conflicts in the message and names agents in details', async () => {
+  it('counts conflicts and names the agent in a dedicated evidence record', async () => {
     const res = await robotsAgentConflictsRule.run(
       page('<meta name="robots" content="noindex"><meta name="googlebot" content="index">'),
       { globals: {} },
     )
     expect(res.type).toBe('warn')
-    expect(res.message).toMatch(/conflicting agent-specific/)
-    expect((res.details as Record<string, unknown>)['conflicts']).toEqual([{ ua: 'googlebot', directive: 'index vs global noindex' }])
+    expect(res.presentation?.values).toContainEqual({ key: 'Conflicting directives', value: 1, kind: 'text' })
+    expect(res.presentation?.evidence).toContainEqual({ name: 'Conflict 1', fields: [
+      { key: 'Crawler', value: 'googlebot', kind: 'text' }, { key: 'Conflict', value: 'index vs global noindex', kind: 'text' },
+    ] })
   })
 
-  it('counts nonstandard agents in the message, names them in details', async () => {
+  it('counts nonstandard agents and names them in a dedicated evidence record', async () => {
     const res = await robotsAgentConflictsRule.run(page('<meta name="weirdbot" content="noindex">'), { globals: {} })
     expect(res.type).toBe('info')
-    expect(res.message).toMatch(/1 nonstandard robots agent/)
-    expect((res.details as Record<string, unknown>)['unusualAgents']).toEqual(['weirdbot'])
+    expect(res.presentation?.values).toContainEqual({ key: 'Nonstandard agents', value: 1, kind: 'text' })
+    expect(res.presentation?.evidence).toContainEqual({ name: 'Nonstandard agent 1', fields: [{ key: 'Crawler', value: 'weirdbot', kind: 'text' }] })
   })
 })
