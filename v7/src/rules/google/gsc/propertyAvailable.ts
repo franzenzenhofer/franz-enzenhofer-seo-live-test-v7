@@ -1,6 +1,10 @@
-import { extractGoogleCredentials, createNoTokenResult } from '../google-utils'
-import { deriveGscProperty, createGscPropertyDerivationFailedResult } from '../google-gsc-utils'
+import { extractGoogleCredentials } from '../google-utils'
+import { deriveGscProperty } from '../google-gsc-utils'
 
+import { gscNoTokenFacts, gscPropertyMissingFacts, GSC_NOT_MARKUP } from './gscFacts'
+
+import { textField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
 
 const NAME = 'Search Console property access'
@@ -8,6 +12,7 @@ const NAME = 'Search Console property access'
 export const gscPropertyAvailableRule: Rule = {
   id: 'gsc:property-available',
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'gsc',
   meta: {
@@ -23,25 +28,23 @@ export const gscPropertyAvailableRule: Rule = {
   },
   async run(page, ctx) {
     const { token } = extractGoogleCredentials(ctx)
-    if (!token) return createNoTokenResult('GSC', NAME)
+    if (!token) return presentResult(gscPropertyAvailableRule, page, gscNoTokenFacts())
 
     const derived = await deriveGscProperty(page.url, token)
-    const { property, type: propertyType } = derived || {}
+    if (!derived) return presentResult(gscPropertyAvailableRule, page, gscPropertyMissingFacts(page.url))
 
-    if (!derived) return createGscPropertyDerivationFailedResult(page.url, NAME)
-
-    return {
-      label: 'GSC',
-      message: `Property available: ${property}`,
+    const { property, type: propertyType } = derived
+    return presentResult(gscPropertyAvailableRule, page, {
+      input: 'Page URL + Search Console API response',
       type: 'ok',
       priority: 800,
-      name: NAME,
-      details: {
-        url: page.url,
-        value: property,
-        property,
-        propertyType,
-      },
-    }
+      values: [textField('Search Console property', property)],
+      detailValues: [textField('Property type', propertyType === 'domain' ? 'Domain property' : 'URL-prefix property')],
+      checked: [
+        textField('Property scopes probed', 'URL-prefix property and sc-domain property for this hostname'),
+        textField('Criterion', 'A property the signed-in account can query via the Search Console API'),
+      ],
+      noMarkup: GSC_NOT_MARKUP,
+    })
   },
 }

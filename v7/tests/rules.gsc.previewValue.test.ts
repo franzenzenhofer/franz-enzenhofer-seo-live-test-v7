@@ -4,7 +4,6 @@ import { createServer, type IncomingMessage, type Server } from 'node:http'
 import { JSDOM } from 'jsdom'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 
-import { gscPropertyAvailableRule } from '@/rules/google/gsc/propertyAvailable'
 import { gscPageWorldwideRule } from '@/rules/google/gsc/pageWorldwideSearchAnalytics'
 import { gscDirectoryWorldwideRule } from '@/rules/google/gsc/pageDirectoryWorldwideSearchAnalytics'
 import { gscTopQueriesOfPageRule } from '@/rules/google/gsc/topQueriesOfPage'
@@ -85,11 +84,8 @@ describe('GSC rules put the judged value into details.value', () => {
     await new Promise<void>((resolve) => { server.close(() => resolve()) })
   })
 
-  it('property rule: the property that was found', async () => {
-    const { value, preview } = await runRule(gscPropertyAvailableRule)
-    expect(value).toBe('sc-domain:example.test')
-    expect(preview).toBe('sc-domain:example.test')
-  })
+  // gsc:property-available is migrated to the presentation contract; its overview-value coverage now
+  // lives in tests/rules/google.gsc.propertyAvailable.test.ts (presentation.values, not details.value).
 
   it('page analytics: the impressions and clicks', async () => {
     const { value, preview } = await runRule(gscPageWorldwideRule)
