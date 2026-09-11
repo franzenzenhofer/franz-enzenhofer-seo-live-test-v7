@@ -1,74 +1,76 @@
 import { Logger } from './logger'
 
+const runInPage = async <T>(tabId: number, func: () => Promise<T>) => {
+  const [frame] = await chrome.scripting.executeScript({ target: { tabId }, func })
+  return frame?.result as T | undefined
+}
+
 export const clearServiceWorkers = async (tabId: number): Promise<void> => {
-  try {
-    await Logger.logDirect(tabId, 'cache', 'clear-sw start', { tabId })
-    const result = await chrome.scripting.executeScript({
-      target: { tabId },
-      func: async () => {
-        if (!navigator.serviceWorker) return 0
-        const registrations = await navigator.serviceWorker.getRegistrations()
-        await Promise.all(registrations.map((r) => r.unregister()))
-        return registrations.length
-      },
-    })
-    const count = result[0]?.result || 0
-    await Logger.logDirect(tabId, 'cache', 'clear-sw done', { count })
-  } catch (error) {
-    console.warn('[hardRefresh] clearServiceWorkers failed:', error)
-    await Logger.logDirect(tabId, 'cache', 'clear-sw failed', { error: error instanceof Error ? error.message : String(error) })
-  }
+  await Logger.logDirect(tabId, 'cache', 'clear-sw start', { tabId })
+  const count = await runInPage(tabId, async () => {
+    if (!navigator.serviceWorker) return 0
+    const registrations = await navigator.serviceWorker.getRegistrations()
+    await Promise.all(registrations.map((r) => r.unregister()))
+    return registrations.length
+  })
+  await Logger.logDirect(tabId, 'cache', 'clear-sw done', { count: count || 0 })
 }
 
 export const clearCacheStorage = async (tabId: number): Promise<void> => {
-  try {
-    await Logger.logDirect(tabId, 'cache', 'clear-storage start', { tabId })
-    const result = await chrome.scripting.executeScript({
-      target: { tabId },
-      func: async () => {
-        if (!('caches' in window)) return 0
-        const names = await caches.keys()
-        await Promise.all(names.map((name) => caches.delete(name)))
-        return names.length
-      },
-    })
-    const count = result[0]?.result || 0
-    await Logger.logDirect(tabId, 'cache', 'clear-storage done', { count })
-  } catch (error) {
-    console.warn('[hardRefresh] clearCacheStorage failed:', error)
-    await Logger.logDirect(tabId, 'cache', 'clear-storage failed', { error: error instanceof Error ? error.message : String(error) })
-  }
+  await Logger.logDirect(tabId, 'cache', 'clear-storage start', { tabId })
+  const count = await runInPage(tabId, async () => {
+    if (!('caches' in window)) return 0
+    const names = await caches.keys()
+    await Promise.all(names.map((name) => caches.delete(name)))
+    return names.length
+  })
+  await Logger.logDirect(tabId, 'cache', 'clear-storage done', { count: count || 0 })
 }
 
-export const hardRefreshTab = async (tabId: number, url?: string): Promise<void> => {
-  const start = performance.now()
-  await Logger.logDirect(tabId, 'cache', 'hard-refresh', { status: 'start', url: url || 'current' })
-  if (url) {
-    await new Promise<void>(resolve => {
-      const listener = (details: chrome.webNavigation.WebNavigationCallbackDetails & { frameId: number }) => {
-        if (details.tabId === tabId && details.frameId === 0) {
-          chrome.webNavigation.onCommitted.removeListener(listener)
-          resolve()
-        }
-      }
-      chrome.webNavigation.onCommitted.addListener(listener)
-      chrome.tabs.update(tabId, { url }).catch(() => {
-        chrome.webNavigation.onCommitted.removeListener(listener)
-        resolve()
-      })
-      setTimeout(() => {
-        chrome.webNavigation.onCommitted.removeListener(listener)
-        resolve()
-      }, 5000) // Timeout to prevent hanging
-    })
-  }
+// A page that refuses scripting (error page, viewer) still gets its reload; the
+// failure stays visible in the tab log and the console instead of blocking the run.
+const clearPageCaches = async (tabId: number): Promise<void> => {
   try {
     await clearServiceWorkers(tabId)
     await clearCacheStorage(tabId)
   } catch (error) {
     console.warn('[hardRefresh] cache clearing failed:', error)
+    await Logger.logDirect(tabId, 'cache', 'clear failed', { error: error instanceof Error ? error.message : String(error) })
   }
-  await chrome.tabs.reload(tabId, { bypassCache: true })
+}
+
+/**
+ * One document load per Run test. `tabs.reload({ bypassCache: true })` is the
+ * only navigation Chrome offers that skips the HTTP cache, and it can only load
+ * the tab's current URL; `tabs.update({ url })` has no cache option
+ * (https://developer.chrome.com/docs/extensions/reference/api/tabs#method-reload,
+ * https://developer.chrome.com/docs/extensions/reference/api/tabs#method-update).
+ * Navigating first and reloading afterwards produced two documents racing for
+ * one run, so a different URL gets exactly one plain navigation instead.
+ * Service workers and CacheStorage are per origin and reachable only through a
+ * document of that origin, so they are cleared from the current document, BEFORE
+ * the load, and only when the target shares its origin.
+ */
+export type HardRefreshPlan = { navigation: 'reload' | 'navigate'; clearCaches: boolean; target: string }
+
+const sameDocumentUrl = (current: string | undefined, url: string) => Boolean(current) && new URL(current!).href === new URL(url).href
+const sameOrigin = (current: string | undefined, url: string) => Boolean(current) && new URL(current!).origin === new URL(url).origin
+
+export const planHardRefresh = (currentUrl: string | undefined, url?: string): HardRefreshPlan => {
+  if (!url || sameDocumentUrl(currentUrl, url)) return { navigation: 'reload', clearCaches: true, target: currentUrl || '' }
+  return { navigation: 'navigate', clearCaches: sameOrigin(currentUrl, url), target: url }
+}
+
+export const hardRefreshTab = async (tabId: number, url?: string): Promise<HardRefreshPlan> => {
+  const start = performance.now()
+  const tab = await chrome.tabs.get(tabId)
+  const plan = planHardRefresh(tab.url, url)
+  await Logger.logDirect(tabId, 'cache', 'hard-refresh', { status: 'start', ...plan })
+  if (plan.clearCaches) await clearPageCaches(tabId)
+  else await Logger.logDirect(tabId, 'cache', 'clear skipped', { reason: 'cross-origin target', target: plan.target })
+  if (plan.navigation === 'reload') await chrome.tabs.reload(tabId, { bypassCache: true })
+  else await chrome.tabs.update(tabId, { url: plan.target })
   const duration = (performance.now() - start).toFixed(2)
-  await Logger.logDirect(tabId, 'cache', 'hard-refresh', { status: 'complete', duration: `${duration}ms` })
+  await Logger.logDirect(tabId, 'cache', 'hard-refresh', { status: 'complete', navigation: plan.navigation, duration: `${duration}ms` })
+  return plan
 }
