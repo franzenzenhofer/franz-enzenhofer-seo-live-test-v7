@@ -1,11 +1,14 @@
 import type { Rule } from '@/core/types'
 import { fetchStatusTextOnce, type FetchOnceResult } from '@/shared/fetchOnce'
+import { httpStatusLabel } from '@/shared/httpStatusLabel'
+import { textField, urlField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 import { robotsPolicyState } from '@/shared/robotsPolicy'
-import { extractSnippet } from '@/shared/html-utils'
 
-const LABEL = 'ROBOTS'
 const NAME = 'robots.txt Exists'
 const RULE_ID = 'robots-exists'
+const TIMEOUT_MS = 1500
+const NO_MARKUP = 'None - this rule checks robots.txt, not document markup'
 
 const getRobotsTxtUrl = (pageUrl: string): string => {
   try {
@@ -27,9 +30,16 @@ const getRobotsTxtUrl = (pageUrl: string): string => {
 const isNoRobotsStatus = (status: number, response: FetchOnceResult) =>
   robotsPolicyState({ ...response, status, ok: false }) === 'allow'
 
+const checkedFacts = (criterion: string) => [
+  textField('Fetch target', 'origin/robots.txt'),
+  textField('Timeout', `${TIMEOUT_MS} ms`),
+  textField('Criterion', criterion),
+]
+
 export const robotsTxtRule: Rule = {
   id: RULE_ID,
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'http',
   meta: {
@@ -44,78 +54,46 @@ export const robotsTxtRule: Rule = {
   run: async (page, ctx) => {
     const robotsTxtUrl = getRobotsTxtUrl(page.url)
     if (!robotsTxtUrl) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'Invalid or unsupported URL. Cannot fetch robots.txt.',
-        type: 'info',
-        priority: 900,
-        details: {
-          snippet: extractSnippet('(invalid URL)'),
-        },
-      }
+      return presentResult(robotsTxtRule, page, {
+        input: 'Page URL', type: 'info', priority: 900,
+        values: [textField('robots.txt', 'Not checked'), textField('Reason', 'Invalid or unsupported page URL')],
+        checked: checkedFacts('Page URL uses the http or https scheme'),
+        noMarkup: NO_MARKUP,
+      })
     }
     // Six robots rules run concurrently against the same robots.txt; the shared
     // single-flight fetch collapses them onto one request per run.
-    const response = await fetchStatusTextOnce(robotsTxtUrl, 1500, ctx.signal)
+    const response = await fetchStatusTextOnce(robotsTxtUrl, TIMEOUT_MS, ctx.signal)
     if (response === null) {
-      return {
-        label: LABEL,
-        name: NAME,
-        message: 'robots.txt unreachable (network error or timeout) - Googlebot pauses crawling and may assume complete disallow.',
-        type: 'warn',
-        priority: 350,
-        details: {
-          snippet: extractSnippet('(fetch failed)'),
-          robotsTxtUrl,
-        },
-      }
+      return presentResult(robotsTxtRule, page, {
+        input: 'Not captured', type: 'warn', priority: 350,
+        values: [textField('robots.txt', 'Unreachable'), textField('Reason', 'Network error or timeout')],
+        detailValues: [urlField('robots.txt URL', robotsTxtUrl)],
+        checked: checkedFacts('robots.txt responds within the timeout'),
+        evidence: [{ name: 'robots.txt fetch', fields: [urlField('robots.txt URL', robotsTxtUrl), textField('Outcome', 'No response received')] }],
+        noMarkup: NO_MARKUP,
+      })
     }
     const status = response.status
+    const common = {
+      input: 'robots.txt response',
+      detailValues: [urlField('robots.txt URL', robotsTxtUrl)],
+      evidence: [{ name: 'robots.txt fetch', fields: [urlField('robots.txt URL', robotsTxtUrl), textField('HTTP status', httpStatusLabel(status))] }],
+      noMarkup: NO_MARKUP,
+    }
     if (!response.ok) {
       if (isNoRobotsStatus(status, response)) {
-        return {
-          label: LABEL,
-          name: NAME,
-          message: `No robots.txt (HTTP ${status}) - all crawling allowed.`,
-          type: 'info',
-          priority: 800,
-          details: {
-            snippet: extractSnippet(`HTTP ${status}`),
-            robotsTxtUrl,
-            status,
-            robotsExists: false,
-          },
-        }
+        return presentResult(robotsTxtRule, page, { ...common, type: 'info', priority: 800,
+          values: [textField('robots.txt', 'Not found'), textField('HTTP status', httpStatusLabel(status))],
+          checked: checkedFacts('A 4xx status other than 429 is treated as allow-all') })
       }
-      return {
-        label: LABEL,
-        name: NAME,
-        message: `robots.txt unreachable (HTTP ${status}) - Googlebot pauses crawling and may assume complete disallow.`,
-        type: 'warn',
-        priority: 300,
-        details: {
-          snippet: extractSnippet(`HTTP ${status}`),
-          robotsTxtUrl,
-          status,
-          robotsExists: false,
-        },
-      }
+      return presentResult(robotsTxtRule, page, { ...common, type: 'warn', priority: 300,
+        values: [textField('robots.txt', 'Unreachable'), textField('HTTP status', httpStatusLabel(status))],
+        checked: checkedFacts('A 429 or 5xx status is treated as unreachable') })
     }
-    const robotsTxt = response.text
-    return {
-      label: LABEL,
-      name: NAME,
-      message: 'robots.txt exists.',
-      type: 'info',
-      priority: 800,
-      details: {
-        snippet: extractSnippet(robotsTxt, 150),
-        robotsTxt,
-        robotsTxtUrl,
-        status,
-        robotsExists: true,
-      },
-    }
+    return presentResult(robotsTxtRule, page, { ...common, type: 'info', priority: 800,
+      values: [textField('robots.txt', 'Found'), textField('HTTP status', httpStatusLabel(status))],
+      detailValues: [...common.detailValues, textField('Response body', `${response.bytes} bytes${response.truncated ? ' (truncated at 500 KiB)' : ''}`)],
+      checked: checkedFacts('A 2xx status') })
   },
 }

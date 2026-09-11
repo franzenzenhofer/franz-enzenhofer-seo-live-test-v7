@@ -30,7 +30,7 @@ describe('robots rules share one robots.txt request per run', () => {
     expect(f.mock.calls[0]?.[0]).toBe('https://six.test/robots.txt')
     results.forEach((r) => expect(['info', 'ok', 'warn']).toContain(r.type))
     const exists = results[0]
-    expect(exists.message).toContain('robots.txt exists')
-    expect(exists.details?.['robotsTxt']).toBe(TXT)
+    expect(exists.presentation?.values.find((field) => field.key === 'robots.txt')?.value).toBe('Found')
+    expect(exists.details).toBeUndefined()
   })
 })
