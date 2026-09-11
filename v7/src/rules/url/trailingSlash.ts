@@ -1,151 +1,123 @@
-import type { Rule } from '@/core/types'
+import { hopEvidence, variantCanonicalMarkup } from './trailingSlash.evidence'
+
+import type { Rule, Result } from '@/core/types'
+import { httpUrlField } from '@/rules/http/navigationStepEvidence'
 import { discardBody } from '@/shared/http-utils'
+import { httpStatusLabel } from '@/shared/httpStatusLabel'
 import { parseHtmlDocument } from '@/shared/parseHtml'
 import { followRedirectChain } from '@/shared/redirectChain'
-import { redirectChainDetails } from '@/shared/redirectChainFormat'
 import { RedirectChainError } from '@/shared/redirectChainTypes'
+import { textField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
+import type { DisplayField } from '@/shared/presentation/schema'
 import { HTML_RESPONSE_BYTES, readResponseText } from '@/shared/responseBody'
 
-const LABEL = 'URL'
 const NAME = 'URL trailing slash consistency'
-const TESTED = 'Fetched opposite trailing-slash variant with manual redirect following, checked the full hop chain and canonical alignment.'
+const CHECKED = [
+  textField('Probe', 'Fetch the opposite trailing-slash variant with manual redirect following'),
+  textField('Selector', 'link[rel~="canonical" i]'),
+  textField('Selection', 'First match in the variant response'),
+  textField('Loop/cap criterion', 'Redirect loop or hop cap reached = error'),
+  textField('Status criterion', '404 or 410 = info; 302 or 5xx = error; other non-200 = warning'),
+  textField('Redirect criterion', 'Redirect to the original URL = info; to another URL = error'),
+  textField('Canonical criterion', 'On 200: missing = warning; invalid = error; original URL = info; this variant = warning; other URL = error'),
+]
 
-const normalize = (u: string) => {
-  try {
-    const url = new URL(u)
-    url.hash = ''
-    return url.href
-  } catch {
-    return u
-  }
-}
-
+const normalize = (u: string) => { try { const url = new URL(u); url.hash = ''; return url.href } catch { return u } }
 const buildVariant = (raw: string) => {
   const url = new URL(raw)
-  url.search = ''
-  url.hash = ''
+  url.search = ''; url.hash = ''
   const hasSlash = url.pathname.endsWith('/') && url.pathname.length > 1
-  const variantPath = hasSlash ? url.pathname.replace(/\/$/, '') : `${url.pathname}/`
-  url.pathname = variantPath
+  url.pathname = hasSlash ? url.pathname.replace(/\/$/, '') : `${url.pathname}/`
   const [withoutHash] = raw.split('#')
   const [clean] = (withoutHash || raw).split('?')
-  const original = clean || raw
-  return { originalUrl: new URL(original).toString(), variantUrl: url.toString(), hasSlash }
+  return { originalUrl: new URL(clean || raw).toString(), variantUrl: url.toString(), hasSlash }
 }
 
 export const trailingSlashRule: Rule = {
-  id: 'url:trailing-slash',
-  name: NAME,
-  enabled: true,
-  what: 'static',
+  id: 'url:trailing-slash', name: NAME, presentation: 1, enabled: true, what: 'static',
   meta: {
     provenance: 'google',
     references: ['https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls'],
     description: 'Fetches the opposite trailing-slash variant and grades the outcome (redirect back = OK, canonical back = OK, 200 without canonical = warn, 404/410 = info).',
   },
   async run(page, ctx) {
-    let originalUrl: string; let variantUrl: string; let hasSlash = false
-    try { ({ originalUrl, variantUrl, hasSlash } = buildVariant(page.url)) } catch {
-      return { label: LABEL, message: 'Invalid URL. Cannot evaluate trailing slash.', type: 'runtime_error', name: NAME, priority: 50, details: { tested: TESTED, url: page.url } }
-    }
+    const build = (type: Result['type'], priority: number, input: string, values: DisplayField[], detailValues: DisplayField[] = [], evidence: ReturnType<typeof hopEvidence> = [], markup: ReturnType<typeof variantCanonicalMarkup>['markup'] = [], noMarkup = 'No response body was retrieved for this variant') =>
+      presentResult(trailingSlashRule, page, { input, type, priority, checked: CHECKED, values, detailValues, evidence, markup, noMarkup })
 
+    let originalUrl: string, variantUrl: string, hasSlash = false
+    try { ({ originalUrl, variantUrl, hasSlash } = buildVariant(page.url)) } catch {
+      return build('runtime_error', 50, 'Page URL', [textField('Page URL valid', 'No')], [], [], [], 'None - the page URL could not be parsed; no variant was probed')
+    }
     if (new URL(originalUrl).pathname === '/') {
-      return { label: LABEL, message: 'Root path - trailing slash check not applicable.', type: 'info', name: NAME, priority: 900, details: { tested: TESTED, originalUrl } }
+      return build('info', 900, 'Page URL', [httpUrlField('Original URL', originalUrl), textField('Path', 'Root (/)')], [], [], [], 'Not applicable - root path; no variant was probed')
     }
 
     const whatCase = hasSlash ? 'without' : 'with'
     const opposite = hasSlash ? 'with' : 'without'
+    const variantFacts = [textField('Checked variant', `URL ${whatCase} trailing slash`), textField('Original version', `URL ${opposite} trailing slash`)]
+    const urls = [httpUrlField('Original URL', originalUrl), httpUrlField('Variant URL', variantUrl)]
+    const input = 'Page URL + Probed alternate URL response'
 
     try {
       const { chain, response } = await followRedirectChain(variantUrl, { wantBody: true, signal: ctx.signal })
       const status = chain.finalStatus
       const finalUrl = chain.finalUrl
       const redirected = chain.redirected
-      const baseDetails = { tested: TESTED, originalUrl, variantUrl, finalUrl, status, redirected, redirectCount: chain.redirectCount, ...redirectChainDetails(chain) }
+      const evidence = hopEvidence(chain.hops)
+      const detail = [...urls, httpUrlField('Final URL', finalUrl), textField('Redirect hop count', chain.hopsHidden ? 'Not visible (opaque redirect)' : chain.redirectCount),
+        ...(chain.note ? [textField('Probe note', chain.note)] : [])]
 
       if (chain.loop || chain.capped) {
         if (response) discardBody(response)
-        const what = chain.loop ? 'enters a redirect loop' : `redirects more than ${chain.maxHops} times`
-        return { label: LABEL, message: `URL variant ${whatCase} trailing slash ${what}.`, type: 'error', name: NAME, priority: 110, details: baseDetails }
+        return build('error', 110, input, [...variantFacts, textField('Redirect loop detected', chain.loop ? 'Yes' : 'No'), textField('Hop cap reached', chain.capped ? 'Yes' : 'No')], detail, evidence)
       }
-
       if (status !== 200) {
         if (response) discardBody(response)
         const type = status === 404 || status === 410 ? 'info' : status === 302 || status >= 500 ? 'error' : 'warn'
-        const afterHops = redirected ? ` after ${chain.redirectCount} redirect${chain.redirectCount === 1 ? '' : 's'}` : ''
-        return {
-          label: LABEL,
-          message: `URL variant ${whatCase} trailing slash ${variantUrl} returns HTTP ${status}${afterHops}${status === 404 || status === 410 ? ' (no duplicate-content variant)' : ''}.`,
-          type,
-          name: NAME,
-          priority: type === 'error' ? 150 : type === 'warn' ? 400 : 800,
-          details: baseDetails,
-        }
+        return build(type, type === 'error' ? 150 : type === 'warn' ? 400 : 800,
+          input, [...variantFacts, textField('Variant response status', httpStatusLabel(status))], detail, evidence)
       }
-
       if (redirected || chain.hopsHidden) {
         if (response) discardBody(response)
         const matchesOriginal = normalize(finalUrl) === normalize(originalUrl)
-        return {
-          label: LABEL,
-          message: matchesOriginal
-            ? `URL variant ${whatCase} trailing slash redirects to ${opposite} version (OK).`
-            : `URL variant ${whatCase} trailing slash redirects to ${finalUrl} (unexpected).`,
-          type: matchesOriginal ? 'info' : 'error',
-          name: NAME,
-          priority: matchesOriginal ? 800 : 120,
-          details: { ...baseDetails, matchesOriginal },
-        }
+        return build(matchesOriginal ? 'info' : 'error', matchesOriginal ? 800 : 120, input,
+          [...variantFacts, textField('Variant response status', httpStatusLabel(status)), textField('Redirect target', matchesOriginal ? 'Original version' : 'Unexpected URL')],
+          detail, evidence)
+      }
+      if (!response) {
+        return build('runtime_error', 10, input, [...variantFacts, textField('Response body available', 'No')], detail, evidence)
       }
 
-      if (!response) {
-        return { label: LABEL, message: `URL variant ${whatCase} trailing slash returned HTTP 200 but the response body was not available.`, type: 'runtime_error', name: NAME, priority: 10, details: baseDetails }
-      }
       const body = await readResponseText(response, { signal: ctx.signal, maxBytes: HTML_RESPONSE_BYTES })
       const doc = parseHtmlDocument(body, page.doc)
+      const capture = variantCanonicalMarkup(doc)
       const canonicalHref = doc.querySelector('link[rel~="canonical" i]')?.getAttribute('href') || ''
-      if (!canonicalHref) {
-        return {
-          label: LABEL,
-          message: `URL variant ${whatCase} trailing slash returned 200 but no canonical found.`,
-          type: 'warn',
-          name: NAME,
-          priority: 350,
-          details: { ...baseDetails, canonicalHref: null, snippet: body.slice(0, 500) },
-        }
-      }
+      const noMarkup = canonicalHref ? 'Complete original variant canonical markup not retained' : 'No canonical link element found in the variant response'
 
+      if (!canonicalHref) {
+        return build('warn', 350, input, [...variantFacts, textField('Variant response status', httpStatusLabel(status)), textField('Canonical declared', 'No')], detail, evidence, capture.markup, noMarkup)
+      }
       let resolvedCanonical = ''
-      try {
-        resolvedCanonical = new URL(canonicalHref, variantUrl).href
-      } catch {
-        return {
-          label: LABEL,
-          message: `URL variant ${whatCase} trailing slash has invalid canonical.`,
-          type: 'error',
-          name: NAME,
-          priority: 140,
-          details: { ...baseDetails, canonicalHref, snippet: body.slice(0, 500) },
-        }
+      try { resolvedCanonical = new URL(canonicalHref, variantUrl).href } catch {
+        return build('error', 140, input, [...variantFacts, textField('Canonical declared', 'Yes'), textField('Canonical href valid', 'No')],
+          [...detail, textField('Declared canonical href', canonicalHref)], evidence, capture.markup, noMarkup)
       }
 
       const matchesOriginal = normalize(resolvedCanonical) === normalize(originalUrl)
       const matchesVariant = normalize(resolvedCanonical) === normalize(variantUrl)
-      const canonicalDetails = { ...baseDetails, canonicalHref: resolvedCanonical, matchesOriginal, matchesVariant, snippet: body.slice(0, 500) }
-
+      const canonicalDetail = [...detail, httpUrlField('Resolved canonical URL', resolvedCanonical)]
       if (!matchesOriginal && !matchesVariant) {
-        return { label: LABEL, message: `URL variant ${whatCase} trailing slash canonical points to ${resolvedCanonical} (unexpected).`, type: 'error', name: NAME, priority: 130, details: canonicalDetails }
+        return build('error', 130, input, [...variantFacts, textField('Canonical target', 'Neither original nor variant')], canonicalDetail, evidence, capture.markup, noMarkup)
       }
-
       if (matchesOriginal) {
-        return { label: LABEL, message: `URL variant ${whatCase} trailing slash canonical points back to ${opposite} version (OK).`, type: 'info', name: NAME, priority: 850, details: canonicalDetails }
+        return build('info', 850, input, [...variantFacts, textField('Canonical target', 'Original version')], canonicalDetail, evidence, capture.markup, noMarkup)
       }
-
-      return { label: LABEL, message: `URL variant ${whatCase} trailing slash canonical points to this variant (currently not canonical).`, type: 'warn', name: NAME, priority: 300, details: canonicalDetails }
+      return build('warn', 300, input, [...variantFacts, textField('Canonical target', 'This variant (self-referential)')], canonicalDetail, evidence, capture.markup, noMarkup)
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error)
       const hops = error instanceof RedirectChainError ? error.hops : []
-      return { label: LABEL, message: `Trailing slash probe failed: ${msg}`, type: 'runtime_error', name: NAME, priority: 10, details: { tested: TESTED, originalUrl, variantUrl, ...(hops.length ? { redirectChainHops: hops } : {}) } }
+      return build('runtime_error', 10, hops.length ? input : 'Page URL', [...variantFacts, textField('Probe failed', msg)], urls, hopEvidence(hops))
     }
   },
 }
