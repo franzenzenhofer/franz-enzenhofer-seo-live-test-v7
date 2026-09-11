@@ -142,7 +142,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `robots:noindex-unsupported` | `2851b7d` (7.0.321) |
 | `robots:sitemap-reference` | `11654b3` (7.0.322) |
 | `robots:complexity` | `b980fea` (7.0.323) |
-| `robots:googlebot-url-check` | build 7.0.324 |
+| `robots:googlebot-url-check` | `5d848a4` (7.0.324) |
+| `psi:mobile` | build 7.0.325 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 

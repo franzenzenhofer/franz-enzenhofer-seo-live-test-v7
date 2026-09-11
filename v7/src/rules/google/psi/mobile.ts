@@ -1,15 +1,17 @@
-import { extractPSIKey } from '../google-utils'
-
+import { requestPsi, psiApi, PSI_NOT_MARKUP } from './psiFacts'
 import { psiScoreVerdict, summarizePSI } from './summary'
 
-import { runPSI, getPSIKey } from '@/shared/psi'
+import { textField, urlField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
 
 const NAME = 'V5 Mobile score'
+const STRATEGY = 'mobile'
 
 export const psiMobileRule: Rule = {
   id: 'psi:mobile',
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'psi',
   meta: {
@@ -22,13 +24,33 @@ export const psiMobileRule: Rule = {
     description: 'Runs the PSI v5 API with strategy=mobile and grades the Lighthouse performance score.',
   },
   async run(page, ctx) {
-    const userKey = extractPSIKey(ctx)
-    const key = getPSIKey(userKey)
-    const j = await runPSI(page.url, 'mobile', key)
-    const summary = summarizePSI(j, page.url, 'mobile')
-    if (summary.score === undefined) return { label: 'PSI', name: NAME, message: 'Mobile performance score unavailable.', type: 'info', priority: 900, details: { ...summary } }
+    const outcome = await requestPsi(page.url, STRATEGY, ctx)
+    if (!outcome.ok) return presentResult(psiMobileRule, page, outcome.facts)
+
+    const summary = summarizePSI(outcome.json, page.url, STRATEGY)
+    if (summary.score === undefined) {
+      return presentResult(psiMobileRule, page, {
+        input: 'Page URL + PageSpeed Insights API response',
+        type: 'info',
+        priority: 900,
+        values: [textField('Mobile performance score', 'Not reported by PageSpeed Insights')],
+        detailValues: [urlField('PageSpeed Insights report', summary.testUrl)],
+        checked: [...psiApi(STRATEGY), textField('Metric', 'Lighthouse performance category score')],
+        noMarkup: PSI_NOT_MARKUP,
+      })
+    }
+
     const verdict = psiScoreVerdict(summary.score)
-    const msg = `Mobile performance: ${summary.score}/100 [View report](${summary.testUrl})`
-    return { label: 'PSI', message: msg, type: verdict.type, priority: verdict.priority, name: NAME, details: { ...summary } }
+    return presentResult(psiMobileRule, page, {
+      input: 'Page URL + PageSpeed Insights API response',
+      type: verdict.type,
+      priority: verdict.priority,
+      values: [textField('Mobile performance score', `${summary.score}/100`)],
+      detailValues: [urlField('PageSpeed Insights report', summary.testUrl), urlField('Final tested URL', summary.finalDisplayedUrl || page.url)],
+      checked: [...psiApi(STRATEGY),
+        textField('Metric', 'Lighthouse performance category score (0-100)'),
+        textField('Criterion', '90-100 passed, 50-89 warning, 0-49 failed')],
+      noMarkup: PSI_NOT_MARKUP,
+    })
   },
 }
