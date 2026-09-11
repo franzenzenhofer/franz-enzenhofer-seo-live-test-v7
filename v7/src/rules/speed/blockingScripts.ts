@@ -1,7 +1,8 @@
 import type { Rule } from '@/core/types'
-import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
-import { getDomPaths } from '@/shared/dom-path'
 import { sampleMatchingElements } from '@/shared/domEvidence'
+import { textField, urlField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
 
 // JavaScript MIME types per https://mimesniff.spec.whatwg.org/#javascript-mime-type
 const JS_MIME_TYPES = new Set([
@@ -10,16 +11,21 @@ const JS_MIME_TYPES = new Set([
   'text/javascript1.3', 'text/javascript1.4', 'text/javascript1.5', 'text/jscript', 'text/livescript',
   'text/x-ecmascript', 'text/x-javascript',
 ])
+const SELECTOR = 'head script[src]:not([async]):not([defer]):not([type="module"])'
 
 const isBlockingScript = (el: Element): boolean => {
   const type = (el.getAttribute('type') || '').trim().toLowerCase()
   if (!type) return true
   return JS_MIME_TYPES.has(type)
 }
+const isHttpUrl = (value: string, base: string) => { try { return /^https?:$/.test(new URL(value, base).protocol) } catch { return false } }
+const srcField = (raw: string | null, base: string) => !raw ? textField('Script URL', raw === null ? 'Absent' : 'Empty')
+  : isHttpUrl(raw, base) ? urlField('Script URL', raw) : textField('Script URL', raw)
 
 export const blockingScriptsRule: Rule = {
   id: 'speed:blocking-scripts',
   name: 'Blocking scripts in head',
+  presentation: 1,
   enabled: true,
   what: 'static',
   meta: {
@@ -35,25 +41,22 @@ export const blockingScriptsRule: Rule = {
     description: 'Warns on external scripts in <head> without async/defer (render-blocking), ok when none.',
   },
   async run(page) {
-    const candidates = page.doc.querySelectorAll('head script[src]:not([async]):not([defer]):not([type="module"])')
-    const { sample, total: s, shown, truncated } = sampleMatchingElements(candidates, isBlockingScript)
-    const sourceHtml = s ? extractHtmlFromList(sample) : ''
-    const domPaths = s ? getDomPaths(sample) : []
-    return {
-      label: 'SPEED',
-      message: s ? `Blocking scripts in head: ${s}` : 'No blocking head scripts',
-      type: s ? 'warn' : 'ok',
-      priority: s ? 250 : 850,
-      name: 'Blocking scripts in head',
-      details: {
-        ...(s ? { sourceHtml, snippet: extractSnippet(sourceHtml) } : {}),
-        urls: Array.from(candidates).filter(isBlockingScript).map((el) => el.getAttribute('src') || '').filter(Boolean),
-        count: s,
-        shown,
-        truncated,
-        domPaths,
-        tested: 'Scanned <head> for sync external classic scripts (module and non-JS types excluded)',
-      },
-    }
+    const candidates = page.doc.querySelectorAll(SELECTOR)
+    const { sample, total, shown } = sampleMatchingElements(candidates, isBlockingScript)
+    const captured = markupEvidence(sample, 'Blocking script markup')
+    const captureFields = captured.fields.filter((field) => !field.key.startsWith('DOM path'))
+    return presentResult(blockingScriptsRule, page, {
+      input: 'Static DOM', type: total ? 'warn' : 'ok', priority: total ? 250 : 850,
+      values: [textField('Blocking scripts', total)],
+      detailValues: [textField('Elements retained', shown), textField('Elements omitted', total - shown)],
+      checked: [textField('Selector', SELECTOR),
+        textField('Filtering', 'Excludes async, defer, module, and non-JavaScript MIME types'),
+        textField('Criterion', 'Script has src in head and no async/defer; absent or empty type is treated as classic JavaScript')],
+      evidence: [...sample.map((element, index) => ({ name: `Blocking script ${index + 1}`, fields: [
+        srcField(element.getAttribute('src'), page.url), textField('Type attribute', element.hasAttribute('type') ? element.getAttribute('type') || 'Empty' : 'Absent'),
+        textField('DOM path', captured.selectors[index] || 'Not captured'),
+      ] })), ...(captureFields.length ? [{ name: 'Capture status', fields: captureFields }] : [])],
+      markup: captured.markup, noMarkup: total ? 'Complete original blocking script markup not retained' : 'No blocking head script found',
+    })
   },
 }

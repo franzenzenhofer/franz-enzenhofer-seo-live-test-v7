@@ -7,6 +7,7 @@ import { presentationSchema } from '@/shared/presentation/schema'
 
 const D = (h: string) => new DOMParser().parseFromString(h, 'text/html')
 const runPreload = async (doc: Document) => enrichResult(await linkPreloadRule.run({ html: '', url: 'https://ex.com', doc } as never, { globals: {} }), linkPreloadRule, 'test')
+const runBlocking = async (doc: Document) => enrichResult(await blockingScriptsRule.run({ html: '', url: 'https://ex.com', doc } as never, { globals: {} }), blockingScriptsRule, 'test')
 const value = (result: Awaited<ReturnType<typeof runPreload>>, key: string) => result.presentation?.values.find((field) => field.key === key)?.value
 
 describe('rule: speed link preload', () => {
@@ -38,32 +39,35 @@ describe('rule: speed link preload', () => {
   })
 })
 
-describe('rules: speed (not yet migrated)', () => {
-  it('reports preload and blocking scripts', async () => {
-    const doc = D('<head><link rel="preload" as="script" href="/a.js"><script src="/b.js"></script></head>')
-    const p = { html:'', url:'https://ex.com', doc }
-    const r2 = await blockingScriptsRule.run(p as any, { globals: {} })
-    expect((r2 as any).type).toBe('warn')
+describe('rule: speed blocking scripts', () => {
+  it('warns on a classic synchronous external script in head', async () => {
+    const result = await runBlocking(D('<head><script src="/b.js"></script></head>'))
+    expect(result.type).toBe('warn'); expect(result.priority).toBe(250)
+    expect(value(result, 'Blocking scripts')).toBe(1)
+    expect(result.presentation?.evidence[0]?.fields.find((field) => field.key === 'Script URL')).toEqual({ key: 'Script URL', value: '/b.js', kind: 'url' })
+    expect(result.details).toBeUndefined()
+    expect(presentationSchema.safeParse(result.presentation).success).toBe(true)
   })
 
   it('does not flag module scripts', async () => {
-    const doc = D('<head><script type="module" src="/m.js"></script></head>')
-    const p = { html:'', url:'https://ex.com', doc }
-    const r = await blockingScriptsRule.run(p as any, { globals: {} })
-    expect((r as any).type).toBe('ok')
+    const result = await runBlocking(D('<head><script type="module" src="/m.js"></script></head>'))
+    expect(result.type).toBe('ok'); expect(result.priority).toBe(850); expect(value(result, 'Blocking scripts')).toBe(0)
   })
 
   it('does not flag non-JavaScript script types', async () => {
-    const doc = D('<head><script type="text/template" src="/t.tpl"></script></head>')
-    const p = { html:'', url:'https://ex.com', doc }
-    const r = await blockingScriptsRule.run(p as any, { globals: {} })
-    expect((r as any).type).toBe('ok')
+    const result = await runBlocking(D('<head><script type="text/template" src="/t.tpl"></script></head>'))
+    expect(result.type).toBe('ok')
   })
 
   it('still flags explicit JavaScript MIME types', async () => {
-    const doc = D('<head><script type="text/javascript" src="/c.js"></script></head>')
-    const p = { html:'', url:'https://ex.com', doc }
-    const r = await blockingScriptsRule.run(p as any, { globals: {} })
-    expect((r as any).type).toBe('warn')
+    const result = await runBlocking(D('<head><script type="text/javascript" src="/c.js"></script></head>'))
+    expect(result.type).toBe('warn')
+  })
+
+  it('distinguishes an empty type attribute from an absent one', async () => {
+    const result = await runBlocking(D('<head><script type="" src="/e.js"></script><script src="/f.js"></script></head>'))
+    expect(result.type).toBe('warn'); expect(value(result, 'Blocking scripts')).toBe(2)
+    const types = result.presentation?.evidence.map((record) => record.fields.find((field) => field.key === 'Type attribute')?.value)
+    expect(types).toEqual(['Empty', 'Absent'])
   })
 })
