@@ -1,14 +1,16 @@
+import { hasHeaders } from '@/shared/http-utils'
+import { textField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
-import { extractSnippet } from '@/shared/html-utils'
-import { hasHeaders, noHeadersResult } from '@/shared/http-utils'
 
-const LABEL = 'HTTP'
 const NAME = 'Vary: User-Agent'
 const RULE_ID = 'http:vary-user-agent'
+const NO_MARKUP = 'None - this rule checks the HTTP response, not document markup'
 
 export const varyUserAgentRule: Rule = {
   id: RULE_ID,
   name: NAME,
+  presentation: 1,
   enabled: true,
   what: 'http',
   meta: {
@@ -25,29 +27,24 @@ export const varyUserAgentRule: Rule = {
     description: 'Reports (info-only) whether the Vary response header includes User-Agent, relevant for dynamic-serving mobile configurations.',
   },
   async run(page) {
-    if (!hasHeaders(page.headers)) return noHeadersResult(LABEL, NAME)
+    if (!hasHeaders(page.headers)) {
+      return presentResult(varyUserAgentRule, page, {
+        input: 'Not captured', type: 'runtime_error', priority: 50,
+        values: [textField('Header capture', 'Not captured')],
+        checked: [textField('Header name', 'Vary'), textField('Capture requirement', 'Response headers must be captured')],
+        noMarkup: NO_MARKUP,
+      })
+    }
     const varyHeader = page.headers?.['vary']?.trim() || ''
     const varyLower = varyHeader.toLowerCase()
     const includesUserAgent = varyLower.split(',').some(field => field.trim() === 'user-agent')
     const hasVary = Boolean(varyHeader)
-    const message = includesUserAgent
-      ? `Vary includes User-Agent: ${varyHeader}`
-      : hasVary
-        ? `Vary present but no User-Agent: ${varyHeader}`
-        : 'No Vary header. User-Agent not specified.'
-    return {
-      label: LABEL,
-      name: NAME,
-      message,
-      type: 'info',
-      priority: includesUserAgent ? 750 : 850,
-      details: {
-        snippet: extractSnippet(varyHeader || '(not present)'),
-        varyHeader,
-        includesUserAgent,
-        hasVary,
-      },
-    }
+    return presentResult(varyUserAgentRule, page, {
+      input: 'HTTP response headers', type: 'info', priority: includesUserAgent ? 750 : 850,
+      values: [textField('Vary', hasVary ? varyHeader : 'Not present'), textField('Includes User-Agent', includesUserAgent ? 'Yes' : 'No')],
+      checked: [textField('Header name', 'Vary'), textField('Criterion', 'Comma-separated token equal to User-Agent, case-insensitive'), textField('Header source', 'Captured response headers')],
+      evidence: [{ name: 'Retrieved response header', fields: [textField('Header value', hasVary ? varyHeader : 'Not present')] }],
+      noMarkup: NO_MARKUP,
+    })
   },
 }
-
