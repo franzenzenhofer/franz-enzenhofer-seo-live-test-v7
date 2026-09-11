@@ -116,7 +116,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `dom:client-side-rendering` | `5e2996d` (7.0.293) |
 | `dom:seo-phase-changes` | `986a6e0` (7.0.295) |
 | `speed:link-preload` | `bae7c79` (7.0.296) |
-| `speed:blocking-scripts` | build 7.0.297 |
+| `speed:blocking-scripts` | `edb3247` (7.0.297) |
+| `http:link-header` | build 7.0.298 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
