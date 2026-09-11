@@ -1,5 +1,5 @@
 import type { Rule } from '@/core/types'
-import { textField, urlField } from '@/shared/presentation/create'
+import { domPathField, textField, urlField } from '@/shared/presentation/create'
 import { markupEvidence } from '@/shared/presentation/originalMarkup'
 import { presentResult } from '@/shared/presentation/result'
 
@@ -39,7 +39,7 @@ export const parameterizedLinksRule: Rule = {
         textField('Markup records retained', captured.markup.length), textField('Markup records omitted', count - captured.markup.length)],
       evidence: retained.map(({ element, url }, index) => ({ name: `Link ${index + 1}`, fields: [
         textField('Link text', element.textContent || ''), urlField('Resolved URL', url.href), textField('Query string', url.search),
-        textField('Attribute', 'href'), textField('DOM path', captured.selectors[index] || 'Not retained'),
+        textField('Attribute', 'href'), domPathField('DOM path', captured.selectors[index], 'Not retained'),
       ] })),
       markup: captured.markup, noMarkup: count ? 'Complete original link markup not retained' : 'No matching links found',
     })

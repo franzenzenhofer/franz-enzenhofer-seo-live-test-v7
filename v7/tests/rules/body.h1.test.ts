@@ -8,7 +8,7 @@ describe('H1 headings', () => {
     expect(r.type).toBe('ok')
     expect(r.presentation?.markup[0].value).toBe(html)
     expect(r.presentation?.detailValues[0].value).toBe('SEO Works')
-    expect(r.presentation?.evidence[0].fields).toContainEqual({ key: 'DOM path 1', value: 'html > body > h1.hero', kind: 'text' })
+    expect(r.presentation?.evidence[0].fields).toContainEqual({ key: 'DOM path 1', value: 'html > body > h1.hero', kind: 'path' })
   })
   it('reports multiple headings as information, retaining each source', async () => {
     const r = await run('<h1 id="one">One</h1><h1 id="two">Two</h1>')

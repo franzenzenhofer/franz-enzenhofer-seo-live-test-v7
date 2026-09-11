@@ -5,8 +5,10 @@ const url = z.string().url().refine((value) => /^https?:\/\//i.test(value), 'HTT
 const scalar = z.union([z.string(), z.number().finite()])
 const text = z.object({ key, value: scalar, kind: z.literal('text') }).strict()
 const link = z.object({ key, value: z.string(), kind: z.literal('url') }).strict()
+// Generated location of a found element; the card may shorten it, copy never does.
+const path = z.object({ key, value: z.string().min(1), kind: z.literal('path') }).strict()
 const original = z.object({ key, value: z.string(), kind: z.literal('original'), fidelity: z.literal('complete-original') }).strict()
-export const fieldSchema = z.discriminatedUnion('kind', [text, link, original])
+export const fieldSchema = z.discriminatedUnion('kind', [text, link, path, original])
 export const presentationSchema = z.object({
   version: z.literal(1), name: key, input: key, pageUrl: z.string(),
   values: z.array(fieldSchema).min(1), detailValues: z.array(fieldSchema),

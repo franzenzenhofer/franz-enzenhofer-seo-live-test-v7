@@ -1,5 +1,7 @@
 import { useId } from 'react'
 
+import { PathValue } from './PathValue'
+
 import type { DisplayField } from '@/shared/presentation/schema'
 
 const hrefFor = (value: string, pageUrl: string) => {
@@ -23,6 +25,7 @@ export const Fields = ({ fields, pageUrl }: { fields: DisplayField[]; pageUrl: s
       </dt>
       <dd className="min-w-0 flex-1 whitespace-pre-wrap text-sm leading-5 text-slate-950 [overflow-wrap:anywhere]">
         {original ? <textarea id={fieldId} readOnly value={field.value} rows={2} className="block w-full resize-y [field-sizing:content] rounded-lg border border-slate-300 bg-white/90 px-2 py-1.5 text-sm leading-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-slate-700" />
+          : field.kind === 'path' ? <PathValue value={field.value} />
           : <LinkedText value={String(field.value)} pageUrl={pageUrl} isUrl={field.kind === 'url'} />}
       </dd>
     </div>

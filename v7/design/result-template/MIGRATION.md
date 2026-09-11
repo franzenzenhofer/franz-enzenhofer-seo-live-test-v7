@@ -75,7 +75,8 @@ Codex timed out after `og:url` (22/130). Claude Code continues with the same con
 | `head:hreflang-values` | `c4b6505` (7.0.248) |
 | `dom:node-count` | `b840e87` (7.0.250) |
 | `dom:node-depth` | `cac420c` (7.0.251) |
-| `fix:stale-event-drop` | build 7.0.252 |
+| `fix:stale-event-drop` | `1f43fbc` (7.0.252) |
+| `fix:collapsible-dom-paths` | build 7.0.253 |
 
 Shared foundation: `d2cbd5a`. Last verified build before this scope expansion: **7.0.220**. The first nine migrations included some correctness fixes before the latest scope clarification; do not use those as a reason to expand later migrations into new checks.
 
