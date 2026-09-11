@@ -1,11 +1,9 @@
 import type { Rule } from '@/core/types'
-import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
-import { getDomPaths } from '@/shared/dom-path'
 import { sampleMatchingElements } from '@/shared/domEvidence'
+import { textField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
 
-const LABEL = 'HEAD'
-const NAME = 'Hreflang values'
-const RULE_ID = 'head:hreflang-values'
 const SELECTOR = 'head > link[rel~="alternate" i][hreflang]'
 
 // Google documents ISO 639-1 (two-letter) languages, optional ISO 15924 script,
@@ -14,9 +12,16 @@ const SELECTOR = 'head > link[rel~="alternate" i][hreflang]'
 const isValidHreflang = (value: string) =>
   /^(x-default|[a-z]{2}(-[a-z]{4})?(-[a-z]{2})?)$/i.test(value)
 
+const checked = [
+  textField('Selector', SELECTOR),
+  textField('Validation pattern', 'x-default, or ISO 639-1 language with optional ISO 15924 script and ISO 3166-1 Alpha-2 region'),
+  textField('Criterion', 'Every hreflang attribute value matches the pattern'),
+]
+
 export const hreflangValuesRule: Rule = {
-  id: RULE_ID,
-  name: NAME,
+  id: 'head:hreflang-values',
+  name: 'Hreflang values',
+  presentation: 1,
   enabled: true,
   what: 'static',
   meta: {
@@ -27,33 +32,37 @@ export const hreflangValuesRule: Rule = {
   async run(page) {
     const elements = page.doc.querySelectorAll<HTMLLinkElement>(SELECTOR)
     if (!elements.length) {
-      return { label: LABEL, name: NAME, message: 'No hreflang links found.', type: 'info', priority: 900 }
+      return presentResult(hreflangValuesRule, page, {
+        input: 'Static DOM', type: 'info', priority: 900,
+        values: [textField('Hreflang links', 0)], checked,
+        noMarkup: 'No hreflang links found',
+      })
     }
 
     const invalid = sampleMatchingElements(elements, (el) => !isValidHreflang((el.getAttribute('hreflang') || '').trim()))
     if (!invalid.total) {
-      return { label: LABEL, name: NAME, message: `All ${elements.length} hreflang values look valid.`, type: 'ok', priority: 820, details: { count: elements.length } }
+      return presentResult(hreflangValuesRule, page, {
+        input: 'Static DOM', type: 'ok', priority: 820,
+        values: [textField('Hreflang links', elements.length), textField('Invalid values', 0)], checked,
+        noMarkup: 'No invalid hreflang value found',
+      })
     }
 
     const invalidValues = invalid.sample.map((el) => (el.getAttribute('hreflang') || '').trim()).filter(Boolean)
-    const sourceHtml = extractHtmlFromList(invalid.sample)
-
-    return {
-      label: LABEL,
-      name: NAME,
-      message: `Invalid hreflang values: ${invalidValues.join(', ')}.`,
-      type: 'warn',
-      priority: 220,
-      details: {
-        sourceHtml,
-        snippet: extractSnippet(sourceHtml, 150),
-        domPaths: getDomPaths(invalid.sample),
-        invalidValues,
-        invalidCount: invalid.total,
-        totalCount: elements.length,
-        shown: invalid.shown,
-        truncated: invalid.truncated,
-      },
-    }
+    const captured = markupEvidence(invalid.sample, 'Invalid hreflang link markup')
+    return presentResult(hreflangValuesRule, page, {
+      input: 'Static DOM', type: 'warn', priority: 220,
+      values: [textField('Hreflang links', elements.length), textField('Invalid values', invalid.total)],
+      detailValues: [textField('Invalid values (list)', invalidValues.join(', ')),
+        textField('Invalid examples retained', invalid.shown), textField('Invalid examples omitted', invalid.total - invalid.shown)],
+      checked,
+      evidence: invalid.sample.map((el, index) => ({
+        name: `Invalid hreflang ${index + 1}`,
+        fields: [textField('Attribute value', (el.getAttribute('hreflang') || '').trim() || 'Empty'),
+          textField('DOM path', captured.selectors[index] || 'Not captured')],
+      })),
+      markup: captured.markup,
+      noMarkup: 'Complete original invalid hreflang link markup not retained',
+    })
   },
 }
