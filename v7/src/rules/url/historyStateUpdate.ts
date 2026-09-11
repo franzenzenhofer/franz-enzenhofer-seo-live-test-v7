@@ -1,14 +1,11 @@
 import type { Rule } from '@/core/types'
+import { textField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
 
-const LABEL = 'URL'
 const NAME = 'History state update detected'
-const TESTED = 'Inspected navigation event ledger for history.pushState usage without a corresponding document commit.'
 
 export const historyStateUpdateRule: Rule = {
-  id: 'url:history-state-update',
-  name: NAME,
-  enabled: true,
-  what: 'static',
+  id: 'url:history-state-update', name: NAME, presentation: 1, enabled: true, what: 'static',
   meta: {
     userGuide: {
       check: "Detects a history update in a run without a document-load event. Page code can change browser history without an HTTP redirect. This is normal in many applications; it does not by itself prove that content, titles or canonical tags updated correctly.",
@@ -21,22 +18,26 @@ export const historyStateUpdateRule: Rule = {
     ],
     description: 'Detects SPA navigation by finding history.pushState events in the navigation ledger without a corresponding document commit (info-only).',
   },
-  async run(_page, ctx) {
-    const ev = ((ctx.globals as { events?: Array<{ t?: string }> }).events) || []
-    const hasHistory = ev.some((e) => e && e.t === 'nav:history')
-    const hadCommit = ev.some((e) => e && e.t === 'nav:commit')
+  async run(page, ctx) {
+    const events = ((ctx.globals as { events?: Array<{ t?: string }> }).events) || []
+    const hasHistory = events.some((e) => e && e.t === 'nav:history')
+    const hadCommit = events.some((e) => e && e.t === 'nav:commit')
     const observedSpaNav = hasHistory && !hadCommit
-    return {
-      label: LABEL,
-      message: observedSpaNav ? 'History state update (SPA navigation) observed' : 'No SPA-only history update detected',
-      type: 'info',
-      priority: observedSpaNav ? 500 : 900,
-      name: NAME,
-      details: {
-        tested: TESTED,
-        historyEvents: hasHistory,
-        commitEvents: hadCommit,
-      },
-    }
+
+    return presentResult(historyStateUpdateRule, page, {
+      input: events.length ? 'Navigation events' : 'Not captured',
+      type: 'info', priority: observedSpaNav ? 500 : 900,
+      values: [textField('SPA history update observed', observedSpaNav ? 'Yes' : 'No')],
+      detailValues: [
+        textField('History (pushState/replaceState) events', hasHistory ? 'Present' : 'Absent'),
+        textField('Document-commit events', hadCommit ? 'Present' : 'Absent'),
+      ],
+      checked: [
+        textField('Event types', 'nav:history, nav:commit'),
+        textField('Criterion', 'SPA-only navigation = at least one nav:history event and no nav:commit event among the recorded events'),
+      ],
+      evidence: [],
+      noMarkup: 'None - this rule checks recorded navigation events, not document markup',
+    })
   },
 }
