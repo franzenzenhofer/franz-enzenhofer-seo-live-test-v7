@@ -55,8 +55,8 @@ describe('head:robots-meta-list with mixed head', () => {
 describe('head:meta-other-robots with mixed head', () => {
   it('reports no agent-specific robots metas when only standard metas exist', async () => {
     const res = await robotsOtherMetaRule.run(page(MIXED_HEAD), { globals: {} })
-    expect(res.message).toMatch(/No agent-specific robots meta/)
     expect(res.type).toBe('info')
+    expect(res.presentation?.values).toContainEqual({ key: 'Agent-specific robots meta tags', value: 0, kind: 'text' })
   })
 })
 
