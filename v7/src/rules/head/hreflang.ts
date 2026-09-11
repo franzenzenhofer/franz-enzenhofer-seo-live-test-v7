@@ -1,20 +1,25 @@
 import type { Rule } from '@/core/types'
-import { extractHtmlFromList, extractSnippet } from '@/shared/html-utils'
-import { getDomPaths } from '@/shared/dom-path'
 import { sampleElements } from '@/shared/domEvidence'
+import { textField, urlField } from '@/shared/presentation/create'
+import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { presentResult } from '@/shared/presentation/result'
 
-// Constants
-const LABEL = 'HEAD'
-const NAME = 'Hreflang Links'
-const RULE_ID = 'head-hreflang'
 const SELECTOR = 'head > link[rel~="alternate" i][hreflang]'
 // Full attribute capture for every hreflang link, bounded only by the
-// content-script phase-message byte budget (stated via hreflangDataTruncated).
+// content-script phase-message byte budget (stated via the retained/omitted counts).
 const PAIR_LIMIT = 200
 
+const checked = [
+  textField('Selector', SELECTOR),
+  textField('Selection', 'All matches'),
+  textField('Attribute pairs captured', `Up to ${PAIR_LIMIT} hreflang/href pairs`),
+  textField('Criterion', 'Informational inventory; no pass/fail verdict'),
+]
+
 export const hreflangRule: Rule = {
-  id: RULE_ID,
-  name: NAME,
+  id: 'head-hreflang',
+  name: 'Hreflang Links',
+  presentation: 1,
   enabled: true,
   what: 'static',
   meta: {
@@ -26,46 +31,44 @@ export const hreflangRule: Rule = {
     const all = page.doc.querySelectorAll(SELECTOR)
     const elements = sampleElements(all)
     const count = elements.total
+    const captured = markupEvidence(elements.sample, 'Hreflang link markup')
+
+    if (!count) {
+      return presentResult(hreflangRule, page, {
+        input: 'Static DOM', type: 'info', priority: 900,
+        values: [textField('Hreflang links', 0)],
+        checked, noMarkup: 'No hreflang links found',
+      })
+    }
+
     // Attribute pairs are cheap: collect them for EVERY hreflang link (the
-    // phase-message byte budget still applies, so state the in-rule bound).
+    // phase-message byte budget still applies, so the retained/omitted counts state the in-rule bound).
     const hreflangData: Array<{ hreflang: string; href: string }> = []
     for (let index = 0; index < all.length && hreflangData.length < PAIR_LIMIT; index++) {
       const link = all.item(index)
       if (!link) continue
-      hreflangData.push({
-        hreflang: link.getAttribute('hreflang')?.trim() || '',
-        href: link.getAttribute('href')?.trim() || '',
-      })
+      hreflangData.push({ hreflang: link.getAttribute('hreflang')?.trim() || '', href: link.getAttribute('href')?.trim() || '' })
     }
     const languages = [...new Set(hreflangData.map((d) => d.hreflang).filter(Boolean))]
 
-    const sourceHtml = extractHtmlFromList(elements.sample)
-    const domPaths = getDomPaths(elements.sample)
-
-    const message =
-      count === 0
-        ? 'No hreflang links found.'
-        : `${count} link-rel-alternate hreflang found. ${languages.join(' ')}`
-
-    return {
-      label: LABEL,
-      name: NAME,
-      message,
-      type: 'info',
-      priority: count ? 710 : 900,
-      details: count
-        ? {
-            sourceHtml,
-            snippet: extractSnippet(sourceHtml, 150),
-            domPaths,
-            count,
-            shown: elements.shown,
-            truncated: elements.truncated,
-            languages,
-            hreflangData,
-            hreflangDataTruncated: count > hreflangData.length,
-          }
-        : undefined,
-    }
+    return presentResult(hreflangRule, page, {
+      input: 'Static DOM', type: 'info', priority: 710,
+      values: [textField('Hreflang links', count), textField('Distinct languages', languages.length)],
+      detailValues: [
+        textField('Languages', languages.join(', ') || 'None'),
+        textField('Attribute pairs retained', hreflangData.length),
+        textField('Attribute pairs omitted', count - hreflangData.length),
+        textField('Markup elements retained', captured.markup.length),
+        textField('Markup elements omitted', count - captured.markup.length),
+      ],
+      checked,
+      evidence: hreflangData.map((pair, index) => ({
+        name: `Hreflang ${index + 1}`,
+        fields: [textField('Language', pair.hreflang || 'Not declared'),
+          ...(pair.href ? [urlField('Href', pair.href)] : [textField('Href', 'Not declared')])],
+      })),
+      markup: captured.markup,
+      noMarkup: 'Complete original hreflang link markup not retained',
+    })
   },
 }

@@ -63,7 +63,8 @@ describe('details carry everything collected (no silent discarding)', () => {
   it('head-hreflang reports the complete language set even beyond the element sample', async () => {
     const links = Array.from({ length: 15 }, (_, i) => `<link rel="alternate" hreflang="l${i}" href="https://ex.com/${i}">`).join('')
     const res = await hreflangRule.run(page(`<head>${links}</head>`), ctx)
-    expect((res.details?.['languages'] as string[]).length).toBe(15)
+    const languages = (res.presentation?.detailValues.find((field) => field.key === 'Languages')?.value as string).split(', ')
+    expect(languages.length).toBe(15)
   })
 
   it('body:parameterized-links lists the parameterized URLs themselves', async () => {

@@ -31,10 +31,12 @@ describe('Tripadvisor Vienna saved page', () => {
   it('detects hreflang alternates', async () => {
     const page = loadPage()
     const res = await hreflangRule.run(page as any, { globals: {} })
-    expect((res.details as any)?.count).toBeGreaterThan(10)
+    const linkCount = res.presentation?.values.find((field) => field.key === 'Hreflang links')?.value as number
+    expect(linkCount).toBeGreaterThan(10)
     // The full language set is carried; only the markup evidence is sampled.
-    expect(((res.details as any)?.languages as string[]).length).toBeGreaterThan(EVIDENCE_LIMIT)
-    expect((res.details as any)?.truncated).toBe(true)
+    const languages = (res.presentation?.detailValues.find((field) => field.key === 'Languages')?.value as string).split(', ')
+    expect(languages.length).toBeGreaterThan(EVIDENCE_LIMIT)
+    expect(res.presentation?.markup.length).toBe(EVIDENCE_LIMIT)
     expect(res.message.toLowerCase()).toContain('hreflang')
   })
 
