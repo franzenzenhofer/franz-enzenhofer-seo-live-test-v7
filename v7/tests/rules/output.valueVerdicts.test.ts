@@ -18,7 +18,7 @@ describe('verdicts carry the judged value', () => {
   it('head-title reports the length and carries the title as a value key', async () => {
     const res = await titleRule.run(page('<head><title>My Fine Title</title></head>'), ctx)
     expect(res.type).toBe('ok')
-    expect(res.presentation?.detailValues).toContainEqual({ key: 'Trimmed length (UTF-16 code units)', value: 13, kind: 'text' })
+    expect(res.presentation?.values).toContainEqual({ key: 'Characters', value: 13, kind: 'text' })
     expect(res.message).not.toContain('My Fine Title')
     expect(res.presentation?.detailValues).toContainEqual({ key: 'Title', value: 'My Fine Title', kind: 'text' })
   })
@@ -28,7 +28,7 @@ describe('verdicts carry the judged value', () => {
     expect(res.presentation?.detailValues).toContainEqual({ key: 'Title', value: 'My Fine Title', kind: 'text' })
   })
 
-  it('meta description verdict reports length; value lives in the description key', async () => {
+  it('meta description verdict reports length; the content lives in the original markup field', async () => {
     const res = await metaDescriptionRule.run(
       page('<head><meta name="description" content="A concise summary of the page."></head>'),
       ctx,
@@ -36,22 +36,22 @@ describe('verdicts carry the judged value', () => {
     expect(res.type).toBe('ok')
     expect(res.presentation?.values).toContainEqual({ key: 'Characters', value: 30, kind: 'text' })
     expect(res.message).not.toContain('A concise summary')
-    expect(res.presentation?.detailValues).toContainEqual({ key: 'Description', value: 'A concise summary of the page.', kind: 'text' })
+    expect(res.presentation?.values[1]).toMatchObject({ key: '<meta name="description">', kind: 'original' })
     expect(res.presentation?.markup[0].value).toContain('content="A concise summary of the page."')
   })
 
   it('body:h1 carries the heading text under the h1 key', async () => {
     const res = await h1Rule.run(page('<body><h1>Welcome to the Test</h1></body>'), ctx)
-    expect(res.presentation?.values[0].value).toBe(1)
-    expect(res.presentation?.detailValues).toContainEqual({ key: 'Heading text', value: 'Welcome to the Test', kind: 'text' })
+    expect(res.presentation?.values).toEqual([{ key: '<h1>', value: '<h1>Welcome to the Test</h1>', kind: 'original', fidelity: 'complete-original' }])
   })
 
-  it('meta viewport carries the content value in its key', async () => {
+  it('meta viewport carries each checked directive value in its key', async () => {
     const res = await metaViewportRule.run(
       page('<head><meta name="viewport" content="width=device-width, initial-scale=1"></head>'),
       ctx,
     )
-    expect(res.presentation?.values).toContainEqual({ key: 'Content (trimmed)', value: 'width=device-width, initial-scale=1', kind: 'text' })
+    expect(res.presentation?.values).toContainEqual({ key: 'width', value: 'device-width', kind: 'text' })
+    expect(res.presentation?.values).toContainEqual({ key: 'initial-scale', value: '1', kind: 'text' })
   })
 
   it('og:image carries the declared image URL in its overview values', async () => {
@@ -59,7 +59,7 @@ describe('verdicts carry the judged value', () => {
       page('<head><meta property="og:image" content="https://ex.com/img.jpg"></head>'),
       ctx,
     )
-    expect(res.presentation?.values).toContainEqual({ key: 'Declared URL (trimmed)', value: 'https://ex.com/img.jpg', kind: 'url' })
+    expect(res.presentation?.values).toContainEqual({ key: 'og:image', value: 'https://ex.com/img.jpg', kind: 'url' })
     expect(typeof res.priority).toBe('number')
   })
 

@@ -5,7 +5,8 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { createPresentation, originalField, textField } from '../src/shared/presentation/create'
 import { presentationSchema } from '../src/shared/presentation/schema'
 import { boundPresentation } from '../src/shared/presentation/bound'
-import { markupEvidence, markReconstructed, readOriginalMarkup, registerOriginal } from '../src/shared/presentation/originalMarkup'
+import { markReconstructed, readOriginalMarkup, registerOriginal } from '../src/shared/presentation/originalMarkup'
+import { elementRecords } from '../src/shared/presentation/records'
 import { presentationCopy } from '../src/shared/presentation/copy'
 import { PresentationCard } from '../src/components/presentation/Card'
 import { getResultLabel, resultTypeOrder } from '../src/shared/colors'
@@ -39,7 +40,7 @@ describe('presentation contract', () => {
     const doc = new JSDOM('<h1 class="title" data-original="yes"> A <em lang="de">B</em> </h1>').window.document
     const element = doc.querySelector('h1')!
     expect(readOriginalMarkup(element)?.html).toBe(element.outerHTML)
-    expect(markupEvidence([element]).markup[0].value).toContain('<em lang="de">B</em>')
+    expect(elementRecords([element], 1).markup[0]!.value).toContain('<em lang="de">B</em>')
     markReconstructed(doc)
     expect(readOriginalMarkup(element)).toBeNull()
     registerOriginal(element, { html: markup, selector: '#original-title' })

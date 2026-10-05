@@ -7,14 +7,13 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { CHECKS } from './checks'
 import type { Violation } from './checks.shared'
 import { FIXTURES, runFixtures } from './harness'
-import { KNOWN_VIOLATIONS } from './knownViolations'
 import type { RuleRun } from './harness'
 
 import { registry } from '@/rules/registry'
 
 // Enforces design/result-template/FORMATTING.md (F1-F14) over every registry rule on realistic pages.
 let runs: RuleRun[] = []
-// FORMAT_RULES=head-canonical,head-hreflang limits the run to those rule ids (local fixing loop only).
+// FORMAT_RULES=head-canonical,head-hreflang limits the run to those rule ids (local fixing loop).
 const only = process.env['FORMAT_RULES']?.split(',').map((id) => id.trim()).filter(Boolean)
 const found: Violation[] = []
 const docs = new Map(FIXTURES.map((fixture) => [fixture.name, new JSDOM(readFileSync(resolve(__dirname, '../fixtures/formatting', fixture.file), 'utf8'), { url: fixture.url }).window.document]))
@@ -54,14 +53,7 @@ describe('result card formatting (FORMATTING.md)', () => {
     it(`${check.id}: ${check.title}`, () => {
       const violations = violationsOf(check.id)
       found.push(...violations)
-      // FORMAT_RULES runs are strict: every violation of the named rules is reported.
-      const unexpected = only ? violations : violations.filter((violation) => !KNOWN_VIOLATIONS.includes(violation.ruleId))
-      expect(unexpected, describeViolations(unexpected)).toEqual([])
+      expect(violations, describeViolations(violations)).toEqual([])
     })
   }
-  it('known-violation list only names rules that still violate', () => {
-    if (only) return
-    const violating = new Set(found.map((violation) => violation.ruleId))
-    expect(KNOWN_VIOLATIONS.filter((ruleId) => !violating.has(ruleId)), 'fixed: remove from knownViolations.ts').toEqual([])
-  })
 })

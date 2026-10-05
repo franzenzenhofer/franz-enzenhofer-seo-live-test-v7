@@ -33,9 +33,9 @@ describe('details carry everything collected (no silent discarding)', () => {
     const imgs = Array.from({ length: 7 }, (_, i) => `<img src="http://ex.com/i${i}.png">`).join('')
     const res = await mixedContentRule.run(page(`<body>${imgs}</body>`), ctx)
     expect(res.type).toBe('error')
-    expect(res.presentation?.values).toContainEqual({ key: 'Mixed-content resources', value: 7, kind: 'text' })
+    expect(res.presentation?.values).toContainEqual({ key: 'HTTP references', value: '7 images', kind: 'text' })
     expect(res.presentation?.evidence).toHaveLength(7)
-    expect(res.presentation?.detailValues.some((f) => f.key.includes('omitted'))).toBe(false)
+    expect(res.presentation?.detailValues).toContainEqual({ key: 'Evidence omitted', value: 0, kind: 'text' })
     expect(res.details).toBeUndefined()
   })
 
@@ -64,17 +64,17 @@ describe('details carry everything collected (no silent discarding)', () => {
     expect((summary as Record<string, unknown>)['warnings']).toHaveLength(8)
   })
 
-  it('head-hreflang reports the complete language set even beyond the element sample', async () => {
+  it('head-hreflang ships one record and one markup field per link, not a ten-element sample', async () => {
     const links = Array.from({ length: 15 }, (_, i) => `<link rel="alternate" hreflang="l${i}" href="https://ex.com/${i}">`).join('')
     const res = await hreflangRule.run(page(`<head>${links}</head>`), ctx)
-    const languages = (res.presentation?.detailValues.find((field) => field.key === 'Languages')?.value as string).split(', ')
-    expect(languages.length).toBe(15)
+    expect(res.presentation?.evidence.map((record) => record.fields.find((field) => field.key === 'hreflang')?.value)).toEqual(Array.from({ length: 15 }, (_, i) => `l${i}`))
+    expect(res.presentation?.markup).toHaveLength(15)
   })
 
   it('body:parameterized-links lists the parameterized URLs themselves', async () => {
     const anchors = Array.from({ length: 14 }, (_, i) => `<a href="/p?x=${i}">a</a>`).join('')
     const res = await parameterizedLinksRule.run(page(`<body>${anchors}</body>`), ctx)
-    const urls = res.presentation?.evidence.map((record) => record.fields.find((field) => field.key === 'Resolved URL')?.value)
+    const urls = res.presentation?.evidence.map((record) => record.fields.find((field) => field.key === 'href')?.value)
     expect(urls).toHaveLength(14)
     expect(urls?.every((url) => typeof url === 'string' && url.includes('?'))).toBe(true)
   })

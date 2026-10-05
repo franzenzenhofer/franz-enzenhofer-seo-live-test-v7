@@ -71,7 +71,7 @@ describe('result types and priorities match the finding', () => {
     // Google documents no required Organization properties - missing logo/url are recommended (info)
     expect(res.type).toBe('info')
     expect(typeof res.priority).toBe('number')
-    const missing = res.presentation?.evidence.flatMap((record) => record.fields).find((field) => field.key === 'Missing fields')
+    const missing = res.presentation?.values.find((field) => field.key === 'Missing fields')
     expect(missing?.value).toMatch(/logo|url/)
     const absent = await schemaArticlePresentRule.run(page(''), ctx)
     expect(typeof absent.priority).toBe('number')

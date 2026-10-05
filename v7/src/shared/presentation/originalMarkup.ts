@@ -1,6 +1,3 @@
-import { originalField, pathField, textField } from './create'
-import type { DisplayField } from './schema'
-
 import { getDomPath } from '@/shared/dom-path'
 
 const reconstructed = new WeakSet<Document>()
@@ -33,19 +30,4 @@ export const readOriginalMarkup = (element: Element) => {
   if (original) return original
   if (reconstructed.has(element.ownerDocument) || !smallEnough(element)) return null
   return { html: element.outerHTML, selector: getDomPath(element) }
-}
-export const markupEvidence = (elements: Element[], label = 'Markup') => {
-  const markup: Array<Extract<DisplayField, { kind: 'original' }>> = []
-  const fields: DisplayField[] = []
-  const selectors: Array<string | null> = []
-  for (const [index, element] of elements.entries()) {
-    const captured = readOriginalMarkup(element)
-    const selector = captured?.selector ?? (reconstructed.has(element.ownerDocument) ? null : getDomPath(element))
-    selectors.push(selector)
-    if (captured) {
-      markup.push(originalField(`${label} ${index + 1}`, captured.html))
-    } else fields.push(textField(`${label} ${index + 1}`, 'Complete original markup not retained'))
-    if (selector) fields.push(pathField(`DOM path ${index + 1}`, selector))
-  }
-  return { markup, fields, selectors }
 }
