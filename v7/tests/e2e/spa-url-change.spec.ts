@@ -120,7 +120,7 @@ test.describe('SPA URL change (history.pushState)', () => {
       expect(captured).toContain('Route B')
       expect(captured).not.toContain('Start page')
       // The run knows it came from an in-page navigation and that no navigation response exists for the URL.
-      expect(own.find((r) => r.ruleId === 'url:history-state-update')?.message).toContain('SPA history update observed: Yes')
+      expect(own.find((r) => r.ruleId === 'url:history-state-update')?.message).toContain('History update: Without page load')
       expect(own.find((r) => r.ruleId === 'http-status')?.presentation?.input).toBe(HEAD_PROBE_RESPONSE)
       expect(second.commits, 'no document load happened').toBe(0)
       await expect(panel.getByTestId('page-changed')).toHaveCount(0)

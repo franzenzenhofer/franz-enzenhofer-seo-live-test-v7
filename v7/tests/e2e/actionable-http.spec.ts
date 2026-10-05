@@ -25,7 +25,8 @@ test('HTTP findings render readable offenders and a named navigation journey wit
     // The full report renders every card expanded: the icon toggle is already named "Hide details".
     await expect(mixed.getByRole('button', { name: 'Hide details', exact: true })).toHaveAttribute('aria-expanded', 'true')
     const evidence = mixed.getByRole('region', { name: 'Evidence' })
-    await expect(evidence.getByRole('heading', { name: /^Mixed-content resource \d+$/ })).toHaveCount(2)
+    // One evidence record per offending element, named by its tag label (FORMATTING.md F7).
+    await expect(evidence.getByRole('heading', { name: /^(<[a-z]+[^>]*>( \d+)?|Network resource( \d+)?)$/ })).toHaveCount(2)
     await expect(evidence).toContainText('Alpe-Adria 8 Tage')
     await expect(evidence.locator('a[href="http://images.http-results.test/alpe-adria.jpg?v=1"]')).toHaveCount(1)
     await mixed.getByRole('button', { name: 'Copy result', exact: true }).click()
