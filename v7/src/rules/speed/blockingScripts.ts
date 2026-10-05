@@ -1,8 +1,9 @@
 import type { Rule } from '@/core/types'
+import { attrUrlField, countRow, inventory, urlLabel } from '@/rules/body/elementInventory'
 import { sampleMatchingElements } from '@/shared/domEvidence'
-import {domPathField, textField, urlField} from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { textField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
+import { listRow } from '@/shared/presentation/listRow'
 
 // JavaScript MIME types per https://mimesniff.spec.whatwg.org/#javascript-mime-type
 const JS_MIME_TYPES = new Set([
@@ -18,9 +19,6 @@ const isBlockingScript = (el: Element): boolean => {
   if (!type) return true
   return JS_MIME_TYPES.has(type)
 }
-const isHttpUrl = (value: string, base: string) => { try { return /^https?:$/.test(new URL(value, base).protocol) } catch { return false } }
-const srcField = (raw: string | null, base: string) => !raw ? textField('Script URL', raw === null ? 'Absent' : 'Empty')
-  : isHttpUrl(raw, base) ? urlField('Script URL', raw) : textField('Script URL', raw)
 
 export const blockingScriptsRule: Rule = {
   id: 'speed:blocking-scripts',
@@ -42,21 +40,19 @@ export const blockingScriptsRule: Rule = {
   },
   async run(page) {
     const candidates = page.doc.querySelectorAll(SELECTOR)
-    const { sample, total, shown } = sampleMatchingElements(candidates, isBlockingScript)
-    const captured = markupEvidence(sample, 'Blocking script markup')
-    const captureFields = captured.fields.filter((field) => !field.key.startsWith('DOM path'))
+    const { sample, total } = sampleMatchingElements(candidates, isBlockingScript)
+    const records = inventory(sample, total, (element) => [attrUrlField('src', element.getAttribute('src'), page.url),
+      textField('type', element.hasAttribute('type') ? element.getAttribute('type') || 'Empty' : 'Absent')])
+    const sources = sample.map((element) => urlLabel(element.getAttribute('src') || '', page.url))
     return presentResult(blockingScriptsRule, page, {
       input: 'Static DOM', type: total ? 'warn' : 'ok', priority: total ? 250 : 850,
-      values: [textField('Blocking scripts', total)],
-      detailValues: [textField('Elements retained', shown), textField('Elements omitted', total - shown)],
+      values: [...countRow('Blocking scripts', total, records.overviewMarkup),
+        ...(total && !records.overviewMarkup.length ? [textField('Sources', listRow(sources))] : []), ...records.overviewMarkup],
+      detailValues: total ? records.counts : [],
       checked: [textField('Selector', SELECTOR),
         textField('Filtering', 'Excludes async, defer, module, and non-JavaScript MIME types'),
         textField('Criterion', 'Script has src in head and no async/defer; absent or empty type is treated as classic JavaScript')],
-      evidence: [...sample.map((element, index) => ({ name: `Blocking script ${index + 1}`, fields: [
-        srcField(element.getAttribute('src'), page.url), textField('Type attribute', element.hasAttribute('type') ? element.getAttribute('type') || 'Empty' : 'Absent'),
-        domPathField('DOM path', captured.selectors[index], 'Not captured'),
-      ] })), ...(captureFields.length ? [{ name: 'Capture status', fields: captureFields }] : [])],
-      markup: captured.markup, noMarkup: total ? 'Complete original blocking script markup not retained' : 'No blocking head script found',
+      evidence: records.evidence, markup: records.markup, noMarkup: total ? 'Complete original blocking script markup not retained' : 'No blocking head script found',
     })
   },
 }

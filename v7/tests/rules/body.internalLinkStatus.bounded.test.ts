@@ -23,7 +23,7 @@ describe('rule: internal link status on the bounded fact document', () => {
       { globals: {} },
     ), rule, 'test')
     expect(r.type).toBe('ok')
-    expect(detail(r, 'Internal link anchors counted')).toBe(300)
+    expect(detail(r, 'Internal anchors')).toBe(300)
     // The message must not present the tiny bounded sample as the page total.
     expect(detail(r, 'Sampled from')).toContain('300 eligible internal link anchors')
   })
@@ -50,7 +50,7 @@ describe('rule: internal link status on the bounded fact document', () => {
     ), rule, 'test')
     expect(r.type).toBe('ok')
     expect(value(r, 'Links tested')).toBe(5)
-    expect(detail(r, 'Internal link anchors counted')).toBe(36)
+    expect(detail(r, 'Internal anchors')).toBe(36)
     expect(detail(r, 'Sampled from')).toContain('36 eligible internal link anchors')
   })
 
@@ -68,8 +68,8 @@ describe('rule: internal link status on the bounded fact document', () => {
     const cut = await enrichResult(await rule.run(
       { html: '', url: 'https://example.com/', doc, staticFacts: squeezed } as never, { globals: {} }), rule, 'test')
     expect(cut.type).toBe('runtime_error'); expect(cut.priority).toBe(900)
-    expect(value(cut, 'Internal link anchors counted')).toBe(12)
-    expect(detail(cut, 'Candidate URLs omitted by evidence budget')).toBe(12)
+    expect(value(cut, 'Internal anchors')).toBe(12)
+    expect(detail(cut, 'Candidates dropped')).toBe(12)
   })
 
   it('fails loudly instead of claiming "no internal links" when a payload carries no candidate list', async () => {

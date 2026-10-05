@@ -1,13 +1,8 @@
+import { linkHintResult } from './linkHints'
+
 import type { Rule } from '@/core/types'
-import { sampleElements } from '@/shared/domEvidence'
-import {domPathField, textField, urlField} from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
-import { presentResult } from '@/shared/presentation/result'
 
 const SELECTOR = 'link[rel="preconnect"]'
-const isHttpUrl = (value: string, base: string) => { try { return /^https?:$/.test(new URL(value, base).protocol) } catch { return false } }
-const hrefField = (raw: string | null, base: string) => !raw ? textField('Href', raw === null ? 'Absent' : 'Empty')
-  : isHttpUrl(raw, base) ? urlField('Href', raw) : textField('Href', raw)
 
 export const preconnectRule: Rule = {
   id: 'speed:preconnect',
@@ -28,18 +23,6 @@ export const preconnectRule: Rule = {
     description: 'Info-only count of <link rel="preconnect"> elements with their hrefs.',
   },
   async run(page) {
-    const links = page.doc.querySelectorAll(SELECTOR)
-    const { sample, total, shown } = sampleElements(links)
-    const captured = markupEvidence(sample, 'Preconnect link markup')
-    return presentResult(preconnectRule, page, {
-      input: 'Static DOM', type: 'info', priority: total ? 750 : 900,
-      values: [textField('Preconnect links', total)],
-      detailValues: [textField('Elements retained', shown), textField('Elements omitted', total - shown)],
-      checked: [textField('Selector', SELECTOR), textField('Selection', 'All matches'), textField('Attribute', 'href'), textField('Criterion', 'Descriptive count; no threshold')],
-      evidence: sample.map((element, index) => ({ name: `Preconnect link ${index + 1}`, fields: [
-        hrefField(element.getAttribute('href'), page.url), domPathField('DOM path', captured.selectors[index], 'Not captured'),
-      ] })),
-      markup: captured.markup, noMarkup: total ? 'Complete original preconnect link markup not retained' : 'No preconnect link element found',
-    })
+    return linkHintResult(preconnectRule, page, { selector: SELECTOR, countKey: 'Preconnect links', summaryKey: 'Hosts', summary: 'host', noMarkup: 'No preconnect link element found' })
   },
 }

@@ -1,16 +1,11 @@
-import type { Rule } from '@/core/types'
-import { EVIDENCE_LIMIT } from '@/shared/domEvidence'
-import {domPathField, textField, urlField} from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
-import { presentResult } from '@/shared/presentation/result'
+import { attrUrlField, countRow, excerpt, hostOf, INVENTORY_LIMIT, inventory, urlLabel } from './elementInventory'
 
-const EXCERPT_LIMIT = 100
-const excerpt = (text: string) => text.slice(0, EXCERPT_LIMIT)
-const resolvedHttpField = (key: string, raw: string, base: string) => {
-  const trimmed = raw.trim()
-  if (!trimmed) return textField(key, 'Not declared')
-  try { return ['http:', 'https:'].includes(new URL(trimmed, base).protocol) ? urlField(key, trimmed) : textField(key, trimmed) } catch { return textField(key, trimmed) }
-}
+import type { Rule } from '@/core/types'
+import { sampleElements } from '@/shared/domEvidence'
+import { textField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
+import type { DisplayField } from '@/shared/presentation/schema'
+import { listRow } from '@/shared/presentation/listRow'
 
 const sameHost = (base: string, href: string) => {
   try {
@@ -20,6 +15,15 @@ const sameHost = (base: string, href: string) => {
   } catch {
     return false
   }
+}
+const hrefOf = (link: Element) => link.getAttribute('href') || ''
+
+// Observed targets beside the counts (F12): internal paths and distinct external hosts.
+const targetRows = (sample: Element[], base: string): DisplayField[] => {
+  const internal = sample.filter((link) => sameHost(base, hrefOf(link))).map((link) => urlLabel(hrefOf(link), base))
+  const external = [...new Set(sample.filter((link) => !sameHost(base, hrefOf(link))).map((link) => hostOf(hrefOf(link), base)))]
+  return [...(internal.length ? [textField('Internal targets', listRow(internal))] : []),
+    ...(external.length ? [textField('External hosts', listRow(external))] : [])]
 }
 
 export const internalLinksRule: Rule = {
@@ -37,43 +41,23 @@ export const internalLinksRule: Rule = {
   },
   async run(page) {
     const anchors = page.doc.querySelectorAll<HTMLAnchorElement>('a[href]')
-    const internalLinks: HTMLAnchorElement[] = []
-    const externalLinks: HTMLAnchorElement[] = []
-    let internalCount = 0
-    let externalCount = 0
-
-    for (let index = 0; index < anchors.length; index++) {
-      const x = anchors.item(index)
-      if (!x) continue
-      if (sameHost(page.url, x.getAttribute('href') || '')) {
-        internalCount++
-        if (internalLinks.length < EVIDENCE_LIMIT) internalLinks.push(x)
-      } else {
-        externalCount++
-        if (externalLinks.length < EVIDENCE_LIMIT) externalLinks.push(x)
-      }
-    }
-
-    const sampled = [...internalLinks, ...externalLinks]
-    const captured = markupEvidence(sampled, 'Link markup')
+    const internalCount = Array.from(anchors).filter((link) => sameHost(page.url, hrefOf(link))).length
+    const externalCount = anchors.length - internalCount
+    const all = sampleElements(anchors, INVENTORY_LIMIT)
+    const records = inventory(all.sample, all.total, (link) => [
+      textField('Text', excerpt(link.textContent || '') || 'Empty'),
+      attrUrlField('href', hrefOf(link), page.url),
+      textField('Category', sameHost(page.url, hrefOf(link)) ? 'Same host' : 'Cross host'),
+    ])
     return presentResult(internalLinksRule, page, {
       input: 'Static DOM + Page URL', type: 'info', priority: 750,
-      values: [textField('Internal links', internalCount), textField('External links', externalCount)],
-      detailValues: [textField('Internal examples retained', internalLinks.length), textField('Internal examples omitted', internalCount - internalLinks.length),
-        textField('External examples retained', externalLinks.length), textField('External examples omitted', externalCount - externalLinks.length)],
+      values: [...countRow('Internal links', internalCount, records.overviewMarkup), ...countRow('External links', externalCount, records.overviewMarkup),
+        ...(records.overviewMarkup.length ? [] : targetRows(all.sample, page.url)), ...records.overviewMarkup],
+      detailValues: all.total ? records.counts : [],
       checked: [textField('Selector', 'a[href]'), textField('Classification', 'Same URL host is internal; every other result is external'),
         textField('Resolution', 'Anchor href resolved against the page URL'), textField('Criterion', 'Reports observed internal and external link counts')],
-      evidence: sampled.map((link, index) => {
-        const internal = index < internalLinks.length
-        return {
-          name: `${internal ? 'Internal' : 'External'} link ${internal ? index + 1 : index - internalLinks.length + 1}`,
-          fields: [textField(`Link text (first ${EXCERPT_LIMIT} characters)`, excerpt((link.textContent || '').replace(/\s+/g, ' ').trim()) || 'Empty'),
-            resolvedHttpField('Href', link.getAttribute('href') || '', page.url), textField('Category', internal ? 'Same host' : 'Cross host'),
-            domPathField('DOM path', captured.selectors[index], 'Not captured')],
-        }
-      }),
-      markup: captured.markup,
-      noMarkup: sampled.length ? 'Complete original link markup not retained' : 'No a[href] elements found',
+      evidence: records.evidence, markup: records.markup,
+      noMarkup: all.total ? 'Complete original link markup not retained' : 'No a[href] elements found',
     })
   },
 }

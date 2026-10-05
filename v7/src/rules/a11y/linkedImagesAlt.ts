@@ -1,24 +1,34 @@
 import { evaluateLinkedImages } from './linkedImages'
 
 import type { Rule } from '@/core/types'
-import {domPathField, textField, urlField} from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { attrUrlField, countRow, excerpt, inventory, urlLabel } from '@/rules/body/elementInventory'
+import { sampleElements } from '@/shared/domEvidence'
+import { textField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
-
-const EXCERPT_LIMIT = 100
-const excerpt = (text: string) => (text.length > EXCERPT_LIMIT ? `${text.slice(0, EXCERPT_LIMIT)}…` : text)
-const resolvedHttpField = (key: string, raw: string, base: string) => {
-  const trimmed = raw.trim()
-  if (!trimmed) return textField(key, 'Not declared')
-  try { return ['http:', 'https:'].includes(new URL(trimmed, base).protocol) ? urlField(key, trimmed) : textField(key, trimmed) } catch { return textField(key, trimmed) }
-}
+import type { DisplayField } from '@/shared/presentation/schema'
+import { listRow } from '@/shared/presentation/listRow'
 
 const checked = [
-  textField('Selector', 'a'),
+  textField('Selector', 'a img'),
   textField('Image selection', 'First img descendant of each anchor'),
   textField('Match', 'Anchor contains an img with empty/absent alt and the anchor has no other text content'),
   textField('Criterion', 'No linked image lacks both alt text and link text'),
 ]
+const passes = (link: HTMLAnchorElement) => {
+  const img = link.querySelector('img')
+  if (!img) return true
+  if ((img.getAttribute('alt') || '').trim()) return true
+  return (link.textContent || '').trim().length > 0
+}
+// Per-anchor facts: the first image's alt state, the link text and the href.
+const linkFields = (base: string) => (link: Element): DisplayField[] => {
+  const img = link.querySelector('img')
+  return [
+    textField('alt', !img || !img.hasAttribute('alt') ? 'Absent' : (img.getAttribute('alt') || '').trim() || 'Empty'),
+    textField('Link text', excerpt(link.textContent || '') || 'Empty'),
+    attrUrlField('href', link.getAttribute('href'), base),
+  ]
+}
 
 export const linkedImagesAltRule: Rule = {
   id: 'a11y:linked-images-alt',
@@ -36,41 +46,21 @@ export const linkedImagesAltRule: Rule = {
     description: 'Warns when a link contains an image with no (or empty) alt text and the link has no other text content; ok otherwise.',
   },
   async run(page) {
-    const result = evaluateLinkedImages(
-      page,
-      (link) => {
-        const img = link.querySelector('img')
-        if (!img) return true // Not a linked image, pass
-
-        const alt = (img?.getAttribute('alt') || '').trim()
-        if (alt) return true // Image has alt text, pass
-
-        const linkText = (link.textContent || '').trim()
-        return linkText.length > 0 // Pass if link has other text content
-      },
-      'linked images missing alt text or link text',
-    )
-    if (!result) return presentResult(linkedImagesAltRule, page, {
-      input: 'Idle DOM', type: 'ok', priority: 850,
-      values: [textField('Linked images missing alt or text', 0)], checked,
-      noMarkup: 'No linked image missing alt text or link text found',
-    })
-    const captured = markupEvidence(result.failing, 'Linked image markup')
-    const captureStatus = captured.fields.filter((field) => !field.key.startsWith('DOM path'))
+    const linked = Array.from(page.doc.querySelectorAll<HTMLAnchorElement>('a')).filter((link) => link.querySelector('img'))
+    const result = evaluateLinkedImages(page, passes, 'linked images missing alt text or link text')
+    const failing = result?.total ?? 0
+    // Failing anchors are the evidence; when all pass, the inspected linked images are shown instead (F5).
+    const shown = result ? { sample: result.failing, total: result.total } : sampleElements(linked)
+    const records = inventory(shown.sample, shown.total, linkFields(page.url))
+    const hrefs = shown.sample.map((link) => urlLabel(link.getAttribute('href') || '', page.url))
     return presentResult(linkedImagesAltRule, page, {
-      input: 'Idle DOM', type: 'warn', priority: 100,
-      values: [textField('Linked images missing alt or text', result.total)],
-      detailValues: [textField('Examples retained', result.failing.length), textField('Examples omitted', result.total - result.failing.length)],
-      checked,
-      evidence: [...result.failing.map((link, index) => ({
-        name: `Linked image ${index + 1}`,
-        fields: [resolvedHttpField('Link href', link.getAttribute('href') || '', page.url),
-          textField('Image alt attribute', link.querySelector('img')?.hasAttribute('alt') ? 'Empty or whitespace only' : 'Absent'),
-          textField('Link text', excerpt((link.textContent || '').trim()) || 'Empty'),
-          domPathField('DOM path', captured.selectors[index], 'Not captured')],
-      })), ...(captureStatus.length ? [{ name: 'Capture status', fields: captureStatus }] : [])],
-      markup: captured.markup,
-      noMarkup: 'Complete original linked image markup not retained',
+      input: 'Idle DOM', type: result ? 'warn' : 'ok', priority: result ? 100 : 850,
+      values: [...countRow('Linked images', linked.length, records.overviewMarkup),
+        ...countRow('Without alt or text', failing, records.overviewMarkup),
+        ...(shown.total && !records.overviewMarkup.length ? [textField('Links', listRow(hrefs))] : []),
+        ...records.overviewMarkup],
+      detailValues: records.counts, checked, evidence: records.evidence, markup: records.markup,
+      noMarkup: linked.length ? 'Complete original linked image markup not retained' : 'No linked image found',
     })
   },
 }

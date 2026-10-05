@@ -13,23 +13,26 @@ const value = (result: Awaited<ReturnType<typeof runPreload>>, key: string) => r
 describe('rule: speed link preload', () => {
   it('reports preload links with a resolving href as a clickable evidence field', async () => {
     const result = await runPreload(D('<head><link rel="preload" as="script" href="/a.js"></head>'))
-    expect(result.type).toBe('info'); expect(result.priority).toBe(750); expect(value(result, 'Preload links')).toBe(1)
+    expect(result.type).toBe('info'); expect(result.priority).toBe(750)
+    expect(result.presentation?.values).toEqual([{ key: '<link rel="preload">', value: '<link rel="preload" as="script" href="/a.js">', kind: 'original', fidelity: 'complete-original' }])
     expect(result.presentation?.input).toBe('Static DOM')
-    expect(result.presentation?.evidence[0]?.fields.find((field) => field.key === 'Href')).toEqual({ key: 'Href', value: '/a.js', kind: 'url' })
+    expect(result.presentation?.evidence[0]?.fields.find((field) => field.key === 'href')).toEqual({ key: 'href', value: '/a.js', kind: 'url' })
+    expect(result.presentation?.evidence[0]?.fields.find((field) => field.key === 'as')?.value).toBe('script')
     expect(result.details).toBeUndefined()
     expect(presentationSchema.safeParse(result.presentation).success).toBe(true)
   })
 
   it('reports a non-resolving href as plain text, never a false link', async () => {
     const result = await runPreload(D('<head><link rel="preload" href="javascript:alert(1)"></head>'))
-    expect(result.presentation?.evidence[0]?.fields.find((field) => field.key === 'Href')).toEqual({ key: 'Href', value: 'javascript:alert(1)', kind: 'text' })
+    expect(result.presentation?.evidence[0]?.fields.find((field) => field.key === 'href')).toEqual({ key: 'href', value: 'javascript:alert(1)', kind: 'text' })
   })
 
   it('states which preload markup was not retained', async () => {
     const result = await runPreload(D(`<head><link rel="preload" href="/small.js"><link rel="preload" href="/${'x'.repeat(2000)}.js"></head>`))
     expect(result.presentation?.markup).toHaveLength(1)
-    expect(result.presentation?.evidence.find((record) => record.name === 'Capture status')?.fields)
-      .toEqual([{ key: 'Preload link markup 2', value: 'Complete original markup not retained', kind: 'text' }])
+    expect(value(result, 'Preload links')).toBe(2)
+    expect(result.presentation?.evidence[1]?.fields).toContainEqual({ key: 'Markup', value: 'Not captured', kind: 'text' })
+    expect(result.presentation?.detailValues).toContainEqual({ key: 'Markup omitted', value: 1, kind: 'text' })
   })
 
   it('reports no preload links as informational with the lowest of the two priorities', async () => {
@@ -43,8 +46,8 @@ describe('rule: speed blocking scripts', () => {
   it('warns on a classic synchronous external script in head', async () => {
     const result = await runBlocking(D('<head><script src="/b.js"></script></head>'))
     expect(result.type).toBe('warn'); expect(result.priority).toBe(250)
-    expect(value(result, 'Blocking scripts')).toBe(1)
-    expect(result.presentation?.evidence[0]?.fields.find((field) => field.key === 'Script URL')).toEqual({ key: 'Script URL', value: '/b.js', kind: 'url' })
+    expect(result.presentation?.values).toEqual([{ key: '<script>', value: '<script src="/b.js"></script>', kind: 'original', fidelity: 'complete-original' }])
+    expect(result.presentation?.evidence[0]?.fields.find((field) => field.key === 'src')).toEqual({ key: 'src', value: '/b.js', kind: 'url' })
     expect(result.details).toBeUndefined()
     expect(presentationSchema.safeParse(result.presentation).success).toBe(true)
   })
@@ -67,7 +70,7 @@ describe('rule: speed blocking scripts', () => {
   it('distinguishes an empty type attribute from an absent one', async () => {
     const result = await runBlocking(D('<head><script type="" src="/e.js"></script><script src="/f.js"></script></head>'))
     expect(result.type).toBe('warn'); expect(value(result, 'Blocking scripts')).toBe(2)
-    const types = result.presentation?.evidence.map((record) => record.fields.find((field) => field.key === 'Type attribute')?.value)
+    const types = result.presentation?.evidence.map((record) => record.fields.find((field) => field.key === 'type')?.value)
     expect(types).toEqual(['Empty', 'Absent'])
   })
 })

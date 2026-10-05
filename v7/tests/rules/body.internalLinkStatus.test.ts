@@ -15,7 +15,7 @@ describe('rule: internal link status', () => {
   it('reports an invalid page URL without probing any link', async () => {
     const r = await run('<a href="/a">a</a>', 'invalid URL')
     expect(r.type).toBe('runtime_error'); expect(r.priority).toBe(10)
-    expect(value(r, 'Page URL valid')).toBe('No')
+    expect(value(r, 'Current page URL')).toBe('Invalid URL')
     expect(r.presentation?.evidence).toEqual([])
   })
 
@@ -24,7 +24,8 @@ describe('rule: internal link status', () => {
     const r = await run('<a href="/a">a</a><a href="https://example.com/b">b</a>')
     expect(r.type).toBe('ok'); expect(r.priority).toBe(850)
     expect(r.presentation?.input).toBe('Static DOM + Page URL + internal link HTTP responses')
-    expect(detail(r, 'Status summary')).toContain('200')
+    expect(value(r, 'Statuses')).toBe('2× 200')
+    expect(detail(r, 'Evidence retained')).toBe(2); expect(detail(r, 'Markup omitted')).toBe(2)
   })
 
   it('reports a page without internal links as information', async () => {
@@ -44,7 +45,11 @@ describe('rule: internal link status', () => {
     expect(r.type).toBe('warn'); expect(r.priority).toBe(850)
     const fields = r.presentation?.evidence[0]?.fields
     expect(fields?.find((field) => field.key === 'Status')?.value).toBe('Request failed')
-    expect(fields?.find((field) => field.key === 'Redirect hops before failure')?.value).toContain('https://example.com/moved - HTTP 301 Moved Permanently - Location: https://example.com/down')
+    expect(fields?.find((field) => field.key === 'Error')?.value).toBe('Failed to fetch')
+    expect(fields?.find((field) => field.key === 'Hops before failure')?.value).toBe(1)
+    expect(fields?.find((field) => field.key === 'Hop 1')?.value).toBe('HTTP 301 Moved Permanently')
+    expect(fields?.find((field) => field.key === 'Hop 1 location')).toEqual({ key: 'Hop 1 location', value: 'https://example.com/down', kind: 'url' })
+    expect(value(r, 'Statuses')).toBe('1× failed')
   })
 
   it('returns error when link returns 404', async () => {
@@ -66,8 +71,11 @@ describe('rule: internal link status', () => {
     expect(r.type).toBe('ok')
     expect(detail(r, 'Redirecting links')).toBe(1)
     const link = r.presentation?.evidence[0]
-    expect(link?.fields.find((field) => field.key === 'Redirect chain')?.value).toContain('HTTP 301 -> Location: https://example.com/target')
-    expect(link?.fields.find((field) => field.key === 'Redirect chain')?.value).toContain('FINAL STATUS HTTP 200')
+    expect(link?.fields.find((field) => field.key === 'Redirect chain')?.value).toBe('1 redirect')
+    expect(link?.fields.find((field) => field.key === 'Hop 1')?.value).toBe('HTTP 301 Moved Permanently')
+    expect(link?.fields.find((field) => field.key === 'Hop 1 location')).toEqual({ key: 'Hop 1 location', value: 'https://example.com/target', kind: 'url' })
+    expect(link?.fields.find((field) => field.key === 'Final URL')).toEqual({ key: 'Final URL', value: 'https://example.com/target', kind: 'url' })
+    expect(link?.fields.filter((field) => field.kind === 'text').every((field) => !/https?:\/\//.test(String(field.value)))).toBe(true)
     expect(r.details).toBeUndefined(); expect(toResultCopyPayload(r)).toContain(rule.meta.references[0])
   })
 
@@ -79,7 +87,7 @@ describe('rule: internal link status', () => {
     }))
     const r = await run('<a href="/l1">x</a>')
     expect(r.type).toBe('error')
-    expect(r.presentation?.evidence[0]?.fields.find((field) => field.key === 'Redirect chain')?.value).toContain('REDIRECT LOOP')
+    expect(r.presentation?.evidence[0]?.fields.find((field) => field.key === 'Redirect chain')?.value).toBe('Redirect loop')
   })
 
   it('samples random 5 from larger set', async () => {

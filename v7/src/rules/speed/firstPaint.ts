@@ -28,20 +28,23 @@ export const firstPaintRule: Rule = {
     const firstContentfulPaint = page.navigationTiming?.firstContentfulPaint ?? null
     const checked = [textField('Timing source', 'Performance paint timing entries'), textField('Rounding', 'Milliseconds, rounded to the nearest integer'),
       textField('FCP thresholds', `ok <= ${FCP_WARN_THRESHOLD_MS}ms; warn <= ${FCP_ERROR_THRESHOLD_MS}ms; error > ${FCP_ERROR_THRESHOLD_MS}ms`)]
-    const paintValue = (ms: number | null) => ms === null ? 'Not recorded' : `${Math.round(ms)}ms`
+    const paintValue = (ms: number | null) => ms === null ? 'Not found' : `${Math.round(ms)}ms`
+    // First paint is its own row unless it is the same millisecond as the graded contentful paint (F3).
+    const firstPaintRow = (fcp: number) => firstPaint !== null && Math.round(firstPaint) === fcp ? [] : [textField('First paint', paintValue(firstPaint))]
 
     if (firstPaint === null && firstContentfulPaint === null) {
       return presentResult(firstPaintRule, page, {
         input: page.navigationTiming ? 'Navigation timing' : 'Not captured', type: 'info', priority: 900,
-        values: [textField('First paint', 'Not recorded'), textField('First contentful paint', 'Not recorded')],
-        detailValues: [textField('Timing completeness', 'Neither paint timing entry was captured')], checked,
+        // Without navigation timing the missing input is declared once, as the checked input (F13).
+        values: page.navigationTiming ? [textField('First paint', 'Not found'), textField('Contentful paint', 'Not found')] : [textField('Paint timing', 'Not captured')],
+        detailValues: page.navigationTiming ? [textField('Timing completeness', 'Neither paint timing entry was captured')] : [], checked,
         noMarkup: 'None - this rule reports navigation performance timing, not element markup',
       })
     }
     if (firstContentfulPaint === null) {
       return presentResult(firstPaintRule, page, {
         input: 'Navigation timing', type: 'info', priority: 750,
-        values: [textField('First paint', paintValue(firstPaint)), textField('First contentful paint', 'Not recorded')],
+        values: [textField('First paint', paintValue(firstPaint)), textField('Contentful paint', 'Not found')],
         detailValues: [textField('Timing completeness', 'First paint captured; first-contentful-paint not recorded')], checked,
         noMarkup: 'None - this rule reports navigation performance timing, not element markup',
       })
@@ -50,7 +53,7 @@ export const firstPaintRule: Rule = {
     if (rounded <= 0) {
       return presentResult(firstPaintRule, page, {
         input: 'Navigation timing', type: 'runtime_error', priority: 10,
-        values: [textField('First paint', paintValue(firstPaint)), textField('First contentful paint', `${rounded}ms`)],
+        values: [...firstPaintRow(rounded), textField('Contentful paint', `${rounded}ms`)],
         detailValues: [textField('Timing completeness', 'First-contentful-paint captured but rounded to a non-positive, unusable value')], checked,
         noMarkup: 'None - this rule reports navigation performance timing, not element markup',
       })
@@ -59,7 +62,7 @@ export const firstPaintRule: Rule = {
     const priority = type === 'error' ? 120 : type === 'warn' ? 400 : 850
     return presentResult(firstPaintRule, page, {
       input: 'Navigation timing', type, priority,
-      values: [textField('First paint', paintValue(firstPaint)), textField('First contentful paint', `${rounded}ms`)],
+      values: [...firstPaintRow(rounded), textField('Contentful paint', `${rounded}ms`)],
       checked,
       noMarkup: 'None - this rule reports navigation performance timing, not element markup',
     })

@@ -13,7 +13,7 @@ describe('Open Graph description rule', () => {
   it('reports a missing description as informational', async () => {
     const result = await run('<title>x</title>')
     expect(result.type).toBe('info')
-    expect(value(result, 'og:description')).toBe('Absent')
+    expect(value(result, 'og:description')).toBe('Not found')
     expect(result.presentation?.markup).toEqual([])
     expect(presentationSchema.safeParse(result.presentation).success).toBe(true)
   })
@@ -24,15 +24,19 @@ describe('Open Graph description rule', () => {
     expect(result.type).toBe('warn')
     expect(value(result, 'og:description')).toBe('Empty')
     expect(result.presentation?.markup[0].value).toBe(html)
+    expect(result.presentation?.values[1]).toMatchObject({ key: '<meta property="og:description">', kind: 'original', value: html })
   })
 
-  it('reports a present description, its extracted length, and all bounded source markup', async () => {
+  it('reports a present description, its measured length, and all source markup in the overview', async () => {
     const html = '<meta name="og:description" content="A &amp; B"><meta name="og:description" content="Second">'
     const result = await run(html)
     expect(result.type).toBe('info')
-    expect(value(result, 'og:description')).toBe('Present')
-    expect(value(result, 'Content characters')).toBe(5)
-    expect(value(result, 'Description (trimmed)')).toBe('A & B')
+    expect(value(result, 'Characters')).toBe(5)
+    expect(value(result, 'Description')).toBeUndefined()
+    expect(result.presentation?.evidence[0]?.fields[0]).toEqual({ key: 'content', value: 'A & B', kind: 'text' })
+    expect(result.presentation?.values.filter((field) => field.kind === 'original').map((field) => field.value)).toEqual([
+      '<meta name="og:description" content="A &amp; B">', '<meta name="og:description" content="Second">',
+    ])
     expect(result.presentation?.markup.map((field) => field.value)).toEqual([
       '<meta name="og:description" content="A &amp; B">', '<meta name="og:description" content="Second">',
     ])
@@ -41,10 +45,11 @@ describe('Open Graph description rule', () => {
     expect(toResultCopyPayload(result)).toContain(rule.meta.references[0])
   })
 
-  it('retains only the bounded sample and reports omitted matching elements', async () => {
+  it('retains only the bounded sample, shows the text instead of eleven markup fields, and reports omitted elements', async () => {
     const html = Array.from({ length: 11 }, (_, index) => `<meta property="og:description" content="Description ${index + 1}">`).join('')
     const result = await run(html)
-    expect(result.presentation?.detailValues.find((field) => field.key === 'Elements omitted')?.value).toBe(1)
+    expect(value(result, 'Description')).toBe('Description 1')
+    expect(result.presentation?.detailValues.find((field) => field.key === 'Markup omitted')?.value).toBe(1)
     expect(result.presentation?.markup).toHaveLength(10)
   })
 })

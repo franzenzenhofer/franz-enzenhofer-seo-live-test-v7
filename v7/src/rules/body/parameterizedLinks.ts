@@ -1,9 +1,11 @@
-import type { Rule } from '@/core/types'
-import { domPathField, textField, urlField } from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
-import { presentResult } from '@/shared/presentation/result'
+import { attrUrlField, countRow, excerpt, INVENTORY_LIMIT, inventory } from './elementInventory'
 
-const URL_LIMIT = 500, MARKUP_LIMIT = 10
+import type { Rule } from '@/core/types'
+import { sampleElements } from '@/shared/domEvidence'
+import { textField, urlField } from '@/shared/presentation/create'
+import { presentResult } from '@/shared/presentation/result'
+import { listRow } from '@/shared/presentation/listRow'
+
 const resolvedQuery = (href: string, base: string) => {
   try {
     let url: URL
@@ -28,20 +30,23 @@ export const parameterizedLinksRule: Rule = {
       const url = resolvedQuery(element.getAttribute('href') || '', base)
       if (!url) return
       count++
-      if (retained.length < URL_LIMIT) retained.push({ element, url })
+      if (retained.length < INVENTORY_LIMIT) retained.push({ element, url })
     })
-    const captured = markupEvidence(retained.slice(0, MARKUP_LIMIT).map(({ element }) => element), 'Link markup')
+    // Matching links are the evidence; without a match the inspected anchors are shown instead (F5).
+    const records = count
+      ? inventory(retained.map(({ element }) => element), count, (element, index) => [
+        textField('Text', excerpt(element.textContent || '') || 'Empty'), urlField('href', retained[index]!.url.href),
+        textField('Query', retained[index]!.url.search),
+      ])
+      : inventory(sampleElements(anchors).sample, anchors.length, (element) => [attrUrlField('href', element.getAttribute('href'), base)])
     return presentResult(parameterizedLinksRule, page, {
       input: 'Static DOM + page URL', type: 'info', priority: count ? 700 : 900,
-      values: [textField('Links with parameters', count), textField('Links checked', anchors.length)],
-      checked: [textField('Selector', 'a[href]'), textField('Match', 'Resolved HTTP(S) URL has a non-empty query string'), textField('Base URL', base)],
-      detailValues: [textField('Link records retained', retained.length), textField('Link records omitted', count - retained.length),
-        textField('Markup records retained', captured.markup.length), textField('Markup records omitted', count - captured.markup.length)],
-      evidence: retained.map(({ element, url }, index) => ({ name: `Link ${index + 1}`, fields: [
-        textField('Link text', element.textContent || ''), urlField('Resolved URL', url.href), textField('Query string', url.search),
-        textField('Attribute', 'href'), domPathField('DOM path', captured.selectors[index], 'Not retained'),
-      ] })),
-      markup: captured.markup, noMarkup: count ? 'Complete original link markup not retained' : 'No matching links found',
+      values: [...countRow('Parameter links', count, records.overviewMarkup), ...countRow('Links checked', anchors.length, records.overviewMarkup),
+        ...(count && !records.overviewMarkup.length ? [textField('Queries', listRow(retained.map(({ url }) => url.search)))] : []),
+        ...records.overviewMarkup],
+      checked: [textField('Selector', 'a[href]'), textField('Match', 'Resolved HTTP(S) URL has a non-empty query string'), textField('Document base', base)],
+      detailValues: anchors.length ? records.counts : [], evidence: records.evidence,
+      markup: records.markup, noMarkup: count ? 'Complete original link markup not retained' : 'No matching links found',
     })
   },
 }

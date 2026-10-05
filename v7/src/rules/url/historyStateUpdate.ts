@@ -3,6 +3,8 @@ import { textField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
 
 const NAME = 'History state update detected'
+// The observed navigation shape as one fact (F3: no Yes/No rows).
+const updateValue = (hasHistory: boolean, hadCommit: boolean) => !hasHistory ? 'None' : hadCommit ? 'With page load' : 'Without page load'
 
 export const historyStateUpdateRule: Rule = {
   id: 'url:history-state-update', name: NAME, presentation: 1, enabled: true, what: 'static',
@@ -27,11 +29,11 @@ export const historyStateUpdateRule: Rule = {
     return presentResult(historyStateUpdateRule, page, {
       input: events.length ? 'Navigation events' : 'Not captured',
       type: 'info', priority: observedSpaNav ? 500 : 900,
-      values: [textField('SPA history update observed', observedSpaNav ? 'Yes' : 'No')],
-      detailValues: [
-        textField('History (pushState/replaceState) events', hasHistory ? 'Present' : 'Absent'),
-        textField('Document-commit events', hadCommit ? 'Present' : 'Absent'),
-      ],
+      values: events.length ? [textField('History update', updateValue(hasHistory, hadCommit))] : [textField('Navigation events', 'Not captured')],
+      detailValues: events.length ? [
+        textField('History events', hasHistory ? 'Present' : 'Absent'),
+        textField('Commit events', hadCommit ? 'Present' : 'Absent'),
+      ] : [],
       checked: [
         textField('Event types', 'nav:history, nav:commit'),
         textField('Criterion', 'SPA-only navigation = at least one nav:history event and no nav:commit event among the recorded events'),

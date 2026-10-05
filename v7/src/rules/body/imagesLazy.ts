@@ -1,21 +1,25 @@
+import { attrUrlField, excerpt, INVENTORY_LIMIT, inventory, urlLabel } from './elementInventory'
+
 import type { Rule } from '@/core/types'
 import { sampleElements } from '@/shared/domEvidence'
-import {domPathField, textField, urlField} from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { textField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
-
-const EXCERPT_LIMIT = 100
-const excerpt = (text: string) => (text.length > EXCERPT_LIMIT ? `${text.slice(0, EXCERPT_LIMIT)}…` : text)
-const resolvedHttpField = (key: string, raw: string, base: string) => {
-  const trimmed = raw.trim()
-  if (!trimmed) return textField(key, 'Not declared')
-  try { return ['http:', 'https:'].includes(new URL(trimmed, base).protocol) ? urlField(key, trimmed) : textField(key, trimmed) } catch { return textField(key, trimmed) }
-}
+import type { DisplayField } from '@/shared/presentation/schema'
+import { listRow } from '@/shared/presentation/listRow'
 
 const loadingKind = (image: HTMLImageElement): 'lazy' | 'eager' | 'unset' => {
   const value = image.getAttribute('loading')
   if (value === null) return 'unset'
   return value.trim().toLowerCase() === 'lazy' ? 'lazy' : 'eager'
+}
+type Kind = ReturnType<typeof loadingKind>
+const KINDS: Kind[] = ['lazy', 'eager', 'unset']
+
+// The observed loading instructions as one row: a single image's instruction, or the three counts (F1, F3, F12).
+const overview = (kinds: Kind[], sources: string[], markup: DisplayField[]): DisplayField[] => {
+  if (!kinds.length) return [textField('Images', 0)]
+  const loading = kinds.length === 1 ? kinds[0]! : KINDS.map((kind) => `${kinds.filter((item) => item === kind).length} ${kind}`).join(', ')
+  return [textField('Loading', loading), ...(markup.length ? [] : [textField('Sources', listRow(sources))]), ...markup]
 }
 
 export const imagesLazyRule: Rule = {
@@ -37,33 +41,21 @@ export const imagesLazyRule: Rule = {
   },
   async run(page) {
     const imgs = page.doc.querySelectorAll<HTMLImageElement>('img')
-    let lazyCount = 0, eagerCount = 0, unsetCount = 0
-    for (let index = 0; index < imgs.length; index++) {
-      const image = imgs.item(index)
-      if (!image) continue
-      const kind = loadingKind(image)
-      if (kind === 'lazy') lazyCount++
-      else if (kind === 'eager') eagerCount++
-      else unsetCount++
-    }
-
-    const all = sampleElements(imgs)
-    const captured = markupEvidence(all.sample, 'Image markup')
-    const captureStatus = captured.fields.filter((field) => !field.key.startsWith('DOM path'))
+    const kinds = Array.from(imgs, loadingKind)
+    const all = sampleElements(imgs, INVENTORY_LIMIT)
+    const records = inventory(all.sample, all.total, (image) => [
+      textField('loading', image.getAttribute('loading') === null ? 'Not declared' : image.getAttribute('loading') || 'Empty'),
+      attrUrlField('src', image.getAttribute('src'), page.url),
+      textField('alt', excerpt(image.getAttribute('alt') || '') || 'Not declared'),
+    ])
+    const sources = all.sample.map((image) => urlLabel(image.getAttribute('src') || '', page.url))
     return presentResult(imagesLazyRule, page, {
       input: 'Idle DOM', type: 'info', priority: 750,
-      values: [textField('Lazy images', lazyCount), textField('Eager images', eagerCount), textField('Unset loading', unsetCount)],
-      detailValues: [textField('Image elements retained', all.shown), textField('Image elements omitted', all.total - all.shown)],
+      values: overview(kinds, sources, records.overviewMarkup),
+      detailValues: all.total ? records.counts : [],
       checked: [textField('Selector', 'img'), textField('Attribute', 'loading'),
         textField('Classification', 'lazy = trimmed value "lazy" (case-insensitive); eager = any other declared value; unset = attribute absent'), textField('Criterion', 'Reports observed loading instructions')],
-      evidence: [...all.sample.map((image, index) => ({
-        name: `Image ${index + 1}`,
-        fields: [textField('Loading instruction', image.getAttribute('loading') || '(omitted: eager by default)'),
-          resolvedHttpField('Source URL', image.getAttribute('src') || '', page.url),
-          textField('Alt text (first 100 characters)', excerpt((image.getAttribute('alt') || '').trim()) || 'Not declared'),
-          domPathField('DOM path', captured.selectors[index], 'Not captured')],
-      })), ...(captureStatus.length ? [{ name: 'Capture status', fields: captureStatus }] : [])],
-      markup: captured.markup,
+      evidence: records.evidence, markup: records.markup,
       noMarkup: all.total ? 'Complete original img markup not retained' : 'No img elements found',
     })
   },

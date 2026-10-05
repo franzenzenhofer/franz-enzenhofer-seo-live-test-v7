@@ -13,11 +13,19 @@ const value = (result: Awaited<ReturnType<typeof runPreconnect>>, key: string) =
 describe('rule: speed preconnect', () => {
   it('counts preconnect links and resolves their href', async () => {
     const result = await runPreconnect(D('<head><link rel="preconnect" href="https://a.com"></head>'))
-    expect(result.type).toBe('info'); expect(result.priority).toBe(750); expect(value(result, 'Preconnect links')).toBe(1)
+    expect(result.type).toBe('info'); expect(result.priority).toBe(750)
+    expect(result.presentation?.values).toEqual([{ key: '<link rel="preconnect">', value: '<link rel="preconnect" href="https://a.com">', kind: 'original', fidelity: 'complete-original' }])
     expect(result.presentation?.input).toBe('Static DOM')
-    expect(result.presentation?.evidence[0]?.fields.find((field) => field.key === 'Href')).toEqual({ key: 'Href', value: 'https://a.com', kind: 'url' })
+    expect(result.presentation?.evidence[0]?.fields.find((field) => field.key === 'href')).toEqual({ key: 'href', value: 'https://a.com', kind: 'url' })
     expect(result.details).toBeUndefined()
     expect(presentationSchema.safeParse(result.presentation).success).toBe(true)
+  })
+
+  it('summarizes the hosts when more than three hints exist', async () => {
+    const result = await runPreconnect(D('<head><link rel="preconnect" href="https://a.com"><link rel="preconnect" href="https://b.com"><link rel="preconnect" href="https://c.com"><link rel="preconnect" href="https://d.com"></head>'))
+    expect(value(result, 'Preconnect links')).toBe(4); expect(value(result, 'Hosts')).toBe('a.com, b.com, c.com, d.com')
+    expect(result.presentation?.values.some((field) => field.kind === 'original')).toBe(false)
+    expect(result.presentation?.markup).toHaveLength(4)
   })
 
   it('reports no preconnect links as informational', async () => {
@@ -29,8 +37,9 @@ describe('rule: speed preconnect', () => {
 describe('rule: speed dns-prefetch', () => {
   it('counts links and resolves a protocol-relative href', async () => {
     const result = await runDnsPrefetch(D('<head><link rel="dns-prefetch" href="//b.com"></head>'))
-    expect(result.type).toBe('info'); expect(result.priority).toBe(750); expect(value(result, 'DNS-prefetch links')).toBe(1)
-    expect(result.presentation?.evidence[0]?.fields.find((field) => field.key === 'Href')).toEqual({ key: 'Href', value: '//b.com', kind: 'url' })
+    expect(result.type).toBe('info'); expect(result.priority).toBe(750)
+    expect(result.presentation?.values[0]).toMatchObject({ key: '<link rel="dns-prefetch">', kind: 'original' })
+    expect(result.presentation?.evidence[0]?.fields.find((field) => field.key === 'href')).toEqual({ key: 'href', value: '//b.com', kind: 'url' })
     expect(result.details).toBeUndefined()
     expect(presentationSchema.safeParse(result.presentation).success).toBe(true)
   })

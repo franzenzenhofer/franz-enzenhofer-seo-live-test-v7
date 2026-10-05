@@ -1,23 +1,18 @@
-import { checkedLinks, statusSummaryField } from './internalLinkStatus.evidence'
+import { checkedLinks, statusesRow } from './internalLinkStatus.evidence'
 import type { LinkCheck } from './internalLinkStatus.evidence'
 
 import type { Rule } from '@/core/types'
 import { getDomPath } from '@/shared/dom-path'
 import { internalHttpUrl, INTERNAL_LINK_SAMPLE_SIZE } from '@/shared/internalLinkCandidates'
+import { recordCounts } from '@/shared/presentation/counts'
 import { textField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
 import { followRedirectChain } from '@/shared/redirectChain'
-import { formatRedirectChain } from '@/shared/redirectChainFormat'
 import { RedirectChainError } from '@/shared/redirectChainTypes'
 
 const SAMPLE_SIZE = INTERNAL_LINK_SAMPLE_SIZE
 const isParseableUrl = (value: string): boolean => { try { return !!new URL(value) } catch { return false } }
 const shuffle = <T>(arr: T[]): T[] => arr.map((v) => ({ v, s: Math.random() })).sort((a, b) => a.s - b.s).map((x) => x.v)
-const summarizeStatuses = (checks: { status: number }[]): string => {
-  const counts: Record<number, number> = {}
-  checks.forEach((c) => { counts[c.status] = (counts[c.status] || 0) + 1 })
-  return Object.entries(counts).map(([s, n]) => `${n}× ${s}`).join(', ')
-}
 
 const checked = [
   textField('Selector', 'a[href]'),
@@ -40,7 +35,7 @@ export const internalLinkStatusRule: Rule = {
   async run(page, ctx) {
     if (!isParseableUrl(page.url)) return presentResult(internalLinkStatusRule, page, {
       input: 'Page URL', type: 'runtime_error', priority: 10,
-      values: [textField('Page URL valid', 'No')], checked,
+      values: [textField('Current page URL', 'Invalid URL')], checked,
       noMarkup: 'None - page URL is invalid; no internal links were probed',
     })
     const anchors = Array.from(page.doc.querySelectorAll<HTMLAnchorElement>('a[href]'))
@@ -72,8 +67,8 @@ export const internalLinkStatusRule: Rule = {
         })
         return presentResult(internalLinkStatusRule, page, {
           input: 'Static DOM + Page URL', type: 'runtime_error', priority: 900,
-          values: [textField('Internal link anchors counted', facts.internalLinkCount), textField('Links tested', 0)],
-          detailValues: [textField('Candidate URLs omitted by evidence budget', omitted), textField('Page anchors', pageAnchorCount ?? 'Not captured')],
+          values: [textField('Internal anchors', facts.internalLinkCount), textField('Links tested', 0)],
+          detailValues: [textField('Candidates dropped', omitted), textField('Page anchors', pageAnchorCount ?? 'Not captured')],
           checked,
           noMarkup: 'None - no candidate URL fit the bounded evidence budget',
         })
@@ -84,7 +79,7 @@ export const internalLinkStatusRule: Rule = {
         return presentResult(internalLinkStatusRule, page, {
           input: 'Static DOM + Page URL', type: 'runtime_error', priority: 900,
           values: [textField('Page anchors', pageAnchorCount as number), textField('Links tested', 0)],
-          detailValues: [textField('Captured anchors', anchors.length), textField('Anchor evidence truncated', 'Yes')],
+          detailValues: [textField('Captured anchors', anchors.length), textField('Anchor capture', 'Truncated')],
           checked,
           noMarkup: anchors.length ? 'None - no internal links among the captured anchors' : "None - bounded DOM capture kept none of the page's anchors",
         })
@@ -100,8 +95,7 @@ export const internalLinkStatusRule: Rule = {
       try {
         const { chain } = await followRedirectChain(url, { signal: ctx.signal })
         return {
-          url, status: chain.finalStatus, finalUrl: chain.finalUrl, domPath: entry.domPath,
-          redirectChain: chain, redirectChainText: formatRedirectChain(chain),
+          url, status: chain.finalStatus, finalUrl: chain.finalUrl, domPath: entry.domPath, redirectChain: chain,
         }
       } catch (e) {
         const hops = e instanceof RedirectChainError ? e.hops : []
@@ -114,7 +108,6 @@ export const internalLinkStatusRule: Rule = {
     const failures = checks.filter((c) => c.redirectChain?.loop || c.redirectChain?.capped ||
       (!inconclusive.includes(c) && (c.status >= 400 || (c.status >= 300 && c.status < 400))))
     const redirecting = checks.filter((c) => c.redirectChain?.redirected)
-    const statusSummary = summarizeStatuses(checks)
     const type = failures.length ? 'error' : inconclusive.length ? 'warn' : 'ok'
     const scope = facts?.internalLinkCandidates
       ? `${facts.internalLinkCount} eligible internal link anchors across the page`
@@ -123,17 +116,18 @@ export const internalLinkStatusRule: Rule = {
         : `${candidates.length} unique internal link URLs`
     return presentResult(internalLinkStatusRule, page, {
       input: 'Static DOM + Page URL + internal link HTTP responses', type, priority: failures.length ? 150 : 850,
-      values: [textField('Links tested', checks.length), textField('Failures', failures.length), textField('Inconclusive', inconclusive.length)],
+      values: [statusesRow(checks), textField('Links tested', checks.length), textField('Failures', failures.length), textField('Inconclusive', inconclusive.length)],
       detailValues: [
-        textField('Sampled from', scope), statusSummaryField(statusSummary), textField('Redirecting links', redirecting.length),
-        ...(facts?.internalLinkCandidates ? [textField('Internal link anchors counted', facts.internalLinkCount ?? 'Not captured'),
-          textField('Candidate URLs omitted by evidence budget', facts.internalLinkCandidatesOmitted ?? 0)] : []),
-        ...(anchorsTruncated ? [textField('Page anchors', pageAnchorCount ?? 'Not captured'), textField('Anchor evidence truncated', 'Yes')] : []),
+        textField('Sampled from', scope), textField('Redirecting links', redirecting.length),
+        ...(facts?.internalLinkCandidates ? [textField('Internal anchors', facts.internalLinkCount ?? 'Not captured'),
+          textField('Candidates dropped', facts.internalLinkCandidatesOmitted ?? 0)] : []),
+        ...(anchorsTruncated ? [textField('Page anchors', pageAnchorCount ?? 'Not captured'), textField('Anchor capture', 'Truncated')] : []),
+        ...recordCounts({ found: checks.length, markup: 0, evidence: checks.length }),
         ...(!facts?.internalLinkCandidates && !anchorsTruncated ? [textField('Unique internal link URLs', candidates.length)] : []),
       ],
       checked,
       evidence: checkedLinks(checks),
-      noMarkup: 'None - this rule checks HTTP responses, not document markup',
+      noMarkup: 'Not retained: this rule checks HTTP responses, not document markup',
     })
   },
 }

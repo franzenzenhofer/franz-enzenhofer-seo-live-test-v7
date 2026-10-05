@@ -13,7 +13,7 @@ describe('Open Graph title rule', () => {
   it('reports a missing title as a warning without invented markup', async () => {
     const result = await run('<title>x</title>')
     expect(result.type).toBe('warn')
-    expect(value(result, 'og:title')).toBe('Absent')
+    expect(value(result, 'og:title')).toBe('Not found')
     expect(result.presentation?.markup).toEqual([])
     expect(presentationSchema.safeParse(result.presentation).success).toBe(true)
   })
@@ -30,9 +30,9 @@ describe('Open Graph title rule', () => {
     const html = '<meta property="og:title" data-source="cms" content="T &amp; C"><meta property="og:title" content="Second">'
     const result = await run(html)
     expect(result.type).toBe('info')
-    expect(value(result, 'og:title')).toBe('Present')
-    expect(value(result, 'Content characters')).toBe(5)
-    expect(value(result, 'Title')).toBe('T & C')
+    expect(value(result, 'Characters')).toBe(5)
+    expect(value(result, 'Title')).toBeUndefined()
+    expect(result.presentation?.values.filter((field) => field.kind === 'original').map((field) => field.key)).toEqual(['<meta property="og:title"> 1', '<meta property="og:title"> 2'])
     expect(result.presentation?.markup.map((field) => field.value)).toEqual([
       '<meta property="og:title" data-source="cms" content="T &amp; C">', '<meta property="og:title" content="Second">',
     ])
@@ -45,7 +45,8 @@ describe('Open Graph title rule', () => {
     const html = Array.from({ length: 11 }, (_, index) => `<meta name="og:title" content="Title ${index + 1}">`).join('')
     const result = await run(html)
     expect(result.type).toBe('info')
-    expect(result.presentation?.detailValues.find((field) => field.key === 'Elements omitted')?.value).toBe(1)
+    expect(value(result, 'Title')).toBe('Title 1')
+    expect(result.presentation?.detailValues.find((field) => field.key === 'Markup omitted')?.value).toBe(1)
     expect(result.presentation?.markup).toHaveLength(10)
   })
 })

@@ -9,49 +9,56 @@ const value = (result: Awaited<ReturnType<typeof run>>, key: string) => result.p
 const detail = (result: Awaited<ReturnType<typeof run>>, key: string) => result.presentation?.detailValues.find((field) => field.key === key)?.value
 
 describe('images lazy-loading rule', () => {
-  it('reports zero counts for a document without images', async () => {
+  it('reports zero images for a document without images', async () => {
     const result = await run('')
     expect(result.type).toBe('info'); expect(result.priority).toBe(750)
-    expect(value(result, 'Lazy images')).toBe(0)
-    expect(value(result, 'Eager images')).toBe(0); expect(value(result, 'Unset loading')).toBe(0)
+    expect(value(result, 'Images')).toBe(0)
     expect(result.presentation?.markup).toEqual([])
     expect(result.details).toBeUndefined()
   })
 
-  it('counts lazy, eager, and absent loading attributes with exact evidence', async () => {
+  it('counts lazy, eager, and absent loading attributes with the markup in the overview', async () => {
     const html = '<img src="/lazy.jpg" alt="Lazy" loading="lazy"><img src="/eager.jpg" loading="eager"><img src="/default.jpg" alt="Default">'
     const result = await run(html)
     expect(result.type).toBe('info'); expect(result.priority).toBe(750)
-    expect(value(result, 'Lazy images')).toBe(1); expect(value(result, 'Eager images')).toBe(1); expect(value(result, 'Unset loading')).toBe(1)
-    expect(result.presentation?.markup.map((field) => field.value)).toEqual([
+    expect(value(result, 'Loading')).toBe('1 lazy, 1 eager, 1 unset')
+    expect(result.presentation?.values.filter((field) => field.kind === 'original').map((field) => field.value)).toEqual([
       '<img src="/lazy.jpg" alt="Lazy" loading="lazy">', '<img src="/eager.jpg" loading="eager">', '<img src="/default.jpg" alt="Default">',
     ])
-    expect(result.presentation?.evidence[2]?.fields.find((field) => field.key === 'Loading instruction')?.value).toBe('(omitted: eager by default)')
+    expect(result.presentation?.evidence[2]?.fields.find((field) => field.key === 'loading')?.value).toBe('Not declared')
     expect(toResultCopyPayload(result)).toContain('/default.jpg')
     expect(toResultCopyPayload(result)).toContain(rule.meta.references[0])
   })
 
   it('treats an empty or non-lazy loading value as eager', async () => {
     const result = await run('<img loading=""><img loading="auto"><img loading="lazy">')
-    expect(value(result, 'Lazy images')).toBe(1); expect(value(result, 'Eager images')).toBe(2); expect(value(result, 'Unset loading')).toBe(0)
+    expect(value(result, 'Loading')).toBe('1 lazy, 2 eager, 0 unset')
+    expect(result.presentation?.evidence[0]?.fields.find((field) => field.key === 'loading')?.value).toBe('Empty')
+  })
+
+  it('shows a single image as its instruction plus its markup', async () => {
+    const result = await run('<img src="/one.jpg" loading="lazy">')
+    expect(value(result, 'Loading')).toBe('lazy')
+    expect(value(result, '<img>')).toBe('<img src="/one.jpg" loading="lazy">')
   })
 
   it('uses a text field, never a url field, for a source that cannot resolve to http(s)', async () => {
     const result = await run('<img src="javascript:alert(1)" loading="lazy">')
-    expect(result.presentation?.evidence[0]?.fields.find((field) => field.key === 'Source URL')).toEqual({ key: 'Source URL', value: 'javascript:alert(1)', kind: 'text' })
+    expect(result.presentation?.evidence[0]?.fields.find((field) => field.key === 'src')).toEqual({ key: 'src', value: 'javascript:alert(1)', kind: 'text' })
   })
 
-  it('retains a bounded sample and reports omitted image elements', async () => {
+  it('ships every image with truthful counts and summarizes the sources above three', async () => {
     const html = Array.from({ length: 11 }, (_, index) => `<img src="/image-${index + 1}.jpg" loading="lazy">`).join('')
     const result = await run(html)
-    expect(detail(result, 'Image elements retained')).toBe(10); expect(detail(result, 'Image elements omitted')).toBe(1)
-    expect(result.presentation?.markup).toHaveLength(10)
+    expect(value(result, 'Sources')).toBe('/image-1.jpg, /image-2.jpg, /image-3.jpg … 8 more')
+    expect(detail(result, 'Evidence retained')).toBe(11); expect(detail(result, 'Markup omitted')).toBe(0)
+    expect(result.presentation?.markup).toHaveLength(11)
   })
 
-  it('labels the bounded alt excerpt and states unretained markup', async () => {
+  it('bounds the alt excerpt and states unretained markup inside the record', async () => {
     const result = await run(`<img src="/big.jpg" loading="lazy" alt="${'x'.repeat(2000)}">`)
-    expect(result.presentation?.evidence[0]?.fields[2]).toEqual({ key: 'Alt text (first 100 characters)', value: `${'x'.repeat(100)}…`, kind: 'text' })
+    expect(result.presentation?.evidence[0]?.fields[2]).toEqual({ key: 'alt', value: `${'x'.repeat(100)}…`, kind: 'text' })
     expect(result.presentation?.markup).toEqual([])
-    expect(result.presentation?.evidence.find((record) => record.name === 'Capture status')?.fields).toEqual([{ key: 'Image markup 1', value: 'Complete original markup not retained', kind: 'text' }])
+    expect(result.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Markup', value: 'Not captured', kind: 'text' })
   })
 })

@@ -1,16 +1,16 @@
+import { attrUrlField, countRow, excerpt, INVENTORY_LIMIT, inventory, urlLabel } from './elementInventory'
+
 import type { Rule } from '@/core/types'
 import { sampleMatchingElements } from '@/shared/domEvidence'
-import {domPathField, textField, urlField} from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { textField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
+import { listRow } from '@/shared/presentation/listRow'
 
-const EXCERPT_LIMIT = 100
-const excerpt = (text: string) => (text.length > EXCERPT_LIMIT ? `${text.slice(0, EXCERPT_LIMIT)}…` : text)
-const resolvedHttpField = (key: string, raw: string, base: string) => {
-  const trimmed = raw.trim()
-  if (!trimmed) return textField(key, 'Not declared')
-  try { return ['http:', 'https:'].includes(new URL(trimmed, base).protocol) ? urlField(key, trimmed) : textField(key, trimmed) } catch { return textField(key, trimmed) }
-}
+// The CSS form of the match: either attribute absent or empty.
+const SELECTOR = 'img:not([width]), img:not([height]), img[width=""], img[height=""]'
+const missingAttributes = (image: Element) => ['width', 'height'].filter((key) => !image.getAttribute(key))
+const checked = [textField('Selector', SELECTOR), textField('Attributes', 'width and height'),
+  textField('Match', 'Either attribute is absent or empty'), textField('Criterion', 'Every image has both attributes')]
 
 export const imagesLayoutRule: Rule = {
   id: 'body:images-layout', name: 'Image dimension attributes', presentation: 1, enabled: true, what: 'static',
@@ -24,23 +24,20 @@ export const imagesLayoutRule: Rule = {
   },
   async run(page) {
     const images = page.doc.querySelectorAll<HTMLImageElement>('img')
-    const missing = sampleMatchingElements(images, (image) => !image.getAttribute('width') || !image.getAttribute('height'))
-    const captured = markupEvidence(missing.sample, 'Image markup')
-    const captureStatus = captured.fields.filter((field) => !field.key.startsWith('DOM path'))
+    const missing = sampleMatchingElements(images, (image) => missingAttributes(image).length > 0, INVENTORY_LIMIT)
+    const records = inventory(missing.sample, missing.total, (image) => [
+      attrUrlField('src', image.getAttribute('src'), page.url),
+      textField('alt', excerpt((image.getAttribute('alt') || '')) || 'Not declared'),
+      textField('Missing attributes', missingAttributes(image).join(', ')),
+    ])
+    const sources = missing.sample.map((image) => urlLabel(image.getAttribute('src') || '', page.url))
     return presentResult(imagesLayoutRule, page, {
       input: 'Idle DOM', type: !images.length ? 'info' : missing.total ? 'warn' : 'ok', priority: missing.total ? 300 : 850,
-      values: [textField('Images checked', images.length), textField('Images missing dimensions', missing.total)],
-      detailValues: [textField('Affected examples retained', missing.shown), textField('Affected examples omitted', missing.total - missing.shown)],
-      checked: [textField('Selector', 'img'), textField('Attributes', 'width and height'),
-        textField('Match', 'Either attribute is absent or empty'), textField('Criterion', 'Every image has both attributes')],
-      evidence: [...missing.sample.map((image, index) => ({
-        name: `Image ${index + 1}`,
-        fields: [textField('Alt text (first 100 characters)', excerpt((image.getAttribute('alt') || '').trim()) || 'Not declared'),
-          resolvedHttpField('Source URL', image.getAttribute('src') || '', page.url),
-          textField('Missing attributes', ['width', 'height'].filter((key) => !image.getAttribute(key)).join(', ')),
-          domPathField('DOM path', captured.selectors[index], 'Not captured')],
-      })), ...(captureStatus.length ? [{ name: 'Capture status', fields: captureStatus }] : [])],
-      markup: captured.markup,
+      values: [...countRow('Missing dimensions', missing.total, records.overviewMarkup),
+        ...countRow('Images checked', images.length, records.overviewMarkup),
+        ...(missing.total && !records.overviewMarkup.length ? [textField('Sources', listRow(sources))] : []),
+        ...records.overviewMarkup],
+      detailValues: missing.total ? records.counts : [], checked, evidence: records.evidence, markup: records.markup,
       noMarkup: missing.total ? 'Complete original markup for affected images not retained' : !images.length ? 'No img elements found' : 'No image with missing dimensions found',
     })
   },

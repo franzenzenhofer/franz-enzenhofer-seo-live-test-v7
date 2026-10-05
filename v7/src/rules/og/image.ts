@@ -1,9 +1,9 @@
 import { OG_SELECTORS } from './og-constants'
+import { ogElements } from './ogPresentation'
 
 import type { Rule } from '@/core/types'
-import { sampleElements } from '@/shared/domEvidence'
-import { textField, urlField } from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { attrUrlField } from '@/rules/body/elementInventory'
+import { textField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
 import { isAbsoluteUrl } from '@/shared/url-utils'
 
@@ -19,27 +19,24 @@ export const ogImageRule: Rule = {
     description: 'Checks <meta property="og:image"> presence and that its URL is absolute http(s); warn otherwise.',
   },
   async run(page) {
-    const elements = Array.from(page.doc.querySelectorAll(OG_SELECTORS.IMAGE))
-    const m = page.doc.querySelector(OG_SELECTORS.IMAGE)
+    const elements = ogElements(page.doc, OG_SELECTORS.IMAGE, (element) => [attrUrlField('content', element.getAttribute('content'), page.url)])
+    const m = elements.first
     const c = (m?.getAttribute('content') || '').trim()
+    const declared = attrUrlField('og:image', c, page.url)
     const abs = isAbsoluteUrl(c)
-    const { sample, total } = sampleElements(elements)
-    const captured = markupEvidence(sample, 'OG image markup')
     const common = {
-      input: 'Static DOM', label: 'HEAD',
-      detailValues: [textField('Matching elements', total), textField('Elements retained', sample.length),
-        textField('Elements omitted', total - sample.length)],
+      input: 'Static DOM', label: 'HEAD', detailValues: elements.detailValues,
       checked: [textField('Selector', OG_SELECTORS.IMAGE), textField('Selection', 'First matching meta element'),
         textField('Attribute', 'property="og:image" or name="og:image"')],
-      evidence: captured.fields.length ? [{ name: 'Source locations', fields: captured.fields }] : [],
-      markup: captured.markup,
-      noMarkup: total ? 'Complete original OG image markup not retained' : 'No matching og:image meta element found',
+      evidence: elements.evidence, markup: elements.markup,
+      noMarkup: elements.total ? 'Complete original OG image markup not retained' : 'No matching og:image meta element found',
     }
     if (!m) return presentResult(ogImageRule, page, { ...common, type: 'warn', priority: 500,
-      values: [textField('og:image', 'Absent')], checked: [...common.checked, textField('Criterion', 'Element exists with an absolute HTTP(S) URL')] })
+      values: [textField('og:image', 'Not found')], checked: [...common.checked, textField('Criterion', 'Element exists with an absolute HTTP(S) URL')] })
+    // The declared URL is the observed value: a url field when absolute, its raw form plus the form verdict otherwise (F2, F11).
     return presentResult(ogImageRule, page, { ...common, type: abs ? 'info' : 'warn', priority: abs ? 760 : 350,
-      values: [textField('og:image', abs ? 'Absolute URL' : 'Not absolute'),
-        abs ? urlField('Declared URL (trimmed)', c) : textField('Declared URL (trimmed)', c || 'Empty')],
+      values: [abs ? (declared.kind === 'url' ? declared : textField('og:image', 'Invalid URL')) : textField('og:image', c || 'Empty'),
+        ...(abs || !c ? [] : [textField('URL form', 'Relative')]), ...elements.overviewMarkup],
       checked: [...common.checked, textField('Criterion', 'Declared URL uses an absolute HTTP(S) URL')],
     })
   },
