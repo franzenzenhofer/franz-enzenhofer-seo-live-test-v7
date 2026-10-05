@@ -176,7 +176,7 @@ Preload links: 2
 <link rel="preload"> 1: <link rel="preload" as="script" fetchpriority="low" href="/_next/static/chunks/3uejelrih9i5f.js">   {original}
 <link rel="preload"> 2: <link rel="preload" href="/_next/static/chunks/38-x1nvyewe3z.js" as="script" fetchpriority="low">   {original}
 ```
-For inventories with `N > 3` the overview shows the count plus one derived summary row, at most 60 characters, for example `Languages: en-US, ar-AE, en-AE, en-AM, de-AT ... 132 more` or `External hosts: instagram.com, facebook.com ... 5 more`.
+For inventories with `N > 3` the overview shows the count plus one derived summary row from the shared `listRow` (src/shared/presentation/listRow.ts), at most 60 characters, ending in the ellipsis character `… N more` (three ASCII dots would read as a sentence under F10), for example `Languages: en-US, ar-AE, en-AE, en-AM, de-AT … 132 more` or `External hosts: instagram.com, facebook.com … 5 more`.
 Test: if `N > 0`, `overview` contains at least one field that is kind `url` or `original`, or a `text` field whose value is not numeric, not in the absence set and not `Yes`/`No`.
 
 ### F13. Unavailable input is declared once, as the checked input
@@ -290,7 +290,7 @@ The overview shows no markup because `N > 3` (F4); the languages row is the obse
 137 links (apple):
 ```
 Hreflang links: 137
-Languages: en-US, ar-AE, en-AE, en-AM, de-AT, en-AU ... 131 more
+Languages: en-US, ar-AE, en-AE, en-AM, de-AT, en-AU … 131 more
 x-default: Not declared
 ```
 Details: the same four count rows with real numbers; 137 evidence records (about 130 bytes each, about 18 KB) and as many `<link hreflang="...">` original fields as fit the 32 KB budget (about 85 bytes each, so all 137 fit, otherwise `Markup retained: 120`, `Markup omitted: 17`). The `sampleElements` cap of 10 does not apply to inventories; the byte budget is the only bound and the counts state it (F5, F6). Zero records for 137 found links is the exact failure the owner reported.

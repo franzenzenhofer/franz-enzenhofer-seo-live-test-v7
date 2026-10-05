@@ -31,6 +31,7 @@ Before each commit, run the repository's typecheck, ESLint, complete unit suite 
 `tests/formatting/formatting.test.ts` runs every registry rule the way the extension does (static/idle rules on the
 live document, the rest on the page rebuilt from events) over five realistic pages in `tests/fixtures/formatting/`,
 and asserts the mechanical rules F1-F14 of `FORMATTING.md` on the bounded presentation. Every violation is written to
-`test-results/formatting-violations.md`. `tests/formatting/knownViolations.ts` is a shrink-only list of rules not yet
-fixed. Fix loop for single rules: `FORMAT_RULES=head-canonical,head-hreflang npx vitest run tests/formatting` (strict).
-Shared helpers for doctrine-shaped output: `elementRecords` (records.ts), `tagLabel`, `urlComparison`, `recordCounts`.
+`test-results/formatting-violations.md`. Every rule must pass (baseline 2026-10-05: 126 of 130 violated; now 0).
+Fix loop for single rules: `FORMAT_RULES=head-canonical,head-hreflang npx vitest run tests/formatting`.
+Shared helpers for doctrine-shaped output: `elementRecords` (records.ts), `tagLabel`, `urlComparison`, `recordCounts`,
+`listRow` / `clip` (listRow.ts, the only list-summary row).

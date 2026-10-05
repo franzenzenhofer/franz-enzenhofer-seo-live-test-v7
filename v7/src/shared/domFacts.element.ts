@@ -35,10 +35,17 @@ export const factBucket = (element: Element, doc: Document): FactBucket | null =
   return null
 }
 
+// Rules that run offscreen see a document rebuilt from these facts, so the original markup of the
+// small single elements their cards show must travel with the fact. Hreflang sets stay excluded:
+// a 137-language head would push other head elements out of the 20 KB head budget.
+const ORIGINAL_MARKUP = 'title, link[rel~="canonical" i], meta[name="viewport" i], link[rel~="apple-touch-icon" i], meta[name="robots" i], meta[name="googlebot" i]'
+const carriesOriginal = (element: Element, critical: boolean) =>
+  element.matches(ORIGINAL_MARKUP) || (critical && isInsecureResource(element))
+
 export const elementFact = (element: Element, doc: Document, critical = false): DomElementFact => {
   const tag = element.tagName.toLowerCase()
   const text = tag === 'title' ? (element.textContent || '').slice(0, MAX_VALUE_LENGTH) : undefined
-  const original = tag === 'meta' && /^(robots|googlebot)$/i.test(element.getAttribute('name') || '') ? readOriginalMarkup(element) : null
+  const original = carriesOriginal(element, critical) ? readOriginalMarkup(element) : null
   return {
     location: doc.head?.contains(element) ? 'head' : 'body',
     tag,

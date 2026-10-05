@@ -54,7 +54,8 @@ const redundant: Check = {
       if (comparable) seen.set(text(field), field)
       if (field.kind === 'text' && /^(Yes|No)$/.test(text(field))) out.push(`Yes/No row "${field.key}: ${text(field)}"`)
       if (field.kind === 'text' && field.value === 1 && view.markup.length === 1) out.push(`count of 1 beside the single markup ("${field.key}")`)
-      if (text(field) === view.input || text(field) === 'captured') out.push(`"${field.key}" restates the checked input`)
+      // An absence word under the same checked input is the F13 declaration, not a restatement.
+      if (!ABSENCE.has(text(field)) && (text(field) === view.input || text(field) === 'captured')) out.push(`"${field.key}" restates the checked input`)
     }
     return out
   },
