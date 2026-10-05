@@ -55,8 +55,21 @@ describe('presentation contract', () => {
     const long = { ...view(), markup: [originalField('Markup 1', '漢字'.repeat(8000))] }
     const bounded = boundPresentation(long)
     expect(bounded.markup).toEqual([])
-    expect(bounded.values.every((field) => field.kind !== 'original')).toBe(true)
+    expect(bounded.values).toEqual(view().values)
     expect(bounded.noMarkup).toContain('storage capacity')
+    const hugeValue = boundPresentation({ ...long, values: [originalField('<title>', '漢字'.repeat(8000))] })
+    expect(hugeValue.values.every((field) => field.kind !== 'original')).toBe(true)
+    expect(presentationSchema.safeParse(bounded).success).toBe(true)
+  })
+  it('keeps as many whole records as fit instead of dropping every record', () => {
+    const link = (index: number) => `<link rel="alternate" hreflang="l${index}" href="https://www.example.test/${'p'.repeat(200)}/${index}">`
+    const many = { ...view(), markup: Array.from({ length: 137 }, (_, index) => originalField(`Link ${index + 1}`, link(index))),
+      evidence: Array.from({ length: 137 }, (_, index) => ({ name: `Hreflang ${index + 1}`, fields: [textField('Language', `l${index}`)] })) }
+    const bounded = boundPresentation(many)
+    expect(bounded.markup.length).toBeGreaterThan(40)
+    expect(bounded.markup.length).toBeLessThan(137)
+    expect(bounded.markup).toEqual(many.markup.slice(0, bounded.markup.length))
+    expect(bounded.detailValues).toContainEqual(textField('Markup records omitted (storage limit)', 137 - bounded.markup.length))
     expect(presentationSchema.safeParse(bounded).success).toBe(true)
   })
   it('copies extracted title, full markup, references and labelled technical metadata', () => {

@@ -52,13 +52,12 @@ describe('actionable mixed-content evidence', () => {
     expect(original.querySelector(selector)?.getAttribute('alt')).toBe('Trip')
   })
 
-  it('omits the whole evidence/markup set - never a partial or truncated original - when ten long-URL offenders exceed the storage bound', async () => {
+  it('keeps every whole offender record - never a truncated original - when ten long-URL offenders are found', async () => {
     const html = Array.from({ length: 10 }, (_, i) => `<img src="http://www.example.com/Reisen/titelbilder/image-thumb__107737__lightbox/${'long-image-name-'.repeat(10)}${i}.jpg?v=1743694656" alt="Alpe-Adria ${i}">`).join('')
-    const result = boundResult(await run(html))
-    expect(result.presentation?.evidence).toHaveLength(0)
-    expect(result.presentation?.markup).toHaveLength(0)
-    expect(result.presentation?.noMarkup).toContain('10 record(s)')
-    expect(result.presentation?.detailValues).toContainEqual({ key: 'Evidence records omitted', value: 10, kind: 'text' })
+    const raw = await run(html)
+    const result = boundResult(raw)
+    expect(result.presentation?.evidence).toHaveLength(10)
+    expect(result.presentation?.markup).toEqual(raw.presentation?.markup)
     expect(JSON.stringify(result.presentation)).not.toContain('[truncated]')
   })
 })
