@@ -24,8 +24,8 @@ describe('Tripadvisor Vienna saved page', () => {
     const page = loadPage()
     const res = await canonicalRule.run(page as any, { globals: {} })
     expect(res.type).toBe('ok')
-    expect(res.presentation?.values).toContainEqual({ key: 'Resolved canonical URL', value: page.url, kind: 'url' })
-    expect(res.presentation?.values).toContainEqual({ key: 'Self-reference', value: 'Yes', kind: 'text' })
+    expect(res.presentation?.values).toContainEqual({ key: 'Canonical URL', value: page.url, kind: 'url' })
+    expect(res.presentation?.values).toContainEqual({ key: 'Comparison', value: 'Equals current page URL', kind: 'text' })
   })
 
   it('detects hreflang alternates', async () => {

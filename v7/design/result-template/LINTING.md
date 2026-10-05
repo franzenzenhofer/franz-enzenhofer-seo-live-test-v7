@@ -25,3 +25,12 @@ This lint cannot prove that a rule's selector, algorithm or SEO criterion is cor
 Headless browser verification must exercise the actual extension card and report, not only the standalone dummy: narrow layouts, reference and data links, labelled original fields, extracted title text, Details/Hide, keyboard menu, favorites, disabling, copy, clipboard fallback and the not-applicable filter.
 
 Before each commit, run the repository's typecheck, ESLint, complete unit suite and extension build, including the headless browser suite. Preserve generated outputs in `trash/` before any build script cleans its output directories. The build and pre-commit hook both bump versions; follow the documented repository release procedure and verify the committed package version equals `dist/manifest.json`.
+
+## Formatting test (FORMATTING.md, 2026-10-05)
+
+`tests/formatting/formatting.test.ts` runs every registry rule the way the extension does (static/idle rules on the
+live document, the rest on the page rebuilt from events) over five realistic pages in `tests/fixtures/formatting/`,
+and asserts the mechanical rules F1-F14 of `FORMATTING.md` on the bounded presentation. Every violation is written to
+`test-results/formatting-violations.md`. `tests/formatting/knownViolations.ts` is a shrink-only list of rules not yet
+fixed. Fix loop for single rules: `FORMAT_RULES=head-canonical,head-hreflang npx vitest run tests/formatting` (strict).
+Shared helpers for doctrine-shaped output: `elementRecords` (records.ts), `tagLabel`, `urlComparison`, `recordCounts`.

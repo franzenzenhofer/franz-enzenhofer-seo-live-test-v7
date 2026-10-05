@@ -69,7 +69,8 @@ describe('presentation contract', () => {
     expect(bounded.markup.length).toBeGreaterThan(40)
     expect(bounded.markup.length).toBeLessThan(137)
     expect(bounded.markup).toEqual(many.markup.slice(0, bounded.markup.length))
-    expect(bounded.detailValues).toContainEqual(textField('Markup records omitted (storage limit)', 137 - bounded.markup.length))
+    expect(bounded.detailValues).toContainEqual(textField('Markup omitted', 137 - bounded.markup.length))
+    expect(bounded.detailValues).toContainEqual(textField('Markup retained', bounded.markup.length))
     expect(presentationSchema.safeParse(bounded).success).toBe(true)
   })
   it('copies extracted title, full markup, references and labelled technical metadata', () => {

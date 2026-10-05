@@ -6,6 +6,7 @@ import { getDomPath } from '@/shared/dom-path'
 const reconstructed = new WeakSet<Document>()
 const originals = new WeakMap<Element, { html: string; selector: string }>()
 export const markReconstructed = (doc: Document) => { reconstructed.add(doc) }
+export const isReconstructed = (doc: Document) => reconstructed.has(doc)
 export const registerOriginal = (element: Element, original: { html: string; selector: string }) => { originals.set(element, original) }
 
 // Preflight before native serialization; reject large or opaque subtrees in full.

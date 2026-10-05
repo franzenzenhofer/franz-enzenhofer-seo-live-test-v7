@@ -1,4 +1,5 @@
 import { createPresentation, textField } from './create'
+import { adjustCounts } from './counts'
 import type { Presentation } from './schema'
 
 // Per-result transport budget. Phase messages are chunked (20 KB target, 64 chunks), and results are kept
@@ -8,19 +9,14 @@ const bytes = (value: unknown) => new TextEncoder().encode(JSON.stringify(value)
 
 // Never run generic string truncation over attested original data: keep whole records from
 // the front and state exactly how many were omitted, so a found element never becomes "nothing".
-const withRecords = (view: Presentation, markupCount: number, evidenceCount: number): Presentation => {
-  const omittedMarkup = view.markup.length - markupCount
-  const omittedEvidence = view.evidence.length - evidenceCount
-  return {
-    ...view,
-    markup: view.markup.slice(0, markupCount),
-    evidence: view.evidence.slice(0, evidenceCount),
-    detailValues: [...view.detailValues,
-      ...(omittedMarkup ? [textField('Markup records omitted (storage limit)', omittedMarkup)] : []),
-      ...(omittedEvidence ? [textField('Evidence records omitted (storage limit)', omittedEvidence)] : [])],
-    noMarkup: markupCount ? view.noMarkup : `Original markup omitted: ${view.markup.length} record(s); storage capacity exceeded`,
-  }
-}
+const withRecords = (view: Presentation, markupCount: number, evidenceCount: number): Presentation => ({
+  ...view,
+  markup: view.markup.slice(0, markupCount),
+  evidence: view.evidence.slice(0, evidenceCount),
+  detailValues: adjustCounts(view.detailValues, { markup: markupCount, evidence: evidenceCount },
+    { markup: view.markup.length - markupCount, evidence: view.evidence.length - evidenceCount }),
+  noMarkup: markupCount ? view.noMarkup : `Original markup omitted: ${view.markup.length} record(s); storage capacity exceeded`,
+})
 
 // Largest record count n (0..max) for which fits(n) holds; fits is monotone (fewer records, fewer bytes).
 const largest = (max: number, fits: (count: number) => boolean) => {
