@@ -2,8 +2,9 @@ import { describe, it, expect } from 'vitest'
 import { schemaJobPostingRule } from '@/rules/schema/jobPosting'
 
 const D = (h: string) => new DOMParser().parseFromString(h,'text/html')
+// The field-check row of an entity inside its <script> record, e.g. `Article fields: Missing: headline, image`.
 const missingFieldsOf = (r: any) => r.presentation?.evidence.flatMap((record: any) => record.fields)
-  .find((field: any) => field.key === 'Missing fields')?.value as string | undefined
+  .find((field: any) => / fields$/.test(field.key) && String(field.value).startsWith('Missing: '))?.value as string | undefined
 
 const FULL = '{"@type":"JobPosting","title":"Software Engineer","datePosted":"2024-01-15","description":"<p>Build things.</p>","hiringOrganization":{"@type":"Organization","name":"Acme Corp"},"jobLocation":{"@type":"Place","address":{"@type":"PostalAddress","addressLocality":"Vienna"}}}'
 

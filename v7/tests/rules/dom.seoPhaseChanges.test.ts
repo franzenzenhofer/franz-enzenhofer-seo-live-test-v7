@@ -21,10 +21,12 @@ describe('rule: SEO elements across DOM phases', () => {
     const after = '<head><title>A</title><link rel="canonical" href="https://ex.test/b"></head><body><h1>One</h1><h2>Two</h2></body>'
     const result = await run(before, after)
     expect(result.type).toBe('info'); expect(result.priority).toBe(750)
-    expect(detail(result, 'Changed groups')).toContain('canonical')
-    expect(detail(result, 'Changed groups')).toContain('headings')
-    expect(detail(result, 'Changed groups')).not.toContain('title')
-    expect(value(result, 'SEO element groups changed')).toBe(2)
+    expect(value(result, 'Changed groups')).toBe('canonical, headings')
+    expect(value(result, 'Unchanged groups')).toContain('title')
+    expect(detail(result, 'canonical')).toBe('static 1, idle 1, changed')
+    expect(detail(result, 'headings')).toBe('static 1, idle 2, changed')
+    expect(detail(result, 'title')).toBe('static 1, idle 1, unchanged')
+    expect(result.presentation?.evidence).toEqual([])
     expect(result.presentation?.input).toBe('Static DOM + Idle DOM')
     expect(result.details).toBeUndefined()
     expect(presentationSchema.safeParse(result.presentation).success).toBe(true)
@@ -33,16 +35,15 @@ describe('rule: SEO elements across DOM phases', () => {
   it('reports no change when both phases carry the same elements', async () => {
     const html = '<head><title>A</title></head><body><h1>One</h1></body>'
     const result = await run(html, html)
-    expect(value(result, 'SEO element groups changed')).toBe(0)
-    expect(detail(result, 'Changed groups')).toBe('None')
+    expect(value(result, 'Changed groups')).toBe('None')
+    expect(value(result, 'Unchanged groups')).toContain('title')
   })
 
   it('is unavailable - not falsely "unchanged" - when a phase is missing', async () => {
     const result = await run('<title>A</title>', undefined)
     expect(result.type).toBe('info'); expect(result.priority).toBe(750)
-    expect(result.presentation?.input).toBe('Static DOM')
-    expect(value(result, 'Idle DOM facts')).toBe('Not captured')
-    expect(result.presentation?.values.find((field) => field.key === 'SEO element groups changed')).toBeUndefined()
+    expect(result.presentation?.input).toBe('Not captured')
+    expect(result.presentation?.values).toEqual([{ key: 'Idle DOM facts', value: 'Not captured', kind: 'text' }])
   })
 
   it('never claims a source-HTML or JavaScript-disabled comparison', async () => {

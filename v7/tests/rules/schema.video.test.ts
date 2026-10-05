@@ -2,8 +2,9 @@ import { describe, it, expect } from 'vitest'
 import { schemaVideoRule } from '@/rules/schema/video'
 
 const D = (h: string) => new DOMParser().parseFromString(h,'text/html')
+// The field-check row of an entity inside its <script> record, e.g. `Article fields: Missing: headline, image`.
 const missingFieldsOf = (r: any) => r.presentation?.evidence.flatMap((record: any) => record.fields)
-  .find((field: any) => field.key === 'Missing fields')?.value as string | undefined
+  .find((field: any) => / fields$/.test(field.key) && String(field.value).startsWith('Missing: '))?.value as string | undefined
 
 const run = async (json: string) =>
   schemaVideoRule.run({ html:'', url:'https://ex.com', doc: D(`<script type="application/ld+json">${json}</script>`) } as any, { globals: {} })

@@ -8,7 +8,10 @@ describe('schema: breadcrumb', () => {
     const json = '<script type="application/ld+json">{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://ex.com"},{"@type":"ListItem","position":2,"name":"Products","item":"https://ex.com/products"}]}</script>'
     const r = await schemaBreadcrumbRule.run({ html:'', url:'https://ex.com', doc: D(json) } as any, { globals: {} })
     expect((r as any).type).toBe('ok')
-    expect(r.presentation?.evidence).toContainEqual(expect.objectContaining({ name: 'Entity 1', fields: expect.arrayContaining([expect.objectContaining({ key: 'Field check', value: 'Checked fields present' })]) }))
+    expect(r.presentation?.evidence).toContainEqual(expect.objectContaining({ name: '<script type="application/ld+json">', fields: expect.arrayContaining([
+      expect.objectContaining({ key: 'Types', value: 'BreadcrumbList' }), expect.objectContaining({ key: 'BreadcrumbList fields', value: 'Present' }),
+    ]) }))
+    expect(r.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Missing fields', value: 'None' }))
     expect(r.details).toBeUndefined()
   })
 
@@ -23,7 +26,8 @@ describe('schema: breadcrumb', () => {
     const json = '<script type="application/ld+json">{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home"}]}</script>'
     const r = await schemaBreadcrumbRule.run({ html:'', url:'https://ex.com', doc: D(json) } as any, { globals: {} })
     expect((r as any).type).toBe('warn')
-    expect(r.presentation?.evidence.flatMap((rec) => rec.fields)).toContainEqual(expect.objectContaining({ key: 'Missing fields', value: expect.stringContaining('itemListElement needs') }))
+    expect(r.presentation?.evidence.flatMap((rec) => rec.fields)).toContainEqual(expect.objectContaining({ key: 'BreadcrumbList fields', value: expect.stringContaining('Missing: itemListElement needs') }))
+    expect(r.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Missing fields', value: expect.stringContaining('itemListElement needs') }))
     expect(r.details).toBeUndefined()
   })
 

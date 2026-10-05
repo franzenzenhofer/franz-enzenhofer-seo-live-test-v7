@@ -1,11 +1,12 @@
-import { entityEvidence, errorEvidence } from './createSchemaRule.evidence'
+import { entityFields, matchOverview } from './createSchemaRule.evidence'
+import type { Checked } from './createSchemaRule.evidence'
 
 import type { Rule, RuleMeta } from '@/core/types'
 import { parseLdDetails, findType } from '@/shared/structured'
-import { sampleElements } from '@/shared/domEvidence'
 import { textField, urlField } from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { listRow } from '@/shared/presentation/listRow'
 import { presentResult } from '@/shared/presentation/result'
+import { LD_SELECTOR, declaredTypes, ldScriptRecords, parseErrorRow } from '@/shared/structuredRecords'
 
 /** Validation result with optional missing-fields reporting. */
 export type SchemaValidationResult = {
@@ -30,59 +31,61 @@ export interface SchemaRuleConfig {
   reference?: string            // extra documentation URL when it must differ from meta.references[0]
 }
 
-const SELECTOR = 'script[type="application/ld+json"]'
-
 /**
  * Factory function to create schema rules (ZERO-POINT DRY pattern).
  * Every rule built from this factory is migrated together in this one file.
+ * Card layout (FORMATTING.md): `Types` = every @type the page declares, the matched entity or the
+ * match count, `Missing fields` as the field-check verdict, parse errors by script number, then the
+ * original <script> blocks when short; details carry the four count rows and one record per script
+ * whose fields include every matching entity.
  */
 export function createSchemaRule(config: SchemaRuleConfig): Rule {
   const types = Array.isArray(config.types) ? config.types : [config.types]
   const fieldsLabel = config.fieldsLabel || 'required'
-  const tested = config.presenceOnly
+  const presenceOnly = Boolean(config.presenceOnly)
+  const tested = presenceOnly
     ? `Checked JSON-LD presence for ${types.join(', ')}; fields were not validated.`
     : `Checked every matching JSON-LD entity for the listed ${fieldsLabel} fields; this is not full semantic validation.`
+  const matchedType = (node: Record<string, unknown>) => types.find((type) => findType([node], type).length) || types[0]!
+  const checked = [
+    textField('Selector', LD_SELECTOR), textField('Types checked', types.join(', ')),
+    textField('Criterion', tested), textField('Entity fields', presenceOnly ? 'Not validated' : `${fieldsLabel} fields`),
+    ...(config.deprecated ? [textField('Applicable condition', config.deprecated)] : []),
+  ]
+  // A retired feature's announcement is a clickable detail row, not an evidence record (F6, F12).
+  const deprecationRow = config.reference ? [urlField('Deprecation notice', config.reference)] : []
+
   const rule: Rule = {
     id: config.id, name: config.name, presentation: 1, enabled: true, what: 'static', meta: config.meta,
     async run(page) {
       const parsed = parseLdDetails(page.doc)
       const matches = parsed.entries.filter(({ node }) => types.some((type) => findType([node], type).length))
-      const { sample, total } = sampleElements(page.doc.querySelectorAll(SELECTOR))
-      const captured = markupEvidence(sample, 'JSON-LD script')
-      const checked = [
-        textField('Selector', SELECTOR), textField('Types checked', types.join(', ')),
-        textField('Criterion', tested), textField('Entity fields', config.presenceOnly ? 'Not validated' : `${fieldsLabel} fields`),
-        ...(config.deprecated ? [textField('Applicable condition', config.deprecated)] : []),
-      ]
-      const errors = errorEvidence(parsed.errors)
-      const captureFields = [textField('Scripts retained', sample.length), textField('Scripts omitted', total - sample.length),
-        textField('Parse errors omitted', parsed.errorCount - parsed.errors.length), ...captured.fields]
-      const detailValues = [textField('Scripts checked', parsed.scriptCount)]
-      const deprecationEvidence = config.reference ? [{ name: 'Deprecation announcement', fields: [urlField('URL', config.reference)] }] : []
+      const checks: Checked[] = matches.map((entry) => {
+        const result = config.validator(entry.node)
+        return { ...entry, validation: typeof result === 'boolean' ? { ok: result } : result }
+      })
+      const entities = entityFields(checks, matchedType, presenceOnly)
+      const scripts = ldScriptRecords(page.doc, parsed, entities.fields)
+      const typesRow = scripts.total ? [textField('Types', listRow(declaredTypes(parsed)))] : []
+      const base = { input: 'Idle DOM' as const, checked, markup: scripts.markup, evidence: scripts.evidence }
 
       if (!matches.length) return presentResult(rule, page, {
-        input: 'Idle DOM', type: parsed.errorCount ? 'warn' : 'info', priority: 920,
-        values: [textField('Matching entities', 0), textField('JSON-LD parse errors', parsed.errorCount)],
-        detailValues, checked, evidence: [...errors, ...deprecationEvidence, { name: 'Capture', fields: captureFields }],
-        markup: captured.markup, noMarkup: total ? `No matching ${types[0]} JSON-LD entities found` : 'No JSON-LD scripts found',
+        ...base, type: parsed.errorCount ? 'warn' : 'info', priority: 920,
+        values: [...typesRow, textField(scripts.total ? types[0]! : 'JSON-LD scripts', 'Not found'), ...parseErrorRow(parsed), ...scripts.overviewMarkup],
+        detailValues: [...scripts.counts, ...deprecationRow],
+        noMarkup: scripts.total ? `No matching ${types[0]} JSON-LD entities found` : 'No JSON-LD scripts found',
       })
 
-      const checks = matches.map((entry) => {
-        const result = config.validator(entry.node)
-        return { ...entry, validation: (typeof result === 'boolean' ? { ok: result } : result) as SchemaValidationResult }
-      })
       const failures = checks.filter(({ validation }) => !validation.ok)
       const failType = failures.some(({ validation }) => (validation.failType || 'warn') === 'warn') ? 'warn' : 'info'
       const type = parsed.errorCount ? 'warn' : config.deprecated ? 'info' : failures.length ? failType : 'ok'
-      const { records, omitted } = entityEvidence(checks, types[0]!, Boolean(config.presenceOnly), fieldsLabel)
       return presentResult(rule, page, {
-        input: 'Idle DOM', type, priority: type === 'warn' ? 250 : 800,
-        values: [textField('Matching entities', matches.length),
-          ...(config.presenceOnly ? [] : [textField('Entities with field issues', failures.length)]),
-          textField('JSON-LD parse errors', parsed.errorCount)],
-        detailValues, checked,
-        evidence: [...records, ...errors, ...deprecationEvidence, { name: 'Capture', fields: [...captureFields, textField('Entities omitted', omitted)] }],
-        markup: captured.markup, noMarkup: 'Complete original JSON-LD scripts not retained',
+        ...base, type, priority: type === 'warn' ? 250 : 800,
+        values: [...typesRow, ...matchOverview(checks, matchedType, presenceOnly), ...parseErrorRow(parsed), ...scripts.overviewMarkup],
+        detailValues: [...scripts.counts,
+          ...(checks.length > 1 && failures.length ? [textField('Entities with issues', failures.length)] : []),
+          ...(entities.shown < checks.length ? [textField('Entities shown', `${entities.shown} of ${checks.length}`)] : []), ...deprecationRow],
+        noMarkup: 'Complete original JSON-LD scripts not retained',
       })
     },
   }

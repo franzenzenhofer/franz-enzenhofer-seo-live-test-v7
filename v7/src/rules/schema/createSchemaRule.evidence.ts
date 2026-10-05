@@ -1,48 +1,60 @@
 import type { SchemaValidationResult } from './createSchemaRule'
 
 import { textField } from '@/shared/presentation/create'
-import { schemaTypes } from '@/shared/structured'
-import type { EvidenceRecord } from '@/shared/presentation/schema'
+import { clip, listRow } from '@/shared/presentation/listRow'
+import type { DisplayField } from '@/shared/presentation/schema'
 import type { LdEntry } from '@/shared/structuredParse'
 
 const ENTITY_LIMIT = 10
-const NAME_EXCERPT_LIMIT = 200
+const EVIDENCE_VALUE_LIMIT = 160
 
-type Checked = LdEntry & { validation: SchemaValidationResult }
+export type Checked = LdEntry & { validation: SchemaValidationResult }
+type MatchedType = (node: Record<string, unknown>) => string
 
-// name/headline/title text is arbitrary page content and can be long - bound it and
-// label the field as an excerpt whenever it was cut, per the original-data field guarantee.
-const nameField = (node: Record<string, unknown>) => {
-  const found = [node['name'], node['headline'], node['title'], node['@id']]
-    .find((value): value is string => typeof value === 'string' && value.trim().length > 0) || 'Unnamed entity'
-  const truncated = found.length > NAME_EXCERPT_LIMIT
-  return textField(truncated ? 'Name (excerpt)' : 'Name', truncated ? found.slice(0, NAME_EXCERPT_LIMIT) : found)
+const nameOf = (node: Record<string, unknown>) => [node['name'], node['headline'], node['title'], node['@id']]
+  .find((value): value is string => typeof value === 'string' && value.trim().length > 0)
+
+// Presence-only rules add no field-check row: the checked row `Entity fields: Not validated` states it once.
+const fieldCheck = (key: string, validation: SchemaValidationResult, presenceOnly: boolean): DisplayField[] => presenceOnly ? []
+  : [textField(`${key} fields`, validation.ok ? 'Present' : `Missing: ${listRow(validation.missing || [], EVIDENCE_VALUE_LIMIT - 9)}`)]
+
+/**
+ * Entity facts as fields of the <script> record they were parsed from (FORMATTING.md F7): for every
+ * matching entity its name (or headline/title/@id) keyed by the matched type, and the field-check
+ * outcome keyed `<type> fields`. Keys are numbered only when a script holds several of one type.
+ * Never pretends a presence-only check validated fields.
+ */
+export const entityFields = (checks: Checked[], matchedType: MatchedType, presenceOnly: boolean) => {
+  const shown = checks.slice(0, ENTITY_LIMIT)
+  const byScript = new Map<number, Checked[]>()
+  for (const check of shown) byScript.set(check.scriptIndex, [...(byScript.get(check.scriptIndex) || []), check])
+  const fields = (scriptIndex: number): DisplayField[] => {
+    const entities = byScript.get(scriptIndex) || []
+    const totals = new Map<string, number>()
+    entities.forEach((entity) => totals.set(matchedType(entity.node), (totals.get(matchedType(entity.node)) || 0) + 1))
+    const seen = new Map<string, number>()
+    return entities.flatMap(({ node, validation }) => {
+      const type = matchedType(node)
+      const index = (seen.get(type) || 0) + 1
+      seen.set(type, index)
+      const key = totals.get(type) === 1 ? type : `${type} ${index}`
+      return [textField(key, clip(nameOf(node) || 'Unnamed', EVIDENCE_VALUE_LIMIT)), ...fieldCheck(key, validation, presenceOnly)]
+    })
+  }
+  return { fields, shown: shown.length }
 }
 
 /**
- * One evidence record per matching entity: name/headline, resolved @type, the
- * numbered source block it came from, and the field-check outcome. Never
- * pretends a presence-only check validated fields.
+ * Overview rows of the found branch (FORMATTING.md F1, F3, F12): the one matching entity keyed by
+ * its matched type (never a count of 1), or the entity count when several matched, then the union
+ * of missing fields as the verdict row of a field check.
  */
-export const entityEvidence = (checks: Checked[], fallbackType: string, presenceOnly: boolean, defaultLabel: string) => {
-  const shown = checks.slice(0, ENTITY_LIMIT)
-  const records: EvidenceRecord[] = shown.map(({ node, scriptIndex, validation }, index) => ({
-    name: `Entity ${index + 1}`,
-    fields: [
-      nameField(node),
-      textField('Schema type', schemaTypes(node).join(', ') || fallbackType),
-      textField('Source block', scriptIndex + 1),
-      textField('Field check', presenceOnly ? 'Presence only; fields not checked'
-        : validation.ok ? 'Checked fields present' : `Missing ${validation.fieldsLabel || defaultLabel} fields`),
-      ...(validation.missing?.length ? [textField('Missing fields', validation.missing.join(', '))] : []),
-    ],
-  }))
-  return { records, omitted: checks.length - shown.length }
+export const matchOverview = (checks: Checked[], matchedType: MatchedType, presenceOnly: boolean): DisplayField[] => {
+  const first = checks[0]!
+  const entityRow = checks.length === 1
+    ? textField(matchedType(first.node), clip(nameOf(first.node) || 'Found'))
+    : textField('Matching entities', checks.length)
+  if (presenceOnly) return [entityRow]
+  const missing = [...new Set(checks.flatMap(({ validation }) => validation.missing || []))]
+  return [entityRow, textField('Missing fields', listRow(missing))]
 }
-
-/** One evidence record per malformed JSON-LD block: its position and a bounded error excerpt. */
-export const errorEvidence = (errors: Array<{ scriptIndex: number; message: string }>): EvidenceRecord[] =>
-  errors.map(({ scriptIndex, message }) => ({
-    name: `JSON-LD script ${scriptIndex + 1}`,
-    fields: [textField('Script number', scriptIndex + 1), textField('Parse error excerpt', message)],
-  }))

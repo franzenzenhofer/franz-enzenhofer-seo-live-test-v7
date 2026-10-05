@@ -7,8 +7,9 @@ const D = (h: string) => new DOMParser().parseFromString(h, 'text/html')
 const run = async (json: string) =>
   schemaBreadcrumbPositionsRule.run({ html: '', url: 'https://ex.com', doc: D(json) } as any, { globals: {} })
 
+// The field-check row of an entity inside its <script> record, e.g. `Article fields: Missing: headline, image`.
 const missingFieldsOf = (r: any) => r.presentation?.evidence.flatMap((record: any) => record.fields)
-  .find((field: any) => field.key === 'Missing fields')?.value as string | undefined
+  .find((field: any) => / fields$/.test(field.key) && String(field.value).startsWith('Missing: '))?.value as string | undefined
 
 describe('schema: breadcrumb positions', () => {
   it('passes when positions, names, and items are present', async () => {

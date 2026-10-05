@@ -1,9 +1,9 @@
 import type { Rule } from '@/core/types'
-import { sampleElements } from '@/shared/domEvidence'
-import { domPathField, textField } from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { textField } from '@/shared/presentation/create'
+import { listRow } from '@/shared/presentation/listRow'
 import { presentResult } from '@/shared/presentation/result'
-import { parseLdDetails, schemaTypes } from '@/shared/structured'
+import { parseLdDetails } from '@/shared/structured'
+import { LD_SELECTOR, declaredTypes, ldScriptRecords, parseErrorRow } from '@/shared/structuredRecords'
 
 export const ldjsonRule: Rule = {
   id: 'dom:ldjson', name: 'JSON-LD structured data blocks', presentation: 1, enabled: true, what: 'static',
@@ -16,37 +16,21 @@ export const ldjsonRule: Rule = {
     },
   },
   async run(page) {
-    const scripts = sampleElements(page.doc.querySelectorAll('script[type="application/ld+json"]'))
     const parsed = parseLdDetails(page.doc)
-    const types = [...new Set(parsed.entries.flatMap(({ node }) => schemaTypes(node)))]
-    const captured = markupEvidence(scripts.sample, 'JSON-LD script markup')
-    const captureFields = captured.fields.filter((field) => field.kind !== 'path')
-    const errorsOutsideSample = parsed.errors.filter(({ scriptIndex }) => scriptIndex >= scripts.shown)
-    const evidence = scripts.sample.map((_script, index) => {
-      const declaredTypes = [...new Set(parsed.entries.filter(({ scriptIndex }) => scriptIndex === index).flatMap(({ node }) => schemaTypes(node)))]
-      const error = parsed.errors.find(({ scriptIndex }) => scriptIndex === index)
-      return {
-        name: `JSON-LD script ${index + 1}`,
-        fields: [textField('Script number', index + 1), textField('Declared types', declaredTypes.join(', ') || 'None declared'),
-          textField('Syntax', error ? 'Invalid JSON' : 'Parsed JSON'), ...(error ? [textField('Problem', error.message)] : []),
-          domPathField('DOM path', captured.selectors[index], 'Not captured')],
-      }
-    })
-    const parseEvidence = errorsOutsideSample.map(({ scriptIndex, message }) => ({
-      name: `JSON-LD parse error ${scriptIndex + 1}`,
-      fields: [textField('Script number', scriptIndex + 1), textField('Problem', message)],
-    }))
+    const scripts = ldScriptRecords(page.doc, parsed)
+    // A single script is shown by its markup or types, never as a count of 1 (FORMATTING.md F1, F3).
+    const countRow = scripts.total > 1 ? [textField('JSON-LD scripts', scripts.total)] : []
+    const observed = scripts.total ? [textField('Types', listRow(declaredTypes(parsed)))] : [textField('JSON-LD scripts', 'Not found')]
     return presentResult(ldjsonRule, page, {
       input: 'Idle DOM',
       type: parsed.errorCount ? 'warn' : 'info', priority: parsed.errorCount ? 300 : 750,
-      values: [textField('JSON-LD blocks', scripts.total), textField('Declared types', types.join(', ') || 'None declared'),
-        textField('Syntax errors', parsed.errorCount)],
-      detailValues: [textField('Blocks retained', scripts.shown), textField('Blocks omitted', scripts.total - scripts.shown)],
-      checked: [textField('Selector', 'script[type="application/ld+json"]'), textField('Format', 'JSON-LD JSON syntax'),
+      values: [...countRow, ...observed, ...parseErrorRow(parsed), ...scripts.overviewMarkup],
+      detailValues: scripts.counts,
+      checked: [textField('Selector', LD_SELECTOR), textField('Format', 'JSON-LD JSON syntax'),
         textField('Type extraction', 'Declared @type string values from parsed nodes'),
         textField('Criterion', 'Reports blocks and syntax status; does not validate schema fields')],
-      evidence: [...evidence, ...parseEvidence, ...(captureFields.length ? [{ name: 'Capture status', fields: captureFields }] : [])],
-      markup: captured.markup,
+      evidence: scripts.evidence,
+      markup: scripts.markup,
       noMarkup: scripts.total ? 'Complete original JSON-LD script markup not retained' : 'No JSON-LD blocks found',
     })
   },

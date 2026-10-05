@@ -27,11 +27,11 @@ export const pageObjectRule: Rule = {
       type: 'info',
       priority: 900,
       values: [
-        /^https?:\/\//i.test(page.url) ? urlField('Page URL', page.url) : textField('Page URL', page.url),
+        /^https?:\/\//i.test(page.url) ? urlField('Current page URL', page.url) : textField('Current page URL', page.url || 'Empty'),
         textField('Response status', httpStatusLabel(page.status)),
         textField('Header count', page.headers ? headerCount : 'Not captured'),
         textField('Resource count', page.resources ? resourceCount : 'Not captured'),
-        textField('Served from cache', page.fromCache === undefined ? 'Not reported' : page.fromCache ? 'Yes' : 'No'),
+        textField('Served from', page.fromCache === undefined ? 'Not captured' : page.fromCache ? 'Cache' : 'Network'),
       ],
       checked: [
         textField('Fields reported', 'Page URL, main-document response status, header count, resource count, cache flag'),
