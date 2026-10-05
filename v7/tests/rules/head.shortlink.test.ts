@@ -5,13 +5,20 @@ import { toResultCopyPayload } from '@/components/result/resultCopy'
 const doc = (h: string) => new DOMParser().parseFromString(h, 'text/html')
 
 describe('rule: shortlink', () => {
-  it('reports a valid alternate shortlink without calling it a defect', async () => {
+  it('reports a valid alternate shortlink without calling it a defect: raw href, URL, element', async () => {
     const r = await shortlinkRule.run({ html: '', url: 'https://example.com/page', doc: doc('<link rel="shortlink" href="/s"/>') }, { globals: {} })
     expect(r.type).toBe('info')
     expect(r.priority).toBe(850)
     expect(r.presentation?.input).toBe('Static DOM')
-    expect(r.presentation?.values).toContainEqual({ key: 'Resolved URL', value: 'https://example.com/s', kind: 'url' })
-    expect(r.presentation?.markup[0]?.value).toBe('<link rel="shortlink" href="/s">')
+    expect(r.presentation?.values).toEqual([
+      { key: 'Shortlink href', value: '/s', kind: 'text' },
+      { key: 'Shortlink URL', value: 'https://example.com/s', kind: 'url' },
+      { key: '<link rel="shortlink">', value: '<link rel="shortlink" href="/s">', kind: 'original', fidelity: 'complete-original' },
+    ])
+    expect(r.presentation?.evidence).toEqual([{ name: '<link rel="shortlink">', fields: [
+      { key: 'href', value: '/s', kind: 'url' }, { key: 'DOM path', value: expect.any(String), kind: 'path' },
+    ] }])
+    expect(r.presentation?.detailValues).toContainEqual({ key: 'Markup retained', value: 1, kind: 'text' })
     expect(r.label).toBe('HEAD')
   })
 
@@ -19,8 +26,10 @@ describe('rule: shortlink', () => {
     const r = await shortlinkRule.run({ html: '', url: 'https://example.com/page', doc: doc('<link rel="shortlink">') }, { globals: {} })
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(400)
-    expect(r.presentation?.values).toContainEqual({ key: 'Declared href', value: 'Empty', kind: 'text' })
-    expect(r.presentation?.markup[0]?.value).toBe('<link rel="shortlink">')
+    expect(r.presentation?.values).toEqual([
+      { key: 'Shortlink href', value: 'Empty', kind: 'text' },
+      { key: '<link rel="shortlink">', value: '<link rel="shortlink">', kind: 'original', fidelity: 'complete-original' },
+    ])
   })
 
   it('treats missing shortlink as ok/info', async () => {
@@ -36,24 +45,24 @@ describe('rule: shortlink', () => {
     const result = await shortlinkRule.run({ html: '', url: 'https://example.test/', doc: doc('<link rel="shortlink" href="http://[">') }, { globals: {} })
     expect(result.type).toBe('warn')
     expect(result.priority).toBe(500)
-    expect(result.presentation?.values).toContainEqual({ key: 'Declared href', value: 'http://[', kind: 'text' })
-    expect(result.presentation?.values).toContainEqual({ key: 'Resolved URL', value: 'Invalid HTTP(S) URL', kind: 'text' })
+    expect(result.presentation?.values).toContainEqual({ key: 'Shortlink href', value: 'http://[', kind: 'text' })
+    expect(result.presentation?.values).toContainEqual({ key: 'Shortlink URL', value: 'Invalid HTTP(S) URL', kind: 'text' })
     expect(toResultCopyPayload(result)).toContain('https://developer.wordpress.org/reference/functions/wp_get_shortlink/')
     expect(result.details).toBeUndefined()
   })
 
-  it('retains the checked base[href] markup when it is read to resolve a relative shortlink', async () => {
+  it('retains the checked base[href] element when it is read to resolve a relative shortlink', async () => {
     const html = '<base href="https://example.com/sub/"><link rel="shortlink" href="s">'
     const result = await shortlinkRule.run({ html, url: 'https://example.com/page', doc: doc(html) }, { globals: {} })
-    expect(result.presentation?.values).toContainEqual({ key: 'Resolved URL', value: 'https://example.com/sub/s', kind: 'url' })
-    expect(result.presentation?.detailValues).toContainEqual({ key: 'Base href', value: 'https://example.com/sub/', kind: 'url' })
-    expect(result.presentation?.markup.some((field) => field.value === '<base href="https://example.com/sub/">')).toBe(true)
+    expect(result.presentation?.values).toContainEqual({ key: 'Shortlink URL', value: 'https://example.com/sub/s', kind: 'url' })
+    expect(result.presentation?.values).toContainEqual({ key: '<base>', value: '<base href="https://example.com/sub/">', kind: 'original', fidelity: 'complete-original' })
+    expect(result.presentation?.evidence.find((record) => record.name === '<base>')?.fields).toContainEqual({ key: 'href', value: 'https://example.com/sub/', kind: 'url' })
   })
 
   it('does not claim to have read an empty base[href]', async () => {
     const html = '<base href=""><link rel="shortlink" href="/s">'
     const result = await shortlinkRule.run({ html, url: 'https://example.com/page', doc: doc(html) }, { globals: {} })
-    expect(result.presentation?.detailValues).toContainEqual({ key: 'Base href', value: 'Not declared', kind: 'text' })
     expect(result.presentation?.markup.some((field) => field.value.startsWith('<base'))).toBe(false)
+    expect(result.presentation?.evidence.some((record) => record.name === '<base>')).toBe(false)
   })
 })

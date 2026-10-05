@@ -1,12 +1,15 @@
-import { resolvePageWebUrl } from '@/shared/resolvePageWebUrl'
+import { hrefField, markupReason } from './canonicalHreflangPresentation'
+
 import type { Rule } from '@/core/types'
 import { textField, urlField } from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { elementRecords } from '@/shared/presentation/records'
 import { presentResult } from '@/shared/presentation/result'
+import { resolvePageWebUrl } from '@/shared/resolvePageWebUrl'
 
 const NAME = 'Shortlink'
 const RULE_ID = 'head:shortlink'
 const SELECTOR = 'head > link[rel~="shortlink" i]'
+const checkedLink = [textField('Selector', SELECTOR), textField('Selection', 'First match'), textField('Attribute', 'href')]
 
 export const shortlinkRule: Rule = {
   id: RULE_ID,
@@ -28,36 +31,40 @@ export const shortlinkRule: Rule = {
     if (!linkEl) return presentResult(shortlinkRule, page, {
       input: 'Static DOM', type: 'info', priority: 950,
       values: [textField('Shortlink', 'Not found')],
-      checked: [textField('Selector', SELECTOR), textField('Selection', 'First match'), textField('Attribute', 'href')],
+      checked: checkedLink,
       noMarkup: 'No matching shortlink element found',
     })
     const href = linkEl.getAttribute('href')?.trim() || ''
-    const captured = markupEvidence([linkEl], '<link rel="shortlink">')
-    if (!href) return presentResult(shortlinkRule, page, {
-      input: 'Static DOM', type: 'warn', priority: 400,
-      values: [textField('Shortlink', 'Found'), textField('Declared href', 'Empty')],
-      checked: [textField('Selector', SELECTOR), textField('Selection', 'First match'), textField('Attribute', 'href'),
-        textField('URL resolution', 'Not performed for an empty value')],
-      evidence: [{ name: 'Match', fields: captured.fields }],
-      markup: captured.markup, noMarkup: 'Complete original shortlink markup not retained',
-    })
+    if (!href) {
+      const records = elementRecords([linkEl], 1, (link) => [hrefField(link, page.url)])
+      return presentResult(shortlinkRule, page, {
+        input: 'Static DOM', type: 'warn', priority: 400,
+        values: [textField('Shortlink href', 'Empty'), ...records.markup],
+        detailValues: records.counts,
+        checked: [...checkedLink, textField('URL resolution', 'Not performed for an empty value')],
+        evidence: records.evidence, markup: records.markup, noMarkup: markupReason(records, 'Complete original shortlink markup not retained', 'No matching shortlink element found'),
+      })
+    }
 
     const resolved = resolvePageWebUrl(href, page)
     const declaredBase = page.doc.querySelector('base[href]')
-    const baseHref = declaredBase?.getAttribute('href')?.trim() || ''
-    const baseWasRead = Boolean(baseHref)
-    const baseCapture = baseWasRead ? markupEvidence([declaredBase!], '<base>') : null
+    const baseRead = Boolean(declaredBase?.getAttribute('href')?.trim())
+    // The <base> element is retained whenever it was read to resolve the href, so its contribution is visible.
+    const elements = baseRead ? [linkEl, declaredBase!] : [linkEl]
+    const records = elementRecords(elements, elements.length, (link) => [hrefField(link, page.url)])
     const type: 'info' | 'warn' = resolved ? 'info' : 'warn'
     return presentResult(shortlinkRule, page, {
       input: 'Static DOM', type, priority: type === 'info' ? 850 : 500,
-      values: [textField('Shortlink', 'Found'), resolved ? urlField('Declared href', href) : textField('Declared href', href),
-        resolved ? urlField('Resolved URL', resolved) : textField('Resolved URL', 'Invalid HTTP(S) URL')],
-      detailValues: [urlField('Page URL', page.url), baseWasRead ? urlField('Base href', baseHref) : textField('Base href', 'Not declared')],
-      checked: [textField('Selector', SELECTOR), textField('Selection', 'First match'), textField('Attribute', 'href'),
-        textField('URL resolution', 'Resolved against the document base and page URL; HTTP(S) only')],
-      evidence: [{ name: 'Match', fields: captured.fields }, ...(baseCapture ? [{ name: 'Base URL', fields: baseCapture.fields }] : [])],
-      markup: [...captured.markup, ...(baseCapture ? baseCapture.markup : [])],
-      noMarkup: 'Complete original shortlink source markup not retained',
+      values: [
+        ...(href === resolved ? [] : [textField('Shortlink href', href)]),
+        resolved ? urlField('Shortlink URL', resolved) : textField('Shortlink URL', 'Invalid HTTP(S) URL'),
+        ...records.markup,
+      ],
+      detailValues: records.counts,
+      checked: [...checkedLink, textField('URL resolution', 'Resolved against the document base and page URL; HTTP(S) only')],
+      evidence: records.evidence,
+      markup: records.markup,
+      noMarkup: markupReason(records, 'Complete original shortlink source markup not retained', 'No matching shortlink element found'),
     })
   },
 }

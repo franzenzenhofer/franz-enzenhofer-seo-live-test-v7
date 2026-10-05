@@ -21,40 +21,49 @@ describe('canonical HTTPS preference', () => {
     const emptyHref = await run('<link rel="canonical" href="">')
     expect(missingAttr.presentation?.values).toContainEqual({ key: 'Canonical link', value: 'Present, href attribute missing', kind: 'text' })
     expect(emptyHref.presentation?.values).toContainEqual({ key: 'Canonical link', value: 'Present, href empty', kind: 'text' })
-    expect(emptyHref.presentation?.markup[0]?.value).toBe('<link rel="canonical" href="">')
+    expect(emptyHref.presentation?.values).toContainEqual({ key: '<link rel="canonical">', value: '<link rel="canonical" href="">', kind: 'original', fidelity: 'complete-original' })
   })
 
   it('retains the declared <base> element used to resolve a relative href', async () => {
     const html = '<base href="https://cdn.example.test/"><link rel="canonical" href="page">'
     const r = await run(html)
     expect(r.type).toBe('ok')
+    expect(r.presentation?.values).toContainEqual({ key: 'Canonical href', value: 'page', kind: 'text' })
     expect(r.presentation?.values).toContainEqual({ key: 'Canonical URL', value: 'https://cdn.example.test/page', kind: 'url' })
-    expect(r.presentation?.evidence).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'Base element' })]))
-    expect(r.presentation?.markup.map(({ value }) => value)).toContain('<base href="https://cdn.example.test/">')
+    expect(r.presentation?.evidence.map(({ name }) => name)).toEqual(['<link rel="canonical">', '<base>'])
+    expect(r.presentation?.values).toContainEqual({ key: '<base>', value: '<base href="https://cdn.example.test/">', kind: 'original', fidelity: 'complete-original' })
   })
 
-  it('errors for an HTTPS page whose canonical resolves to HTTP', async () => {
+  it('errors for an HTTPS page whose canonical resolves to HTTP, showing both URLs and the scheme verdict', async () => {
     const html = '<link rel="canonical" href="http://example.test/page">'
     const r = await run(html)
     expect(r.type).toBe('error')
     expect(r.priority).toBe(120)
     expect(r.presentation?.input).toBe('Static DOM + Page URL')
-    expect(r.presentation?.values).toContainEqual({ key: 'Canonical URL', value: 'http://example.test/page', kind: 'url' })
-    expect(r.presentation?.values).toContainEqual({ key: 'HTTPS downgrade', value: 'Detected', kind: 'text' })
+    expect(r.presentation?.values).toEqual([
+      { key: 'Canonical URL', value: 'http://example.test/page', kind: 'url' },
+      { key: 'Current page URL', value: 'https://example.test/page', kind: 'url' },
+      { key: 'Comparison', value: 'Differs from current page URL scheme', kind: 'text' },
+      { key: '<link rel="canonical">', value: html, kind: 'original', fidelity: 'complete-original' },
+    ])
   })
 
   it('accepts an HTTPS canonical and resolves relative hrefs against the page URL', async () => {
     const r = await run('<link rel="canonical" href="/page">')
     expect(r.type).toBe('ok')
     expect(r.priority).toBe(800)
+    expect(r.presentation?.values).toContainEqual({ key: 'Canonical href', value: '/page', kind: 'text' })
     expect(r.presentation?.values).toContainEqual({ key: 'Canonical URL', value: 'https://example.test/page', kind: 'url' })
-    expect(r.presentation?.values).toContainEqual({ key: 'HTTPS downgrade', value: 'Not detected', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Comparison', value: 'Equals current page URL scheme', kind: 'text' })
+    expect(r.presentation?.detailValues).toEqual(expect.arrayContaining([{ key: 'Markup retained', value: 1, kind: 'text' }]))
   })
 
   it('keeps an invalid declared href as plain text, never a broken link', async () => {
     const r = await run('<link rel="canonical" href="javascript:void(0)">')
     expect(r.type).toBe('warn')
-    expect(r.presentation?.values).toContainEqual({ key: 'Canonical href (observed)', value: 'javascript:void(0)', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Canonical href', value: 'javascript:void(0)', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Canonical URL', value: 'Invalid HTTP(S) URL', kind: 'text' })
+    expect(r.presentation?.values.some(({ kind }) => kind === 'url')).toBe(false)
   })
 
   it('preserves the documentation reference, userGuide and removes legacy details', async () => {

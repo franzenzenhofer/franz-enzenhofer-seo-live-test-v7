@@ -1,8 +1,9 @@
+import { canonicalRows, hrefField, markupReason, resolveUrl, webUrlField } from './canonicalHreflangPresentation'
+
 import type { Rule } from '@/core/types'
-import { EVIDENCE_LIMIT } from '@/shared/domEvidence'
-import { httpStatusLabel } from '@/shared/httpStatusLabel'
-import { textField, urlField } from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { differingComponent } from '@/shared/presentation/comparison'
+import { textField } from '@/shared/presentation/create'
+import { elementRecords } from '@/shared/presentation/records'
 import { presentResult } from '@/shared/presentation/result'
 import { headerChainToRedirectChain } from '@/shared/redirectChainFromEvents'
 import { normalizeUrl } from '@/shared/url-utils'
@@ -17,13 +18,6 @@ const checked = [
   textField('URL comparison', 'Normalized canonical, first, and final URLs'),
   textField('Criterion', 'Canonical should not equal a URL that redirected; a different preferred URL is informational'),
 ]
-const safeUrlField = (key: string, value: string) => {
-  try {
-    const parsed = new URL(value)
-    if (parsed.protocol === 'https:' || parsed.protocol === 'http:') return urlField(key, value)
-  } catch { /* not an absolute, parseable URL */ }
-  return textField(key, value)
-}
 
 type NavHop = { url?: string; type?: string }
 type NavLedger = { trace: NavHop[] }
@@ -33,22 +27,9 @@ const getLedger = (ctx: { globals: Record<string, unknown> }): NavLedger | null 
   const trace = Array.isArray((raw as NavLedger).trace) ? (raw as NavLedger).trace : []
   return trace.length ? { trace } : null
 }
-// Bounded, individually named records - one per navigation/redirect hop -
-// instead of one unbounded formatted text blob that the storage bound would drop whole.
-const traceEvidence = (trace: NavHop[]) => {
-  const shown = trace.slice(0, EVIDENCE_LIMIT)
-  return shown.map((hop, index) => ({ name: `Navigation hop ${index + 1}`, fields: [
-    textField('Type', hop.type || 'Not captured'), safeUrlField('URL', hop.url || 'Not captured'),
-  ] }))
-}
-const redirectEvidence = (chain: ReturnType<typeof headerChainToRedirectChain>) => {
-  if (!chain) return []
-  const shown = chain.hops.slice(0, EVIDENCE_LIMIT)
-  return shown.map((hop, index) => ({ name: `Redirect hop ${index + 1}`, fields: [
-    safeUrlField('URL', hop.url), textField('Status', httpStatusLabel(hop.status || undefined)),
-    ...(hop.location ? [safeUrlField('Location', hop.location)] : []),
-  ] }))
-}
+// The main-document status chain as one fact ("301 > 200"), never a URL-bearing text blob.
+const statusChain = (chain: ReturnType<typeof headerChainToRedirectChain>) =>
+  chain ? [textField('Status chain', chain.hops.map((hop) => (hop.status > 0 ? String(hop.status) : 'none')).join(' > '))] : []
 
 export const canonicalNavConsistencyRule: Rule = {
   id: RULE_ID, name: NAME, presentation: 1, enabled: true, what: 'http',
@@ -64,26 +45,22 @@ export const canonicalNavConsistencyRule: Rule = {
   async run(page, ctx) {
     const element = page.doc.querySelector(SELECTOR)
     const href = (element?.getAttribute('href') || '').trim()
-    const captured = markupEvidence(element ? [element] : [], 'Canonical link')
-    const sourceEvidence = captured.fields.length ? [{ name: 'Source', fields: captured.fields }] : []
+    const records = elementRecords(element ? [element] : [], element ? 1 : 0, (link) => [hrefField(link, page.url)])
+    const base = { detailValues: element ? records.counts : [], evidence: records.evidence, markup: records.markup,
+      noMarkup: markupReason(records, 'Complete original canonical markup not retained', 'No canonical link element found') }
 
     if (!href) {
       return presentResult(canonicalNavConsistencyRule, page, {
-        input: 'Static DOM', type: 'info', priority: 900,
-        values: [textField('Canonical link', element ? 'Found without an href' : 'Not found')], checked: checkedLink,
-        evidence: sourceEvidence, markup: captured.markup,
-        noMarkup: element ? 'Complete original canonical markup not retained' : 'No canonical link element found',
+        ...base, input: 'Static DOM', type: 'info', priority: 900,
+        values: [textField('Canonical link', element ? 'Found without an href' : 'Not found'), ...records.markup], checked: checkedLink,
       })
     }
-    let canonicalResolved = ''
-    try {
-      canonicalResolved = new URL(href, page.url).toString()
-    } catch {
+    const canonicalResolved = resolveUrl(href, page.url)
+    if (!canonicalResolved) {
       return presentResult(canonicalNavConsistencyRule, page, {
-        input: 'Static DOM + Page URL', type: 'warn', priority: 200,
-        values: [textField('Canonical href (observed)', href), textField('URL status', 'Invalid URL')],
+        ...base, input: 'Static DOM + Page URL', type: 'warn', priority: 200,
+        values: [...canonicalRows(href, null), ...records.markup],
         checked: [...checkedLink, textField('Resolution', 'Canonical href resolved against page URL')],
-        evidence: sourceEvidence, markup: captured.markup, noMarkup: 'Complete original canonical markup not retained',
       })
     }
 
@@ -100,39 +77,20 @@ export const canonicalNavConsistencyRule: Rule = {
     const normFinal = normalizeUrl(finalUrl || '')
     const normFirst = normalizeUrl(firstUrl || '')
 
-    const values = [safeUrlField('Canonical URL', canonicalResolved), safeUrlField('First navigation URL', firstUrl),
-      safeUrlField('Final navigation URL', finalUrl), textField('Redirect count', redirectCount)]
-    const redirectHops = chain?.hops.length ?? 0
-    const detailValues = [safeUrlField('Normalized canonical URL', normCanonical), safeUrlField('Normalized final URL', normFinal),
-      textField('Navigation hops', trace.length), textField('Navigation hops omitted', Math.max(trace.length - EVIDENCE_LIMIT, 0)),
-      textField('Redirect hops', redirectHops), textField('Redirect hops omitted', Math.max(redirectHops - EVIDENCE_LIMIT, 0))]
-    const evidence = [...sourceEvidence, ...traceEvidence(trace), ...redirectEvidence(chain)]
-    const markup = captured.markup
-    const noMarkup = 'Complete original canonical markup not retained'
+    // Both sides of the comparison: the first URL only when navigation moved away from it.
+    const values = [...canonicalRows(href, canonicalResolved),
+      ...(normFirst === normFinal ? [] : [webUrlField('First URL', firstUrl)]), webUrlField('Final URL', finalUrl)]
+    const detailValues = [...base.detailValues, textField('Redirects', redirectCount), textField('Navigation hops', trace.length),
+      textField('Redirect hops', chain?.hops.length ?? 0), ...statusChain(chain)]
+    const finding = (type: 'ok' | 'warn' | 'info', priority: number, comparison: string) => presentResult(canonicalNavConsistencyRule, page, {
+      ...base, input, type, priority, values: [...values, textField('Comparison', comparison), ...records.markup], detailValues, checked,
+    })
 
-    if (!redirectCount && normCanonical === normFinal) {
-      return presentResult(canonicalNavConsistencyRule, page, {
-        input, type: 'ok', priority: 850, values: [...values, textField('Navigation comparison', 'Aligns with final URL')],
-        detailValues, checked, evidence, markup, noMarkup,
-      })
-    }
-    if (redirectCount > 0 && normCanonical === normFirst && normFinal !== normCanonical) {
-      return presentResult(canonicalNavConsistencyRule, page, {
-        input, type: 'warn', priority: 180, values: [...values, textField('Navigation comparison', 'Equals a URL that redirected')],
-        detailValues: [...detailValues, safeUrlField('Normalized first URL', normFirst)], checked, evidence, markup, noMarkup,
-      })
-    }
+    if (!redirectCount && normCanonical === normFinal) return finding('ok', 850, 'Equals final URL')
+    if (redirectCount > 0 && normCanonical === normFirst && normFinal !== normCanonical) return finding('warn', 180, 'Equals first URL (redirected)')
     // A canonical pointing to a different preferred URL is the documented use
     // case of rel=canonical, not a conflicting signal - report it as info.
-    if (normCanonical !== normFinal) {
-      return presentResult(canonicalNavConsistencyRule, page, {
-        input, type: 'info', priority: 600, values: [...values, textField('Navigation comparison', 'Points to a different URL than the final URL')],
-        detailValues, checked, evidence, markup, noMarkup,
-      })
-    }
-    return presentResult(canonicalNavConsistencyRule, page, {
-      input, type: 'ok', priority: 800, values: [...values, textField('Navigation comparison', 'Aligns with navigation')],
-      detailValues, checked, evidence, markup, noMarkup,
-    })
+    if (normCanonical !== normFinal) return finding('info', 600, `Differs from final URL (${differingComponent(canonicalResolved, finalUrl) ?? 'normalized'})`)
+    return finding('ok', 800, 'Equals final URL')
   },
 }

@@ -1,10 +1,15 @@
+import { hrefField, hreflangOf, markupReason, overviewMarkup } from './canonicalHreflangPresentation'
+
 import type { Rule } from '@/core/types'
-import { sampleMatchingElements } from '@/shared/domEvidence'
-import {domPathField, textField} from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { sampleElements, sampleMatchingElements } from '@/shared/domEvidence'
+import { textField } from '@/shared/presentation/create'
+import { elementRecords } from '@/shared/presentation/records'
 import { presentResult } from '@/shared/presentation/result'
+import { listRow } from '@/shared/presentation/listRow'
 
 const SELECTOR = 'head > link[rel~="alternate" i][hreflang]'
+// A passing inventory ships every inspected link; the storage bound keeps as many whole records as fit (F5).
+const INVENTORY_LIMIT = 1000
 
 // Google documents ISO 639-1 (two-letter) languages, optional ISO 15924 script,
 // optional ISO 3166-1 Alpha 2 (two-letter) region; es-419-style numeric regions
@@ -17,6 +22,7 @@ const checked = [
   textField('Validation pattern', 'x-default, or ISO 639-1 language with optional ISO 15924 script and ISO 3166-1 Alpha-2 region'),
   textField('Criterion', 'Every hreflang attribute value matches the pattern'),
 ]
+const hreflangFields = (element: Element, base: string) => [textField('hreflang', hreflangOf(element) || 'Empty'), hrefField(element, base)]
 
 export const hreflangValuesRule: Rule = {
   id: 'head:hreflang-values',
@@ -39,30 +45,26 @@ export const hreflangValuesRule: Rule = {
       })
     }
 
-    const invalid = sampleMatchingElements(elements, (el) => !isValidHreflang((el.getAttribute('hreflang') || '').trim()))
+    const invalid = sampleMatchingElements(elements, (el) => !isValidHreflang(hreflangOf(el)))
     if (!invalid.total) {
+      const all = sampleElements(elements, INVENTORY_LIMIT)
+      const records = elementRecords(all.sample, all.total, (element) => hreflangFields(element, page.url))
       return presentResult(hreflangValuesRule, page, {
         input: 'Static DOM', type: 'ok', priority: 820,
-        values: [textField('Hreflang links', elements.length), textField('Invalid values', 0)], checked,
-        noMarkup: 'No invalid hreflang value found',
+        values: [textField('Hreflang links', elements.length), textField('Hreflang values', listRow([...new Set(all.sample.map(hreflangOf).filter(Boolean))])), ...overviewMarkup(records.markup)],
+        detailValues: records.counts, checked, evidence: records.evidence, markup: records.markup,
+        noMarkup: markupReason(records, 'Complete original hreflang link markup not retained', 'No hreflang links found'),
       })
     }
 
-    const invalidValues = invalid.sample.map((el) => (el.getAttribute('hreflang') || '').trim()).filter(Boolean)
-    const captured = markupEvidence(invalid.sample, 'Invalid hreflang link markup')
+    // The listed values cover every invalid link, the records the retained sample.
+    const invalidValues = [...new Set(Array.from(elements).filter((el) => !isValidHreflang(hreflangOf(el))).map((el) => hreflangOf(el) || 'Empty'))]
+    const records = elementRecords(invalid.sample, invalid.total, (element) => hreflangFields(element, page.url))
     return presentResult(hreflangValuesRule, page, {
       input: 'Static DOM', type: 'warn', priority: 220,
-      values: [textField('Hreflang links', elements.length), textField('Invalid values', invalid.total)],
-      detailValues: [textField('Invalid values (list)', invalidValues.join(', ')),
-        textField('Invalid examples retained', invalid.shown), textField('Invalid examples omitted', invalid.total - invalid.shown)],
-      checked,
-      evidence: invalid.sample.map((el, index) => ({
-        name: `Invalid hreflang ${index + 1}`,
-        fields: [textField('Attribute value', (el.getAttribute('hreflang') || '').trim() || 'Empty'),
-          domPathField('DOM path', captured.selectors[index], 'Not captured')],
-      })),
-      markup: captured.markup,
-      noMarkup: 'Complete original invalid hreflang link markup not retained',
+      values: [textField('Hreflang links', elements.length), textField('Invalid values', listRow(invalidValues)), ...overviewMarkup(records.markup)],
+      detailValues: records.counts, checked, evidence: records.evidence, markup: records.markup,
+      noMarkup: markupReason(records, 'Complete original invalid hreflang link markup not retained', 'No invalid hreflang value found'),
     })
   },
 }

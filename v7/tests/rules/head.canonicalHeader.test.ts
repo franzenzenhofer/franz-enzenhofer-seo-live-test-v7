@@ -12,8 +12,7 @@ describe('canonical HTTP header', () => {
     expect(r.type).toBe('info')
     expect(r.priority).toBe(600)
     expect(r.presentation?.input).toBe('Not captured')
-    expect(r.presentation?.values).toContainEqual({ key: 'Canonical header values', value: 0, kind: 'text' })
-    expect(r.presentation?.values).toContainEqual({ key: 'Link header', value: 'Not captured', kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'HTTP canonical', value: 'Not captured', kind: 'text' }])
   })
 
   it('reports a captured but empty Link header as absent', async () => {
@@ -21,8 +20,16 @@ describe('canonical HTTP header', () => {
     expect(r.type).toBe('info')
     expect(r.priority).toBe(600)
     expect(r.presentation?.input).toBe('HTTP response headers')
-    expect(r.presentation?.values).toContainEqual({ key: 'Link header', value: 'Absent', kind: 'text' })
-    expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Link header (raw)', value: 'Not present', kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'Link header', value: 'Absent', kind: 'text' }])
+  })
+
+  it('reports a Link header without rel=canonical as not found and names the relations it does declare', async () => {
+    const r = await run({ link: '</style.css>; rel="preload"; as="style", <https://cdn.example.test>; rel=preconnect' })
+    expect(r.type).toBe('info')
+    expect(r.presentation?.values).toEqual([
+      { key: 'HTTP canonical', value: 'Not found', kind: 'text' },
+      { key: 'Link relations', value: 'preload, preconnect', kind: 'text' },
+    ])
   })
 
   it('every branch explains the HTTP input, never an HTML absence', async () => {
@@ -32,25 +39,30 @@ describe('canonical HTTP header', () => {
     expect(captured.presentation?.noMarkup).toBe('None - this rule checks the HTTP Link response header, not document markup')
   })
 
-  it('retains the raw header and exposes one parsed canonical URL', async () => {
+  it('exposes one parsed canonical URL as the observed value', async () => {
     const header = '<https://example.test/a>; rel="canonical"'
     const r = await run({ link: header })
     expect(r.type).toBe('ok')
     expect(r.priority).toBe(800)
-    expect(r.presentation?.values).toContainEqual({ key: 'Canonical URL 1', value: 'https://example.test/a', kind: 'url' })
-    expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Link header (raw)', value: header, kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'HTTP canonical', value: 'https://example.test/a', kind: 'url' }])
+    expect(r.presentation?.detailValues).toEqual([{ key: 'Link relations', value: 'canonical', kind: 'text' }])
   })
 
-  it('errors for multiple distinct canonical values and retains each URL', async () => {
+  it('errors for multiple distinct canonical values and shows each URL in the overview', async () => {
     const header = '<https://example.test/a>; rel="canonical", <https://example.test/b>; rel="canonical"'
     const r = await run({ link: header })
     expect(r.type).toBe('error')
     expect(r.priority).toBe(120)
-    expect(r.presentation?.values).toContainEqual({ key: 'Canonical header values', value: 2, kind: 'text' })
-    expect(r.presentation?.detailValues).toEqual(expect.arrayContaining([
-      { key: 'Canonical URL 1', value: 'https://example.test/a', kind: 'url' },
-      { key: 'Canonical URL 2', value: 'https://example.test/b', kind: 'url' },
-    ]))
+    expect(r.presentation?.values).toEqual([
+      { key: 'HTTP canonicals', value: 2, kind: 'text' },
+      { key: 'HTTP canonical 1', value: 'https://example.test/a', kind: 'url' },
+      { key: 'HTTP canonical 2', value: 'https://example.test/b', kind: 'url' },
+    ])
+  })
+
+  it('keeps an unparseable header target as plain text, never a broken link', async () => {
+    const r = await run({ link: '<not a real url>; rel="canonical"' })
+    expect(r.presentation?.values).toEqual([{ key: 'HTTP canonical', value: 'not a real url', kind: 'text' }])
   })
 
   it('preserves references and removes the legacy details payload', async () => {

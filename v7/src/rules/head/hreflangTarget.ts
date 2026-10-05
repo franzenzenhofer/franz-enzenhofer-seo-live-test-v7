@@ -1,6 +1,6 @@
 import { parseHtmlDocument } from '@/shared/parseHtml'
 import { followRedirectChain } from '@/shared/redirectChain'
-import { formatRedirectChain } from '@/shared/redirectChainFormat'
+import type { RedirectChain } from '@/shared/redirectChainTypes'
 import { pageEffectiveRobots } from '@/shared/effectiveRobots'
 import { HTML_RESPONSE_BYTES, readBoundedText } from '@/shared/responseBody'
 import { discardBody } from '@/shared/http-utils'
@@ -9,7 +9,7 @@ export const HREFLANG_SELECTOR = 'link[rel~="alternate" i][hreflang][href]'
 export type HreflangTarget = { href: string; hreflang: string; declarations: string[] }
 export type HreflangCheck = HreflangTarget & {
   status?: number; redirected?: boolean; selfReference?: boolean; backReference?: boolean
-  canonical?: string | null; noindex?: boolean; error?: string; redirectChainText?: string
+  canonical?: string | null; canonicalHref?: string; noindex?: boolean; error?: string; chain?: RedirectChain
   bodyTruncated?: boolean
   issues: Array<{ level: 'warn' | 'error'; text: string }>
 }
@@ -27,7 +27,7 @@ export const checkHreflangTarget = async (
     const { chain, response } = await followRedirectChain(target.href, { timeoutMs: 10000, wantBody: true, signal })
     check.status = chain.finalStatus
     check.redirected = chain.redirected
-    check.redirectChainText = formatRedirectChain(chain)
+    check.chain = chain
     if (chain.loop || chain.capped) {
       if (response) discardBody(response)
       issue('error', `URL ${chain.loop ? 'enters a redirect loop' : `exceeds ${chain.maxHops} redirects`}.`)
@@ -58,6 +58,7 @@ export const checkHreflangTarget = async (
     if (!check.selfReference) issue(missing, 'no self reference found.')
     if (!check.backReference) issue(missing, 'no back reference to canonical.')
     const canonicalHref = dom.querySelector('head > link[rel~="canonical" i]')?.getAttribute('href') || ''
+    check.canonicalHref = canonicalHref
     check.canonical = resolveHttpHref(canonicalHref, base)
     if (canonicalHref && !check.canonical) issue('error', 'target canonical is invalid.')
     else if (check.canonical && check.canonical !== chain.finalUrl) issue('warn', `target canonical points elsewhere: ${check.canonical}.`)

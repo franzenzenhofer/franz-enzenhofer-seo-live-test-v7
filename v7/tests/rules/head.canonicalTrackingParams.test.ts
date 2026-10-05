@@ -29,8 +29,11 @@ describe('canonical tracking params', () => {
     expect(r.type).toBe('ok')
     expect(r.priority).toBe(800)
     expect(r.presentation?.input).toBe('Static DOM + Page URL')
+    expect(r.presentation?.values).toContainEqual({ key: 'Canonical href', value: '/page?ref=home', kind: 'text' })
     expect(r.presentation?.values).toContainEqual({ key: 'Canonical URL', value: 'https://example.test/page?ref=home', kind: 'url' })
     expect(r.presentation?.values).toContainEqual({ key: 'Offending parameters', value: 'None', kind: 'text' })
+    expect(r.presentation?.evidence).toEqual([expect.objectContaining({ name: '<link rel="canonical">' })])
+    expect(r.presentation?.detailValues).toContainEqual({ key: 'Markup retained', value: 1, kind: 'text' })
     expect(r.presentation?.checked.find(({ key }) => key === 'Parameter names')).toBeDefined()
   })
 
@@ -48,7 +51,8 @@ describe('canonical tracking params', () => {
     const r = await run(html)
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(200)
-    expect(r.presentation?.values).toContainEqual({ key: 'Canonical URL (resolved)', value: 'javascript:alert(1)', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Canonical href', value: 'javascript:alert(1)', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'URL scheme', value: 'javascript:', kind: 'text' })
     expect(r.presentation?.values.some(({ kind }) => kind === 'url')).toBe(false)
   })
 
@@ -57,8 +61,9 @@ describe('canonical tracking params', () => {
     const r = await run(html)
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(200)
-    expect(r.presentation?.values).toContainEqual({ key: 'Canonical href (observed)', value: 'http://[', kind: 'text' })
-    expect(r.presentation?.markup[0]?.value).toBe(html)
+    expect(r.presentation?.values).toContainEqual({ key: 'Canonical href', value: 'http://[', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Canonical URL', value: 'Invalid URL', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: '<link rel="canonical">', value: html, kind: 'original', fidelity: 'complete-original' })
   })
 
   it('preserves references, userGuide and removes the legacy details payload', async () => {

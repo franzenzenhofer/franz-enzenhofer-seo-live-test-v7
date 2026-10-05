@@ -1,20 +1,24 @@
+import { hrefField, hreflangOf, markupReason, overviewMarkup } from './canonicalHreflangPresentation'
+
 import type { Rule } from '@/core/types'
 import { sampleElements } from '@/shared/domEvidence'
-import { textField, urlField } from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { textField } from '@/shared/presentation/create'
+import { elementRecords } from '@/shared/presentation/records'
 import { presentResult } from '@/shared/presentation/result'
+import { listRow } from '@/shared/presentation/listRow'
 
 const SELECTOR = 'head > link[rel~="alternate" i][hreflang]'
-// Full attribute capture for every hreflang link, bounded only by the
-// content-script phase-message byte budget (stated via the retained/omitted counts).
-const PAIR_LIMIT = 200
+// An inventory ships every link; the 32 KB storage bound keeps as many whole records as fit (FORMATTING.md F5).
+const INVENTORY_LIMIT = 1000
 
 const checked = [
   textField('Selector', SELECTOR),
   textField('Selection', 'All matches'),
-  textField('Attribute pairs captured', `Up to ${PAIR_LIMIT} hreflang/href pairs`),
   textField('Criterion', 'Informational inventory; no pass/fail verdict'),
 ]
+// Each repeated value with how often it is declared, e.g. "en (2 links)".
+const duplicatesOf = (values: string[]) => [...new Set(values.filter((value, index) => value && values.indexOf(value) !== index))]
+  .map((value) => `${value} (${values.filter((candidate) => candidate === value).length} links)`)
 
 export const hreflangRule: Rule = {
   id: 'head-hreflang',
@@ -28,11 +32,8 @@ export const hreflangRule: Rule = {
     description: 'Inventories head > link[rel=alternate][hreflang] elements: count, language list, and full hreflang/href pairs, always type info.',
   },
   run: async (page) => {
-    const all = page.doc.querySelectorAll(SELECTOR)
-    const elements = sampleElements(all)
+    const elements = sampleElements(page.doc.querySelectorAll(SELECTOR), INVENTORY_LIMIT)
     const count = elements.total
-    const captured = markupEvidence(elements.sample, 'Hreflang link markup')
-
     if (!count) {
       return presentResult(hreflangRule, page, {
         input: 'Static DOM', type: 'info', priority: 900,
@@ -41,34 +42,26 @@ export const hreflangRule: Rule = {
       })
     }
 
-    // Attribute pairs are cheap: collect them for EVERY hreflang link (the
-    // phase-message byte budget still applies, so the retained/omitted counts state the in-rule bound).
-    const hreflangData: Array<{ hreflang: string; href: string }> = []
-    for (let index = 0; index < all.length && hreflangData.length < PAIR_LIMIT; index++) {
-      const link = all.item(index)
-      if (!link) continue
-      hreflangData.push({ hreflang: link.getAttribute('hreflang')?.trim() || '', href: link.getAttribute('href')?.trim() || '' })
-    }
-    const languages = [...new Set(hreflangData.map((d) => d.hreflang).filter(Boolean))]
-
+    const values = elements.sample.map(hreflangOf)
+    const languages = [...new Set(values.filter(Boolean))]
+    const duplicates = duplicatesOf(values)
+    const records = elementRecords(elements.sample, count, (element) => [
+      textField('hreflang', hreflangOf(element) || 'Not declared'), hrefField(element, page.url),
+    ])
     return presentResult(hreflangRule, page, {
       input: 'Static DOM', type: 'info', priority: 710,
-      values: [textField('Hreflang links', count), textField('Distinct languages', languages.length)],
-      detailValues: [
-        textField('Languages', languages.join(', ') || 'None'),
-        textField('Attribute pairs retained', hreflangData.length),
-        textField('Attribute pairs omitted', count - hreflangData.length),
-        textField('Markup elements retained', captured.markup.length),
-        textField('Markup elements omitted', count - captured.markup.length),
+      values: [
+        textField('Hreflang links', count),
+        textField('Languages', listRow(languages)),
+        ...(languages.some((value) => value.toLowerCase() === 'x-default') ? [] : [textField('x-default', 'Not declared')]),
+        ...(duplicates.length ? [textField('Duplicate values', listRow(duplicates))] : []),
+        ...overviewMarkup(records.markup),
       ],
+      detailValues: records.counts,
       checked,
-      evidence: hreflangData.map((pair, index) => ({
-        name: `Hreflang ${index + 1}`,
-        fields: [textField('Language', pair.hreflang || 'Not declared'),
-          ...(pair.href ? [urlField('Href', pair.href)] : [textField('Href', 'Not declared')])],
-      })),
-      markup: captured.markup,
-      noMarkup: 'Complete original hreflang link markup not retained',
+      evidence: records.evidence,
+      markup: records.markup,
+      noMarkup: markupReason(records, 'Complete original hreflang link markup not retained', 'No hreflang links found'),
     })
   },
 }

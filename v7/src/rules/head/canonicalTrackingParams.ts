@@ -1,6 +1,8 @@
+import { canonicalRows, hrefField, markupReason } from './canonicalHreflangPresentation'
+
 import type { Rule } from '@/core/types'
-import { textField, urlField } from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { textField } from '@/shared/presentation/create'
+import { elementRecords } from '@/shared/presentation/records'
 import { presentResult } from '@/shared/presentation/result'
 
 const NAME = 'Canonical tracking params'
@@ -20,13 +22,6 @@ const checkedWithParams = (paramList: string[]) => [
   textField('Parameter names', paramList.join(', ')),
   textField('Criterion', 'Canonical URL contains none of the checked tracking parameters and uses HTTP(S)'),
 ]
-const safeUrlField = (key: string, value: string) => {
-  try {
-    const parsed = new URL(value)
-    if (parsed.protocol === 'https:' || parsed.protocol === 'http:') return urlField(key, value)
-  } catch { /* not an absolute, parseable URL */ }
-  return textField(key, value)
-}
 
 export const canonicalTrackingParamsRule: Rule = {
   id: RULE_ID, name: NAME, presentation: 1, enabled: true, what: 'static',
@@ -45,17 +40,17 @@ export const canonicalTrackingParamsRule: Rule = {
   async run(page, ctx) {
     const link = page.doc.querySelector(SELECTOR)
     const href = (link?.getAttribute('href') || '').trim()
-    const captured = markupEvidence(link ? [link] : [], 'Canonical link')
-    const evidence = captured.fields.length ? [{ name: 'Source', fields: captured.fields }] : []
+    const records = elementRecords(link ? [link] : [], link ? 1 : 0, (element) => [hrefField(element, page.url)])
+    const base = { detailValues: link ? records.counts : [], evidence: records.evidence, markup: records.markup,
+      noMarkup: markupReason(records, 'Complete original canonical markup not retained', 'No canonical link element found') }
 
     // Preserve the original control flow exactly: the no-href branch returns
     // before any config (extra tracking params) is ever parsed, so its
     // `checked` facts must not claim a parameter list was evaluated.
     if (!href) {
       return presentResult(canonicalTrackingParamsRule, page, {
-        input: 'Static DOM', type: 'info', priority: 850,
-        values: [textField('Canonical link', link ? 'Found without an href' : 'Not found')], checked: checkedNoHref, evidence,
-        markup: captured.markup, noMarkup: link ? 'Complete original canonical markup not retained' : 'No canonical link element found',
+        ...base, input: 'Static DOM', type: 'info', priority: 850,
+        values: [textField('Canonical link', link ? 'Found without an href' : 'Not found'), ...records.markup], checked: checkedNoHref,
       })
     }
 
@@ -70,27 +65,19 @@ export const canonicalTrackingParamsRule: Rule = {
       const protocol = resolved.protocol.toLowerCase()
       if (protocol !== 'http:' && protocol !== 'https:') {
         return presentResult(canonicalTrackingParamsRule, page, {
-          input, type: 'warn', priority: 200,
-          values: [textField('Canonical URL (resolved)', resolved.toString()), textField('URL scheme', 'Non-HTTP(S)')],
-          detailValues: [textField('Canonical href (observed)', href), safeUrlField('Page URL', page.url)], checked, evidence,
-          markup: captured.markup, noMarkup: 'Complete original canonical markup not retained',
+          ...base, input, type: 'warn', priority: 200,
+          values: [...canonicalRows(href, null, 'Invalid HTTP(S) URL'), textField('URL scheme', protocol), ...records.markup], checked,
         })
       }
-      const canonicalUrl = resolved.toString()
       const offenders = paramList.filter((param) => resolved.searchParams.has(param))
       return presentResult(canonicalTrackingParamsRule, page, {
-        input, type: offenders.length ? 'warn' : 'ok', priority: offenders.length ? 180 : 800,
-        values: [urlField('Canonical URL', canonicalUrl), textField('Checked parameters', paramList.length),
-          textField('Offending parameters', offenders.join(', ') || 'None')],
-        detailValues: [textField('Canonical href (observed)', href), safeUrlField('Page URL', page.url)], checked, evidence,
-        markup: captured.markup, noMarkup: 'Complete original canonical markup not retained',
+        ...base, input, type: offenders.length ? 'warn' : 'ok', priority: offenders.length ? 180 : 800,
+        values: [...canonicalRows(href, resolved.toString()), textField('Offending parameters', offenders.join(', ') || 'None'), ...records.markup], checked,
       })
     } catch {
       return presentResult(canonicalTrackingParamsRule, page, {
-        input, type: 'warn', priority: 200,
-        values: [textField('Canonical href (observed)', href), textField('URL status', 'Invalid URL')],
-        detailValues: [safeUrlField('Page URL', page.url)], checked, evidence,
-        markup: captured.markup, noMarkup: 'Complete original canonical markup not retained',
+        ...base, input, type: 'warn', priority: 200,
+        values: [...canonicalRows(href, null), ...records.markup], checked,
       })
     }
   },

@@ -11,7 +11,7 @@ describe('canonical header and signal rules', () => {
     const page = { html: '', url: 'https://ex.com', doc: doc('<p/>'), headers: { link: '<https://ex.com>; rel="canonical"' } }
     const res = await canonicalHeaderRule.run(page as any, { globals: {} })
     expect(res.type).toBe('ok')
-    expect(res.presentation?.values).toContainEqual({ key: 'Canonical URL 1', value: 'https://ex.com', kind: 'url' })
+    expect(res.presentation?.values).toContainEqual({ key: 'HTTP canonical', value: 'https://ex.com', kind: 'url' })
     expect(res.details).toBeUndefined()
   })
 
@@ -37,11 +37,11 @@ describe('canonical header and signal rules', () => {
     }
     const res = await canonicalHeaderRule.run(page as any, { globals: {} })
     expect(res.type).toBe('error')
-    expect(res.message).toContain('Multiple')
+    expect(res.message).toContain('HTTP canonicals: 2')
     // The conflict rule compares against the first header canonical only and
     // does not double-report the multiple-header defect.
     const conflict = await canonicalSignalsConflictRule.run(page as any, { globals: {} })
-    expect(conflict.message).not.toContain('Multiple')
+    expect(conflict.message).not.toContain('HTTP canonicals: 2')
   })
 
   it('warns (not errors) when both HTML and HTTP canonicals match - supported but error prone', async () => {
@@ -53,7 +53,7 @@ describe('canonical header and signal rules', () => {
     }
     const res = await canonicalSignalsConflictRule.run(page as any, { globals: {} })
     expect(res.type).toBe('warn')
-    expect(res.presentation?.values).toContainEqual({ key: 'Comparison', value: 'Canonicals agree', kind: 'text' })
+    expect(res.presentation?.values).toContainEqual({ key: 'Comparison', value: 'Equals HTTP canonical', kind: 'text' })
   })
 
   it('flags HTTPS to HTTP downgrade', async () => {

@@ -56,7 +56,7 @@ describe('probe rules cancel response bodies they never read', () => {
       + '<link rel="alternate" hreflang="de" href="https://ex.test/de"></head>'
     const page = { html: '', url: 'https://ex.test/en', doc: D(html) }
     const r = await hreflangMultipageRule.run(page as never, { globals: {} })
-    const targetStatus = r.presentation?.evidence.find((record) => record.name === 'Target 1')?.fields.find((field) => field.key === 'Status')?.value
+    const targetStatus = r.presentation?.evidence.find((record) => record.name === '<link hreflang="de">')?.fields.find((field) => field.key === 'Status')?.value
     expect(targetStatus).toBe('HTTP 404 Not Found')
     expect(cancel).toHaveBeenCalledTimes(1)
   })

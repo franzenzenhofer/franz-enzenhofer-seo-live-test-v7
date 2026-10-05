@@ -1,8 +1,12 @@
+import { canonicalRows, hrefField, isWebUrl, markupReason, resolveUrl, webUrlField } from './canonicalHreflangPresentation'
+
 import type { Rule } from '@/core/types'
 import { linkHeaderOf, parseHeaderCanonicals } from '@/shared/canonicalHeader'
-import { textField, urlField } from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { differingComponent } from '@/shared/presentation/comparison'
+import { textField } from '@/shared/presentation/create'
+import { elementRecords } from '@/shared/presentation/records'
 import { presentResult } from '@/shared/presentation/result'
+import type { DisplayField } from '@/shared/presentation/schema'
 import { normalizeUrl } from '@/shared/url-utils'
 
 const NAME = 'HTML and HTTP canonical agreement'
@@ -14,9 +18,12 @@ const checked = [
   textField('Resolution', 'Each declared URL resolved against the page URL'),
   textField('Criterion', 'Both canonical declarations resolve to the same normalized URL'),
 ]
-const webUrlField = (key: string, value: string) => (/^https?:\/\//i.test(value) ? urlField(key, value) : textField(key, value))
-const resolve = (value: string, base: string): string => {
-  try { return value ? new URL(value, base).href : '' } catch { return '' }
+const webUrl = (value: string, base: string) => { const resolved = value ? resolveUrl(value, base) : null; return resolved && isWebUrl(resolved) ? resolved : null }
+// The HTTP side of the comparison: the header canonical, or the fact that none was captured or found.
+const httpRows = (headerHref: string, resolved: string | null, captured: boolean): DisplayField[] => {
+  if (!captured) return []
+  if (!headerHref) return [textField('HTTP canonical', 'Not found')]
+  return [...(headerHref === resolved ? [] : [textField('HTTP href', headerHref)]), resolved ? webUrlField('HTTP canonical', resolved) : textField('HTTP canonical', 'Invalid URL')]
 }
 
 export const canonicalSignalsConflictRule: Rule = {
@@ -35,48 +42,32 @@ export const canonicalSignalsConflictRule: Rule = {
     const htmlHref = (element?.getAttribute('href') || '').trim()
     const header = linkHeaderOf(page.headers)
     const headerHref = parseHeaderCanonicals(header)[0] || ''
-    const htmlCanonical = resolve(htmlHref, page.url)
-    const headerCanonical = resolve(headerHref, page.url)
-    const sources = [
-      { foundIn: 'HTML canonical tag', declaredUrl: htmlHref, resolvedUrl: htmlCanonical },
-      { foundIn: 'HTTP Link header', declaredUrl: headerHref, resolvedUrl: headerCanonical },
-    ].filter(({ declaredUrl }) => declaredUrl)
-    const invalid = sources.some(({ resolvedUrl }) => !resolvedUrl || !/^https?:\/\//i.test(resolvedUrl))
+    const htmlCanonical = webUrl(htmlHref, page.url)
+    const headerCanonical = webUrl(headerHref, page.url)
+    const invalid = Boolean((htmlHref && !htmlCanonical) || (headerHref && !headerCanonical))
     const both = Boolean(htmlCanonical && headerCanonical)
-    const matches = both && normalizeUrl(htmlCanonical) === normalizeUrl(headerCanonical)
-    const comparison = invalid ? 'Invalid or unsupported URL'
-      : !sources.length ? 'No canonical declarations found'
-        : !both ? `Only ${htmlCanonical ? 'HTML' : 'HTTP'} declares a canonical URL`
-          : matches ? 'Canonicals agree' : 'Canonicals conflict'
+    const matches = both && normalizeUrl(htmlCanonical!) === normalizeUrl(headerCanonical!)
+    const headersCaptured = page.headers !== undefined
 
-    const captured = markupEvidence(element ? [element] : [], 'HTML canonical')
-    const evidence = [
-      { name: 'Capture', fields: [
-        textField('HTML href (observed)', htmlHref || 'Not declared'),
-        textField('HTTP Link header (raw)', header || (page.headers === undefined ? 'Not captured' : 'Not present')),
-        ...captured.fields,
-      ] },
-      ...sources.map(({ foundIn, declaredUrl, resolvedUrl }) => ({ name: foundIn, fields: [
-        textField('Declared URL', declaredUrl), webUrlField('Resolved URL', resolvedUrl || 'Invalid or unresolved'),
-      ] })),
-    ]
+    const records = elementRecords(element ? [element] : [], element ? 1 : 0, (link) => [hrefField(link, page.url)])
+    const comparison = !both || invalid ? []
+      : [textField('Comparison', matches ? 'Equals HTTP canonical' : `Differs from HTTP canonical (${differingComponent(htmlCanonical!, headerCanonical!) ?? 'normalized'})`)]
     const values = [
-      htmlCanonical ? webUrlField('HTML canonical', htmlCanonical) : textField('HTML canonical', htmlHref ? 'Invalid or unresolved' : 'Not found'),
-      headerCanonical ? webUrlField('HTTP canonical', headerCanonical) : textField('HTTP canonical', headerHref ? 'Invalid or unresolved' : 'Not found'),
-      textField('Canonical sources', sources.length), textField('Comparison', comparison),
+      ...(htmlHref ? canonicalRows(htmlHref, htmlCanonical) : [textField('Canonical link', 'Not found')]),
+      ...httpRows(headerHref, headerCanonical, headersCaptured), ...comparison, ...records.markup,
     ]
 
     // "Page URL" is only an actual input when at least one declared href was
     // resolved against it; the no-sources branch never reads page.url.
     const input = [
       'Static DOM',
-      ...(page.headers === undefined ? [] : ['HTTP response headers']),
+      ...(headersCaptured ? ['HTTP response headers'] : []),
       ...(htmlHref || headerHref ? ['Page URL'] : []),
     ].join(' + ')
     return presentResult(canonicalSignalsConflictRule, page, {
       input, type: invalid || matches ? 'warn' : both ? 'error' : 'info', priority: both && !matches ? 80 : 700,
-      values, checked, evidence, markup: captured.markup,
-      noMarkup: element ? 'Complete original HTML canonical markup not retained' : 'No HTML canonical element; HTTP header evidence is reported separately',
+      values, detailValues: element ? records.counts : [], checked, evidence: records.evidence, markup: records.markup,
+      noMarkup: markupReason(records, 'Complete original HTML canonical markup not retained', 'No HTML canonical element; HTTP header evidence is reported separately'),
     })
   },
 }

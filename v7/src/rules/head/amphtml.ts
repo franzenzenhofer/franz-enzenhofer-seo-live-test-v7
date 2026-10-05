@@ -1,8 +1,10 @@
-import { resolvePageWebUrl } from '@/shared/resolvePageWebUrl'
+import { hrefField, markupReason } from './canonicalHreflangPresentation'
+
 import type { Rule } from '@/core/types'
 import { textField, urlField } from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { elementRecords } from '@/shared/presentation/records'
 import { presentResult } from '@/shared/presentation/result'
+import { resolvePageWebUrl } from '@/shared/resolvePageWebUrl'
 
 const NAME = 'AMP HTML Link'
 const RULE_ID = 'head:amphtml'
@@ -34,26 +36,27 @@ export const amphtmlRule: Rule = {
     })
 
     const href = element.getAttribute('href')?.trim() || ''
-    const captured = markupEvidence([element], '<link rel="amphtml">')
     const resolved = resolvePageWebUrl(href, page)
     const declaredBase = page.doc.querySelector('base[href]')
-    const baseHref = declaredBase?.getAttribute('href')?.trim() || ''
-    const baseWasRead = Boolean(baseHref)
-    const baseCapture = baseWasRead ? markupEvidence([declaredBase!], '<base>') : null
-    const hasHref = Boolean(resolved)
+    const baseRead = Boolean(declaredBase?.getAttribute('href')?.trim())
+    // The <base> element is retained whenever it was read to resolve the href, so its contribution is visible.
+    const elements = baseRead ? [element, declaredBase!] : [element]
+    const records = elementRecords(elements, elements.length, (link) => [hrefField(link, page.url)])
     const validatorUrl = resolved ? `https://validator.ampproject.org/#url=${encodeURIComponent(resolved)}` : null
 
     return presentResult(amphtmlRule, page, {
-      input: 'Static DOM', type: hasHref ? 'info' : 'warn', priority: 500,
-      values: [textField('AMP HTML link', 'Found'), resolved ? urlField('Declared href', href) : textField('Declared href', href || 'Empty'),
-        resolved ? urlField('Resolved AMP URL', resolved) : textField('Resolved AMP URL', 'Invalid HTTP(S) URL')],
-      detailValues: [urlField('Page URL', page.url), baseWasRead ? urlField('Base href', baseHref) : textField('Base href', 'Not declared'),
-        validatorUrl ? urlField('Validator URL', validatorUrl) : textField('Validator URL', 'Not generated')],
+      input: 'Static DOM', type: resolved ? 'info' : 'warn', priority: 500,
+      values: [
+        ...(href === resolved ? [] : [textField('AMP href', href || 'Empty')]),
+        resolved ? urlField('AMP URL', resolved) : textField('AMP URL', 'Invalid HTTP(S) URL'),
+        ...records.markup,
+      ],
+      detailValues: [...records.counts, ...(validatorUrl ? [urlField('Validator URL', validatorUrl)] : [])],
       checked: [textField('Selector', SELECTOR), textField('Selection', 'First match'), textField('Attribute', 'href'),
         textField('URL resolution', 'Resolved against the document base and page URL; HTTP(S) only'), textField('AMP destination validation', 'Not performed')],
-      evidence: [{ name: 'Match', fields: captured.fields }, ...(baseCapture ? [{ name: 'Base URL', fields: baseCapture.fields }] : [])],
-      markup: [...captured.markup, ...(baseCapture ? baseCapture.markup : [])],
-      noMarkup: 'Complete original amphtml source markup not retained',
+      evidence: records.evidence,
+      markup: records.markup,
+      noMarkup: markupReason(records, 'Complete original amphtml source markup not retained', 'No matching amphtml link found'),
     })
   },
 }
