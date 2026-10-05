@@ -1,4 +1,4 @@
-import { requestPsi, psiApi, PSI_NOT_MARKUP } from './psiFacts'
+import { requestPsi, psiApi, PSI_API_INPUT, PSI_NOT_MARKUP } from './psiFacts'
 import { psiScoreVerdict, summarizePSI } from './summary'
 
 import { textField, urlField } from '@/shared/presentation/create'
@@ -30,11 +30,11 @@ export const psiDesktopRule: Rule = {
     const summary = summarizePSI(outcome.json, page.url, STRATEGY)
     if (summary.score === undefined) {
       return presentResult(psiDesktopRule, page, {
-        input: 'Page URL + PageSpeed Insights API response',
+        input: PSI_API_INPUT,
         type: 'info',
         priority: 900,
-        values: [textField('Desktop performance score', 'Not reported by PageSpeed Insights')],
-        detailValues: [urlField('PageSpeed Insights report', summary.testUrl)],
+        values: [textField('Performance score', 'Not found')],
+        detailValues: [urlField('PSI report', summary.testUrl)],
         checked: [...psiApi(STRATEGY), textField('Metric', 'Lighthouse performance category score')],
         noMarkup: PSI_NOT_MARKUP,
       })
@@ -42,11 +42,11 @@ export const psiDesktopRule: Rule = {
 
     const verdict = psiScoreVerdict(summary.score)
     return presentResult(psiDesktopRule, page, {
-      input: 'Page URL + PageSpeed Insights API response',
+      input: PSI_API_INPUT,
       type: verdict.type,
       priority: verdict.priority,
-      values: [textField('Desktop performance score', `${summary.score}/100`)],
-      detailValues: [urlField('PageSpeed Insights report', summary.testUrl), urlField('Final tested URL', summary.finalDisplayedUrl || page.url)],
+      values: [textField('Performance score', `${summary.score}/100`)],
+      detailValues: [urlField('PSI report', summary.testUrl), urlField('Final tested URL', summary.finalDisplayedUrl || page.url)],
       checked: [...psiApi(STRATEGY),
         textField('Metric', 'Lighthouse performance category score (0-100)'),
         textField('Criterion', '90-100 passed, 50-89 warning, 0-49 failed')],

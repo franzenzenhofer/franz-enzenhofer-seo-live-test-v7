@@ -1,51 +1,30 @@
+import { urlOrText } from '../failureReason'
+
 import type { inspectionDetails } from './inspectionData'
 
-import { textField, urlField } from '@/shared/presentation/create'
-import type { DisplayField } from '@/shared/presentation/schema'
-
-const LIMIT = 10
-const bounded = <T>(items: T[]) => ({
-  sample: items.slice(0, LIMIT),
-  retained: Math.min(items.length, LIMIT),
-  omitted: Math.max(items.length - LIMIT, 0),
-})
+import { textField } from '@/shared/presentation/create'
+import type { DisplayField, EvidenceRecord } from '@/shared/presentation/schema'
 
 type Details = ReturnType<typeof inspectionDetails>
 
+// Google's recorded states as labelled facts; a URL Google reported is a link, a missing field is Not found.
 export const urlInspectionDetailValues = (details: Details): DisplayField[] => [
-  textField('Google canonical', details.googleCanonical || 'Not reported by Google'),
-  textField('User canonical', details.userCanonical || 'Not reported by Google'),
-  textField('Canonical mismatch', details.canonicalMismatch === undefined ? 'Not determined' : details.canonicalMismatch ? 'Yes' : 'No'),
+  details.googleCanonical ? urlOrText('Google canonical', details.googleCanonical) : textField('Google canonical', 'Not found'),
+  details.userCanonical ? urlOrText('User canonical', details.userCanonical) : textField('User canonical', 'Not found'),
   textField('Robots.txt state', details.robotsTxtState),
   textField('Indexing state', details.indexingState),
   textField('Page fetch state', details.pageFetchState),
   textField('Crawled as', details.crawledAs),
-  textField('Rich results verdict', details.richResults ? details.richResults.verdict : 'Not evaluated'),
+  textField('Rich results verdict', details.richResults ? details.richResults.verdict : 'Not found'),
 ]
 
-export const urlInspectionEvidence = (details: Details, referringUrls: string[]): Array<{ name: string; fields: DisplayField[] }> => {
-  const evidence: Array<{ name: string; fields: DisplayField[] }> = []
-  if (referringUrls.length) {
-    const { sample, retained, omitted } = bounded(referringUrls)
-    evidence.push({ name: 'Referring URLs', fields: [
-      ...sample.map((url, i) => urlField(`URL ${i + 1}`, url)),
-      textField('Retained', retained), textField('Omitted', omitted),
-    ] })
-  }
-  if (details.sitemaps?.length) {
-    const { sample, retained, omitted } = bounded(details.sitemaps)
-    evidence.push({ name: 'Sitemaps', fields: [
-      ...sample.map((url, i) => urlField(`Sitemap ${i + 1}`, url)),
-      textField('Retained', retained), textField('Omitted', omitted),
-    ] })
-  }
-  details.richResults?.detectedItems?.forEach((group, i) => {
-    const issues = group.items?.reduce((sum, item) => sum + (item.issueCount || 0), 0) || 0
-    evidence.push({ name: `Rich result type ${i + 1}`, fields: [
-      textField('Type', group.richResultType || 'Unknown'),
-      textField('Items', group.itemCount ?? 0),
-      textField('Total issues', issues),
-    ] })
-  })
-  return evidence
-}
+// One record per referring URL, sitemap and rich result type (FORMATTING.md F7); the storage bound caps the lists.
+export const urlInspectionEvidence = (details: Details, referringUrls: string[]): EvidenceRecord[] => [
+  ...referringUrls.map((url, i) => ({ name: `Referring URL ${i + 1}`, fields: [urlOrText('URL', url)] })),
+  ...(details.sitemaps || []).map((url, i) => ({ name: `Sitemap ${i + 1}`, fields: [urlOrText('URL', url)] })),
+  ...(details.richResults?.detectedItems || []).map((group, i) => ({ name: `Rich result type ${i + 1}`, fields: [
+    textField('Type', group.richResultType || 'Not found'),
+    textField('Items', group.itemCount ?? 0),
+    textField('Total issues', group.items?.reduce((sum, item) => sum + (item.issueCount || 0), 0) || 0),
+  ] })),
+]

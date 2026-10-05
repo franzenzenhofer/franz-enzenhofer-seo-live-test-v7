@@ -2,8 +2,8 @@ import { gscFetch } from '../googleFetch'
 import { extractGoogleCredentials } from '../google-utils'
 import { deriveGscProperty } from '../google-gsc-utils'
 
-import { searchAnalyticsPeriod, searchAnalyticsScope } from './searchAnalyticsContext'
-import { gscNoTokenFacts, gscPropertyMissingFacts, gscApiIssueFacts, gscNetworkErrorFacts, GSC_NOT_MARKUP } from './gscFacts'
+import { periodRow, searchAnalyticsPeriod, searchAnalyticsScope } from './searchAnalyticsContext'
+import { gscNoTokenFacts, gscPropertyMissingFacts, gscApiIssueFacts, gscNetworkErrorFacts, propertyFields, GSC_API_INPUT, GSC_NOT_MARKUP } from './gscFacts'
 
 import { textField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
@@ -55,11 +55,11 @@ export const gscPageWorldwideRule: Rule = {
     const scope = searchAnalyticsScope(period)
 
     return presentResult(gscPageWorldwideRule, page, {
-      input: 'Page URL + Search Console API response',
+      input: GSC_API_INPUT,
       type: 'info',
       priority: 750,
-      values: [textField('Impressions', imp), textField('Clicks', cl)],
-      detailValues: [textField('Property', property), textField('Property type', propertyType)],
+      values: [textField('Impressions', imp), textField('Clicks', cl), periodRow(period)],
+      detailValues: propertyFields(property, propertyType),
       checked: [
         textField('API', API),
         textField('Reporting period', scope.reportingPeriod), textField('Search type', scope.searchType),

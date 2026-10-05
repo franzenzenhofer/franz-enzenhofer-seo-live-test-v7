@@ -3,8 +3,8 @@ import { extractGoogleCredentials } from '../google-utils'
 import { deriveGscProperty } from '../google-gsc-utils'
 
 import { totalsOf, type SearchAnalyticsRow } from './gscValue'
-import { searchAnalyticsPeriod, searchAnalyticsScope } from './searchAnalyticsContext'
-import { gscNoTokenFacts, gscPropertyMissingFacts, gscApiIssueFacts, gscNetworkErrorFacts, GSC_NOT_MARKUP } from './gscFacts'
+import { periodRow, searchAnalyticsPeriod, searchAnalyticsScope } from './searchAnalyticsContext'
+import { gscNoTokenFacts, gscPropertyMissingFacts, gscApiIssueFacts, gscNetworkErrorFacts, propertyFields, GSC_API_INPUT, GSC_NOT_MARKUP } from './gscFacts'
 
 import { textField, urlField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
@@ -61,11 +61,11 @@ export const gscDirectoryWorldwideRule: Rule = {
     const scope = searchAnalyticsScope(period)
 
     return presentResult(gscDirectoryWorldwideRule, page, {
-      input: 'Page URL + Search Console API response',
+      input: GSC_API_INPUT,
       type: 'info',
       priority: 750,
-      values: [textField('Directory impressions', imp), textField('Directory clicks', cl)],
-      detailValues: [urlField('Directory', dir), textField('Property', property), textField('Property type', propertyType)],
+      values: [urlField('Directory', dir), textField('Impressions', imp), textField('Clicks', cl), periodRow(period)],
+      detailValues: propertyFields(property, propertyType),
       checked: [
         textField('API', API),
         textField('Reporting period', scope.reportingPeriod), textField('Search type', scope.searchType),

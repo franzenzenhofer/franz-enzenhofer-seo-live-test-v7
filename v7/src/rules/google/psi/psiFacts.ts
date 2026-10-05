@@ -1,6 +1,7 @@
+import { requestFailedRows, urlOrText } from '../failureReason'
 import { extractPSIKey } from '../google-utils'
 
-import { textField, urlField } from '@/shared/presentation/create'
+import { textField } from '@/shared/presentation/create'
 import { getPSIKey, runPSI, type PSIResult } from '@/shared/psi'
 import type { Ctx, Result } from '@/core/types'
 import type { Presentation } from '@/shared/presentation/schema'
@@ -9,11 +10,6 @@ export type PsiFacts = Pick<Presentation, 'input' | 'values' | 'checked'> & Part
 export type PsiOutcome = { ok: true; json: PSIResult } | { ok: false; facts: PsiFacts }
 
 const NOT_MARKUP = 'None - this rule checks the PageSpeed Insights API, not document markup'
-const MAX_ERROR_LENGTH = 300
-const boundedError = (message: string) => message.length > MAX_ERROR_LENGTH
-  ? `${message.slice(0, MAX_ERROR_LENGTH)}... [truncated]`
-  : message
-
 /** Never let a fetch/parse failure throw out of a migrated rule; report it as a fact instead. */
 export const requestPsi = async (url: string, strategy: 'mobile' | 'desktop', ctx: Ctx): Promise<PsiOutcome> => {
   const key = getPSIKey(extractPSIKey(ctx))
@@ -27,9 +23,8 @@ export const requestPsi = async (url: string, strategy: 'mobile' | 'desktop', ct
         input: 'Page URL',
         type: 'runtime_error',
         priority: -1000,
-        values: [textField('PageSpeed Insights API response', 'Request failed')],
-        detailValues: [textField('Error', boundedError(message)), urlField('Requested page URL', url), textField('Strategy', strategy)],
-        checked: [textField('API', 'PageSpeed Insights v5 runPagespeed')],
+        values: [...requestFailedRows(message), urlOrText('Requested URL', url)],
+        checked: psiApi(strategy),
         noMarkup: NOT_MARKUP,
       },
     }
@@ -41,4 +36,5 @@ export const psiApi = (strategy: 'mobile' | 'desktop') => [
   textField('Strategy', strategy),
 ]
 
+export const PSI_API_INPUT = 'Page URL + PageSpeed Insights API response'
 export { NOT_MARKUP as PSI_NOT_MARKUP }

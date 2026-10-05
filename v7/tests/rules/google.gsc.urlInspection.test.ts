@@ -39,7 +39,9 @@ describe('rule: gsc url inspection', () => {
     expect(values['Coverage state']).toBe('Indexed')
     expect(values['Verdict']).toContain('PASS')
     expect(values['Last crawl']).toBe('2026-01-01T00:00:00.000Z')
-    expect(r.presentation?.evidence.find((e) => e.name === 'Referring URLs')).toBeTruthy()
+    expect(r.presentation?.evidence).toEqual([{ name: 'Referring URL 1', fields: [{ key: 'URL', value: 'https://ref.example.com', kind: 'url' }] }])
+    expect(r.presentation?.detailValues).toContainEqual({ key: 'Inspection result link', value: 'https://inspection.example.com', kind: 'url' })
+    expect(r.presentation?.detailValues).toContainEqual({ key: 'Google canonical', value: 'Not found', kind: 'text' })
   })
 
   it('warns on verdict FAIL', async () => {
@@ -89,7 +91,8 @@ describe('rule: gsc url inspection', () => {
     vi.mocked(deriveGscProperty).mockResolvedValueOnce(null)
     const r = await gscUrlInspectionRule.run(page as any, { globals: { googleApiAccessToken: 'token' } })
     expect(r.type).toBe('runtime_error'); expect(r.priority).toBe(-1000)
-    expect(r.presentation?.values).toEqual([{ key: 'Search Console property', value: 'Not confirmed for the signed-in account', kind: 'text' }])
+    expect(r.presentation?.values).toEqual([{ key: 'GSC property', value: 'Not found', kind: 'text' }])
+    expect(r.presentation?.detailValues).toEqual([{ key: 'Current page URL', value: page.url, kind: 'url' }])
   })
 
   it('never surfaces legacy details', async () => {

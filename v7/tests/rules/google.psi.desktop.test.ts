@@ -17,7 +17,8 @@ describe('rule: psi desktop score', () => {
     const r = await psiDesktopRule.run(page as any, ctx as any)
     expect(r.type).toBe('ok')
     expect(r.priority).toBe(850)
-    expect(r.presentation?.values).toEqual([{ key: 'Desktop performance score', value: '95/100', kind: 'text' }])
+    expect(r.presentation?.values).toEqual([{ key: 'Performance score', value: '95/100', kind: 'text' }])
+    expect(r.presentation?.detailValues[0]?.key).toBe('PSI report')
     expect(r.presentation?.input).toBe('Page URL + PageSpeed Insights API response')
   })
 
@@ -40,7 +41,7 @@ describe('rule: psi desktop score', () => {
     const r = await psiDesktopRule.run(page as any, ctx as any)
     expect(r.type).toBe('info')
     expect(r.priority).toBe(900)
-    expect(r.presentation?.values[0]?.value).toBe('Not reported by PageSpeed Insights')
+    expect(r.presentation?.values).toEqual([{ key: 'Performance score', value: 'Not found', kind: 'text' }])
   })
 
   it('reports a runtime error when the API request fails, without leaking the API key', async () => {
@@ -50,7 +51,10 @@ describe('rule: psi desktop score', () => {
     expect(r.priority).toBe(-1000)
     const copy = JSON.stringify(r.presentation)
     expect(copy).not.toContain('super-secret-psi-key')
-    expect(copy).toContain('network down')
+    expect(r.presentation?.values).toEqual([
+      { key: 'Request', value: 'Failed', kind: 'text' }, { key: 'Error', value: 'network down', kind: 'text' },
+      { key: 'Requested URL', value: page.url, kind: 'url' },
+    ])
   })
 
   it('never surfaces legacy details', async () => {

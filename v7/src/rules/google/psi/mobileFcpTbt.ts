@@ -1,4 +1,4 @@
-import { requestPsi, psiApi, PSI_NOT_MARKUP } from './psiFacts'
+import { requestPsi, psiApi, PSI_API_INPUT, PSI_NOT_MARKUP } from './psiFacts'
 import { summarizePSI } from './summary'
 
 import { textField, urlField } from '@/shared/presentation/create'
@@ -20,6 +20,7 @@ type Grade = 'ok' | 'warn' | 'error'
 const gradeFcp = (ms: number): Grade => (ms > FCP_ERROR_MS ? 'error' : ms > FCP_WARN_MS ? 'warn' : 'ok')
 const gradeTbt = (ms: number): Grade => (ms > TBT_ERROR_MS ? 'error' : ms >= TBT_WARN_MS ? 'warn' : 'ok')
 const worst = (grades: Grade[]): Grade => (grades.includes('error') ? 'error' : grades.includes('warn') ? 'warn' : 'ok')
+const metricRow = (key: string, ms: number | undefined): DisplayField => textField(key, typeof ms === 'number' ? `${ms} ms` : 'Not found')
 
 export const psiMobileFcpTbtRule: Rule = {
   id: 'psi:mobile-fcp-tbt',
@@ -42,22 +43,22 @@ export const psiMobileFcpTbtRule: Rule = {
 
     const summary = summarizePSI(outcome.json, page.url, STRATEGY)
     const grades: Grade[] = []
-    const values: DisplayField[] = []
-    if (typeof summary.fcpMs === 'number') { grades.push(gradeFcp(summary.fcpMs)); values.push(textField('First Contentful Paint (FCP)', `${summary.fcpMs} ms`)) }
-    if (typeof summary.tbtMs === 'number') { grades.push(gradeTbt(summary.tbtMs)); values.push(textField('Total Blocking Time (TBT)', `${summary.tbtMs} ms`)) }
+    if (typeof summary.fcpMs === 'number') grades.push(gradeFcp(summary.fcpMs))
+    if (typeof summary.tbtMs === 'number') grades.push(gradeTbt(summary.tbtMs))
+    // Both metrics always have a row: the measured value, or Not found when Lighthouse did not report it.
+    const values: DisplayField[] = [metricRow('FCP', summary.fcpMs), metricRow('TBT', summary.tbtMs)]
 
     const checked = [...psiApi(STRATEGY),
       textField('FCP criterion', `Passed <= ${FCP_WARN_MS}ms, warning above that, failed > ${FCP_ERROR_MS}ms`),
       textField('TBT criterion', `Passed < ${TBT_WARN_MS}ms, warning from that, failed > ${TBT_ERROR_MS}ms`)]
-    const detailValues = [urlField('PageSpeed Insights report', summary.testUrl)]
+    const detailValues = [urlField('PSI report', summary.testUrl)]
 
-    if (!values.length) {
+    if (!grades.length) {
       return presentResult(psiMobileFcpTbtRule, page, {
-        input: 'Page URL + PageSpeed Insights API response',
+        input: PSI_API_INPUT,
         type: 'info',
         priority: 700,
-        values: [textField('Mobile FCP/TBT', 'Not reported by PageSpeed Insights')],
-        detailValues, checked,
+        values, detailValues, checked,
         noMarkup: PSI_NOT_MARKUP,
       })
     }
@@ -65,7 +66,7 @@ export const psiMobileFcpTbtRule: Rule = {
     const type = worst(grades)
     const priority = type === 'error' ? 120 : type === 'warn' ? 300 : 850
     return presentResult(psiMobileFcpTbtRule, page, {
-      input: 'Page URL + PageSpeed Insights API response',
+      input: PSI_API_INPUT,
       type, priority, values, detailValues, checked,
       noMarkup: PSI_NOT_MARKUP,
     })

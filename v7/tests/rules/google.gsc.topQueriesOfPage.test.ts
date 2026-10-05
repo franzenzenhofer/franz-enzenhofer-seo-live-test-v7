@@ -24,28 +24,34 @@ describe('rule: gsc top queries of page', () => {
     const r = await gscTopQueriesOfPageRule.run(page as never, { globals: { googleApiAccessToken: 'token' } })
     expect(r.type).toBe('runtime_error')
     expect(r.priority).toBe(-1000)
-    expect(r.presentation?.values).toContainEqual({ key: 'Search Console property', value: 'Not confirmed for the signed-in account', kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'GSC property', value: 'Not found', kind: 'text' }])
+    expect(r.presentation?.detailValues).toEqual([{ key: 'Current page URL', value: page.url, kind: 'url' }])
   })
 
-  it('lists each query as its own evidence record, bounded to 10, with retained/omitted counts', async () => {
+  it('lists every returned query as its own evidence record with truthful counts', async () => {
     const rows = Array.from({ length: 14 }, (_, i) => ({ keys: [`query ${i}`], clicks: i, impressions: i * 10 }))
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ rows }) }))
     const r = await gscTopQueriesOfPageRule.run(page as any, { globals: { googleApiAccessToken: 'token' } })
     expect(r.type).toBe('info')
     expect(r.priority).toBe(750)
-    const queryRecords = r.presentation!.evidence.filter((e) => e.name.startsWith('Query '))
-    expect(queryRecords).toHaveLength(10)
-    expect(queryRecords[0]?.fields.find((f) => f.key === 'Query')?.value).toBe('query 0')
-    const capture = r.presentation!.evidence.find((e) => e.name === 'Capture')
-    expect(capture?.fields.find((f) => f.key === 'Retained')?.value).toBe(10)
-    expect(capture?.fields.find((f) => f.key === 'Omitted')?.value).toBe(4)
-    expect(r.presentation?.detailValues.find((f) => f.key === 'Returned query count')?.value).toBe(14)
+    expect(r.presentation?.evidence.map((e) => e.name)).toEqual(rows.map((_row, i) => `Query ${i + 1}`))
+    expect(r.presentation?.evidence[0]?.fields).toEqual([
+      { key: 'Query', value: 'query 0', kind: 'text' }, { key: 'Clicks', value: 0, kind: 'text' }, { key: 'Impressions', value: 0, kind: 'text' },
+    ])
+    expect(r.presentation?.values.slice(0, 2)).toEqual([
+      { key: 'Top queries', value: 'query 0, query 1, query 2, query 3, query 4 … 9 more', kind: 'text' },
+      { key: 'Queries', value: 14, kind: 'text' },
+    ])
+    expect(r.presentation?.detailValues).toContainEqual({ key: 'Evidence retained', value: 14, kind: 'text' })
+    expect(r.presentation?.detailValues).toContainEqual({ key: 'Evidence omitted', value: 0, kind: 'text' })
   })
 
   it('reports no queries factually when none are returned', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({}) }))
     const r = await gscTopQueriesOfPageRule.run(page as any, { globals: { googleApiAccessToken: 'token' } })
-    expect(r.presentation?.values[0]?.value).toBe('No queries reported')
+    expect(r.presentation?.values.slice(0, 2)).toEqual([
+      { key: 'Top queries', value: 'None', kind: 'text' }, { key: 'Queries', value: 0, kind: 'text' },
+    ])
     expect(r.presentation?.evidence).toHaveLength(0)
   })
 

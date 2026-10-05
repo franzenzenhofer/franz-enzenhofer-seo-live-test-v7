@@ -24,7 +24,11 @@ describe('rule: gsc is-indexed (historical impressions)', () => {
     const r = await gscIsIndexedRule.run(page as any, { globals: { googleApiAccessToken: 'token' } })
     expect(r.type).toBe('info')
     expect(r.priority).toBe(800)
-    expect(r.presentation?.values).toEqual([{ key: 'Historical search impressions', value: '10664 impressions', kind: 'text' }])
+    expect(r.presentation?.values[0]).toEqual({ key: 'Impressions', value: 10664, kind: 'text' })
+    expect(r.presentation?.values[1]?.key).toBe('Period')
+    expect(r.presentation?.detailValues).toEqual([
+      { key: 'Property', value: 'https://example.com/', kind: 'url' }, { key: 'Property type', value: 'url-prefix', kind: 'text' },
+    ])
     expect(r.presentation?.input).toBe('Page URL + Search Console API response')
   })
 
@@ -32,7 +36,7 @@ describe('rule: gsc is-indexed (historical impressions)', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({}) }))
     const r = await gscIsIndexedRule.run(page as any, { globals: { googleApiAccessToken: 'token' } })
     expect(r.type).toBe('info')
-    expect(r.presentation?.values[0]?.value).toBe('0 impressions')
+    expect(r.presentation?.values[0]?.value).toBe(0)
   })
 
   it('reports a runtime error naming the HTTP status on API failure', async () => {
@@ -48,14 +52,17 @@ describe('rule: gsc is-indexed (historical impressions)', () => {
     const r = await gscIsIndexedRule.run(page as any, { globals: { googleApiAccessToken: 'token' } })
     expect(r.type).toBe('runtime_error')
     expect(r.presentation?.input).toBe('Page URL')
-    expect(r.presentation?.detailValues.find((f) => f.key === 'Error')?.value).toBe('socket hang up')
+    expect(r.presentation?.values).toEqual([
+      { key: 'Request', value: 'Failed', kind: 'text' }, { key: 'Error', value: 'socket hang up', kind: 'text' },
+    ])
   })
 
   it('reports a runtime error when no property can be confirmed', async () => {
     vi.mocked(deriveGscProperty).mockResolvedValueOnce(null)
     const r = await gscIsIndexedRule.run(page as any, { globals: { googleApiAccessToken: 'token' } })
     expect(r.type).toBe('runtime_error'); expect(r.priority).toBe(-1000)
-    expect(r.presentation?.values).toEqual([{ key: 'Search Console property', value: 'Not confirmed for the signed-in account', kind: 'text' }])
+    expect(r.presentation?.values).toEqual([{ key: 'GSC property', value: 'Not found', kind: 'text' }])
+    expect(r.presentation?.detailValues).toEqual([{ key: 'Current page URL', value: page.url, kind: 'url' }])
   })
 
   it('never surfaces legacy details', async () => {

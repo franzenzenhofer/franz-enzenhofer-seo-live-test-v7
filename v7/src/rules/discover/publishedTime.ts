@@ -1,13 +1,39 @@
+import { entriesOfScript, ldTypesRow, overviewMarkup, parseErrorField, parseErrorRow } from './discoverPresentation'
+
 import type { Rule } from '@/core/types'
 import { sampleElements } from '@/shared/domEvidence'
 import { textField } from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { elementRecords } from '@/shared/presentation/records'
 import { presentResult } from '@/shared/presentation/result'
+import type { DisplayField } from '@/shared/presentation/schema'
 import { parseLdDetails } from '@/shared/structured'
 
-const FIELDS = [{ key: 'datePublished', property: 'article:published_time', dateType: 'Published' },
-  { key: 'dateModified', property: 'article:modified_time', dateType: 'Modified' }]
-const DECLARATION_LIMIT = 10
+type DateType = 'Published' | 'Modified'
+type Declared = { dateType: DateType; value: string }
+const FIELDS: Array<{ key: string; property: string; dateType: DateType }> = [
+  { key: 'datePublished', property: 'article:published_time', dateType: 'Published' },
+  { key: 'dateModified', property: 'article:modified_time', dateType: 'Modified' },
+]
+const META_SELECTOR = FIELDS.map(({ property }) => `meta[property="${property}" i]`).join(', ')
+const LD_SELECTOR = 'script[type="application/ld+json"]'
+const checked = [
+  textField('Selectors', `${META_SELECTOR}, ${LD_SELECTOR}`),
+  textField('Meta attributes', 'property and content'), textField('JSON-LD properties', FIELDS.map(({ key }) => key).join(' and ')),
+  textField('Matching', 'Non-empty string values, trimmed'),
+  textField('Date format', 'Not validated'), textField('Visible date', 'Not checked'),
+]
+const metaProperty = (element: Element) => (element.getAttribute('property') || '').trim().toLowerCase()
+const metaContent = (element: Element) => (element.getAttribute('content') || '').trim()
+const metaDates = (element: Element): Declared[] => {
+  const field = FIELDS.find(({ property }) => property === metaProperty(element))
+  return field && metaContent(element) ? [{ dateType: field.dateType, value: metaContent(element) }] : []
+}
+const scriptDates = (nodes: Array<Record<string, unknown>>) => FIELDS.flatMap(({ key, dateType }) => nodes.flatMap((node) => {
+  const value = node[key]
+  return typeof value === 'string' && value.trim() ? [{ key, dateType, value: value.trim() }] : []
+}))
+const firstDate = (dates: Declared[], dateType: DateType) => dates.find((date) => date.dateType === dateType)?.value
+
 export const discoverPublishedTimeRule: Rule = {
   id: 'discover:published-time', name: 'Publication dates', presentation: 1, enabled: true, what: 'static',
   meta: {
@@ -17,58 +43,29 @@ export const discoverPublishedTimeRule: Rule = {
   },
   async run(page) {
     const parsed = parseLdDetails(page.doc)
-    const metaNodes = Array.from(page.doc.querySelectorAll('meta[property="article:published_time" i], meta[property="article:modified_time" i]'))
-    const scripts = Array.from(page.doc.querySelectorAll('script[type="application/ld+json"]'))
-    const dates = FIELDS.flatMap(({ key, property, dateType }) => {
-      const meta = Array.from(page.doc.querySelectorAll(`meta[property="${property}" i]`)).map((element) =>
-        ({ dateType, value: (element.getAttribute('content') || '').trim(), foundIn: property, element }))
-      const ld = parsed.entries.flatMap(({ node, script, scriptIndex }) => typeof node[key] === 'string'
-        ? [{ dateType, value: node[key].trim(), foundIn: `JSON-LD script ${scriptIndex + 1}: ${key}`, element: script }] : [])
-      return [...meta, ...ld].filter(({ value }) => value)
+    const metaNodes = Array.from(page.doc.querySelectorAll(META_SELECTOR))
+    const scripts = Array.from(page.doc.querySelectorAll(LD_SELECTOR))
+    const dates: Declared[] = [...metaNodes.flatMap(metaDates), ...scripts.flatMap((_script, index) => scriptDates(entriesOfScript(parsed, index)))]
+    const published = firstDate(dates, 'Published')
+    const modified = firstDate(dates, 'Modified')
+    const { sample, total } = sampleElements([...metaNodes, ...scripts])
+    // One record per inspected element: the meta content, or the date properties a script declares.
+    const records = elementRecords(sample, total, (element, index): DisplayField[] => {
+      const scriptIndex = index - metaNodes.length
+      if (scriptIndex < 0) return [textField('content', metaContent(element) || 'Empty')]
+      const declared = scriptDates(entriesOfScript(parsed, scriptIndex)).map(({ key, value }) => textField(key, value))
+      return [...(declared.length ? declared : [textField('Dates', 'Not found')]), ...parseErrorField(parsed, scriptIndex)]
     })
-    const published = dates.filter(({ dateType }) => dateType === 'Published')
-    const modified = dates.filter(({ dateType }) => dateType === 'Modified')
-    const sources = [...metaNodes, ...scripts]
-    const sourceSample = sampleElements(sources)
-    const captured = markupEvidence(sourceSample.sample, 'Retrieved metadata')
-    const shownDates = dates.slice(0, DECLARATION_LIMIT)
-    const declaredFields = shownDates.length ? shownDates.map(({ dateType, value, foundIn }, index) => [
-      textField(`Declaration ${index + 1} type`, dateType), textField(`Declaration ${index + 1} value`, value),
-      textField(`Declaration ${index + 1} source`, foundIn),
-    ]).flat() : [textField('Declarations', 'None found')]
-    const values = [
-      textField('Published date declarations', published.length),
-      textField('Modified date declarations', modified.length),
-      ...(published[0] ? [textField('First published date', published[0].value)] : []),
-      ...(modified[0] ? [textField('First modified date', modified[0].value)] : []),
-      ...(parsed.errorCount ? [textField('JSON-LD parse errors', parsed.errorCount)] : []),
-    ]
+    // An identical modified date is still a separate fact; the suffix keeps the two rows distinct (F3).
+    const modifiedValue = !modified ? 'Not found' : modified === published ? `${modified} (unchanged)` : modified
     return presentResult(discoverPublishedTimeRule, page, {
-      input: 'Idle DOM', type: parsed.errorCount ? 'warn' : 'info', priority: 800, values,
-      detailValues: [
-        textField('Meta elements checked', metaNodes.length), textField('JSON-LD scripts checked', scripts.length),
-        textField('Declarations shown', shownDates.length),
-        textField('Declarations omitted', dates.length - shownDates.length),
-      ],
-      checked: [
-        textField('Selectors', 'meta[property="article:published_time" i], meta[property="article:modified_time" i], script[type="application/ld+json"]'),
-        textField('Meta attributes', 'property and content'), textField('JSON-LD properties', 'datePublished and dateModified'),
-        textField('Matching', 'Non-empty string values, trimmed'),
-        textField('Date format and visible date accuracy', 'Not validated'),
-      ],
-      evidence: [
-        { name: 'Declared dates', fields: declaredFields },
-        { name: 'Retrieved source elements', fields: [
-          textField('Source elements retained', sourceSample.shown), textField('Source elements omitted', sourceSample.total - sourceSample.shown),
-          ...captured.fields,
-        ] },
-        ...(parsed.errorCount ? [{ name: 'Parse errors', fields: [
-          ...parsed.errors.map(({ scriptIndex, message }) => textField('Parse error excerpt', `Script ${scriptIndex + 1}: ${message}`)),
-          textField('Parse error excerpts omitted', parsed.errorCount - parsed.errors.length),
-        ] }] : []),
-      ],
-      markup: captured.markup,
-      noMarkup: sources.length ? 'Complete original checked metadata not retained' : 'No date meta tags or JSON-LD scripts found',
+      input: 'Idle DOM', type: parsed.errorCount ? 'warn' : 'info', priority: 800,
+      values: [textField('Published', published || 'Not found'), textField('Modified', modifiedValue),
+        ...(dates.length ? [] : ldTypesRow(parsed)), ...parseErrorRow(parsed), ...overviewMarkup(records.markup)],
+      detailValues: [textField('Published declarations', dates.filter(({ dateType }) => dateType === 'Published').length),
+        textField('Modified declarations', dates.filter(({ dateType }) => dateType === 'Modified').length), ...records.counts],
+      checked, evidence: records.evidence, markup: records.markup,
+      noMarkup: total ? 'Complete original checked metadata not retained' : 'No date meta tags or JSON-LD scripts found',
     })
   },
 }

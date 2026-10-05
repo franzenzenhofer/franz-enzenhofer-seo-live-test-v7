@@ -2,17 +2,17 @@ import { gscFetch } from '../googleFetch'
 import { extractGoogleCredentials } from '../google-utils'
 import { deriveGscProperty } from '../google-gsc-utils'
 
-import { topQueriesValue, type SearchAnalyticsRow } from './gscValue'
-import { searchAnalyticsPeriod, searchAnalyticsScope } from './searchAnalyticsContext'
-import { gscNoTokenFacts, gscPropertyMissingFacts, gscApiIssueFacts, gscNetworkErrorFacts, GSC_NOT_MARKUP } from './gscFacts'
+import { type SearchAnalyticsRow } from './gscValue'
+import { periodRow, searchAnalyticsPeriod, searchAnalyticsScope } from './searchAnalyticsContext'
+import { gscNoTokenFacts, gscPropertyMissingFacts, gscApiIssueFacts, gscNetworkErrorFacts, propertyFields, GSC_API_INPUT, GSC_NOT_MARKUP } from './gscFacts'
 
 import { textField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
+import { listRow } from '@/shared/presentation/listRow'
 
 const NAME = 'Top queries of page'
 const API = 'Search Console searchAnalytics.query (query x page, rowLimit 25)'
-const EVIDENCE_LIMIT = 10
 const REQUESTED_ROW_LIMIT = 25
 
 export const gscTopQueriesOfPageRule: Rule = {
@@ -54,33 +54,25 @@ export const gscTopQueriesOfPageRule: Rule = {
     }
 
     const rows = j.rows || []
-    const sample = rows.slice(0, EVIDENCE_LIMIT)
+    const queries = rows.map((row) => row.keys?.[0] || 'Not found')
     const scope = searchAnalyticsScope(period)
 
+    // Every returned query is one evidence record; the storage bound keeps the counts truthful.
     return presentResult(gscTopQueriesOfPageRule, page, {
-      input: 'Page URL + Search Console API response',
+      input: GSC_API_INPUT,
       type: 'info',
       priority: 750,
-      values: [textField('Top queries', topQueriesValue(rows))],
-      detailValues: [
-        textField('Property', property), textField('Property type', propertyType),
-        textField('Returned query count', rows.length), textField('Requested query limit', REQUESTED_ROW_LIMIT),
-      ],
+      values: [textField('Top queries', rows.length ? listRow(queries) : 'None'), textField('Queries', rows.length), periodRow(period)],
+      detailValues: [...propertyFields(property, propertyType),
+        ...(rows.length ? [textField('Evidence retained', rows.length), textField('Evidence omitted', 0)] : [])],
       checked: [
-        textField('API', API),
+        textField('API', API), textField('Row limit', REQUESTED_ROW_LIMIT),
         textField('Reporting period', scope.reportingPeriod), textField('Search type', scope.searchType),
         textField('Data availability', scope.dataAvailability), textField('Metric definitions', scope.metricDefinitions),
       ],
-      evidence: [
-        ...sample.map((row, i) => ({ name: `Query ${i + 1}`, fields: [
-          textField('Query', row.keys?.[0] || '(query unavailable)'),
-          textField('Clicks', row.clicks || 0),
-          textField('Impressions', row.impressions || 0),
-        ] })),
-        ...(rows.length ? [{ name: 'Capture', fields: [
-          textField('Retained', sample.length), textField('Omitted', rows.length - sample.length),
-        ] }] : []),
-      ],
+      evidence: rows.map((row, i) => ({ name: `Query ${i + 1}`, fields: [
+        textField('Query', queries[i]!), textField('Clicks', row.clicks || 0), textField('Impressions', row.impressions || 0),
+      ] })),
       noMarkup: GSC_NOT_MARKUP,
     })
   },

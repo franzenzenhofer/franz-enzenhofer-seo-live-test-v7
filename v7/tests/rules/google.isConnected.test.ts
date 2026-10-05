@@ -9,7 +9,7 @@ describe('rule: google is connected', () => {
     const r = await googleIsConnectedRule.run(page as any, { globals: { googleApiAccessToken: 't' } })
     expect(r.type).toBe('ok')
     expect(r.priority).toBe(850)
-    expect(r.presentation?.values).toEqual([{ key: 'Google sign-in credentials', value: 'Stored', kind: 'text' }])
+    expect(r.presentation?.values).toEqual([{ key: 'Access token', value: 'Found', kind: 'text' }])
     expect(r.presentation?.input).toBe('Extension session state')
   })
 
@@ -17,7 +17,7 @@ describe('rule: google is connected', () => {
     const r = await googleIsConnectedRule.run(page as any, { globals: {} })
     expect(r.type).toBe('info')
     expect(r.priority).toBe(900)
-    expect(r.presentation?.values).toEqual([{ key: 'Google sign-in credentials', value: 'Not stored', kind: 'text' }])
+    expect(r.presentation?.values).toEqual([{ key: 'Access token', value: 'Not found', kind: 'text' }])
   })
 
   it('reports no reference URLs by falling back to the default', () => {

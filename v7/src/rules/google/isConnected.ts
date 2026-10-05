@@ -25,7 +25,7 @@ export const googleIsConnectedRule: Rule = {
       input: 'Extension session state',
       type: token ? 'ok' : 'info',
       priority: token ? 850 : 900,
-      values: [textField('Google sign-in credentials', token ? 'Stored' : 'Not stored')],
+      values: [textField('Access token', token ? 'Found' : 'Not found')],
       checked: [
         textField('Checked', 'Presence of a Google OAuth access token in the extension session'),
         textField('Not checked', 'Token expiry and access to a particular Search Console property'),

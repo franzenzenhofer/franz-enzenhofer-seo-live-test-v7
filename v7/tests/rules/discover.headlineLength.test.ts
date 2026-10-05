@@ -15,7 +15,9 @@ describe('headline length', () => {
     expect(r.priority).toBe(850)
     expect(r.presentation?.input).toBe('Idle DOM')
     expect(r.presentation?.values).toContainEqual({ key: 'Characters', value: 20, kind: 'text' })
-    expect(r.presentation?.markup[0]).toEqual({ key: '<h1> 1', value: html, kind: 'original', fidelity: 'complete-original' })
+    expect(r.presentation?.markup[0]).toEqual({ key: '<h1>', value: html, kind: 'original', fidelity: 'complete-original' })
+    expect(r.presentation?.values[1]).toEqual(r.presentation?.markup[0])
+    expect(r.presentation?.evidence[0]?.name).toBe('<h1>')
     expect(r.presentation?.detailValues).toContainEqual({ key: 'Headline', value: 'Exactly twenty chars', kind: 'text' })
   })
 
@@ -24,7 +26,7 @@ describe('headline length', () => {
 
     expect(r.type).toBe('info')
     expect(r.priority).toBe(500)
-    expect(r.message.toLowerCase()).toContain('heuristic')
+    expect(r.presentation?.values).toContainEqual({ key: 'Characters', value: 9, kind: 'text' })
     expect(r.presentation?.checked).toContainEqual({
       key: 'Criterion',
       value: 'At least 20 characters (editorial heuristic; Google sets no minimum length)',
@@ -47,8 +49,8 @@ describe('headline length', () => {
 
     expect(r.type).toBe('warn')
     expect(r.presentation?.values).toContainEqual({ key: 'Characters', value: 0, kind: 'text' })
-    expect(r.presentation?.values).toContainEqual({ key: 'Headline text', value: 'Empty', kind: 'text' })
     expect(r.presentation?.markup).toHaveLength(1)
+    expect(r.presentation?.detailValues).toContainEqual({ key: 'Markup omitted', value: 1, kind: 'text' })
     expect(r.presentation?.markup[0].value).toBe('<h1 data-source="cms"><span> </span></h1>')
     expect(r.presentation?.detailValues).toContainEqual({ key: 'Headline', value: '', kind: 'text' })
   })

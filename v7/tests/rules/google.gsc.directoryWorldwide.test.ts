@@ -24,7 +24,8 @@ describe('rule: gsc directory worldwide analytics', () => {
     const r = await gscDirectoryWorldwideRule.run(page as never, { globals: { googleApiAccessToken: 'token' } })
     expect(r.type).toBe('runtime_error')
     expect(r.priority).toBe(-1000)
-    expect(r.presentation?.values).toContainEqual({ key: 'Search Console property', value: 'Not confirmed for the signed-in account', kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'GSC property', value: 'Not found', kind: 'text' }])
+    expect(r.presentation?.detailValues).toEqual([{ key: 'Current page URL', value: page.url, kind: 'url' }])
   })
 
   it('requests the aggregate (no page dimension, no rowLimit) so totals are not capped at 10 rows', async () => {
@@ -43,11 +44,13 @@ describe('rule: gsc directory worldwide analytics', () => {
     ])
     expect(r.type).toBe('info')
     expect(r.priority).toBe(750)
-    expect(r.presentation?.values).toEqual([
-      { key: 'Directory impressions', value: 12345, kind: 'text' },
-      { key: 'Directory clicks', value: 678, kind: 'text' },
+    expect(r.presentation?.values.slice(0, 3)).toEqual([
+      { key: 'Directory', value: 'https://example.com/blog/', kind: 'url' },
+      { key: 'Impressions', value: 12345, kind: 'text' },
+      { key: 'Clicks', value: 678, kind: 'text' },
     ])
-    expect(r.presentation?.detailValues.find((f) => f.key === 'Directory')?.value).toBe('https://example.com/blog/')
+    expect(r.presentation?.values[3]?.key).toBe('Period')
+    expect(r.presentation?.detailValues).toContainEqual({ key: 'Property', value: 'https://example.com/', kind: 'url' })
   })
 
   it('reports a runtime error naming the HTTP status on API failure, including the directory', async () => {

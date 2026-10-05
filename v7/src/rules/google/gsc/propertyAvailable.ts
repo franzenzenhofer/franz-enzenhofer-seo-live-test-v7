@@ -1,7 +1,8 @@
 import { extractGoogleCredentials } from '../google-utils'
 import { deriveGscProperty } from '../google-gsc-utils'
+import { urlOrText } from '../failureReason'
 
-import { gscNoTokenFacts, gscPropertyMissingFacts, GSC_NOT_MARKUP } from './gscFacts'
+import { gscNoTokenFacts, gscPropertyMissingFacts, GSC_API_INPUT, GSC_NOT_MARKUP } from './gscFacts'
 
 import { textField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
@@ -35,10 +36,10 @@ export const gscPropertyAvailableRule: Rule = {
 
     const { property, type: propertyType } = derived
     return presentResult(gscPropertyAvailableRule, page, {
-      input: 'Page URL + Search Console API response',
+      input: GSC_API_INPUT,
       type: 'ok',
       priority: 800,
-      values: [textField('Search Console property', property)],
+      values: [urlOrText('GSC property', property)],
       detailValues: [textField('Property type', propertyType === 'domain' ? 'Domain property' : 'URL-prefix property')],
       checked: [
         textField('Property scopes probed', 'URL-prefix property and sc-domain property for this hostname'),

@@ -24,7 +24,8 @@ describe('rule: gsc page worldwide analytics', () => {
     const r = await gscPageWorldwideRule.run(page as never, { globals: { googleApiAccessToken: 'token' } })
     expect(r.type).toBe('runtime_error')
     expect(r.priority).toBe(-1000)
-    expect(r.presentation?.values).toContainEqual({ key: 'Search Console property', value: 'Not confirmed for the signed-in account', kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'GSC property', value: 'Not found', kind: 'text' }])
+    expect(r.presentation?.detailValues).toEqual([{ key: 'Current page URL', value: page.url, kind: 'url' }])
   })
 
   it('filters the query to the exact page URL instead of scanning the top-1000 rows', async () => {
@@ -41,16 +42,17 @@ describe('rule: gsc page worldwide analytics', () => {
     ])
     expect(r.type).toBe('info')
     expect(r.priority).toBe(750)
-    expect(r.presentation?.values).toEqual([
+    expect(r.presentation?.values.slice(0, 2)).toEqual([
       { key: 'Impressions', value: 42, kind: 'text' },
       { key: 'Clicks', value: 7, kind: 'text' },
     ])
+    expect(r.presentation?.values[2]?.key).toBe('Period')
   })
 
   it('reports zero when the filtered query returns no rows', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({}) }))
     const r = await gscPageWorldwideRule.run(page as never, { globals: { googleApiAccessToken: 'token' } })
-    expect(r.presentation?.values).toEqual([
+    expect(r.presentation?.values.slice(0, 2)).toEqual([
       { key: 'Impressions', value: 0, kind: 'text' },
       { key: 'Clicks', value: 0, kind: 'text' },
     ])

@@ -24,7 +24,6 @@ export const inspectionDetails = (inspection: Inspection) => {
   const rich = inspection.richResultsResult
   return {
     googleCanonical: status?.googleCanonical, userCanonical: status?.userCanonical,
-    canonicalMismatch: status?.googleCanonical && status.userCanonical ? status.googleCanonical !== status.userCanonical : undefined,
     robotsTxtState: inspectionLabel(status?.robotsTxtState), indexingState: inspectionLabel(status?.indexingState),
     pageFetchState: inspectionLabel(status?.pageFetchState), crawledAs: inspectionLabel(status?.crawledAs),
     sitemaps: status?.sitemap, sitemapCount: status?.sitemap?.length,

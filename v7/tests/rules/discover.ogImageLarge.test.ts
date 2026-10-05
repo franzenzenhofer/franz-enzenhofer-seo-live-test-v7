@@ -13,12 +13,19 @@ describe('Open Graph image dimensions', () => {
   })
   it('does not borrow the second image’s dimensions for the first image', async () => {
     const r = await run(image + '<meta property="og:image" content="/second.jpg">' + size('1280', '720'))
-    expect(r.type).toBe('warn'); expect(r.presentation?.values[0].value).toBe('Not declared')
+    expect(r.type).toBe('warn')
+    expect(r.presentation?.values.slice(0, 3)).toEqual([
+      { key: 'og:image', value: 'https://example.test/photo.jpg', kind: 'url' },
+      { key: 'Declared width', value: 'Not declared', kind: 'text' }, { key: 'Declared height', value: 'Not declared', kind: 'text' },
+    ])
     expect(r.presentation?.detailValues).toContainEqual({ key: 'Declared images', value: 2, kind: 'text' })
   })
   it('retains every sampled original tag, associated URL and documentation reference', async () => {
     const r = await run(image + size('1280', '720'))
     expect(r.type).toBe('ok'); expect(r.presentation?.markup[0].value).toBe(image)
+    expect(r.presentation?.values.filter((field) => field.kind === 'original').map(({ key }) => key))
+      .toEqual(['<meta property="og:image">', '<meta property="og:image:width">', '<meta property="og:image:height">'])
+    expect(r.presentation?.evidence[1]?.fields[0]).toEqual({ key: 'content', value: '1280', kind: 'text' })
     expect(r.presentation?.detailValues).toContainEqual({ key: 'Calculated area', value: '921600 px²', kind: 'text' })
     expect(r.presentation?.references).toEqual(rule.meta.references)
     expect(r.details).toBeUndefined()

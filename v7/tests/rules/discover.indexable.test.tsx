@@ -16,11 +16,17 @@ describe('Discover indexing permission', () => {
     const source = '<meta name="googlebot" data-cms="visibility" content="noindex, nofollow">'
     const result = await run(`<meta name="robots" content="index"><body>${source}</body>`, { 'X-Robots-Tag': 'none' })
     expect(result.type).toBe('warn')
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Blocking instructions', value: 2 }))
+    expect(result.presentation?.values.slice(0, 2)).toEqual([
+      { key: 'Googlebot noindex', value: 'Found', kind: 'text' }, { key: 'Instructions', value: 'index; noindex, nofollow; none', kind: 'text' },
+    ])
+    expect(result.presentation?.detailValues).toContainEqual(expect.objectContaining({ key: 'Blocking instructions', value: 2 }))
+    expect(result.presentation?.detailValues).toContainEqual({ key: 'X-Robots-Tag', value: 'none', kind: 'text' })
     expect(result.presentation?.input).toBe('Static DOM + HTTP response headers')
     expect(result.presentation?.markup.map(({ value }) => value)).toContain(source)
+    expect(result.presentation?.values.filter((field) => field.kind === 'original').map(({ key }) => key)).toEqual(['<meta name="robots">', '<meta name="googlebot">'])
+    expect(result.presentation?.evidence.map((record) => record.name)).toEqual(['<meta name="robots">', '<meta name="googlebot">'])
     const copy = toResultCopyPayload(result)
-    for (const text of ['Googlebot', 'HTML meta tag', 'HTTP response header', 'noindex, nofollow', 'X-Robots-Tag']) expect(copy).toContain(text)
+    for (const text of ['Googlebot', 'noindex: Found', 'noindex, nofollow', 'X-Robots-Tag']) expect(copy).toContain(text)
     expect(copy).not.toContain('[object Object]')
     expect(copy).not.toContain('Keep the restriction')
     for (const reference of discoverIndexableRule.meta.references || []) expect(copy).toContain(reference)
@@ -29,7 +35,8 @@ describe('Discover indexing permission', () => {
     const result = await run('<meta name="bingbot" content="noindex">')
     expect(result.type).toBe('ok')
     expect(result.presentation?.detailValues).toContainEqual(expect.objectContaining({ key: 'Actual Google index status', value: 'Not checked' }))
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Blocking instructions', value: 0 }))
+    expect(result.presentation?.detailValues).toContainEqual(expect.objectContaining({ key: 'Blocking instructions', value: 0 }))
+    expect(result.presentation?.values[0]).toEqual({ key: 'Googlebot noindex', value: 'Not found', kind: 'text' })
   })
   it('treats none as blocking, even beside index', async () => {
     const result = await run('<meta name="robots" content="none"><meta name="googlebot" content="index">')

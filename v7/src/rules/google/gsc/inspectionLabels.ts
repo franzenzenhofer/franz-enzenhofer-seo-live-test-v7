@@ -11,4 +11,4 @@ const MEANINGS: Record<string, string> = {
   INVALID_URL: 'URL is invalid', DESKTOP: 'Desktop crawler', MOBILE: 'Mobile crawler',
 }
 export const inspectionLabel = (value?: string): string => !value || value.endsWith('_UNSPECIFIED')
-  ? 'Not reported by Google' : `${MEANINGS[value] || 'Unrecognized reported state'} (${value})`
+  ? 'Not found' : `${MEANINGS[value] || 'Unrecognized reported state'} (${value})`

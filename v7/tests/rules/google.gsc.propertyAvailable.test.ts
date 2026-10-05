@@ -24,7 +24,7 @@ describe('rule: gsc property available', () => {
     const r = await gscPropertyAvailableRule.run(page as any, { globals: { googleApiAccessToken: 't' } })
     expect(r.type).toBe('ok')
     expect(r.priority).toBe(800)
-    expect(r.presentation?.values).toEqual([{ key: 'Search Console property', value: 'https://example.com/', kind: 'text' }])
+    expect(r.presentation?.values).toEqual([{ key: 'GSC property', value: 'https://example.com/', kind: 'url' }])
     expect(r.presentation?.input).toBe('Page URL + Search Console API response')
   })
 
@@ -32,6 +32,7 @@ describe('rule: gsc property available', () => {
     vi.mocked(deriveGscProperty).mockResolvedValue({ property: 'sc-domain:example.com', type: 'domain' })
     const r = await gscPropertyAvailableRule.run(page as any, { globals: { googleApiAccessToken: 't' } })
     expect(r.type).toBe('ok')
+    expect(r.presentation?.values).toEqual([{ key: 'GSC property', value: 'sc-domain:example.com', kind: 'text' }])
     expect(r.presentation?.detailValues.find((f) => f.key === 'Property type')?.value).toBe('Domain property')
   })
 
@@ -40,7 +41,7 @@ describe('rule: gsc property available', () => {
     const r = await gscPropertyAvailableRule.run(page as any, { globals: { googleApiAccessToken: 't' } })
     expect(r.type).toBe('runtime_error')
     expect(r.priority).toBe(-1000)
-    expect(r.presentation?.values[0]?.value).toBe('Not confirmed for the signed-in account')
+    expect(r.presentation?.values).toEqual([{ key: 'GSC property', value: 'Not found', kind: 'text' }])
   })
 
   it('never surfaces legacy details', async () => {

@@ -4,7 +4,7 @@ import { deriveGscProperty } from '../google-gsc-utils'
 
 import { inspectionResponse, inspectionDetails } from './inspectionData'
 import { inspectionLabel } from './inspectionLabels'
-import { gscNoTokenFacts, gscPropertyMissingFacts, gscApiIssueFacts, gscNetworkErrorFacts, GSC_NOT_MARKUP } from './gscFacts'
+import { gscNoTokenFacts, gscPropertyMissingFacts, gscApiIssueFacts, gscNetworkErrorFacts, propertyFields, GSC_API_INPUT, GSC_NOT_MARKUP } from './gscFacts'
 import { urlInspectionDetailValues, urlInspectionEvidence } from './urlInspectionEvidence'
 
 import { textField, urlField } from '@/shared/presentation/create'
@@ -57,11 +57,11 @@ export const gscUrlInspectionRule: Rule = {
     const parsed = inspectionResponse.safeParse(await response.json())
     if (!parsed.success) {
       return presentResult(gscUrlInspectionRule, page, {
-        input: 'Page URL + Search Console API response',
+        input: GSC_API_INPUT,
         type: 'runtime_error',
         priority: 0,
-        values: [textField('Search Console API response', 'Malformed response')],
-        detailValues: [textField('Property', derived.property), textField('Property type', derived.type)],
+        values: [textField('GSC response', 'Malformed')],
+        detailValues: propertyFields(derived.property, derived.type),
         checked: [textField('API', API)],
         noMarkup: GSC_NOT_MARKUP,
       })
@@ -70,18 +70,18 @@ export const gscUrlInspectionRule: Rule = {
     const indexStatus = parsed.data.inspectionResult?.indexStatusResult
     if (!indexStatus) {
       return presentResult(gscUrlInspectionRule, page, {
-        input: 'Page URL + Search Console API response',
+        input: GSC_API_INPUT,
         type: 'runtime_error',
         priority: -500,
-        values: [textField('Search Console API response', 'No inspection results delivered')],
-        detailValues: [textField('Property', derived.property), textField('Property type', derived.type)],
+        values: [textField('Index status', 'Not found')],
+        detailValues: propertyFields(derived.property, derived.type),
         checked: [textField('API', API)],
         noMarkup: GSC_NOT_MARKUP,
       })
     }
 
     const verdict = indexStatus.verdict || 'UNKNOWN'
-    const coverage = indexStatus.coverageState || 'Unknown coverage'
+    const coverage = indexStatus.coverageState || 'Not found'
     const referringUrls = indexStatus.referringUrls || []
     const lastCrawl = indexStatus.lastCrawlTime || null
     const isPass = verdict === 'PASS'
@@ -89,17 +89,16 @@ export const gscUrlInspectionRule: Rule = {
     const inspectionResultLink = parsed.data.inspectionResult?.inspectionResultLink
 
     return presentResult(gscUrlInspectionRule, page, {
-      input: 'Page URL + Search Console API response',
+      input: GSC_API_INPUT,
       type: isPass ? 'ok' : verdict === 'FAIL' ? 'warn' : 'info',
       priority: isPass ? 700 : 120,
       values: [
         textField('Coverage state', coverage),
         textField('Verdict', inspectionLabel(verdict)),
-        textField('Last crawl', lastCrawl || 'Not reported by Google'),
+        textField('Last crawl', lastCrawl || 'Not found'),
       ],
       detailValues: [
-        textField('Property', derived.property),
-        textField('Property type', derived.type),
+        ...propertyFields(derived.property, derived.type),
         ...(inspectionResultLink ? [urlField('Inspection result link', inspectionResultLink)] : []),
         ...urlInspectionDetailValues(details),
       ],

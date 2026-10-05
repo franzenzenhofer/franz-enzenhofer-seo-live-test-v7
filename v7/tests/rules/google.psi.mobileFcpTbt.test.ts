@@ -19,8 +19,8 @@ describe('rule: psi mobile FCP/TBT', () => {
   it('grades good FCP and TBT as ok', async () => {
     const r = await runWith(1234, 56)
     const v = values(r)
-    expect(v['First Contentful Paint (FCP)']).toBe('1234 ms')
-    expect(v['Total Blocking Time (TBT)']).toBe('56 ms')
+    expect(v['FCP']).toBe('1234 ms')
+    expect(v['TBT']).toBe('56 ms')
     expect(r.type).toBe('ok')
     expect(r.priority).toBe(850)
   })
@@ -50,7 +50,7 @@ describe('rule: psi mobile FCP/TBT', () => {
   it('returns info when metrics are unavailable', async () => {
     const r = await runWith(undefined, undefined)
     expect(r.type).toBe('info')
-    expect(values(r)['Mobile FCP/TBT']).toBe('Not reported by PageSpeed Insights')
+    expect(values(r)).toEqual({ FCP: 'Not found', TBT: 'Not found' })
   })
 
   it('reports a runtime error when the API request fails, without leaking the API key', async () => {
@@ -63,7 +63,7 @@ describe('rule: psi mobile FCP/TBT', () => {
     expect(r.priority).toBe(-1000)
     const copy = JSON.stringify(r.presentation)
     expect(copy).not.toContain('super-secret-psi-key')
-    expect(copy).toContain('network down')
+    expect(values(r)).toEqual({ Request: 'Failed', Error: 'network down', 'Requested URL': 'https://ex.com' })
   })
 
   it('never surfaces legacy details', async () => {
