@@ -1,10 +1,23 @@
 # Chrome Web Store Submission Guide
 
-**In review:** 7.0.364, submitted September 11, 2026 - status "Pending review", with "Publish automatically
-after it has passed review" on. The uploaded zip is kept as `trash/chrome-store-submitted-7.0.364.zip`
-(sha256 723160bcac2011c1...). Built with every gate (typecheck, lint, presentation lint, unit suite, headless
-e2e). Same 11 permissions and `<all_urls>` as 7.0.122 (`src/manifest.parts.ts` unchanged since then), so no
-permission warning for users. The draft package page showed identical permission lists for 7.0.364 and 7.0.122.
+**In review:** 7.0.380, submitted October 5, 2026 - status "Pending review", with "Publish automatically
+after it has passed review" on. The uploaded zip is kept as `trash/chrome-store-submitted-7.0.380.zip`
+(sha256 4d370774fd3771bc...). Built from commit 22e0255 with every gate (typecheck, lint, unit suite
+1547/1547, headless e2e 14/14). Same 11 permissions and `<all_urls>` as the live 7.0.366 (`src/manifest.parts.ts`
+unchanged since September 8); the draft package page showed identical permission lists for 7.0.380 and 7.0.366.
+
+What's new since 7.0.366 (store change notes):
+- Result cards follow one formatting doctrine: the collapsed card states what the page has and the verdict,
+  with the original tag (e.g. `<link rel="canonical">`) in the overview, and no Yes/No or duplicate rows.
+- Canonical shows the canonical URL and the current page URL side by side, and how they differ.
+- Hreflang, structured data and other many-element rules ship every record, not 10 samples; large cards
+  keep whole records up to 32 KB and say how many were left out instead of dropping all evidence.
+- Robots, HTTP, title/meta, Open Graph, URL, speed, Search Console and PSI cards show the observed values.
+
+**Currently published:** 7.0.366 (published September 12, 2026, 634 users).
+
+**Earlier - 7.0.364**, submitted September 11, 2026 - zip kept as `trash/chrome-store-submitted-7.0.364.zip`
+(sha256 723160bcac2011c1...). Same 11 permissions and `<all_urls>` as 7.0.122.
 
 What's new since 7.0.122 (store change notes):
 - Every one of the 130 rules shows its evidence: the input actually checked, labelled values, the selectors
@@ -19,11 +32,11 @@ What's new since 7.0.122 (store change notes):
   raise errors.
 - Compact result cards: an icon-only details toggle and the checked input as small text.
 
-**Currently published:** 7.0.122 (status "Published" on September 11, 2026, 609 users).
+**Earlier - 7.0.122:** status "Published" on September 11, 2026 (609 users then).
 **Before that:** 7.0.117 - approved and live September 9, 2026. It fixes the session-storage quota exhaustion that broke Run test (orphan run records
 grown from post-run subresource traffic). Submitted 18:23 CEST, published ~19:00 CEST -
 a package-only update with no permission changes cleared review in well under an hour.
-**7.0.122** (now live) was submitted September 10, 2026 - it went through "Pending review" with
+**7.0.122** was submitted September 10, 2026 - it went through "Pending review" with
 "Publish automatically after it has passed review" on. The CMS back-office / action-URL probe
 safety fix (a WordPress agency's report: the link checker trashed posts and logged editors out).
 Same 11 permissions and `<all_urls>` as 7.0.117, so no permission warning for users.
@@ -41,7 +54,7 @@ returns the item to draft and re-enables both "Upload new package" and "Submit
 for review". It is not on the Status page or the Package tab, which is why it
 looks at first as though a pending submission cannot be withdrawn.
 
-**Last updated:** September 11, 2026
+**Last updated:** October 5, 2026
 
 ## Files to Upload
 
