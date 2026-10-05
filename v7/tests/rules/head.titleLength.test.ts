@@ -14,12 +14,22 @@ describe('page title length', () => {
   })
   it('reports missing input without inventing a zero-length title', async () => {
     const r = await run('<p>No title</p>')
-    expect(r.type).toBe('info'); expect(r.presentation?.values[0].value).toBe('Not measurable')
-    expect(r.presentation?.markup).toEqual([])
+    expect(r.type).toBe('info'); expect(r.presentation?.values).toEqual([{ key: 'Title', value: 'Not found', kind: 'text' }])
+    expect(r.presentation?.markup).toEqual([]); expect(r.presentation?.evidence).toEqual([])
+  })
+  it('keeps the overview as count plus <title> markup, with one tag-named evidence record and the four count rows', async () => {
+    const r = await run('<title data-template="seo">Alex - Chef</title>')
+    expect(r.presentation?.values).toEqual([{ key: 'Characters', value: 11, kind: 'text' },
+      { key: '<title>', value: '<title data-template="seo">Alex - Chef</title>', kind: 'original', fidelity: 'complete-original' }])
+    expect(r.presentation?.evidence).toEqual([{ name: '<title>', fields: [{ key: 'DOM path', value: 'html > head > title', kind: 'path' }] }])
+    expect(r.presentation?.detailValues).toEqual([{ key: 'Title', value: 'Alex - Chef', kind: 'text' },
+      { key: 'Markup retained', value: 1, kind: 'text' }, { key: 'Markup omitted', value: 0, kind: 'text' },
+      { key: 'Evidence retained', value: 1, kind: 'text' }, { key: 'Evidence omitted', value: 0, kind: 'text' }])
   })
   it('identifies first-match measurement when there are duplicate titles', async () => {
     const r = await run('<title>First</title><title>Second longer</title>')
     expect(r.presentation?.values[0].value).toBe(5)
-    expect(r.presentation?.detailValues[0].value).toBe(2)
+    expect(r.presentation?.detailValues[0]).toEqual({ key: 'Title elements', value: 2, kind: 'text' })
+    expect(r.presentation?.detailValues).toContainEqual({ key: 'Markup omitted', value: 1, kind: 'text' })
   })
 })

@@ -1,4 +1,5 @@
-import {domPathField, originalField, textField} from '@/shared/presentation/create'
+import { recordCounts } from '@/shared/presentation/counts'
+import { domPathField, originalField, textField } from '@/shared/presentation/create'
 import { parseDirectiveDate } from '@/shared/robotsDate'
 import { isRobotsMetaDirective } from '@/shared/robotsVocabulary'
 import type { DomElementFact, DomPhaseFacts } from '@/shared/domFacts.types'
@@ -8,7 +9,7 @@ import type { DisplayField } from '@/shared/presentation/schema'
 // the date value itself may contain commas (RFC 822/850), so capture to the end.
 const DIRECTIVE = /(?:^|[,;])\s*unavailable_after\s*:\s*(.+)$/i
 
-export type DirectiveHit = { phase: 'Static' | 'Idle', value: string, date: string, timestamp: number | null, original?: DomElementFact['original'] }
+export type DirectiveHit = { phase: 'Static' | 'Idle', name: string, value: string, date: string, timestamp: number | null, original?: DomElementFact['original'] }
 
 const hitsForPhase = (facts: DomPhaseFacts | undefined, phase: DirectiveHit['phase']): DirectiveHit[] =>
   (facts?.elements || []).flatMap((element) => {
@@ -20,7 +21,7 @@ const hitsForPhase = (facts: DomPhaseFacts | undefined, phase: DirectiveHit['pha
     const match = DIRECTIVE.exec(content)
     if (!match?.[1]) return []
     const value = match[1].trim()
-    return [{ phase, value, ...parseDirectiveDate(value), original: element.original }]
+    return [{ phase, name: name.trim().toLowerCase(), value, ...parseDirectiveDate(value), original: element.original }]
   })
 
 // Dedupes by declared value across both phases (matching the legacy Set-based
@@ -34,19 +35,31 @@ export const collectDirectiveHits = (staticFacts?: DomPhaseFacts, idleFacts?: Do
   return [...byValue.values()]
 }
 
+// Each hit is known by its tag label, <meta name="robots">, numbered only when the label repeats (FORMATTING.md F4, F7).
+const labelsOf = (hits: DirectiveHit[]): string[] => {
+  const labels = hits.map((hit) => `<meta name="${hit.name}">`)
+  const totals = new Map<string, number>()
+  labels.forEach((label) => totals.set(label, (totals.get(label) || 0) + 1))
+  const seen = new Map<string, number>()
+  return labels.map((label) => {
+    if (totals.get(label) === 1) return label
+    seen.set(label, (seen.get(label) || 0) + 1)
+    return `${label} ${seen.get(label)}`
+  })
+}
+
 export const directiveEvidence = (hits: DirectiveHit[]) => {
+  const labels = labelsOf(hits)
   const markup: Array<Extract<DisplayField, { kind: 'original' }>> = []
   const evidence = hits.map((hit, index) => {
     const fields: DisplayField[] = [
-      textField('Phase', hit.phase),
-      textField('Declared value (first 100 characters)', hit.value.slice(0, 100)),
-      textField('Parsed date', hit.timestamp === null ? 'Not parseable' : hit.date),
+      textField('unavailable_after', hit.value), textField('Parsed date', hit.timestamp === null ? 'Unparseable' : hit.date), textField('Phase', hit.phase),
     ]
     if (hit.original) {
-      markup.push(originalField(`${hit.phase} <meta> markup ${index + 1}`, hit.original.html))
+      markup.push(originalField(labels[index]!, hit.original.html))
       fields.push(domPathField('DOM path', hit.original.selector, 'Not captured'))
-    } else fields.push(textField('Markup', 'Not retained'))
-    return { name: `Directive ${index + 1}`, fields }
+    } else fields.push(textField('Markup', 'Not captured'))
+    return { name: labels[index]!, fields }
   })
-  return { evidence, markup }
+  return { evidence, markup, counts: recordCounts({ found: hits.length, markup: markup.length, evidence: evidence.length }) }
 }

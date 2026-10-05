@@ -27,7 +27,7 @@ describe('head:unavailable-after gating', () => {
       elements: [{ location: 'head', tag: 'meta', attrs: [['name', 'robots'], ['content', 'unavailable_after: 25-Aug-2007 15:00:00 EST']] }],
     })
     const res = await run(withMeta, facts({ ...withMeta, phase: 'idle' }))
-    expect(res.presentation?.values).toContainEqual({ key: 'unavailable_after directives', value: 1, kind: 'text' })
+    expect(res.presentation?.values).toContainEqual({ key: 'unavailable_after', value: '25-Aug-2007 15:00:00 EST', kind: 'text' })
   })
 
   it('refuses only when a critical fact was actually dropped', async () => {

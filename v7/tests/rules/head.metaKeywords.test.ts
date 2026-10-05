@@ -13,7 +13,7 @@ describe('meta keywords', () => {
     expect(r.type).toBe('info')
     expect(r.priority).toBe(980)
     expect(r.presentation?.input).toBe('Idle DOM')
-    expect(r.presentation?.values).toContainEqual({ key: 'Meta keywords tags', value: 0, kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'Meta keywords', value: 'Not found', kind: 'text' }])
     expect(r.presentation?.noMarkup).toBe('No meta keywords element found')
   })
 
@@ -24,8 +24,11 @@ describe('meta keywords', () => {
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(650)
     expect(r.presentation?.markup[0].value).toBe(html)
-    expect(r.presentation?.detailValues).toContainEqual({ key: 'Content (trimmed)', value: 'seo, search', kind: 'text' })
-    expect(r.presentation?.detailValues).toContainEqual({ key: 'Keyword samples (trimmed)', value: 'seo, search', kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'Keywords', value: 'seo, search', kind: 'text' },
+      { key: '<meta name="keywords">', value: html, kind: 'original', fidelity: 'complete-original' }])
+    expect(r.presentation?.detailValues).toEqual([{ key: 'Keyword tokens', value: 2, kind: 'text' }, { key: 'Markup retained', value: 1, kind: 'text' },
+      { key: 'Markup omitted', value: 0, kind: 'text' }, { key: 'Evidence retained', value: 1, kind: 'text' }, { key: 'Evidence omitted', value: 0, kind: 'text' }])
+    expect(r.presentation?.evidence).toEqual([{ name: '<meta name="keywords">', fields: [{ key: 'DOM path', value: 'html > head > meta', kind: 'path' }] }])
   })
 
   it('warns for an empty tag while preserving the empty token count', async () => {
@@ -33,8 +36,8 @@ describe('meta keywords', () => {
 
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(650)
-    expect(r.presentation?.values).toContainEqual({ key: 'Keyword tokens', value: 0, kind: 'text' })
-    expect(r.presentation?.detailValues).toContainEqual({ key: 'Content (trimmed)', value: 'Empty', kind: 'text' })
+    expect(r.presentation?.values[0]).toEqual({ key: 'Keywords', value: 'None', kind: 'text' })
+    expect(r.presentation?.detailValues).toContainEqual({ key: 'Keyword tokens', value: 0, kind: 'text' })
   })
 
   it('warns for multiple tags and retains each sampled element', async () => {
@@ -43,7 +46,8 @@ describe('meta keywords', () => {
 
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(300)
-    expect(r.presentation?.values).toContainEqual({ key: 'Meta keywords tags', value: 2, kind: 'text' })
+    expect(r.presentation?.values.map((f) => f.key)).toEqual(['Meta keywords tags', '<meta name="keywords"> 1', '<meta name="keywords"> 2'])
+    expect(r.presentation?.values[0]).toEqual({ key: 'Meta keywords tags', value: 2, kind: 'text' })
     expect(r.presentation?.markup.map(({ value }) => value).join('')).toBe(html)
   })
 
@@ -51,8 +55,19 @@ describe('meta keywords', () => {
     const r = await run(Array.from({ length: 12 }, (_, index) => `<meta name="keywords" content="keyword-${index}">`).join(''))
 
     expect(r.presentation?.values).toContainEqual({ key: 'Meta keywords tags', value: 12, kind: 'text' })
-    expect(r.presentation?.markup).toHaveLength(10)
-    expect(r.presentation?.evidence[0].fields).toContainEqual({ key: 'Elements omitted', value: 2, kind: 'text' })
+    expect(r.presentation?.values.map((f) => f.key)).toEqual(['Meta keywords tags'])
+    expect(r.presentation?.markup).toHaveLength(10); expect(r.presentation?.evidence).toHaveLength(10)
+    expect(r.presentation?.detailValues).toEqual([{ key: 'Markup retained', value: 10, kind: 'text' }, { key: 'Markup omitted', value: 2, kind: 'text' },
+      { key: 'Evidence retained', value: 10, kind: 'text' }, { key: 'Evidence omitted', value: 2, kind: 'text' }])
+  })
+
+  it('summarizes long keyword lists within the overview budget and states the rest', async () => {
+    const content = Array.from({ length: 30 }, (_, index) => `keyword-number-${index}`).join(', ')
+    const r = await run(`<meta name="keywords" content="${content}">`)
+    const summary = r.presentation?.values[0]
+    expect(summary?.key).toBe('Keywords'); expect(String(summary?.value).length).toBeLessThanOrEqual(60)
+    expect(summary?.value).toBe('keyword-number-0, keyword-number-1 … 28 more')
+    expect(r.presentation?.detailValues).toContainEqual({ key: 'Keyword tokens', value: 30, kind: 'text' })
   })
 
   it('keeps both documentation references and removes the legacy details payload', async () => {

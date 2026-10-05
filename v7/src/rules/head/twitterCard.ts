@@ -1,6 +1,6 @@
 import type { Rule } from '@/core/types'
 import { textField } from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { elementRecords } from '@/shared/presentation/records'
 import { presentResult } from '@/shared/presentation/result'
 
 const NAME = 'Twitter Card'
@@ -15,6 +15,7 @@ const checked = [
   textField('Valid card types', VALID_CARD_TYPES.join(', ')), textField('Criterion', 'Content matches a supported card type'),
 ]
 
+// Overview: the declared card type, then the complete <meta name="twitter:card"> element; the colour carries the verdict.
 export const twitterCardRule: Rule = {
   id: RULE_ID,
   name: NAME,
@@ -39,17 +40,16 @@ export const twitterCardRule: Rule = {
     })
 
     const cardType = (element.getAttribute('content') || '').trim()
-    const captured = markupEvidence([element], 'Twitter card markup')
+    const records = elementRecords([element], 1)
     const common = {
-      input: 'Static DOM',
-      evidence: captured.fields.length ? [{ name: 'Source locations', fields: captured.fields }] : [],
-      markup: captured.markup, noMarkup: 'Complete original twitter:card markup not retained',
+      input: 'Static DOM', checked, detailValues: records.counts, evidence: records.evidence,
+      markup: records.markup, noMarkup: 'Complete original twitter:card markup not retained',
     }
     if (!cardType) return presentResult(twitterCardRule, page, { ...common, type: 'warn', priority: 500,
-      values: [textField('twitter:card', 'Empty')], checked })
+      values: [textField('twitter:card', 'Empty'), ...records.markup] })
 
     const isValidType = VALID_CARD_TYPES.includes(cardType)
     return presentResult(twitterCardRule, page, { ...common, type: isValidType ? 'ok' : 'warn', priority: isValidType ? 750 : 400,
-      values: [textField('twitter:card', cardType), textField('Card type valid', isValidType ? 'Yes' : 'No')], checked })
+      values: [textField('twitter:card', cardType), ...records.markup] })
   },
 }

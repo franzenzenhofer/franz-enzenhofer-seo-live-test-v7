@@ -14,8 +14,11 @@ describe('meta charset', () => {
     expect(r.type).toBe('ok')
     expect(r.priority).toBe(800)
     expect(r.presentation?.input).toBe('Static DOM')
-    expect(r.presentation?.values).toContainEqual({ key: 'Charset', value: 'UTF-8', kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'Charset', value: 'UTF-8', kind: 'text' }, { key: 'Declaration source', value: '<meta charset>', kind: 'text' },
+      { key: '<meta charset>', value: html, kind: 'original', fidelity: 'complete-original' }])
     expect(r.presentation?.markup[0].value).toBe(html)
+    expect(r.presentation?.evidence).toEqual([{ name: '<meta charset>', fields: [{ key: 'DOM path', value: 'html > head > meta', kind: 'path' }] }])
+    expect(r.presentation?.detailValues).toContainEqual({ key: 'Markup retained', value: 1, kind: 'text' })
   })
 
   it('warns for non-UTF-8 and preserves the normalized value', async () => {
@@ -24,7 +27,8 @@ describe('meta charset', () => {
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(200)
     expect(r.message).toContain('ISO-8859-1')
-    expect(r.presentation?.values).toContainEqual({ key: 'UTF-8 conformance', value: 'Not UTF-8', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Charset', value: 'ISO-8859-1', kind: 'text' })
+    expect(r.presentation?.values.find((f) => f.key === 'UTF-8 conformance')).toBeUndefined()
   })
 
   it('warns for an empty meta charset declaration', async () => {
@@ -42,6 +46,7 @@ describe('meta charset', () => {
 
     expect(r.type).toBe('ok')
     expect(r.presentation?.values).toContainEqual({ key: 'Declaration source', value: 'Meta http-equiv Content-Type', kind: 'text' })
+    expect(r.presentation?.values.at(-1)).toMatchObject({ key: '<meta http-equiv="content-type">', value: html, kind: 'original' })
     expect(r.presentation?.markup[0].value).toBe(html)
   })
 
@@ -52,8 +57,8 @@ describe('meta charset', () => {
     expect(r.priority).toBe(800)
     expect(r.presentation?.input).toBe('Static DOM + HTTP response headers')
     expect(r.presentation?.values).toContainEqual({ key: 'Declaration source', value: 'Content-Type header', kind: 'text' })
-    expect(r.presentation?.evidence[0].fields).toContainEqual({ key: 'Content-Type header', value: 'text/html; charset=UTF-8', kind: 'text' })
-    expect(r.presentation?.markup).toEqual([])
+    expect(r.presentation?.detailValues).toEqual([{ key: 'Content-Type header', value: 'text/html; charset=UTF-8', kind: 'text' }])
+    expect(r.presentation?.markup).toEqual([]); expect(r.presentation?.evidence).toEqual([])
   })
 
   it('keeps an empty meta declaration ahead of a valid response header', async () => {
@@ -69,6 +74,7 @@ describe('meta charset', () => {
 
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(100)
+    expect(r.presentation?.values).toEqual([{ key: 'Charset', value: 'Not declared', kind: 'text' }])
     expect(r.presentation?.noMarkup).toBe('No character encoding element found')
     expect(r.presentation?.references).toEqual(rule.meta.references)
     expect(r.details).toBeUndefined()

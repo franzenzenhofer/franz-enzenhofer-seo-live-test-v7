@@ -19,6 +19,7 @@ describe('rule: twitter card', () => {
     const r = await run(html)
     expect(r.type).toBe('warn'); expect(r.priority).toBe(500)
     expect(r.presentation?.values).toContainEqual({ key: 'twitter:card', value: 'Empty', kind: 'text' })
+    expect(r.presentation?.values[1]).toMatchObject({ key: '<meta name="twitter:card">', value: html, kind: 'original' })
     expect(r.presentation?.markup[0]?.value).toBe(html)
   })
 
@@ -26,8 +27,10 @@ describe('rule: twitter card', () => {
     const html = '<meta name="twitter:card" content="summary_large_image">'
     const r = await run(html)
     expect(r.type).toBe('ok'); expect(r.priority).toBe(750)
-    expect(r.presentation?.values).toContainEqual({ key: 'twitter:card', value: 'summary_large_image', kind: 'text' })
-    expect(r.presentation?.values).toContainEqual({ key: 'Card type valid', value: 'Yes', kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'twitter:card', value: 'summary_large_image', kind: 'text' },
+      { key: '<meta name="twitter:card">', value: html, kind: 'original', fidelity: 'complete-original' }])
+    expect(r.presentation?.evidence).toEqual([{ name: '<meta name="twitter:card">', fields: [{ key: 'DOM path', value: 'html > head > meta', kind: 'path' }] }])
+    expect(r.presentation?.detailValues).toContainEqual({ key: 'Markup retained', value: 1, kind: 'text' })
     expect(r.presentation?.markup[0]?.value).toBe(html)
     expect(toResultCopyPayload(r)).toContain(twitterCardRule.meta.references[0])
     expect(r.details).toBeUndefined()
@@ -38,7 +41,7 @@ describe('rule: twitter card', () => {
     const r = await run(html)
     expect(r.type).toBe('warn'); expect(r.priority).toBe(400)
     expect(r.presentation?.values).toContainEqual({ key: 'twitter:card', value: 'unsupported-type', kind: 'text' })
-    expect(r.presentation?.values).toContainEqual({ key: 'Card type valid', value: 'No', kind: 'text' })
+    expect(r.presentation?.values.find((f) => f.key === 'Card type valid')).toBeUndefined()
     expect(r.presentation?.checked).toContainEqual({ key: 'Valid card types', value: 'summary, summary_large_image, app, player', kind: 'text' })
   })
 })

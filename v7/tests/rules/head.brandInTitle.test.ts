@@ -28,9 +28,17 @@ it('retains exact title markup and separates plain text from source', async () =
   expect(r.presentation?.detailValues).toContainEqual({ key: 'Title', value: 'Shop ACME', kind: 'text' })
   expect(r.presentation?.references).toEqual(brandInTitleRule.meta.references)
 })
+it('names the evidence record by the title tag with one DOM path and the four count rows', async () => {
+  const r = await brandInTitleRule.run({ html: '', url: 'https://example.com', doc: doc('<title>Shop Example</title>') }, { globals: {} })
+  expect(r.presentation?.values.map((f) => f.key)).toEqual(['Searched brand', 'Brand match', '<title>'])
+  expect(r.presentation?.evidence).toEqual([{ name: '<title>', fields: [{ key: 'DOM path', value: 'html > head > title', kind: 'path' }] }])
+  expect(r.presentation?.detailValues).toContainEqual({ key: 'Markup retained', value: 1, kind: 'text' })
+  expect(r.presentation?.detailValues).toContainEqual({ key: 'Evidence omitted', value: 0, kind: 'text' })
+})
 it('does not claim a missing title was searched or stringify invalid brand configuration', async () => {
   const absent = await brandInTitleRule.run({ html: '', url: 'https://example.com', doc: doc('') }, { globals: {} })
-  expect(absent.presentation?.values[0].value).toBe('Not evaluated')
+  expect(absent.presentation?.values).toContainEqual({ key: 'Brand match', value: 'Not checked', kind: 'text' })
+  expect(absent.presentation?.evidence).toEqual([])
   const invalid = await brandInTitleRule.run({ html: '', url: 'https://example.com', doc: doc('<title>Example</title>') }, { globals: { variables: { brand: {} } } })
   expect(invalid.type).toBe('runtime_error')
   expect(JSON.stringify(invalid)).not.toContain('[object Object]')

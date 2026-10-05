@@ -1,10 +1,14 @@
 import type { Rule } from '@/core/types'
 import { sampleElements } from '@/shared/domEvidence'
 import { textField } from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
+import { elementRecords } from '@/shared/presentation/records'
 import { presentResult } from '@/shared/presentation/result'
 
 const SELECTOR = 'head > title'
+const OVERVIEW_MARKUP_LIMIT = 3
+const checked = [textField('Selector', SELECTOR), textField('Criterion', 'Exactly one element with non-empty trimmed text')]
+
+// Overview: the measured trimmed length, then the complete <title> element(s); a count row only when there is not exactly one.
 export const titleRule: Rule = {
   id: 'head-title', name: 'Page title', presentation: 1, enabled: true, what: 'static',
   meta: {
@@ -17,18 +21,19 @@ export const titleRule: Rule = {
   },
   async run(page) {
     const { sample, total } = sampleElements(page.doc.querySelectorAll(SELECTOR))
+    if (total === 0) return presentResult(titleRule, page, {
+      input: 'Static DOM', type: 'error', priority: 0,
+      values: [textField('Title', 'Not found')], checked, noMarkup: 'No title element found in head',
+    })
     const title = sample[0]?.textContent || ''
     const ok = total === 1 && title.trim().length > 0
-    const captured = markupEvidence(sample, '<title>')
-    const primary = total === 1 && captured.markup[0] ? [{ ...captured.markup[0], key: '<title>' }] : []
+    const records = elementRecords(sample, total)
+    const overviewMarkup = records.markup.length <= OVERVIEW_MARKUP_LIMIT ? records.markup : []
     return presentResult(titleRule, page, {
       input: 'Static DOM', type: ok ? 'ok' : 'error', priority: ok ? 1000 : 0,
-      values: [textField('Title elements', total), ...(total === 1 ? [textField('Title text', title.trim() ? 'Non-empty' : 'Empty')] : []), ...primary],
-      detailValues: [...sample.map((node, index) => textField(total === 1 ? 'Title' : `Title ${index + 1}`, node.textContent || '')),
-        ...(total === 1 ? [textField('Trimmed length (UTF-16 code units)', title.trim().length)] : [])],
-      checked: [textField('Selector', SELECTOR), textField('Criterion', 'Exactly one element with non-empty trimmed text')],
-      evidence: [{ name: 'Capture', fields: [textField('Elements retained', sample.length), textField('Elements omitted', total - sample.length), ...captured.fields] }],
-      markup: captured.markup, noMarkup: total ? 'Complete original title markup not retained' : 'No title element found in head',
+      values: total === 1 ? [textField('Characters', title.trim().length), ...overviewMarkup] : [textField('Title elements', total), ...overviewMarkup],
+      detailValues: [...sample.map((node, index) => textField(total === 1 ? 'Title' : `Title ${index + 1}`, node.textContent || '')), ...records.counts],
+      checked, evidence: records.evidence, markup: records.markup, noMarkup: 'Complete original title markup not retained',
     })
   },
 }
