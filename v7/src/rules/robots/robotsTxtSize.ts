@@ -57,15 +57,14 @@ export const robotsTxtSizeRule: Rule = {
 
     const robotsTxtUrl = `${origin}/robots.txt`
     const fetched = await fetchStatusTextOnce(robotsTxtUrl, TIMEOUT_MS, ctx.signal)
+    const url = urlField('robots.txt URL', robotsTxtUrl)
+    const criterion = checkedFacts('Bytes read at or above the 512000 byte limit Google reads')
     if (!fetched?.ok) {
       return presentResult(robotsTxtSizeRule, page, {
         input: fetched ? 'robots.txt response' : 'Not captured', type: 'info', priority: 850,
-        values: [textField('robots.txt size', 'Not checked'), textField('Reason', 'robots.txt not reachable')],
-        detailValues: [urlField('robots.txt URL', robotsTxtUrl)],
-        checked: checkedFacts('Bytes read at or above the 512000 byte limit Google reads'),
-        evidence: [{ name: 'robots.txt fetch', fields: [urlField('robots.txt URL', robotsTxtUrl),
-          textField('HTTP status', fetched ? httpStatusLabel(fetched.status) : 'No response received')] }],
-        noMarkup: NO_MARKUP,
+        values: [textField('robots.txt size', 'Not checked'),
+          fetched ? textField('HTTP status', httpStatusLabel(fetched.status)) : textField('Response', 'Not captured'), url],
+        checked: criterion, noMarkup: NO_MARKUP,
       })
     }
 
@@ -77,12 +76,10 @@ export const robotsTxtSizeRule: Rule = {
 
     return presentResult(robotsTxtSizeRule, page, {
       input: 'robots.txt response', type: exceeds ? 'warn' : 'info', priority: exceeds ? 220 : 820,
-      values: [textField('robots.txt size', exceeds ? `${sizeKiB} KiB or more (truncated at the limit)` : `${sizeKiB} KiB`),
-        textField('Within limit', exceeds ? 'No' : 'Yes')],
-      detailValues: [urlField('robots.txt URL', robotsTxtUrl), textField('Bytes read', `${bytes} bytes`)],
-      checked: checkedFacts('Bytes read at or above the 512000 byte limit Google reads'),
-      evidence: [{ name: 'robots.txt fetch', fields: [urlField('robots.txt URL', robotsTxtUrl), textField('HTTP status', httpStatusLabel(fetched.status))] }],
-      noMarkup: NO_MARKUP,
+      values: [textField('robots.txt size', exceeds ? `${sizeKiB} KiB or more` : `${sizeKiB} KiB`),
+        ...(exceeds ? [textField('Read limit', 'Reached')] : []), url],
+      detailValues: [textField('HTTP status', httpStatusLabel(fetched.status)), textField('Bytes read', `${bytes} bytes`)],
+      checked: criterion, noMarkup: NO_MARKUP,
     })
   },
 }

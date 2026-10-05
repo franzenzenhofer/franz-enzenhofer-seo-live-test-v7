@@ -16,10 +16,12 @@ describe('rule: robots sitemap reference', () => {
     stub('Sitemap: https://ex.com/sitemap.xml')
     const result = await run('https://ex.com/a')
     expect(result.type).toBe('ok'); expect(result.priority).toBe(820)
-    expect(value(result, 'Sitemap references')).toBe(1)
+    expect(result.presentation?.values).toEqual([
+      { key: 'Sitemap references', value: 1, kind: 'text' }, { key: 'Sitemap URL', value: 'https://ex.com/sitemap.xml', kind: 'url' },
+      { key: 'HTTP status', value: 'HTTP 200 OK', kind: 'text' }, { key: 'robots.txt URL', value: 'https://ex.com/robots.txt', kind: 'url' }])
     expect(result.presentation?.evidence[0]).toEqual({ name: 'Line 1', fields: [
       { key: 'Line', value: 1, kind: 'text' }, { key: 'Sitemap URL', value: 'https://ex.com/sitemap.xml', kind: 'url' },
-      { key: 'Valid', value: 'Yes', kind: 'text' }] })
+      { key: 'Syntax', value: 'Absolute URL', kind: 'text' }] })
     expect(result.details).toBeUndefined()
     expect(toResultCopyPayload(result)).toContain(rule.meta.references[0])
   })
@@ -36,7 +38,9 @@ describe('rule: robots sitemap reference', () => {
     const result = await run('https://relsm.test/a')
     expect(result.type).toBe('warn'); expect(result.priority).toBe(400)
     expect(value(result, 'Invalid values')).toBe(1)
+    expect(value(result, 'Sitemap value')).toBe('/sitemap.xml')
     expect(result.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Sitemap value', value: '/sitemap.xml', kind: 'text' })
+    expect(result.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Syntax', value: 'Relative or malformed', kind: 'text' })
   })
 
   it('warns when valid and invalid sitemap values are mixed', async () => {
@@ -44,6 +48,7 @@ describe('rule: robots sitemap reference', () => {
     const result = await run('https://mixsm.test/a')
     expect(result.type).toBe('warn')
     expect(value(result, 'Sitemap references')).toBe(2)
+    expect(value(result, 'Sitemap URL')).toBeUndefined()
     expect(value(result, 'Invalid values')).toBe(1)
     expect(result.presentation?.evidence).toHaveLength(2)
     expect(result.presentation?.evidence[0]?.name).toBe('Line 1')
@@ -55,6 +60,8 @@ describe('rule: robots sitemap reference', () => {
     const result = await run('https://missing.test/a')
     expect(result.type).toBe('info'); expect(result.priority).toBe(850)
     expect(value(result, 'HTTP status')).toBe('HTTP 404 Not Found')
+    expect(value(result, 'Sitemap references')).toBe('Not checked')
+    expect(value(result, 'robots.txt URL')).toBe('https://missing.test/robots.txt')
   })
 
   it('skips a non-http(s) page URL without fetching', async () => {

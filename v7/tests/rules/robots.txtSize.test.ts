@@ -20,8 +20,9 @@ describe('rule: robots txt size', () => {
     // Only the first 500 KiB is read, so the rule reports the limit it hit -
     // never an exact size it never measured.
     expect(detail(result, 'Bytes read')).toBe('512000 bytes')
-    expect(value(result, 'robots.txt size')).toContain('or more')
-    expect(value(result, 'Within limit')).toBe('No')
+    expect(value(result, 'robots.txt size')).toBe('500 KiB or more')
+    expect(value(result, 'Read limit')).toBe('Reached')
+    expect(value(result, 'robots.txt URL')).toBe('https://large.example/robots.txt')
     expect(result.details).toBeUndefined()
     expect(toResultCopyPayload(result)).toContain(rule.meta.references[0])
   })
@@ -31,8 +32,9 @@ describe('rule: robots txt size', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200, text: async () => small }))
     const result = await run('https://small.example')
     expect(result.type).toBe('info'); expect(result.priority).toBe(820)
-    expect(value(result, 'Within limit')).toBe('Yes')
+    expect(value(result, 'Read limit')).toBeUndefined()
     expect(value(result, 'robots.txt size')).toBe('1 KiB')
+    expect(detail(result, 'Bytes read')).toBe('1024 bytes')
   })
 
   it('reports not checked when robots.txt is unreachable', async () => {
@@ -40,6 +42,7 @@ describe('rule: robots txt size', () => {
     const result = await run('https://missing.example')
     expect(result.type).toBe('info'); expect(result.priority).toBe(850)
     expect(value(result, 'robots.txt size')).toBe('Not checked')
+    expect(value(result, 'HTTP status')).toBe('HTTP 404 Not Found')
     expect(result.presentation?.input).toBe('robots.txt response')
   })
 

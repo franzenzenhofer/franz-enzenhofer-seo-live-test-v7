@@ -1,14 +1,23 @@
 import { robotsMetaPairs } from './robotsMarkup'
+import { crawlerLabel, metaRecords, normalizeTokens, restrictiveFirst } from './robotsPresentation'
 
 import type { Rule } from '@/core/types'
-import { sampleElements } from '@/shared/domEvidence'
 import { textField } from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
 import { presentResult } from '@/shared/presentation/result'
+import { listRow } from '@/shared/presentation/listRow'
 
 type Config = { id: string; name: string; crawler: 'robots' | 'googlebot'; noindexOnly?: boolean }
+const LABEL = { robots: 'Robots', googlebot: 'Googlebot' } as const
 
 export const createRobotsMetaRule = (config: Config): Rule => {
+  const checked = [
+    textField('Query', `meta[name="${config.crawler}" i]`),
+    textField('Selection', 'All matches, including body tags'),
+    textField('Source', 'HTML meta tag'),
+    textField('Criterion', config.noindexOnly
+      ? 'Warn when noindex or none is present (nofollow does not affect this criterion)'
+      : 'Warn when noindex, nofollow or none is present'),
+  ]
   const rule: Rule = {
     id: config.id,
     name: config.name,
@@ -29,42 +38,30 @@ export const createRobotsMetaRule = (config: Config): Rule => {
       const hasNoindex = directives.some((directive) => directive.hasNoindex)
       const hasNofollow = directives.some((directive) => directive.hasNofollow)
       const restricted = hasNoindex || (!config.noindexOnly && hasNofollow)
-      const { sample, total } = sampleElements(pairs.map((pair) => pair.element))
-      const captured = markupEvidence(sample, `${config.crawler} meta tag`)
+      if (!pairs.length) {
+        return presentResult(rule, page, {
+          input: 'Static DOM', type: 'info', priority: 700,
+          values: [textField(`${LABEL[config.crawler]} meta`, 'Not found')], checked,
+          noMarkup: `No ${config.crawler} meta element found`,
+        })
+      }
+      const records = metaRecords(pairs, (pair) => [textField('Instruction', pair.directive.value)])
+      const tokens = restrictiveFirst(normalizeTokens(directives.flatMap((directive) => directive.tokens)))
       return presentResult(rule, page, {
         input: 'Static DOM',
         type: restricted ? 'warn' : 'info',
         priority: restricted ? 150 : 700,
         values: [
-          textField(`${config.crawler} meta tags`, directives.length),
-          textField('Contains noindex', hasNoindex ? 'Yes' : 'No'),
-          textField('Contains nofollow', hasNofollow ? 'Yes' : 'No'),
+          ...(pairs.length > 1 ? [textField(`${config.crawler} meta tags`, pairs.length)] : []),
+          textField(pairs.length > 1 ? 'Instructions' : 'Instruction', listRow(tokens)),
+          textField('Applies to', crawlerLabel(config.crawler)),
+          ...records.overview,
         ],
-        detailValues: [
-          textField('Meta elements retained', sample.length),
-          textField('Meta elements omitted', total - sample.length),
-        ],
-        checked: [
-          textField('Query', `meta[name="${config.crawler}" i]`),
-          textField('Selection', 'All matches, including body tags'),
-          textField('Source', 'HTML meta tag'),
-          textField('Criterion', config.noindexOnly
-            ? 'Warn when noindex or none is present (nofollow does not affect this criterion)'
-            : 'Warn when noindex, nofollow or none is present'),
-        ],
-        evidence: [
-          ...directives.slice(0, sample.length).map((directive, index) => ({
-            name: `Meta ${index + 1}`,
-            fields: [
-              textField('Instruction', directive.value),
-              textField('Contains noindex', directive.hasNoindex ? 'Yes' : 'No'),
-              textField('Contains nofollow', directive.hasNofollow ? 'Yes' : 'No'),
-            ],
-          })),
-          ...(captured.fields.length ? [{ name: 'Source locations', fields: captured.fields }] : []),
-        ],
-        markup: captured.markup,
-        noMarkup: total ? `Complete original ${config.crawler} meta markup not retained` : `No ${config.crawler} meta element found`,
+        detailValues: records.counts,
+        checked,
+        evidence: records.evidence,
+        markup: records.markup,
+        noMarkup: `Complete original ${config.crawler} meta markup not retained`,
       })
     },
   }

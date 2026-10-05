@@ -15,8 +15,10 @@ describe('rule: googlebot url check', () => {
     serve('User-agent: *\nAllow: /')
     const result = await run('https://allow.test/a')
     expect(result.type).toBe('ok'); expect(result.priority).toBe(800)
-    expect(value(result, 'Googlebot crawl permission')).toBe('Allowed')
-    expect(result.presentation?.evidence[0]).toEqual({ name: 'Applicable user-agent group', fields: [{ key: 'Group', value: '*', kind: 'text' }] })
+    expect(value(result, 'Googlebot')).toBe('Allowed')
+    expect(value(result, 'robots.txt URL')).toBe('https://allow.test/robots.txt')
+    expect(result.presentation?.detailValues).toEqual([{ key: 'Current page URL', value: 'https://allow.test/a', kind: 'url' }])
+    expect(result.presentation?.evidence[0]).toEqual({ name: 'User-agent group', fields: [{ key: 'Group', value: '*', kind: 'text' }] })
     expect(result.presentation?.evidence[1]).toEqual({ name: 'Line 2', fields: [
       { key: 'Line', value: 2, kind: 'text' }, { key: 'Directive', value: 'Allow', kind: 'text' }, { key: 'Value', value: '/', kind: 'text' }] })
     expect(result.details).toBeUndefined()
@@ -27,7 +29,7 @@ describe('rule: googlebot url check', () => {
     serve('User-agent: Googlebot\nDisallow: /private')
     const result = await run('https://disallow.test/private/page')
     expect(result.type).toBe('error'); expect(result.priority).toBe(60)
-    expect(value(result, 'Googlebot crawl permission')).toBe('Disallowed')
+    expect(value(result, 'Googlebot')).toBe('Disallowed')
     expect(result.presentation?.evidence.find((e) => e.name === 'Line 2')?.fields).toContainEqual({ key: 'Directive', value: 'Disallow', kind: 'text' })
   })
 
@@ -35,7 +37,7 @@ describe('rule: googlebot url check', () => {
     serve('User-agent: *\nDisallow: /blocked')
     const result = await run('https://defaultallow.test/open')
     expect(result.type).toBe('ok')
-    expect(result.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Matching rule', value: 'None - default allow applies', kind: 'text' })
+    expect(result.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Matching rule', value: 'None', kind: 'text' })
   })
 
   it('treats a 404 robots.txt as allow-all', async () => {
@@ -49,7 +51,8 @@ describe('rule: googlebot url check', () => {
     serve('', 500)
     const result = await run('https://servererror.test/a')
     expect(result.type).toBe('info'); expect(result.priority).toBe(850)
-    expect(value(result, 'Googlebot crawl permission')).toBe('Not checked')
+    expect(value(result, 'Googlebot')).toBe('Not checked')
+    expect(value(result, 'HTTP status')).toBe('HTTP 500 Internal Server Error')
   })
 
   it('reports not checked for an invalid page URL without fetching', async () => {

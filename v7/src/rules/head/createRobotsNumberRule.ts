@@ -1,14 +1,14 @@
-import { robotsMetaPairs } from './robotsMarkup'
+import { crawlerLabel, distinct, headerRows, matchedPairs, metaRecords } from './robotsPresentation'
 
 import type { Rule } from '@/core/types'
-import { EVIDENCE_LIMIT, sampleElements } from '@/shared/domEvidence'
 import { textField } from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
 import { presentResult } from '@/shared/presentation/result'
 import { parseRobotsDirectives } from '@/shared/robots'
 import { findRobotsTokens, parseDirectiveNumber } from '@/shared/robots-tokens'
+import { listRow } from '@/shared/presentation/listRow'
 
 type Config = { directive: 'max-snippet' | 'max-video-preview'; name: string; unit: string; zeroMeaning: string; defaultMeaning: string }
+const shown = (value: string | undefined) => value || '(empty)'
 
 export const createRobotsNumberRule = (config: Config): Rule => {
   const rule: Rule = {
@@ -30,26 +30,19 @@ export const createRobotsNumberRule = (config: Config): Rule => {
       const matches = findRobotsTokens(parseRobotsDirectives(page.doc, page.headers, page.responseHeaderFields), config.directive)
       const parsed = matches.map((match) => ({ ...match, number: parseDirectiveNumber(match.value) }))
       const invalid = parsed.filter((entry) => !entry.number.valid).length
-      const elementByPath = new Map(robotsMetaPairs(page.doc).map((pair) => [pair.directive.domPath, pair.element]))
-      const elements = parsed
-        .map((entry) => (entry.domPath ? elementByPath.get(entry.domPath) : undefined))
-        .filter((element): element is Element => Boolean(element))
-      const { sample, total } = sampleElements([...new Set(elements)])
-      const captured = markupEvidence(sample, `${config.directive} tag`)
-      return presentResult(rule, page, {
+      const pairs = matchedPairs(page.doc, parsed)
+      const records = metaRecords(pairs, (pair) => {
+        const entries = parsed.filter((entry) => entry.domPath === pair.directive.domPath)
+        return [
+          textField('Crawler', crawlerLabel(pair.directive.ua)),
+          textField('Value', entries.map((entry) => shown(entry.value)).join(', ')),
+          textField('Syntax', entries.every((entry) => entry.number.valid) ? 'Valid' : 'Invalid'),
+        ]
+      })
+      const headers = headerRows(parsed.map((entry) => ({ ua: entry.ua, value: entry.token, source: entry.source })))
+      const common = {
         input: headersCaptured ? 'Static DOM + HTTP response headers' : 'Static DOM',
-        type: invalid ? 'warn' : 'info',
-        priority: invalid ? 240 : 700,
-        values: [
-          textField(`${config.directive} directives`, matches.length),
-          textField('Invalid values', invalid),
-        ],
-        detailValues: [
-          textField('Elements retained', sample.length),
-          textField('Elements omitted', total - sample.length),
-          textField('Instructions retained', Math.min(parsed.length, EVIDENCE_LIMIT)),
-          textField('Instructions omitted', Math.max(parsed.length - EVIDENCE_LIMIT, 0)),
-        ],
+        detailValues: [...(pairs.length ? records.counts : []), ...headers],
         checked: [
           textField('Directive', config.directive),
           textField('Header', headersCaptured ? 'X-Robots-Tag' : 'Not captured'),
@@ -57,21 +50,21 @@ export const createRobotsNumberRule = (config: Config): Rule => {
           textField('Unit', config.unit),
           textField('Criterion', 'Value is a whole number of -1 or greater (-1 = no explicit maximum, 0 = maximum restriction)'),
         ],
-        evidence: [
-          ...parsed.slice(0, EVIDENCE_LIMIT).map((entry, index) => ({
-            name: `Instruction ${index + 1}`,
-            fields: [
-              textField('Crawler', entry.ua === 'robots' ? 'All crawlers (including Googlebot)' : entry.ua),
-              textField('Source', entry.source === 'meta' ? 'HTML meta tag' : 'HTTP response header'),
-              textField('Value', entry.value || '(empty)'),
-              textField('Valid', entry.number.valid ? 'Yes' : 'No'),
-              ...(entry.headerKey ? [textField('Header name', entry.headerKey)] : []),
-            ],
-          })),
-          ...(captured.fields.length ? [{ name: 'Source locations', fields: captured.fields }] : []),
+        evidence: records.evidence,
+        markup: records.markup,
+        noMarkup: pairs.length ? `Complete original ${config.directive} markup not retained` : `No matching ${config.directive} element found`,
+      }
+      if (!matches.length) {
+        return presentResult(rule, page, { ...common, type: 'info', priority: 700, values: [textField(config.directive, 'Not found')] })
+      }
+      return presentResult(rule, page, {
+        ...common, type: invalid ? 'warn' : 'info', priority: invalid ? 240 : 700,
+        values: [
+          textField(config.directive, listRow(distinct(parsed.map((entry) => shown(entry.value))))),
+          textField('Applies to', listRow(distinct(parsed.map((entry) => crawlerLabel(entry.ua))))),
+          ...(invalid ? [textField('Invalid values', `${invalid} of ${parsed.length}`)] : []),
+          ...records.overview,
         ],
-        markup: captured.markup,
-        noMarkup: total ? `Complete original ${config.directive} markup not retained` : `No matching ${config.directive} element found`,
       })
     },
   }

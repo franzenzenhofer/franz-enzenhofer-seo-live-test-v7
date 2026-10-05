@@ -14,13 +14,13 @@ describe('rule: other robots meta', () => {
     const r = await run('<html><head></head></html>')
     expect(r.type).toBe('info')
     expect(r.priority).toBe(910)
-    expect(r.presentation?.values).toContainEqual({ key: 'Agent-specific robots meta tags', value: 0, kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'Agent robots meta', value: 'Not found', kind: 'text' }])
     expect(r.presentation?.noMarkup).toBe('No agent-specific robots meta element found')
   })
 
   it('excludes robots and googlebot named metas from the agent-specific listing', async () => {
     const r = await run('<meta name="robots" content="noindex"><meta name="googlebot" content="noindex">')
-    expect(r.presentation?.values).toContainEqual({ key: 'Agent-specific robots meta tags', value: 0, kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'Agent robots meta', value: 'Not found', kind: 'text' }])
   })
 
   it('warns when an agent-specific tag contains noindex, preserving original markup', async () => {
@@ -28,7 +28,9 @@ describe('rule: other robots meta', () => {
     const r = await run(html)
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(170)
-    expect(r.presentation?.values).toContainEqual({ key: 'Contains noindex', value: 'Yes', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Instruction', value: 'noindex', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Crawlers listed', value: 'bingbot', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: '<meta name="bingbot">', value: html, kind: 'original', fidelity: 'complete-original' })
     expect(r.presentation?.markup[0]?.value).toBe(html)
   })
 
@@ -39,8 +41,10 @@ describe('rule: other robots meta', () => {
     )
     expect(r.type).toBe('info')
     expect(r.priority).toBe(620)
-    expect(r.presentation?.values).toContainEqual({ key: 'Agent-specific robots meta tags', value: 2, kind: 'text' })
-    expect(r.presentation?.evidence).toHaveLength(2)
+    expect(r.presentation?.values).toContainEqual({ key: 'Agent robots tags', value: 2, kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Instructions', value: 'index, follow', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Crawlers listed', value: 'bingbot, slurp', kind: 'text' })
+    expect(r.presentation?.evidence.map(({ name }) => name)).toEqual(['<meta name="bingbot">', '<meta name="slurp">'])
     expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Crawler', value: 'bingbot', kind: 'text' })
     const copy = toResultCopyPayload(r)
     expect(copy).not.toContain('duckduckbot')

@@ -47,7 +47,7 @@ export const robotsBlockedResourcesRule: Rule = {
     if (!resourceCount) {
       return presentResult(robotsBlockedResourcesRule, page, {
         input: 'Not captured', type: 'info', priority: 900,
-        values: [textField('Same-origin resources checked', 'Not checked'), textField('Reason', 'No resource requests captured')],
+        values: [textField('Resource requests', 'Not captured'), textField('Resources checked', 'Not checked')],
         checked: checkedFacts(CRITERION), noMarkup: NO_MARKUP,
       })
     }
@@ -55,13 +55,14 @@ export const robotsBlockedResourcesRule: Rule = {
     const robotsTxtUrl = `${base.origin}/robots.txt`
     const response = await fetchStatusTextOnce(robotsTxtUrl, TIMEOUT_MS, ctx.signal)
     const policy = robotsPolicyState(response)
+    const url = urlField('robots.txt URL', robotsTxtUrl)
+    const ledger = [textField('Resource URLs', resourceCount), ...coverageDetails(page)]
     if (policy === 'unknown') {
       return presentResult(robotsBlockedResourcesRule, page, {
         input: response ? 'Resource requests + robots.txt response' : 'Resource requests', type: 'info', priority: 850,
-        values: [textField('Same-origin resources checked', 'Not checked'),
-          textField('HTTP status', response ? httpStatusLabel(response.status) : 'No response received')],
-        detailValues: [urlField('robots.txt URL', robotsTxtUrl), textField('Resources retained', resourceCount), ...coverageDetails(page)],
-        checked: checkedFacts(CRITERION), noMarkup: NO_MARKUP,
+        values: [textField('Resources checked', 'Not checked'),
+          response ? textField('HTTP status', httpStatusLabel(response.status)) : textField('Response', 'Request failed'), url],
+        detailValues: ledger, checked: checkedFacts(CRITERION), noMarkup: NO_MARKUP,
       })
     }
     const robotsTxt = policy === 'allow' ? '' : response?.text || ''
@@ -70,25 +71,24 @@ export const robotsBlockedResourcesRule: Rule = {
     const crossOriginCount = resourceCount - sameOriginUrls.length
     const common = {
       input: 'Resource requests + robots.txt response',
-      detailValues: [urlField('robots.txt URL', robotsTxtUrl), textField('HTTP status', httpStatusLabel(response!.status)),
-        textField('Resources retained', resourceCount), textField('Cross-origin resources', crossOriginCount), ...coverageDetails(page)],
+      detailValues: [textField('HTTP status', httpStatusLabel(response!.status)), ...ledger, textField('Cross-origin resources', crossOriginCount)],
       checked: checkedFacts(CRITERION),
       noMarkup: NO_MARKUP,
     }
     if (!sameOriginUrls.length) {
       return presentResult(robotsBlockedResourcesRule, page, { ...common, type: 'info', priority: 850,
-        values: [textField('Same-origin resources checked', 0), textField('Cross-origin resources', crossOriginCount)],
+        values: [textField('Resources checked', 0), textField('Cross-origin resources', crossOriginCount), url],
         detailValues: common.detailValues.filter((field) => field.key !== 'Cross-origin resources') })
     }
     if (blocked.length) {
       const shown = blocked.slice(0, MAX_SHOWN)
       return presentResult(robotsBlockedResourcesRule, page, { ...common, type: 'warn', priority: 200,
-        values: [textField('Blocked resources', blocked.length), textField('Same-origin resources checked', sameOriginUrls.length)],
-        detailValues: [...common.detailValues, textField('Allowed resources', sameOriginUrls.length - blocked.length)],
-        evidence: [...shown.map((url, index) => ({ name: `Blocked resource ${index + 1}`, fields: [urlField('Resource URL', url)] })),
-          ...(blocked.length > shown.length ? [{ name: 'Blocked resources omitted', fields: [textField('Omitted', blocked.length - shown.length)] }] : [])] })
+        values: [textField('Blocked resources', blocked.length), textField('Resources checked', sameOriginUrls.length), url],
+        detailValues: [...common.detailValues, textField('Allowed resources', sameOriginUrls.length - blocked.length),
+          ...(blocked.length > shown.length ? [textField('Blocked not listed', blocked.length - shown.length)] : [])],
+        evidence: shown.map((resource, index) => ({ name: `Blocked resource ${index + 1}`, fields: [urlField('Resource URL', resource)] })) })
     }
     return presentResult(robotsBlockedResourcesRule, page, { ...common, type: 'ok', priority: 800,
-      values: [textField('Blocked resources', 0), textField('Same-origin resources checked', sameOriginUrls.length)] })
+      values: [textField('Blocked resources', 0), textField('Resources checked', sameOriginUrls.length), url] })
   },
 }

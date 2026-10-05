@@ -9,6 +9,7 @@ const NAME = 'robots.txt Exists'
 const RULE_ID = 'robots-exists'
 const TIMEOUT_MS = 1500
 const NO_MARKUP = 'None - this rule checks robots.txt, not document markup'
+const RATE_LIMITED = 429
 
 const getRobotsTxtUrl = (pageUrl: string): string => {
   try {
@@ -64,36 +65,30 @@ export const robotsTxtRule: Rule = {
     // Six robots rules run concurrently against the same robots.txt; the shared
     // single-flight fetch collapses them onto one request per run.
     const response = await fetchStatusTextOnce(robotsTxtUrl, TIMEOUT_MS, ctx.signal)
+    const url = urlField('robots.txt URL', robotsTxtUrl)
     if (response === null) {
       return presentResult(robotsTxtRule, page, {
         input: 'Not captured', type: 'warn', priority: 350,
-        values: [textField('robots.txt', 'Unreachable'), textField('Reason', 'Network error or timeout')],
-        detailValues: [urlField('robots.txt URL', robotsTxtUrl)],
+        values: [url, textField('Response', 'Not captured')],
         checked: checkedFacts('robots.txt responds within the timeout'),
-        evidence: [{ name: 'robots.txt fetch', fields: [urlField('robots.txt URL', robotsTxtUrl), textField('Outcome', 'No response received')] }],
         noMarkup: NO_MARKUP,
       })
     }
     const status = response.status
-    const common = {
-      input: 'robots.txt response',
-      detailValues: [urlField('robots.txt URL', robotsTxtUrl)],
-      evidence: [{ name: 'robots.txt fetch', fields: [urlField('robots.txt URL', robotsTxtUrl), textField('HTTP status', httpStatusLabel(status))] }],
-      noMarkup: NO_MARKUP,
-    }
+    const common = { input: 'robots.txt response', noMarkup: NO_MARKUP }
+    const rows = (found: string) => [textField('robots.txt', found), textField('HTTP status', httpStatusLabel(status)), url]
     if (!response.ok) {
       if (isNoRobotsStatus(status, response)) {
         return presentResult(robotsTxtRule, page, { ...common, type: 'info', priority: 800,
-          values: [textField('robots.txt', 'Not found'), textField('HTTP status', httpStatusLabel(status))],
-          checked: checkedFacts('A 4xx status other than 429 is treated as allow-all') })
+          values: rows('Not found'), checked: checkedFacts('A 4xx status other than 429 is treated as allow-all') })
       }
       return presentResult(robotsTxtRule, page, { ...common, type: 'warn', priority: 300,
-        values: [textField('robots.txt', 'Unreachable'), textField('HTTP status', httpStatusLabel(status))],
+        values: rows(status === RATE_LIMITED ? 'Rate limited' : 'Server error'),
         checked: checkedFacts('A 429 or 5xx status is treated as unreachable') })
     }
     return presentResult(robotsTxtRule, page, { ...common, type: 'info', priority: 800,
-      values: [textField('robots.txt', 'Found'), textField('HTTP status', httpStatusLabel(status))],
-      detailValues: [...common.detailValues, textField('Response body', `${response.bytes} bytes${response.truncated ? ' (truncated at 500 KiB)' : ''}`)],
+      values: rows('Found'),
+      detailValues: [textField('Response body', `${response.bytes} bytes${response.truncated ? ' (truncated at 500 KiB)' : ''}`)],
       checked: checkedFacts('A 2xx status') })
   },
 }

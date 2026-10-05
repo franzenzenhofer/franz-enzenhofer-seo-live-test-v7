@@ -14,7 +14,7 @@ describe('rule: robots meta', () => {
     const r = await run('<html><head></head></html>')
     expect(r.type).toBe('info')
     expect(r.priority).toBe(700)
-    expect(r.presentation?.values).toContainEqual({ key: 'robots meta tags', value: 0, kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'Robots meta', value: 'Not found', kind: 'text' }])
   })
 
   it('reports a single harmless tag as info and retains its complete original markup', async () => {
@@ -23,6 +23,8 @@ describe('rule: robots meta', () => {
     expect(r.type).toBe('info')
     expect(r.priority).toBe(700)
     expect(r.presentation?.markup[0]?.value).toBe(html)
+    expect(r.presentation?.values.map(({ key, value }) => `${key}: ${value}`)).toEqual([
+      'Instruction: index, follow', 'Applies to: all crawlers', `<meta name="robots">: ${html}`])
     expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Instruction', value: 'index,follow', kind: 'text' })
   })
 
@@ -30,34 +32,37 @@ describe('rule: robots meta', () => {
     const r = await run('<meta name="robots" content="noindex">')
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(150)
-    expect(r.presentation?.values).toContainEqual({ key: 'Contains noindex', value: 'Yes', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Instruction', value: 'noindex', kind: 'text' })
   })
 
   it('warns on nofollow alone for this rule (unlike head:robots-noindex)', async () => {
     const r = await run('<meta name="robots" content="nofollow">')
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(150)
-    expect(r.presentation?.values).toContainEqual({ key: 'Contains nofollow', value: 'Yes', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Instruction', value: 'nofollow', kind: 'text' })
   })
 
   it('combines multiple robots meta tags instead of warning on multiplicity', async () => {
     const r = await run('<meta name="robots" content="max-image-preview:large"><meta name="robots" content="notranslate">')
     expect(r.type).toBe('info')
     expect(r.presentation?.values).toContainEqual({ key: 'robots meta tags', value: 2, kind: 'text' })
-    expect(r.presentation?.values).toContainEqual({ key: 'Contains noindex', value: 'No', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Instructions', value: 'max-image-preview:large, notranslate', kind: 'text' })
+    expect(r.presentation?.values.filter(({ kind }) => kind === 'original')).toHaveLength(2)
   })
 
   it('surfaces noindex hidden in one of several robots meta tags', async () => {
     const r = await run('<meta name="robots" content="noindex"><meta name="robots" content="nofollow">')
     expect(r.type).toBe('warn')
     expect(r.presentation?.values).toContainEqual({ key: 'robots meta tags', value: 2, kind: 'text' })
-    expect(r.presentation?.evidence.filter(({ name }) => name.startsWith('Meta '))).toHaveLength(2)
+    expect(r.presentation?.values).toContainEqual({ key: 'Instructions', value: 'noindex, nofollow', kind: 'text' })
+    expect(r.presentation?.evidence.map(({ name }) => name)).toEqual(['<meta name="robots"> 1', '<meta name="robots"> 2'])
   })
 
   it('reads generic restrictions declared outside the head', async () => {
     const r = await run('<body><meta name="ROBOTS" content="noindex"></body>')
     expect(r.type).toBe('warn')
-    expect(r.presentation?.values).toContainEqual({ key: 'robots meta tags', value: 1, kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Instruction', value: 'noindex', kind: 'text' })
+    expect(r.presentation?.markup).toHaveLength(1)
   })
 
   it('preserves the documentation reference, userGuide, and removes the legacy details payload', async () => {

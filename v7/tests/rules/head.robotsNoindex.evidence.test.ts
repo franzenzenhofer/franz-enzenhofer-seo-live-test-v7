@@ -20,8 +20,7 @@ describe('rule: robots noindex', () => {
     const r = await run('<meta name="robots" content="index"><meta name="robots" content="nofollow">')
     expect(r.type).toBe('info')
     expect(r.priority).toBe(700)
-    expect(r.presentation?.values).toContainEqual({ key: 'Contains noindex', value: 'No', kind: 'text' })
-    expect(r.presentation?.values).toContainEqual({ key: 'Contains nofollow', value: 'Yes', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Instructions', value: 'nofollow, index', kind: 'text' })
     expect(r.presentation?.checked).toContainEqual({ key: 'Criterion', value: 'Warn when noindex or none is present (nofollow does not affect this criterion)', kind: 'text' })
   })
 

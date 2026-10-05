@@ -34,7 +34,7 @@ describe('rule: robots blocked resources', () => {
     stub('User-agent: *\nDisallow:')
     const result = await run('https://nosameorigin.test/page', ['https://cdn.other.test/a.js'])
     expect(result.type).toBe('info'); expect(result.priority).toBe(850)
-    expect(value(result, 'Same-origin resources checked')).toBe(0)
+    expect(value(result, 'Resources checked')).toBe(0)
     expect(value(result, 'Cross-origin resources')).toBe(1)
   })
 
@@ -42,13 +42,16 @@ describe('rule: robots blocked resources', () => {
     const result = await run('https://noresources.test/page', [])
     expect(result.type).toBe('info'); expect(result.priority).toBe(900)
     expect(result.presentation?.input).toBe('Not captured')
+    expect(result.presentation?.values).toEqual([
+      { key: 'Resource requests', value: 'Not captured', kind: 'text' }, { key: 'Resources checked', value: 'Not checked', kind: 'text' }])
   })
 
   it('reports not checked when robots.txt is unavailable', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('boom')))
     const result = await run('https://robotsdown.test/page', ['https://robotsdown.test/a.js'])
     expect(result.type).toBe('info'); expect(result.priority).toBe(850)
-    expect(value(result, 'Same-origin resources checked')).toBe('Not checked')
+    expect(value(result, 'Resources checked')).toBe('Not checked')
+    expect(value(result, 'Response')).toBe('Request failed')
     expect(result.presentation?.input).toBe('Resource requests')
   })
 })

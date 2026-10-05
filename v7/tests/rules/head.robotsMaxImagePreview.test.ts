@@ -16,6 +16,7 @@ describe('head: robots max-image-preview', () => {
     expect(r.priority).toBe(905)
     expect(r.presentation?.input).toBe('Static DOM')
     expect(r.presentation?.checked).toContainEqual({ key: 'Header', value: 'Not captured', kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'max-image-preview', value: 'Not found', kind: 'text' }])
   })
 
   it('reports info for a valid value and retains its original markup', async () => {
@@ -25,7 +26,10 @@ describe('head: robots max-image-preview', () => {
     expect(r.priority).toBe(700)
     expect(r.presentation?.input).toBe('Static DOM + HTTP response headers')
     expect(r.presentation?.markup[0]?.value).toBe(html)
-    expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Valid', value: 'Yes', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'max-image-preview', value: 'standard', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Applies to', value: 'all crawlers', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: '<meta name="robots">', value: html, kind: 'original', fidelity: 'complete-original' })
+    expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Syntax', value: 'Valid', kind: 'text' })
   })
 
   it('warns on an invalid value naming the offending crawler', async () => {
@@ -33,14 +37,18 @@ describe('head: robots max-image-preview', () => {
     const r = await run(html)
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(240)
-    expect(r.presentation?.values).toContainEqual({ key: 'Invalid values', value: 1, kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Invalid values', value: '1 of 1', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Applies to', value: 'googlebot', kind: 'text' })
     expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Crawler', value: 'googlebot', kind: 'text' })
+    expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Syntax', value: 'Invalid', kind: 'text' })
   })
 
   it('reports a header-sourced directive without markup', async () => {
     const r = await run('<head></head>', { 'X-Robots-Tag': 'max-image-preview:large' })
     expect(r.type).toBe('info')
-    expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Source', value: 'HTTP response header', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'max-image-preview', value: 'large', kind: 'text' })
+    expect(r.presentation?.detailValues).toEqual([{ key: 'X-Robots-Tag', value: 'max-image-preview:large', kind: 'text' }])
+    expect(r.presentation?.evidence).toHaveLength(0)
     expect(r.presentation?.markup).toHaveLength(0)
     expect(r.presentation?.noMarkup).toBe('No matching max-image-preview element found')
   })

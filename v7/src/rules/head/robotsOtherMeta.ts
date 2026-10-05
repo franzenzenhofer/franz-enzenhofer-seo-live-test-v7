@@ -1,14 +1,19 @@
 import { robotsMetaPairs } from './robotsMarkup'
+import { distinct, metaRecords, normalizeTokens, restrictiveFirst } from './robotsPresentation'
 
 import type { Rule } from '@/core/types'
-import { sampleElements } from '@/shared/domEvidence'
 import { textField } from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
 import { presentResult } from '@/shared/presentation/result'
+import { listRow } from '@/shared/presentation/listRow'
 
 const NAME = 'Meta other robots'
 const RULE_ID = 'head:meta-other-robots'
-const SELECTOR = 'meta[name] (robots vocabulary, excluding robots and googlebot)'
+const checked = [
+  textField('Query', 'meta[name] with robots vocabulary, excluding robots and googlebot'),
+  textField('Selection', 'All matches'),
+  textField('Source', 'HTML meta tag'),
+  textField('Criterion', 'Warn only when a listed agent-specific instruction contains noindex or nofollow'),
+]
 
 export const robotsOtherMetaRule: Rule = {
   id: RULE_ID,
@@ -29,43 +34,33 @@ export const robotsOtherMetaRule: Rule = {
     const pairs = robotsMetaPairs(page.doc).filter(
       (pair) => pair.directive.ua !== 'robots' && pair.directive.ua !== 'googlebot',
     )
+    if (!pairs.length) {
+      return presentResult(robotsOtherMetaRule, page, {
+        input: 'Static DOM', type: 'info', priority: 910,
+        values: [textField('Agent robots meta', 'Not found')], checked, noMarkup: 'No agent-specific robots meta element found',
+      })
+    }
     const directives = pairs.map((pair) => pair.directive)
-    const hasNoindex = directives.some((directive) => directive.hasNoindex)
-    const hasNofollow = directives.some((directive) => directive.hasNofollow)
-    const restricted = hasNoindex || hasNofollow
-    const { sample, total } = sampleElements(pairs.map((pair) => pair.element))
-    const captured = markupEvidence(sample, 'Agent-specific robots meta tag')
+    const restricted = directives.some((directive) => directive.hasNoindex || directive.hasNofollow)
+    const records = metaRecords(pairs, (pair) => [
+      textField('Crawler', pair.directive.ua), textField('Instruction', pair.directive.value),
+    ])
+    const tokens = restrictiveFirst(normalizeTokens(directives.flatMap((directive) => directive.tokens)))
     return presentResult(robotsOtherMetaRule, page, {
       input: 'Static DOM',
-      type: directives.length && restricted ? 'warn' : 'info',
-      priority: !directives.length ? 910 : restricted ? 170 : 620,
+      type: restricted ? 'warn' : 'info',
+      priority: restricted ? 170 : 620,
       values: [
-        textField('Agent-specific robots meta tags', directives.length),
-        textField('Crawlers listed', directives.length ? directives.map((directive) => directive.ua).join('; ') : 'None'),
-        textField('Contains noindex', hasNoindex ? 'Yes' : 'No'),
-        textField('Contains nofollow', hasNofollow ? 'Yes' : 'No'),
+        ...(pairs.length > 1 ? [textField('Agent robots tags', pairs.length)] : []),
+        textField(pairs.length > 1 ? 'Instructions' : 'Instruction', listRow(tokens)),
+        textField('Crawlers listed', listRow(distinct(directives.map((directive) => directive.ua)))),
+        ...records.overview,
       ],
-      detailValues: [
-        textField('Meta elements retained', sample.length),
-        textField('Meta elements omitted', total - sample.length),
-      ],
-      checked: [
-        textField('Selector', SELECTOR),
-        textField('Selection', 'All matches'),
-        textField('Source', 'HTML meta tag'),
-        textField('Criterion', 'Warn only when a listed agent-specific instruction contains noindex or nofollow'),
-      ],
-      evidence: directives.map((directive, index) => ({
-        name: `Meta ${index + 1}`,
-        fields: [
-          textField('Crawler', directive.ua),
-          textField('Instruction', directive.value),
-          textField('Contains noindex', directive.hasNoindex ? 'Yes' : 'No'),
-          textField('Contains nofollow', directive.hasNofollow ? 'Yes' : 'No'),
-        ],
-      })),
-      markup: captured.markup,
-      noMarkup: total ? 'Complete original agent-specific robots meta markup not retained' : 'No agent-specific robots meta element found',
+      detailValues: records.counts,
+      checked,
+      evidence: records.evidence,
+      markup: records.markup,
+      noMarkup: 'Complete original agent-specific robots meta markup not retained',
     })
   },
 }

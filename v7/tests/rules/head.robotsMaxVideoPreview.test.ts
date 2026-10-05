@@ -15,7 +15,7 @@ describe('head: robots max-video-preview', () => {
     expect(r.type).toBe('info')
     expect(r.priority).toBe(700)
     expect(r.presentation?.input).toBe('Static DOM')
-    expect(r.presentation?.values).toContainEqual({ key: 'max-video-preview directives', value: 0, kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'max-video-preview', value: 'Not found', kind: 'text' }])
   })
 
   it('reports info for a valid numeric value and retains original markup', async () => {
@@ -25,15 +25,20 @@ describe('head: robots max-video-preview', () => {
     expect(r.priority).toBe(700)
     expect(r.presentation?.input).toBe('Static DOM + HTTP response headers')
     expect(r.presentation?.markup[0]?.value).toBe(html)
+    expect(r.presentation?.values.map(({ key, value }) => `${key}: ${value}`)).toEqual([
+      'max-video-preview: 30', 'Applies to: all crawlers', `<meta name="robots">: ${html}`])
     expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Value', value: '30', kind: 'text' })
+    expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Syntax', value: 'Valid', kind: 'text' })
   })
 
   it('warns on invalid values naming the crawler and source', async () => {
     const r = await run('<meta name="googlebot" content="max-video-preview:abc">')
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(240)
-    expect(r.presentation?.values).toContainEqual({ key: 'Invalid values', value: 1, kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'max-video-preview', value: 'abc', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Invalid values', value: '1 of 1', kind: 'text' })
     expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Crawler', value: 'googlebot', kind: 'text' })
+    expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Syntax', value: 'Invalid', kind: 'text' })
   })
 
   it('preserves the documentation reference and userGuide, and removes the legacy details payload', async () => {

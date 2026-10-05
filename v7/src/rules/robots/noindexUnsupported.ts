@@ -9,6 +9,7 @@ const RULE_ID = 'robots:noindex-unsupported'
 const TIMEOUT_MS = 1500
 const MAX_SHOWN = 20
 const NO_MARKUP = 'None - this rule checks robots.txt, not document markup'
+const CRITERION = 'No unsupported noindex record present in robots.txt'
 
 const checkedFacts = (criterion: string) => [
   textField('Fetch target', '/robots.txt'),
@@ -27,6 +28,8 @@ const robotsTxtTargetFor = (pageUrl: string): URL | null => {
     return null
   }
 }
+
+const isHttpUrl = (value: string) => { try { return /^https?:$/.test(new URL(value).protocol) } catch { return false } }
 
 const occurrencesOf = (text: string) => {
   const occurrences: Array<{ line: number; value: string }> = []
@@ -52,38 +55,38 @@ export const robotsNoindexUnsupportedRule: Rule = {
     if (!target) {
       return presentResult(robotsNoindexUnsupportedRule, page, {
         input: 'Page URL', type: 'runtime_error', priority: -1000,
-        values: [textField('Unsupported noindex records', 'Not checked'), textField('Page URL validity', 'Not a valid URL')],
-        checked: checkedFacts('No unsupported noindex record present in robots.txt'), noMarkup: NO_MARKUP,
+        values: [textField('Noindex records', 'Not checked'), textField('URL syntax', 'Invalid')],
+        checked: checkedFacts(CRITERION), noMarkup: NO_MARKUP,
       })
     }
     if (target.protocol !== 'http:' && target.protocol !== 'https:') {
       return presentResult(robotsNoindexUnsupportedRule, page, {
         input: 'Page URL', type: 'info', priority: 900,
-        values: [textField('Unsupported noindex records', 'Not checked'), textField('Page URL scheme', target.protocol)],
+        values: [textField('Noindex records', 'Not checked'), textField('URL scheme', target.protocol)],
         checked: checkedFacts('Page URL uses the http or https scheme'), noMarkup: NO_MARKUP,
       })
     }
     const robotsTxtUrl = target.href
     const response = await fetchStatusTextOnce(robotsTxtUrl, TIMEOUT_MS, ctx.signal)
+    const url = urlField('robots.txt URL', robotsTxtUrl)
     if (!response?.ok) {
       return presentResult(robotsNoindexUnsupportedRule, page, {
         input: response ? 'robots.txt response' : 'Not captured', type: 'info', priority: 900,
-        values: [textField('Unsupported noindex records', 'Not checked'),
-          textField('HTTP status', response ? httpStatusLabel(response.status) : 'No response received')],
-        detailValues: [urlField('robots.txt URL', robotsTxtUrl)],
-        checked: checkedFacts('No unsupported noindex record present in robots.txt'),
+        values: [textField('Noindex records', 'Not checked'),
+          response ? textField('HTTP status', httpStatusLabel(response.status)) : textField('Response', 'Not captured'), url],
+        checked: checkedFacts(CRITERION),
         noMarkup: NO_MARKUP,
       })
     }
     const { occurrences, count } = occurrencesOf(response.text)
     return presentResult(robotsNoindexUnsupportedRule, page, {
       input: 'robots.txt response', type: count ? 'warn' : 'info', priority: count ? 200 : 850,
-      values: [textField('Unsupported noindex records', count), textField('HTTP status', httpStatusLabel(response.status))],
-      detailValues: [urlField('robots.txt URL', robotsTxtUrl), textField('Records shown', occurrences.length),
-        textField('Records omitted', count - occurrences.length)],
-      checked: checkedFacts('No unsupported noindex record present in robots.txt'),
+      values: [textField('Noindex records', count), textField('HTTP status', httpStatusLabel(response.status)), url],
+      detailValues: count ? [textField('Records listed', occurrences.length), textField('Records not listed', count - occurrences.length)] : [],
+      checked: checkedFacts(CRITERION),
       evidence: occurrences.map((occurrence) => ({ name: `Line ${occurrence.line}`, fields: [
-        textField('Line', occurrence.line), textField('Directive', `noindex: ${occurrence.value}`)] })),
+        textField('Directive', 'noindex'),
+        isHttpUrl(occurrence.value) ? urlField('Value', occurrence.value) : textField('Value', occurrence.value)] })),
       noMarkup: NO_MARKUP,
     })
   },

@@ -10,15 +10,14 @@ it('names an image-indexing restriction without implying that page indexing or o
     doc: new DOMParser().parseFromString(html, 'text/html'),
   }, { globals: {} }), robotsNoImageIndexRule, 'test')
   expect(result.type).toBe('warn')
-  expect(result.presentation?.evidence).toEqual([{ name: 'Instruction 1', fields: [
-    { key: 'Crawler', value: 'All crawlers (including Googlebot)', kind: 'text' },
-    { key: 'Source', value: 'HTML meta tag', kind: 'text' },
+  expect(result.presentation?.evidence).toEqual([{ name: '<meta name="robots">', fields: [
+    { key: 'Crawler', value: 'all crawlers', kind: 'text' },
     { key: 'Instruction', value: 'noimageindex', kind: 'text' },
     { key: 'DOM path', value: 'html > head > meta', kind: 'path' },
   ] }])
   const copy = toResultCopyPayload(result)
-  expect(copy).toContain('All crawlers')
-  expect(copy).toContain('HTML meta tag')
+  expect(copy).toContain('all crawlers')
+  expect(copy).toContain('<meta name="robots" content="noimageindex">')
   expect(copy).not.toContain('[object Object]')
   expect(result.details).toBeUndefined()
 })

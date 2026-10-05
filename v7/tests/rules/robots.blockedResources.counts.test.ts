@@ -23,8 +23,9 @@ describe('rule: robots blocked resources counts', () => {
     expect(result.type).toBe('ok')
     // Only 2 same-host resources are subject to this robots.txt; the verdict
     // must not claim all 5 were checked.
-    expect(value(result, 'Same-origin resources checked')).toBe(2)
+    expect(value(result, 'Resources checked')).toBe(2)
+    expect(value(result, 'robots.txt URL')).toBe('https://crossorigincounts.test/robots.txt')
     expect(detail(result, 'Cross-origin resources')).toBe(3)
-    expect(detail(result, 'Resources retained')).toBe(5)
+    expect(detail(result, 'Resource URLs')).toBe(5)
   })
 })

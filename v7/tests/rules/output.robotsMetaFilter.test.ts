@@ -47,7 +47,7 @@ describe('robots meta directive classification (shared parser)', () => {
 describe('head:robots-meta-list with mixed head', () => {
   it('counts only real robots metas', async () => {
     const res = await robotsMetaListRule.run(page(MIXED_HEAD), { globals: {} })
-    expect(res.presentation?.values).toContainEqual({ key: 'Robots meta tags', value: 1, kind: 'text' })
+    expect(res.presentation?.markup).toHaveLength(1)
     expect(res.presentation?.values).toContainEqual({ key: 'Crawlers listed', value: 'robots', kind: 'text' })
   })
 })
@@ -56,7 +56,7 @@ describe('head:meta-other-robots with mixed head', () => {
   it('reports no agent-specific robots metas when only standard metas exist', async () => {
     const res = await robotsOtherMetaRule.run(page(MIXED_HEAD), { globals: {} })
     expect(res.type).toBe('info')
-    expect(res.presentation?.values).toContainEqual({ key: 'Agent-specific robots meta tags', value: 0, kind: 'text' })
+    expect(res.presentation?.values).toContainEqual({ key: 'Agent robots meta', value: 'Not found', kind: 'text' })
   })
 })
 
@@ -64,7 +64,7 @@ describe('head:robots-agent-conflicts with mixed head', () => {
   it('does not claim agent-specific directives for standard metas', async () => {
     const res = await robotsAgentConflictsRule.run(page(MIXED_HEAD), { globals: {} })
     expect(res.type).toBe('ok')
-    expect(res.presentation?.values).toContainEqual({ key: 'Conflicting directives', value: 0, kind: 'text' })
+    expect(res.presentation?.values).toContainEqual({ key: 'Conflicts', value: 'None', kind: 'text' })
   })
 
   it('counts conflicts and names the agent in a dedicated evidence record', async () => {
@@ -73,16 +73,12 @@ describe('head:robots-agent-conflicts with mixed head', () => {
       { globals: {} },
     )
     expect(res.type).toBe('warn')
-    expect(res.presentation?.values).toContainEqual({ key: 'Conflicting directives', value: 1, kind: 'text' })
-    expect(res.presentation?.evidence).toContainEqual({ name: 'Conflict 1', fields: [
-      { key: 'Crawler', value: 'googlebot', kind: 'text' }, { key: 'Conflict', value: 'index vs global noindex', kind: 'text' },
-    ] })
+    expect(res.presentation?.values).toContainEqual({ key: 'Conflicts', value: 'googlebot: index vs global noindex', kind: 'text' })
   })
 
   it('counts nonstandard agents and names them in a dedicated evidence record', async () => {
     const res = await robotsAgentConflictsRule.run(page('<meta name="weirdbot" content="noindex">'), { globals: {} })
     expect(res.type).toBe('info')
-    expect(res.presentation?.values).toContainEqual({ key: 'Nonstandard agents', value: 1, kind: 'text' })
-    expect(res.presentation?.evidence).toContainEqual({ name: 'Nonstandard agent 1', fields: [{ key: 'Crawler', value: 'weirdbot', kind: 'text' }] })
+    expect(res.presentation?.values).toContainEqual({ key: 'Nonstandard agents', value: 'weirdbot', kind: 'text' })
   })
 })

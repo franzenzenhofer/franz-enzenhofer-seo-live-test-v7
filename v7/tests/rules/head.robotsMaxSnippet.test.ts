@@ -15,7 +15,7 @@ describe('head: robots max-snippet', () => {
     expect(r.type).toBe('info')
     expect(r.priority).toBe(700)
     expect(r.presentation?.input).toBe('Static DOM')
-    expect(r.presentation?.values).toContainEqual({ key: 'max-snippet directives', value: 0, kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'max-snippet', value: 'Not found', kind: 'text' }])
   })
 
   it('reports info for a valid numeric value and retains original markup', async () => {
@@ -25,15 +25,20 @@ describe('head: robots max-snippet', () => {
     expect(r.priority).toBe(700)
     expect(r.presentation?.input).toBe('Static DOM + HTTP response headers')
     expect(r.presentation?.markup[0]?.value).toBe(html)
+    expect(r.presentation?.values.map(({ key, value }) => `${key}: ${value}`)).toEqual([
+      'max-snippet: 50', 'Applies to: all crawlers', `<meta name="robots">: ${html}`])
     expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Value', value: '50', kind: 'text' })
+    expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Syntax', value: 'Valid', kind: 'text' })
   })
 
   it('warns on invalid values naming the crawler and source', async () => {
     const r = await run('<meta name="googlebot" content="max-snippet:foo">')
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(240)
-    expect(r.presentation?.values).toContainEqual({ key: 'Invalid values', value: 1, kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'max-snippet', value: 'foo', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Invalid values', value: '1 of 1', kind: 'text' })
     expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Crawler', value: 'googlebot', kind: 'text' })
+    expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Syntax', value: 'Invalid', kind: 'text' })
   })
 
   it('preserves the documentation reference and userGuide, and removes the legacy details payload', async () => {

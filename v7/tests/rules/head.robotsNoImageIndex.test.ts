@@ -15,7 +15,8 @@ describe('head: robots noimageindex', () => {
     const r = await run(html)
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(220)
-    expect(r.presentation?.values).toContainEqual({ key: 'noimageindex restrictions', value: 1, kind: 'text' })
+    expect(r.presentation?.values.map(({ key, value }) => `${key}: ${value}`)).toEqual([
+      'Instruction: noimageindex', 'Applies to: all crawlers', `<meta name="robots">: ${html}`])
     expect(r.presentation?.markup[0]?.value).toBe(html)
   })
 
@@ -24,6 +25,7 @@ describe('head: robots noimageindex', () => {
     expect(r.type).toBe('info')
     expect(r.priority).toBe(900)
     expect(r.presentation?.input).toBe('Static DOM')
+    expect(r.presentation?.values).toEqual([{ key: 'noimageindex', value: 'Not found', kind: 'text' }])
   })
 
   it('preserves the documentation reference and userGuide, and removes the legacy details payload', async () => {

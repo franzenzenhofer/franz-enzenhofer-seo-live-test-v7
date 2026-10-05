@@ -14,8 +14,7 @@ describe('rule: robots meta list', () => {
     const r = await run('<html><head></head></html>')
     expect(r.type).toBe('info')
     expect(r.priority).toBe(915)
-    expect(r.presentation?.values).toContainEqual({ key: 'Robots meta tags', value: 0, kind: 'text' })
-    expect(r.presentation?.values).toContainEqual({ key: 'Crawlers listed', value: 'None', kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'Robots meta', value: 'Not found', kind: 'text' }])
     expect(r.presentation?.noMarkup).toBe('No robots meta element found')
   })
 
@@ -25,8 +24,9 @@ describe('rule: robots meta list', () => {
     expect(r.type).toBe('info')
     expect(r.priority).toBe(640)
     expect(r.presentation?.values).toContainEqual({ key: 'Robots meta tags', value: 2, kind: 'text' })
-    expect(r.presentation?.values).toContainEqual({ key: 'Crawlers listed', value: 'robots; bingbot', kind: 'text' })
-    expect(r.presentation?.evidence).toHaveLength(2)
+    expect(r.presentation?.values).toContainEqual({ key: 'Crawlers listed', value: 'robots, bingbot', kind: 'text' })
+    expect(r.presentation?.values.filter(({ kind }) => kind === 'original').map(({ key }) => key)).toEqual(['<meta name="robots">', '<meta name="bingbot">'])
+    expect(r.presentation?.evidence.map(({ name }) => name)).toEqual(['<meta name="robots">', '<meta name="bingbot">'])
     expect(r.presentation?.evidence[1]?.fields).toContainEqual({ key: 'Crawler', value: 'bingbot', kind: 'text' })
     expect(r.presentation?.markup).toHaveLength(2)
     expect(r.presentation?.markup.map(({ value }) => value)).toContain('<meta name="robots" content="all">')
@@ -37,7 +37,8 @@ describe('rule: robots meta list', () => {
       + '<meta name="generator" content="MediaWiki 1.47.0-wmf.17">'
       + '<meta name="robots" content="max-image-preview:standard">'
     const r = await run(html)
-    expect(r.presentation?.values).toContainEqual({ key: 'Robots meta tags', value: 1, kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Crawlers listed', value: 'robots', kind: 'text' })
+    expect(r.presentation?.markup).toHaveLength(1)
     const copy = toResultCopyPayload(r)
     expect(copy).not.toContain('viewport')
     expect(copy).not.toContain('generator')
@@ -48,7 +49,9 @@ describe('rule: robots meta list', () => {
     const r = await run(html)
     expect(r.presentation?.values).toContainEqual({ key: 'Robots meta tags', value: 12, kind: 'text' })
     expect(r.presentation?.markup).toHaveLength(10)
-    expect(r.presentation?.detailValues).toContainEqual({ key: 'Meta elements omitted', value: 2, kind: 'text' })
+    expect(r.presentation?.values.filter(({ kind }) => kind === 'original')).toHaveLength(0)
+    expect(r.presentation?.detailValues).toContainEqual({ key: 'Markup omitted', value: 2, kind: 'text' })
+    expect(r.presentation?.detailValues).toContainEqual({ key: 'Evidence retained', value: 10, kind: 'text' })
   })
 
   it('preserves the documentation reference and removes the legacy details payload', async () => {

@@ -14,7 +14,7 @@ describe('rule: robots agent conflicts', () => {
     const r = await run('<html><head></head></html>')
     expect(r.type).toBe('info')
     expect(r.priority).toBe(920)
-    expect(r.presentation?.values).toContainEqual({ key: 'Robots directives found', value: 0, kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'Robots directives', value: 'Not found', kind: 'text' }])
     expect(r.presentation?.noMarkup).toBe('No robots directive found')
   })
 
@@ -23,10 +23,11 @@ describe('rule: robots agent conflicts', () => {
     const r = await run(html)
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(180)
-    expect(r.presentation?.values).toContainEqual({ key: 'Conflicting directives', value: 1, kind: 'text' })
-    expect(r.presentation?.evidence).toContainEqual({ name: 'Conflict 1', fields: [
-      { key: 'Crawler', value: 'googlebot', kind: 'text' }, { key: 'Conflict', value: 'ua noindex vs global index', kind: 'text' },
-    ] })
+    expect(r.presentation?.values).toContainEqual({ key: 'Crawlers', value: 'all crawlers, googlebot', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Conflicts', value: 'googlebot: ua noindex vs global index', kind: 'text' })
+    expect(r.presentation?.values.filter(({ kind }) => kind === 'original').map(({ key }) => key)).toEqual(['<meta name="robots">', '<meta name="googlebot">'])
+    expect(r.presentation?.evidence.map(({ name }) => name)).toEqual(['<meta name="robots">', '<meta name="googlebot">'])
+    expect(r.presentation?.evidence[1]?.fields).toContainEqual({ key: 'Instruction', value: 'noindex', kind: 'text' })
     expect(r.presentation?.markup.map(({ value }) => value)).toContain(html.split('><')[0] + '>')
   })
 
@@ -34,22 +35,24 @@ describe('rule: robots agent conflicts', () => {
     const r = await run('<meta name="robots" content="noindex"><meta name="googlebot" content="nosnippet">')
     expect(r.type).toBe('ok')
     expect(r.priority).toBe(850)
-    expect(r.presentation?.values).toContainEqual({ key: 'Nonstandard agents', value: 0, kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Conflicts', value: 'None', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Nonstandard agents', value: 'None', kind: 'text' })
   })
 
   it('reports info for unusual agents naming them individually', async () => {
     const r = await run('<meta name="weirdbot" content="noindex">')
     expect(r.type).toBe('info')
     expect(r.priority).toBe(800)
-    expect(r.presentation?.values).toContainEqual({ key: 'Nonstandard agents', value: 1, kind: 'text' })
-    expect(r.presentation?.evidence).toContainEqual({ name: 'Nonstandard agent 1', fields: [{ key: 'Crawler', value: 'weirdbot', kind: 'text' }] })
+    expect(r.presentation?.values).toContainEqual({ key: 'Nonstandard agents', value: 'weirdbot', kind: 'text' })
   })
 
   it('reports the effective merged policy per crawler and includes header-sourced directives', async () => {
     const r = await run('<meta name="robots" content="index,follow">', { 'X-Robots-Tag': 'bingbot: noindex' })
     expect(r.presentation?.input).toBe('Static DOM + HTTP response headers')
-    const bingPolicy = r.presentation?.evidence.find((record) => record.name === 'Effective policy: bingbot')
-    expect(bingPolicy?.fields).toContainEqual({ key: 'Noindex', value: 'Yes', kind: 'text' })
+    expect(r.presentation?.detailValues).toContainEqual({ key: 'X-Robots-Tag', value: 'bingbot: noindex', kind: 'text' })
+    expect(r.presentation?.detailValues).toContainEqual({ key: 'Policy: googlebot', value: 'None', kind: 'text' })
+    expect(r.presentation?.detailValues).toContainEqual({ key: 'Policy: bingbot', value: 'noindex', kind: 'text' })
+    expect(r.presentation?.evidence).toHaveLength(1)
     const copy = toResultCopyPayload(r)
     expect(copy).toContain('bingbot')
     expect(copy).not.toContain('[object Object]')

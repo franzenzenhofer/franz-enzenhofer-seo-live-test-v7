@@ -18,7 +18,10 @@ describe('rule: robots.txt exists', () => {
     const result = await run('https://exists.test/a')
     expect(result.type).toBe('info'); expect(result.priority).toBe(800)
     expect(value(result, 'robots.txt')).toBe('Found')
-    expect(result.presentation?.evidence[0]?.fields).toContainEqual(expect.objectContaining({ key: 'robots.txt URL', value: 'https://exists.test/robots.txt' }))
+    expect(result.presentation?.values).toEqual([
+      { key: 'robots.txt', value: 'Found', kind: 'text' }, { key: 'HTTP status', value: 'HTTP 200 OK', kind: 'text' },
+      { key: 'robots.txt URL', value: 'https://exists.test/robots.txt', kind: 'url' }])
+    expect(result.presentation?.detailValues).toEqual([{ key: 'Response body', value: '23 bytes', kind: 'text' }])
     expect(result.presentation?.markup).toHaveLength(0)
     expect(result.presentation?.noMarkup).toContain('robots.txt')
     expect(result.details).toBeUndefined()
@@ -37,22 +40,23 @@ describe('rule: robots.txt exists', () => {
     stub(500)
     const result = await run('https://servererror.test/a')
     expect(result.type).toBe('warn'); expect(result.priority).toBe(300)
-    expect(value(result, 'robots.txt')).toBe('Unreachable')
-    expect(result.presentation?.evidence[0]?.fields).toContainEqual(expect.objectContaining({ key: 'HTTP status', value: 'HTTP 500 Internal Server Error' }))
+    expect(value(result, 'robots.txt')).toBe('Server error')
+    expect(value(result, 'HTTP status')).toBe('HTTP 500 Internal Server Error')
   })
 
   it('warns on 429 like a server error, not like 404', async () => {
     stub(429)
     const result = await run('https://ratelimited.test/a')
     expect(result.type).toBe('warn'); expect(result.priority).toBe(300)
-    expect(value(result, 'robots.txt')).toBe('Unreachable')
+    expect(value(result, 'robots.txt')).toBe('Rate limited')
   })
 
   it('warns on network failure', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('boom')))
     const result = await run('https://netfail.test/a')
     expect(result.type).toBe('warn'); expect(result.priority).toBe(350)
-    expect(value(result, 'robots.txt')).toBe('Unreachable')
+    expect(result.presentation?.values).toEqual([
+      { key: 'robots.txt URL', value: 'https://netfail.test/robots.txt', kind: 'url' }, { key: 'Response', value: 'Not captured', kind: 'text' }])
     expect(result.presentation?.input).toBe('Not captured')
   })
 

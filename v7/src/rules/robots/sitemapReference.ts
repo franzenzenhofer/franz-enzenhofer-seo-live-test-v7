@@ -3,6 +3,7 @@ import { fetchStatusTextOnce } from '@/shared/fetchOnce'
 import { httpStatusLabel } from '@/shared/httpStatusLabel'
 import { textField, urlField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
+import type { DisplayField } from '@/shared/presentation/schema'
 
 const NAME = 'robots.txt Sitemap reference'
 const RULE_ID = 'robots:sitemap-reference'
@@ -26,6 +27,8 @@ const sitemapOccurrences = (txt: string) => txt.split(/\r\n|\r|\n/).reduce<Array
   if (SITEMAP_LINE.test(line)) acc.push({ line: index + 1, value: line.replace(/^\s*sitemap\s*:\s*/i, '').trim() })
   return acc
 }, [])
+
+const sitemapField = (value: string): DisplayField => isAbsoluteHttpUrl(value) ? urlField('Sitemap URL', value) : textField('Sitemap value', value)
 
 const checkedFacts = (criterion: string) => [
   textField('Fetch target', 'origin/robots.txt'),
@@ -65,34 +68,32 @@ export const robotsSitemapReferenceRule: Rule = {
     }
     const robotsTxtUrl = `${origin}/robots.txt`
     const fetched = await fetchStatusTextOnce(robotsTxtUrl, TIMEOUT_MS, ctx.signal)
+    const url = urlField('robots.txt URL', robotsTxtUrl)
     if (!fetched?.ok) {
       return presentResult(robotsSitemapReferenceRule, page, {
         input: fetched ? 'robots.txt response' : 'Not captured', type: 'info', priority: 850,
-        values: [textField('Sitemap references', 'Not checked'), textField('HTTP status', fetched ? httpStatusLabel(fetched.status) : 'No response received')],
-        detailValues: [urlField('robots.txt URL', robotsTxtUrl)],
+        values: [textField('Sitemap references', 'Not checked'),
+          fetched ? textField('HTTP status', httpStatusLabel(fetched.status)) : textField('Response', 'Not captured'), url],
         checked: checkedFacts('robots.txt is reachable to read Sitemap declarations'), noMarkup: NO_MARKUP,
       })
     }
     const occurrences = sitemapOccurrences(fetched.text)
     const invalidOccurrences = occurrences.filter((o) => !isAbsoluteHttpUrl(o.value))
     const shown = occurrences.slice(0, MAX_SHOWN)
-    const evidence = shown.map((o) => ({ name: `Line ${o.line}`, fields: [textField('Line', o.line),
-      ...(isAbsoluteHttpUrl(o.value) ? [urlField('Sitemap URL', o.value)] : [textField('Sitemap value', o.value)]),
-      textField('Valid', isAbsoluteHttpUrl(o.value) ? 'Yes' : 'No')] }))
-    const detailValues = [urlField('robots.txt URL', robotsTxtUrl),
-      ...(occurrences.length > MAX_SHOWN ? [textField('Sitemap lines omitted from evidence', occurrences.length - MAX_SHOWN)] : [])]
+    const status = textField('HTTP status', httpStatusLabel(fetched.status))
+    const evidence = shown.map((o) => ({ name: `Line ${o.line}`, fields: [textField('Line', o.line), sitemapField(o.value),
+      textField('Syntax', isAbsoluteHttpUrl(o.value) ? 'Absolute URL' : 'Relative or malformed')] }))
+    const detailValues = occurrences.length > MAX_SHOWN ? [textField('Lines not listed', occurrences.length - MAX_SHOWN)] : []
     const common = { input: 'robots.txt response', detailValues, checked: checkedFacts('Every declared Sitemap value is an absolute HTTP(S) URL'), evidence, noMarkup: NO_MARKUP }
     if (!occurrences.length) {
       return presentResult(robotsSitemapReferenceRule, page, { ...common, type: 'info', priority: 820,
-        values: [textField('Sitemap references', 0), textField('HTTP status', httpStatusLabel(fetched.status))],
+        values: [textField('Sitemap references', 0), status, url],
         checked: checkedFacts('No Sitemap line required; other submission methods exist') })
     }
-    if (invalidOccurrences.length) {
-      return presentResult(robotsSitemapReferenceRule, page, { ...common, type: 'warn', priority: 400,
-        values: [textField('Sitemap references', occurrences.length), textField('Invalid values', invalidOccurrences.length),
-          textField('HTTP status', httpStatusLabel(fetched.status))] })
-    }
-    return presentResult(robotsSitemapReferenceRule, page, { ...common, type: 'ok', priority: 820,
-      values: [textField('Sitemap references', occurrences.length), textField('HTTP status', httpStatusLabel(fetched.status))] })
+    const values = [textField('Sitemap references', occurrences.length),
+      ...(occurrences.length === 1 ? [sitemapField(occurrences[0]!.value)] : []),
+      ...(invalidOccurrences.length ? [textField('Invalid values', invalidOccurrences.length)] : []), status, url]
+    return presentResult(robotsSitemapReferenceRule, page, { ...common,
+      type: invalidOccurrences.length ? 'warn' : 'ok', priority: invalidOccurrences.length ? 400 : 820, values })
   },
 }

@@ -19,10 +19,11 @@ describe('rule: robots complexity', () => {
     expect(value(result, 'Allow lines')).toBe(1)
     expect(value(result, 'Sitemap lines')).toBe(1)
     expect(detail(result, 'Total Disallow/Allow rules')).toBe(2)
+    expect(value(result, 'robots.txt URL')).toBe('https://ex.com/robots.txt')
     expect(result.presentation?.evidence).toEqual([
-      { name: 'Line 2', fields: [{ key: 'Line', value: 2, kind: 'text' }, { key: 'Directive', value: 'Disallow', kind: 'text' }, { key: 'Content', value: 'Disallow: /a', kind: 'text' }] },
-      { name: 'Line 3', fields: [{ key: 'Line', value: 3, kind: 'text' }, { key: 'Directive', value: 'Allow', kind: 'text' }, { key: 'Content', value: 'Allow: /b', kind: 'text' }] },
-      { name: 'Line 4', fields: [{ key: 'Line', value: 4, kind: 'text' }, { key: 'Directive', value: 'Sitemap', kind: 'text' }, { key: 'Content', value: 'Sitemap: https://ex.com/sitemap.xml', kind: 'text' }] },
+      { name: 'Line 2', fields: [{ key: 'Directive', value: 'Disallow', kind: 'text' }, { key: 'Value', value: '/a', kind: 'text' }] },
+      { name: 'Line 3', fields: [{ key: 'Directive', value: 'Allow', kind: 'text' }, { key: 'Value', value: '/b', kind: 'text' }] },
+      { name: 'Line 4', fields: [{ key: 'Directive', value: 'Sitemap', kind: 'text' }, { key: 'Sitemap URL', value: 'https://ex.com/sitemap.xml', kind: 'url' }] },
     ])
     expect(result.details).toBeUndefined()
     expect(toResultCopyPayload(result)).toContain(rule.meta.references[0])
@@ -32,7 +33,7 @@ describe('rule: robots complexity', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 500, text: async () => '' }))
     const result = await run('https://down.test')
     expect(result.type).toBe('info'); expect(result.priority).toBe(850)
-    expect(value(result, 'robots.txt complexity')).toBe('Not checked')
+    expect(value(result, 'Directive lines')).toBe('Not checked')
     expect(value(result, 'HTTP status')).toBe('HTTP 500 Internal Server Error')
   })
 

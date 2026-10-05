@@ -10,19 +10,13 @@ it('names each crawler, source and raw value for a limited and a static-image-on
     doc: new DOMParser().parseFromString(html, 'text/html'),
   }, { globals: {} }), robotsMaxVideoPreviewRule, 'test')
   expect(result.type).toBe('info')
-  expect(result.presentation?.evidence.filter(({ name }) => name.startsWith('Instruction '))).toHaveLength(2)
-  expect(result.presentation?.evidence).toContainEqual({ name: 'Instruction 1', fields: [
-    { key: 'Crawler', value: 'All crawlers (including Googlebot)', kind: 'text' },
-    { key: 'Source', value: 'HTML meta tag', kind: 'text' },
-    { key: 'Value', value: '30', kind: 'text' },
-    { key: 'Valid', value: 'Yes', kind: 'text' },
-  ] })
-  expect(result.presentation?.evidence).toContainEqual({ name: 'Instruction 2', fields: [
-    { key: 'Crawler', value: 'googlebot', kind: 'text' },
-    { key: 'Source', value: 'HTML meta tag', kind: 'text' },
-    { key: 'Value', value: '0', kind: 'text' },
-    { key: 'Valid', value: 'Yes', kind: 'text' },
-  ] })
+  expect(result.presentation?.values.slice(0, 2)).toEqual([
+    { key: 'max-video-preview', value: '30, 0', kind: 'text' }, { key: 'Applies to', value: 'all crawlers, googlebot', kind: 'text' }])
+  expect(result.presentation?.evidence.map(({ name }) => name)).toEqual(['<meta name="robots">', '<meta name="googlebot">'])
+  expect(result.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Crawler', value: 'all crawlers', kind: 'text' })
+  expect(result.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Value', value: '30', kind: 'text' })
+  expect(result.presentation?.evidence[1]?.fields).toContainEqual({ key: 'Value', value: '0', kind: 'text' })
+  expect(result.presentation?.evidence[1]?.fields).toContainEqual({ key: 'Syntax', value: 'Valid', kind: 'text' })
   const copy = toResultCopyPayload(result)
   expect(copy).toContain('googlebot')
   expect(copy).toContain('30')
