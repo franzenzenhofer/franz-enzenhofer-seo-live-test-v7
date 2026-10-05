@@ -23,13 +23,14 @@ describe('rule: http x-robots-tag', () => {
     const r = await xRobotsRule.run(P({ 'x-robots-tag': 'noindex' }), { globals: {} })
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(150)
-    expect(r.presentation?.values).toContainEqual({ key: 'Contains noindex', value: 'Yes', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Applies to', value: 'all crawlers', kind: 'text' })
+    expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Blocking', value: 'noindex', kind: 'text' })
   })
 
   it('warns when the header carries nofollow', async () => {
     const r = await xRobotsRule.run(P({ 'x-robots-tag': 'nofollow' }), { globals: {} })
     expect(r.type).toBe('warn')
-    expect(r.presentation?.values).toContainEqual({ key: 'Contains nofollow', value: 'Yes', kind: 'text' })
+    expect(r.presentation?.evidence[0]?.fields).toContainEqual({ key: 'Blocking', value: 'nofollow', kind: 'text' })
   })
 
   it('stays info for non-blocking directives', async () => {
@@ -42,7 +43,7 @@ describe('rule: http x-robots-tag', () => {
     const r = await xRobotsRule.run(P({ 'content-type': 'text/html' }), { globals: {} })
     expect(r.type).toBe('info')
     expect(r.priority).toBe(900)
-    expect(r.presentation?.values).toContainEqual({ key: 'X-Robots-Tag', value: 'Not present', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'X-Robots-Tag', value: 'Absent', kind: 'text' })
   })
 
   it('names the crawler and instruction per directive, and the header for multi-agent headers', async () => {
@@ -50,6 +51,8 @@ describe('rule: http x-robots-tag', () => {
     const record = r.presentation?.evidence[0]
     expect(record?.fields).toContainEqual({ key: 'Crawler', value: 'googlebot', kind: 'text' })
     expect(record?.fields).toContainEqual({ key: 'Instruction', value: 'noindex', kind: 'text' })
+    expect(record?.name).toBe('X-Robots-Tag')
+    expect(r.presentation?.values).toContainEqual({ key: 'Applies to', value: 'googlebot', kind: 'text' })
   })
 
   it('copies references and labelled facts without legacy details', async () => {

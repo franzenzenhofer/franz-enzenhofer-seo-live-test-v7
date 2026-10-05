@@ -36,14 +36,14 @@ export const varyUserAgentRule: Rule = {
       })
     }
     const varyHeader = page.headers?.['vary']?.trim() || ''
-    const varyLower = varyHeader.toLowerCase()
-    const includesUserAgent = varyLower.split(',').some(field => field.trim() === 'user-agent')
+    const includesUserAgent = varyHeader.toLowerCase().split(',').some((field) => field.trim() === 'user-agent')
     const hasVary = Boolean(varyHeader)
     return presentResult(varyUserAgentRule, page, {
       input: 'HTTP response headers', type: 'info', priority: includesUserAgent ? 750 : 850,
-      values: [textField('Vary', hasVary ? varyHeader : 'Not present'), textField('Includes User-Agent', includesUserAgent ? 'Yes' : 'No')],
-      checked: [textField('Header name', 'Vary'), textField('Criterion', 'Comma-separated token equal to User-Agent, case-insensitive'), textField('Header source', 'Captured response headers')],
-      evidence: [{ name: 'Retrieved response header', fields: [textField('Header value', hasVary ? varyHeader : 'Not present')] }],
+      // The header value is the observed fact; the User-Agent token is what was queried on it (F11).
+      values: hasVary ? [textField('Vary', varyHeader), textField('User-Agent', includesUserAgent ? 'Found' : 'Not found')] : [textField('Vary', 'Absent')],
+      checked: [textField('Header name', 'Vary'), textField('Criterion', 'Comma-separated token equal to User-Agent, case-insensitive')],
+      evidence: hasVary ? [{ name: 'Vary', fields: [textField('Value', varyHeader)] }] : [],
       noMarkup: NO_MARKUP,
     })
   },

@@ -5,6 +5,7 @@ import { NavigationLedgerSchema } from '@/background/history/types'
 import type { Rule, Result } from '@/core/types'
 import { hasHeaders } from '@/shared/http-utils'
 import { httpStatusLabel } from '@/shared/httpStatusLabel'
+import { urlComparison } from '@/shared/presentation/comparison'
 import { textField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
 import type { DisplayField } from '@/shared/presentation/schema'
@@ -12,7 +13,7 @@ import type { DisplayField } from '@/shared/presentation/schema'
 const NAME = 'WWW/Non-WWW Canonical Redirect'
 const NOT_MARKUP = 'None - this rule checks recorded navigation events, not document markup'
 const CHECKED = [
-  textField('Comparison', 'First and final navigated hostnames, stripped of a leading www.'),
+  textField('Hosts compared', 'First and final navigated hostnames, stripped of a leading www.'),
   textField('Required redirect', 'A single permanent 301/308 server redirect preserving path and query'),
   textField('Criterion', 'A host change between www and non-www is a single permanent server redirect'),
 ]
@@ -52,7 +53,7 @@ export const canonicalHostRedirectRule: Rule = {
     const raw = (ctx.globals as { navigationLedger?: unknown }).navigationLedger
     const ledgerResult = NavigationLedgerSchema.safeParse(raw)
     if (!ledgerResult.success || ledgerResult.data.trace.length === 0) {
-      return build('info', 900, 'HTTP response headers', [textField('Navigation data', 'Not captured')])
+      return build('info', 900, 'Not captured', [textField('Navigation events', 'Not captured')])
     }
 
     const { trace } = ledgerResult.data
@@ -64,43 +65,44 @@ export const canonicalHostRedirectRule: Rule = {
     const first = parseUrlSafe(firstUrl)
     const final = parseUrlSafe(finalUrl)
     const urls = [httpUrlField('First URL', firstUrl), httpUrlField('Final URL', finalUrl)]
+    // Overview: both navigated URLs, the decisive redirect fact, then the Comparison row (FORMATTING.md F1, F2).
+    const overview = (fact: DisplayField, comparison = urlComparison(firstUrl, finalUrl, 'final URL')) => [...urls, fact, textField('Comparison', comparison)]
 
     if (!first || !final) {
-      return build('warn', 200, navInput, [...urls, textField('URL parses', 'No')], [], evidence)
+      return build('warn', 200, navInput, [...urls, textField('Comparison', 'Not comparable, invalid URL')], [], evidence)
     }
 
     const sameBase = stripWww(first.hostname) === stripWww(final.hostname)
     const wwwDiff = isWwwHost(first.hostname) !== isWwwHost(final.hostname)
     const httpRedirects = trace.filter((t) => t.type === 'http_redirect')
     const clientRedirects = trace.filter((t) => t.type === 'client_redirect')
-    const hostFacts = [...urls, textField('Host changed www/non-www', sameBase && wwwDiff ? 'Yes' : 'No')]
 
     if (sameBase && wwwDiff) {
       if (clientRedirects.length > 0) {
-        return build('error', 100, navInput, hostFacts, [textField('Client-side redirects', clientRedirects.length)], evidence)
+        return build('error', 100, navInput, overview(textField('Client-side redirects', clientRedirects.length)), [], evidence)
       }
       if (httpRedirects.length === 0) {
-        return build('warn', 200, navInput, hostFacts, [textField('Server redirects observed', 0)], evidence)
+        return build('warn', 200, navInput, overview(textField('Server redirects', 0)), [], evidence)
       }
       const statuses = httpRedirects.map((t) => t.statusCode)
       const permanent = statuses.every((status) => status === 301 || status === 308)
       if (!permanent) {
-        return build('error', 130, navInput, hostFacts, [textField('Observed redirect status', httpStatusLabel(statuses.find((s) => s !== 301 && s !== 308)))], evidence)
+        return build('error', 130, navInput, overview(textField('Redirect status', httpStatusLabel(statuses.find((s) => s !== 301 && s !== 308)))), [], evidence)
       }
       if (!samePathQuery(first, final)) {
-        return build('error', 140, navInput, [...hostFacts, textField('Path and query preserved', 'No')], [], evidence)
+        return build('error', 140, navInput, overview(textField('Path and query', 'Changed')), [], evidence)
       }
       if (httpRedirects.length > 1) {
-        return build('warn', 220, navInput, hostFacts, [textField('Permanent redirect hops', httpRedirects.length)], evidence)
+        return build('warn', 220, navInput, overview(textField('Redirect hops', httpRedirects.length)), [], evidence)
       }
-      return build('ok', 850, navInput, hostFacts, [textField('Redirect status', httpStatusLabel(statuses[0]))], evidence)
+      return build('ok', 850, navInput, overview(textField('Redirect status', httpStatusLabel(statuses[0]))), [], evidence)
     }
 
     const canonical = getCanonical(page.url, page.doc)
     const input = combineInputs(navInput, 'Static DOM')
     if (canonical && stripWww(canonical.hostname) === stripWww(final.hostname) && isWwwHost(canonical.hostname) !== isWwwHost(final.hostname) && samePathQuery(canonical, final)) {
-      return build('warn', 250, input, hostFacts, [textField('Canonical declares alternate host', 'Yes'), httpUrlField('Declared canonical URL', canonical.toString())], evidence)
+      return build('warn', 250, input, overview(httpUrlField('Canonical URL', canonical.toString()), urlComparison(finalUrl, canonical.toString(), 'canonical URL')), [], evidence)
     }
-    return build('info', 800, input, hostFacts, [textField('Server redirects observed', httpRedirects.length)], evidence)
+    return build('info', 800, input, overview(textField('Server redirects', httpRedirects.length)), [], evidence)
   },
 }

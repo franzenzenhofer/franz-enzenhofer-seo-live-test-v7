@@ -8,7 +8,6 @@ const D = (h: string) => new DOMParser().parseFromString(h, 'text/html')
 const run = async (page: Record<string, unknown>, ledger?: unknown) =>
   enrichResult(await rule.run(page as any, { globals: { navigationLedger: ledger } }), rule, 'test')
 const value = (r: Awaited<ReturnType<typeof run>>, key: string) => r.presentation?.values.find((f) => f.key === key)?.value
-const detail = (r: Awaited<ReturnType<typeof run>>, key: string) => r.presentation?.detailValues.find((f) => f.key === key)?.value
 
 const page = (url: string, headers: Record<string, string> = { 'content-type': 'text/html' }, html = '<html><head></head><body></body></html>') =>
   ({ html: '', url, doc: D(html), headers })
@@ -23,14 +22,15 @@ describe('rule: www/non-www canonical redirect', () => {
   it('returns info when no navigation data is available', async () => {
     const r = await run(page('https://example.com/'), null)
     expect(r.type).toBe('info'); expect(r.priority).toBe(900)
-    expect(value(r, 'Navigation data')).toBe('Not captured')
+    expect(r.presentation?.input).toBe('Not captured')
+    expect(value(r, 'Navigation events')).toBe('Not captured')
   })
 
   it('warns when the first/final URL cannot be parsed', async () => {
     const ledger = { tabId: 1, currentUrl: 'not a url', trace: [{ url: 'not a url', timestamp: 1, type: 'load', statusCode: 200 }] }
     const r = await run(page('https://example.com/'), ledger)
     expect(r.type).toBe('warn'); expect(r.priority).toBe(200)
-    expect(value(r, 'URL parses')).toBe('No')
+    expect(value(r, 'Comparison')).toBe('Not comparable, invalid URL')
   })
 
   it('ok on single-hop permanent www -> non-www redirect', async () => {
@@ -40,8 +40,10 @@ describe('rule: www/non-www canonical redirect', () => {
     ] }
     const r = await run(page('https://example.com/page?x=1'), ledger)
     expect(r.type).toBe('ok'); expect(r.priority).toBe(850)
-    expect(value(r, 'Host changed www/non-www')).toBe('Yes')
-    expect(detail(r, 'Redirect status')).toBe('HTTP 301 Moved Permanently')
+    expect(r.presentation?.values).toContainEqual({ key: 'First URL', value: 'https://www.example.com/page?x=1', kind: 'url' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Final URL', value: 'https://example.com/page?x=1', kind: 'url' })
+    expect(value(r, 'Redirect status')).toBe('HTTP 301 Moved Permanently')
+    expect(value(r, 'Comparison')).toBe('Differs from final URL (host)')
   })
 
   it('errors on a client-side redirect used for host canonicalization', async () => {
@@ -51,7 +53,7 @@ describe('rule: www/non-www canonical redirect', () => {
     ] }
     const r = await run(page('https://example.com/'), ledger)
     expect(r.type).toBe('error'); expect(r.priority).toBe(100)
-    expect(detail(r, 'Client-side redirects')).toBe(1)
+    expect(value(r, 'Client-side redirects')).toBe(1)
   })
 
   it('warns when the host changed without an observed server redirect', async () => {
@@ -61,7 +63,7 @@ describe('rule: www/non-www canonical redirect', () => {
     ] }
     const r = await run(page('https://example.com/'), ledger)
     expect(r.type).toBe('warn'); expect(r.priority).toBe(200)
-    expect(detail(r, 'Server redirects observed')).toBe(0)
+    expect(value(r, 'Server redirects')).toBe(0)
   })
 
   it('errors on temporary www/non-www redirect', async () => {
@@ -71,7 +73,7 @@ describe('rule: www/non-www canonical redirect', () => {
     ] }
     const r = await run(page('https://example.com/'), ledger)
     expect(r.type).toBe('error'); expect(r.priority).toBe(130)
-    expect(detail(r, 'Observed redirect status')).toBe('HTTP 302 Found')
+    expect(value(r, 'Redirect status')).toBe('HTTP 302 Found')
   })
 
   it('errors when the redirect changes path or query', async () => {
@@ -81,6 +83,7 @@ describe('rule: www/non-www canonical redirect', () => {
     ] }
     const r = await run(page('https://example.com/other'), ledger)
     expect(r.type).toBe('error'); expect(r.priority).toBe(140)
+    expect(value(r, 'Path and query')).toBe('Changed')
   })
 
   it('warns (not errors) on multi-hop permanent redirect chain', async () => {
@@ -91,7 +94,7 @@ describe('rule: www/non-www canonical redirect', () => {
     ] }
     const r = await run(page('https://example.com/'), ledger)
     expect(r.type).toBe('warn'); expect(r.priority).toBe(220)
-    expect(detail(r, 'Permanent redirect hops')).toBe(2)
+    expect(value(r, 'Redirect hops')).toBe(2)
   })
 
   it('warns when canonical swaps host without redirect (canonical-only resolution)', async () => {
@@ -102,14 +105,16 @@ describe('rule: www/non-www canonical redirect', () => {
     expect(r.type).toBe('warn'); expect(r.priority).toBe(250)
     expect(r.presentation?.input).toContain('Static DOM')
     expect(r.presentation?.checked).toContainEqual({ key: 'Selector', value: 'link[rel~="canonical" i]', kind: 'text' })
-    expect(detail(r, 'Declared canonical URL')).toBe('https://example.com/page')
+    expect(r.presentation?.values).toContainEqual({ key: 'Canonical URL', value: 'https://example.com/page', kind: 'url' })
+    expect(value(r, 'Comparison')).toBe('Differs from canonical URL (host)')
   })
 
   it('reports info when no www/non-www redirect was observed and no host swap occurred', async () => {
     const ledger = { tabId: 1, currentUrl: 'https://example.com/', trace: [{ url: 'https://example.com/', timestamp: 1, type: 'load', statusCode: 200 }] }
     const r = await run(page('https://example.com/'), ledger)
     expect(r.type).toBe('info'); expect(r.priority).toBe(800)
-    expect(value(r, 'Host changed www/non-www')).toBe('No')
+    expect(value(r, 'Server redirects')).toBe(0)
+    expect(value(r, 'Comparison')).toBe('Equals final URL')
   })
 
   it('preserves all references and emits no legacy details', async () => {

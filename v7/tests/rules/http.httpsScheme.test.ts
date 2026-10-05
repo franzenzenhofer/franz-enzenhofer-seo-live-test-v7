@@ -13,8 +13,8 @@ describe('rule: https scheme', () => {
     expect(result.type).toBe('ok')
     expect(result.priority).toBe(800)
     expect(result.presentation?.input).toBe('Page URL')
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'HTTPS in use', value: 'Yes' }))
-    expect(result.presentation?.detailValues).toContainEqual({ key: 'Page URL', value: 'https://ex.com/page', kind: 'url' })
+    expect(result.presentation?.values).toEqual([{ key: 'Scheme', value: 'https:', kind: 'text' }])
+    expect(result.presentation?.detailValues).toEqual([{ key: 'Current page URL', value: 'https://ex.com/page', kind: 'url' }])
   })
 
   it('warns for http', async () => {
@@ -27,8 +27,8 @@ describe('rule: https scheme', () => {
   it('warns for an unparseable URL instead of throwing, and does not link it as a URL', async () => {
     const result = await run('not a url')
     expect(result.type).toBe('warn')
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Scheme', value: 'invalid-url' }))
-    expect(result.presentation?.detailValues).toContainEqual({ key: 'Page URL', value: 'not a url', kind: 'text' })
+    expect(result.presentation?.values).toEqual([{ key: 'Scheme', value: 'Invalid URL', kind: 'text' }])
+    expect(result.presentation?.detailValues).toEqual([{ key: 'Current page URL', value: 'not a url', kind: 'text' }])
   })
 
   it('checks only the page URL, never document markup', async () => {
@@ -40,7 +40,7 @@ describe('rule: https scheme', () => {
   it('copies the page URL, status and references without advice', async () => {
     const result = await run('http://ex.com/insecure')
     const copy = toResultCopyPayload(result)
-    for (const value of ['http://ex.com/insecure', 'HTTPS in use: No', ...httpsSchemeRule.meta.references]) expect(copy).toContain(value)
+    for (const value of ['http://ex.com/insecure', 'Scheme: http:', ...httpsSchemeRule.meta.references]) expect(copy).toContain(value)
     expect(result.details).toBeUndefined()
   })
 })

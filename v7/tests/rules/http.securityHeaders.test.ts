@@ -25,15 +25,17 @@ describe('rule: security headers', () => {
     const result = await run({ 'content-type': 'text/html' })
     expect(result.type).toBe('info')
     expect(result.priority).toBe(800)
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Security headers present', value: '0 of 5' }))
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Missing headers', value: expect.stringContaining('content-security-policy') }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Headers present', value: '0 of 5' }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Absent headers', value: 'content-security-policy, x-content-type-options … 3 more' }))
   })
 
   it('passes (ok) when all recommended headers are present', async () => {
     const result = await run(ALL)
     expect(result.type).toBe('ok')
     expect(result.priority).toBe(750)
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Security headers present', value: '5 of 5' }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Headers present', value: '5 of 5' }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Absent headers', value: 'None' }))
+    expect(result.presentation?.evidence.map((record) => record.name)).toEqual(Object.keys(ALL))
   })
 
   it('preserves original header values verbatim in evidence and references without advice', async () => {

@@ -21,7 +21,9 @@ describe('rule: observed resource delivery', () => {
     ])
     expect(result.type).toBe('error')
     expect(result.priority).toBe(200)
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Failed subresources', value: 2 }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Failed', value: 2 }))
+    expect(result.presentation?.values).toContainEqual({ key: 'Failed URL 1', value: 'https://ex.test/b.css', kind: 'url' })
+    expect(result.presentation?.values).toContainEqual({ key: 'Types', value: 'script, stylesheet, image', kind: 'text' })
     expect(result.presentation?.evidence).toContainEqual(expect.objectContaining({
       name: 'Failed resource 1',
       fields: expect.arrayContaining([expect.objectContaining({ key: 'Status', value: 'HTTP 404 Not Found' })]),
@@ -40,8 +42,8 @@ describe('rule: observed resource delivery', () => {
     ])
     expect(result.type).toBe('info')
     expect(result.priority).toBe(820)
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Uncompressed textual resources', value: 1 }))
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Resources without cache validator', value: 1 }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Uncompressed textual', value: 1 }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'No cache validator', value: 1 }))
     expect(result.presentation?.checked).toContainEqual(expect.objectContaining({ key: 'Scope', value: expect.stringContaining('nothing refetched') }))
   })
 
@@ -56,19 +58,18 @@ describe('rule: observed resource delivery', () => {
     const failing: ResourceFact[] = Array.from({ length: 15 }, (_, index) => ({ url: `https://ex.test/f${index}.js`, status: 500 }))
     const result = await run(failing)
     expect(result.presentation?.evidence.filter((record) => record.name.startsWith('Failed resource'))).toHaveLength(10)
-    expect(result.presentation?.detailValues).toContainEqual(expect.objectContaining({ key: 'Failed evidence retained', value: 10 }))
-    expect(result.presentation?.detailValues).toContainEqual(expect.objectContaining({ key: 'Failed evidence omitted', value: 5 }))
+    expect(result.presentation?.detailValues).toContainEqual(expect.objectContaining({ key: 'Failed resource records', value: '10 of 15' }))
   })
 
   it('does not pretend to have evidence when nothing was retained', async () => {
     const observed = await run([], { events: 12, completed: 0, retained: 0, dropped: 0, truncated: false })
     expect(observed.type).toBe('info')
     expect(observed.presentation?.input).toBe('Navigation events')
-    expect(observed.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Resource evidence', value: 'Requests observed but no evidence retained' }))
+    expect(observed.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Retained responses', value: 'None' }))
 
     const none = await run(undefined)
-    expect(none.presentation?.input).toBe('Not captured')
-    expect(none.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Resource evidence', value: 'No subresource requests captured' }))
+    expect(none.presentation?.input).toBe('Navigation events')
+    expect(none.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Subresource requests', value: 'Not checked' }))
   })
 
   it('links resource URLs and preserves references without advice', async () => {

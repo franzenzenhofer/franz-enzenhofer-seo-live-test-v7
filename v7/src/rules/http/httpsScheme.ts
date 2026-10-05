@@ -18,20 +18,17 @@ export const httpsSchemeRule: Rule = {
   },
   async run(page) {
     let protocol = ''
-    let isHttps = false
     try {
       protocol = new URL(page.url).protocol
-      isHttps = protocol === 'https:'
     } catch {
-      protocol = 'invalid-url'
-      isHttps = false
+      protocol = ''
     }
+    const isHttps = protocol === 'https:'
     return presentResult(httpsSchemeRule, page, {
       input: 'Page URL', type: isHttps ? 'ok' : 'warn', priority: isHttps ? 800 : 100,
-      values: [textField('Scheme', isHttps ? 'https:' : protocol || 'Unknown'),
-        textField('HTTPS in use', isHttps ? 'Yes' : 'No')],
-      detailValues: [protocol === 'invalid-url' ? textField('Page URL', page.url) : urlField('Page URL', page.url)],
-      checked: [textField('Checked input', 'Page URL protocol'), textField('Criterion', 'https: scheme required to pass')],
+      values: [textField('Scheme', protocol || 'Invalid URL')],
+      detailValues: [protocol ? urlField('Current page URL', page.url) : textField('Current page URL', page.url)],
+      checked: [textField('Measurement', 'Page URL protocol'), textField('Criterion', 'https: scheme required to pass')],
       noMarkup: 'None - this rule checks the page URL protocol, not document markup',
     })
   },

@@ -1,4 +1,5 @@
 import { headersNotCapturedResult } from '@/rules/http/headersNotCaptured'
+import { HEADER_NO_MARKUP, headerEvidence, headerRow } from '@/rules/http/observedHeader'
 import { headerValue } from '@/shared/headerValue'
 import { hasHeaders } from '@/shared/http-utils'
 import { textField } from '@/shared/presentation/create'
@@ -31,17 +32,14 @@ export const cacheDeliveryRule: Rule = {
     const isFromCache = hasAgeHeader && ageValue !== null
     const type = hasAgeHeader && ageValue === null ? 'warn' : 'info'
     const priority = isFromCache ? 750 : 900
-    const cacheIndication = !hasAgeHeader ? 'No evidence of shared-cache delivery'
-      : ageValue === null ? 'Age header value is invalid' : 'Delivered via a shared/proxy cache'
     return presentResult(cacheDeliveryRule, page, {
       input: 'HTTP response headers', type, priority,
-      values: [textField('Age header', ageHeader || 'Not present'),
-        textField('Age', ageValue !== null ? format(ageValue) : hasAgeHeader ? 'Invalid value' : 'Not present'),
-        textField('Cache indication', cacheIndication)],
+      values: [headerRow('Age', ageHeader),
+        ...(hasAgeHeader ? [textField('Cache age', ageValue !== null ? format(ageValue) : 'Invalid value')] : [])],
       checked: [textField('Header', 'Age'), textField('Valid format', 'Non-negative whole number of seconds'),
-        textField('Criterion', 'Informational; presence indicates cache-mediated delivery')],
-      evidence: hasAgeHeader ? [{ name: 'Age header', fields: [textField('Age', ageHeader)] }] : [],
-      noMarkup: 'None - this rule checks the HTTP response, not document markup',
+        textField('Criterion', 'Informational; a valid Age header indicates shared-cache delivery, its absence proves nothing')],
+      evidence: headerEvidence('Age', ageHeader),
+      noMarkup: HEADER_NO_MARKUP,
     })
   },
 }

@@ -1,8 +1,10 @@
 import { headersNotCapturedResult } from '@/rules/http/headersNotCaptured'
+import { HEADER_NO_MARKUP, headerEvidence, headerRow } from '@/rules/http/observedHeader'
 import { hasHeaders } from '@/shared/http-utils'
 import { textField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
+import { listRow } from '@/shared/presentation/listRow'
 
 const STANDARD_PROTOCOLS = ['h2', 'h3', 'h3-29', 'h3-32']
 
@@ -39,15 +41,13 @@ export const altSvcOtherProtocolsRule: Rule = {
 
     return presentResult(altSvcOtherProtocolsRule, page, {
       input: 'HTTP response headers', type: 'info', priority,
-      values: [textField('Alt-Svc header', altSvcHeader || 'Not present'),
-        textField('Advertised protocols', protocols.length ? protocols.join(', ') : 'None parsed'),
-        textField('Other (non-standard) protocols', otherProtocols.length ? otherProtocols.join(', ') : 'None')],
-      detailValues: [textField('Standard protocols', standardProtocols.join(', ') || 'None'),
-        textField('Alt-Svc: clear observed', altSvcClear ? 'Yes' : 'No')],
+      values: [headerRow('Alt-Svc', altSvcHeader),
+        ...(isPresent ? [textField('Standard protocols', listRow(standardProtocols)), textField('Other protocols', listRow(otherProtocols))] : [])],
+      detailValues: altSvcClear ? [textField('clear directive', 'Found')] : [],
       checked: [textField('Header', 'Alt-Svc'), textField('Standard tokens', STANDARD_PROTOCOLS.join(', ')),
         textField('Criterion', 'Informational only; lists every advertised ALPN protocol id')],
-      evidence: isPresent ? [{ name: 'Alt-Svc header', fields: [textField('Alt-Svc', altSvcHeader)] }] : [],
-      noMarkup: 'None - this rule checks the HTTP response, not document markup',
+      evidence: headerEvidence('Alt-Svc', altSvcHeader),
+      noMarkup: HEADER_NO_MARKUP,
     })
   },
 }

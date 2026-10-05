@@ -1,9 +1,20 @@
-import { textField } from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
+
+import { textField, urlField } from '@/shared/presentation/create'
+import { elementRecords } from '@/shared/presentation/records'
 import { presentResult } from '@/shared/presentation/result'
+import type { DisplayField } from '@/shared/presentation/schema'
 import type { Rule } from '@/core/types'
+import { listRow } from '@/shared/presentation/listRow'
 
 const RESPONSIVE_SPEC = 'https://web.dev/articles/responsive-web-design-basics'
+const VIEWPORT_SELECTOR = 'head > meta[name="viewport"]'
+const TOUCH_ICON_SELECTOR = 'head > link[rel~="apple-touch-icon"]'
+
+// A resource URL only when the href resolves to http(s) against the page; the raw string otherwise.
+const hrefField = (href: string, base: string): DisplayField => {
+  if (!href) return textField('href', 'Not declared')
+  try { return /^https?:$/.test(new URL(href, base).protocol) ? urlField('href', href) : textField('href', href) } catch { return textField('href', href) }
+}
 
 export const commonMobileSetupRule: Rule = {
   id: 'http:common-mobile-setup', name: 'Common Mobile Setup', presentation: 1, enabled: true, what: 'http',
@@ -21,26 +32,26 @@ export const commonMobileSetupRule: Rule = {
       'Checks for a head meta viewport tag (warn if missing, per responsive-design guidance); a rel=apple-touch-icon link is reported as extra detail (an Apple convention, not a Google signal).',
   },
   async run(page) {
-    const viewportEl = page.doc.querySelector('head > meta[name="viewport"]')
-    const touchEl = page.doc.querySelector('head > link[rel~="apple-touch-icon"]')
-    const hasTouchIcon = Boolean(touchEl)
-    const checked = [textField('Selector', 'head > meta[name="viewport"]'),
-      textField('Secondary selector', 'head > link[rel~="apple-touch-icon"]'),
+    const viewportEl = page.doc.querySelector(VIEWPORT_SELECTOR)
+    const touchEl = page.doc.querySelector(TOUCH_ICON_SELECTOR)
+    const elements = [viewportEl, touchEl].filter((element): element is Element => element !== null)
+    const viewportContent = (viewportEl?.getAttribute('content') || '').trim()
+    const records = elementRecords(elements, elements.length, (element) => element === viewportEl
+      ? [textField('content', viewportContent || 'Not declared')]
+      : [hrefField((element.getAttribute('href') || '').trim(), page.url)])
+    const checked = [textField('Selector', VIEWPORT_SELECTOR),
+      textField('Secondary selector', TOUCH_ICON_SELECTOR),
       textField('Criterion', 'warn when meta viewport missing; apple-touch-icon is reported for information only')]
-    const touchEvidence = touchEl ? [{ name: 'Apple touch icon', fields: [textField('href', touchEl.getAttribute('href') || 'Empty')] }] : []
-    if (!viewportEl) return presentResult(commonMobileSetupRule, page, {
-      label: 'HEAD', input: 'Static DOM', type: 'warn', priority: 200,
-      values: [textField('Meta viewport', 'Missing'), textField('Apple touch icon', hasTouchIcon ? 'Present' : 'Missing')],
-      checked, evidence: touchEvidence, noMarkup: 'No meta viewport element found',
-    })
-    const viewportContent = (viewportEl.getAttribute('content') || '').trim()
-    const captured = markupEvidence([viewportEl], 'Viewport meta')
+    // The observed value first (the content attribute, list-shortened for the overview), then the markup.
+    const viewportRow = textField('Viewport', !viewportEl ? 'Not found' : viewportContent ? listRow(viewportContent.split(',').map((part) => part.trim()).filter(Boolean)) : 'Not declared')
+    const fullContent = viewportContent && viewportRow.value !== viewportContent ? [textField('Viewport content', viewportContent)] : []
+    const noMarkup = elements.length && !records.markup.length ? 'Not retained: elements are rebuilt from captured facts, not captured as original markup'
+      : viewportEl ? 'Complete original viewport meta markup not retained' : 'No meta viewport element found'
     return presentResult(commonMobileSetupRule, page, {
-      label: 'HEAD', input: 'Static DOM', type: 'info', priority: 750,
-      values: [textField('Meta viewport', 'Present'), textField('Apple touch icon', hasTouchIcon ? 'Present' : 'Missing')],
-      detailValues: [textField('Viewport content', viewportContent || 'Empty')],
-      checked, evidence: [...(captured.fields.length ? [{ name: 'Capture', fields: captured.fields }] : []), ...touchEvidence],
-      markup: captured.markup, noMarkup: 'Complete original viewport meta markup not retained',
+      label: 'HEAD', input: 'Static DOM', type: viewportEl ? 'info' : 'warn', priority: viewportEl ? 750 : 200,
+      values: [viewportRow, textField('Apple touch icon', touchEl ? 'Found' : 'Not found'), ...records.markup],
+      detailValues: [...fullContent, ...(elements.length ? records.counts : [])],
+      checked, evidence: records.evidence, markup: records.markup, noMarkup,
     })
   },
 }

@@ -17,31 +17,33 @@ describe('rule: alt-svc other protocols', () => {
   it('reports no header found', async () => {
     const result = await run({ 'content-type': 'text/html' })
     expect(result.priority).toBe(900)
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Alt-Svc header', value: 'Not present' }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Alt-Svc', value: 'Absent' }))
   })
 
   it('reports quic as an other protocol', async () => {
     const result = await run({ 'alt-svc': 'quic=":443"; ma=2592000; v="43"' })
     expect(result.priority).toBe(700)
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Other (non-standard) protocols', value: 'quic' }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Other protocols', value: 'quic' }))
   })
 
   it('reports RFC 7838 clear semantics with its own priority', async () => {
     const result = await run({ 'alt-svc': 'clear' })
     expect(result.priority).toBe(820)
-    expect(result.presentation?.detailValues).toContainEqual(expect.objectContaining({ key: 'Alt-Svc: clear observed', value: 'Yes' }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Alt-Svc', value: 'clear' }))
+    expect(result.presentation?.detailValues).toContainEqual({ key: 'clear directive', value: 'Found', kind: 'text' })
   })
 
   it('does not treat uppercase CLEAR as the case-sensitive clear value', async () => {
     const result = await run({ 'alt-svc': 'CLEAR' })
     expect(result.priority).toBe(850)
-    expect(result.presentation?.detailValues).toContainEqual(expect.objectContaining({ key: 'Alt-Svc: clear observed', value: 'No' }))
+    expect(result.presentation?.detailValues).toEqual([])
   })
 
   it('reports only standard protocols distinctly from mixed lists', async () => {
     const result = await run({ 'alt-svc': 'h2=":443"; ma=2592000' })
     expect(result.priority).toBe(750)
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Other (non-standard) protocols', value: 'None' }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Standard protocols', value: 'h2' }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Other protocols', value: 'None' }))
   })
 
   it('preserves the original Alt-Svc header value verbatim and references without advice', async () => {

@@ -16,7 +16,7 @@ describe('http:gzip rule', () => {
     expect(result.type).toBe('runtime_error')
     expect(result.priority).toBe(50)
     expect(result.presentation?.input).toBe('Not captured')
-    expect(result.presentation?.values).toContainEqual({ key: 'Header capture', value: 'Not captured', kind: 'text' })
+    expect(result.presentation?.values).toEqual([{ key: 'Response headers', value: 'Not captured', kind: 'text' }])
     expect(result.presentation?.noMarkup).toContain('HTTP response')
   })
 
@@ -24,14 +24,14 @@ describe('http:gzip rule', () => {
     const result = await run({ 'content-type': 'text/html' })
     expect(result.type).toBe('warn')
     expect(result.priority).toBe(150)
-    expect(result.presentation?.values).toContainEqual({ key: 'Content-Encoding', value: 'Not present', kind: 'text' })
+    expect(result.presentation?.values).toEqual([{ key: 'Content-Encoding', value: 'Absent', kind: 'text' }])
   })
 
   it('warns when encoding unsupported', async () => {
     const result = await run({ 'content-encoding': 'compress' })
     expect(result.type).toBe('warn')
     expect(result.presentation?.values).toContainEqual({ key: 'Content-Encoding', value: 'compress', kind: 'text' })
-    expect(result.presentation?.values).toContainEqual({ key: 'Compression', value: 'Unsupported coding only', kind: 'text' })
+    expect(result.presentation?.values).toContainEqual({ key: 'Codings', value: 'LZW compress', kind: 'text' })
   })
 
   it('passes when zstd present (modern browsers support Zstandard)', async () => {
@@ -55,13 +55,15 @@ describe('http:gzip rule', () => {
     const result = await run({ 'content-encoding': 'br, zstd' })
     expect(result.type).toBe('ok')
     expect(result.presentation?.values).toContainEqual({ key: 'Content-Encoding', value: 'br, zstd', kind: 'text' })
-    expect(result.presentation?.detailValues).toContainEqual({ key: 'Encoding tokens', value: 2, kind: 'text' })
+    expect(result.presentation?.values).toContainEqual({ key: 'Codings', value: 'Brotli, Zstandard', kind: 'text' })
+    expect(result.presentation?.evidence.map((record) => record.name)).toEqual(['Content-Encoding', 'Content-Encoding token br', 'Content-Encoding token zstd'])
   })
 
   it('preserves original header values in evidence', async () => {
     const result = await run({ 'content-encoding': 'gzip', 'x-trace': 'abc' })
-    const record = result.presentation?.evidence.find((e) => e.name === 'Captured response headers')
-    expect(record?.fields).toContainEqual({ key: 'x-trace', value: 'abc', kind: 'text' })
+    const record = result.presentation?.evidence.find((e) => e.name === 'Content-Encoding')
+    expect(record?.fields).toEqual([{ key: 'Value', value: 'gzip', kind: 'text' }])
+    expect(JSON.stringify(result.presentation)).not.toContain('x-trace')
   })
 
   it('re-probes main document when captured headers look like an asset', async () => {
@@ -75,7 +77,8 @@ describe('http:gzip rule', () => {
     )
     const result = await run({ 'content-type': 'image/png' })
     expect(result.type).toBe('ok')
-    expect(result.presentation?.values).toContainEqual({ key: 'Header source', value: 'probe', kind: 'text' })
+    expect(result.presentation?.checked).toContainEqual({ key: 'Header source', value: 'HEAD re-probe of the page URL', kind: 'text' })
+    expect(result.presentation?.values.map((field) => field.key)).not.toContain('Header source')
   })
 
   it('does not re-probe when page headers already came from a live probe', async () => {
@@ -87,7 +90,7 @@ describe('http:gzip rule', () => {
     )
     expect(f).not.toHaveBeenCalled()
     expect(result.type).toBe('warn')
-    expect(result.presentation?.values).toContainEqual({ key: 'Header source', value: 'captured', kind: 'text' })
+    expect(result.presentation?.checked).toContainEqual({ key: 'Header source', value: 'Captured response headers', kind: 'text' })
     expect(result.details).toBeUndefined()
   })
 

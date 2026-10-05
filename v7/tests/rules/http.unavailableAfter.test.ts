@@ -18,6 +18,7 @@ describe('rule: http unavailable_after', () => {
     const result = await run({ 'content-type': 'text/html' })
     expect(result.type).toBe('info')
     expect(result.priority).toBe(900)
+    expect(result.presentation?.values).toEqual([{ key: 'X-Robots-Tag', value: 'Absent', kind: 'text' }])
   })
 
   it('ok when header has no unavailable_after directive', async () => {
@@ -30,7 +31,8 @@ describe('rule: http unavailable_after', () => {
     const result = await run({ 'x-robots-tag': 'unavailable_after: 25 Jun 2049 15:00:00 GMT' })
     expect(result.type).toBe('warn')
     expect(result.priority).toBe(150)
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'unavailable_after date', value: '25 Jun 2049 15:00:00 GMT' }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'unavailable_after', value: '25 Jun 2049 15:00:00 GMT' }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Removal date', value: 'In the future' }))
   })
 
   it('errors when the removal date is already in the past', async () => {
@@ -48,7 +50,7 @@ describe('rule: http unavailable_after', () => {
     const result = await run({ 'x-robots-tag': 'unavailable_after: not-a-date' })
     expect(result.type).toBe('warn')
     expect(result.priority).toBe(300)
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Status', value: 'Directive date is not parseable' }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Removal date', value: 'Unparseable' }))
     expect(result.presentation?.checked).toContainEqual(expect.objectContaining({ key: 'Criterion', value: expect.stringContaining('Google ignores the directive') }))
   })
 

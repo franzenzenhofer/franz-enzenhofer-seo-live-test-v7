@@ -18,23 +18,23 @@ describe('rule: http3 advertised', () => {
     const result = await run({ 'alt-svc': 'h3=":443"; ma=2592000' })
     expect(result.type).toBe('info')
     expect(result.priority).toBe(750)
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'HTTP/3 advertised', value: 'Yes' }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'HTTP/3 token', value: 'Found' }))
   })
 
   it('detects a draft h3-29 token', async () => {
     const result = await run({ 'alt-svc': 'h3-29=":443"; ma=2592000' })
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'HTTP/3 advertised', value: 'Yes' }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'HTTP/3 token', value: 'Found' }))
   })
 
   it('does not match h3 inside a hostname-like token', async () => {
     const result = await run({ 'alt-svc': 'h3ostname=":443"' })
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'HTTP/3 advertised', value: 'No' }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'HTTP/3 token', value: 'Not found' }))
     expect(result.priority).toBe(850)
   })
 
   it('reports no advertisement when Alt-Svc is absent', async () => {
     const result = await run({ 'content-type': 'text/html' })
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Alt-Svc header', value: 'Not present' }))
+    expect(result.presentation?.values).toEqual([{ key: 'Alt-Svc', value: 'Absent', kind: 'text' }])
   })
 
   it('preserves the original Alt-Svc header value verbatim and references without advice', async () => {

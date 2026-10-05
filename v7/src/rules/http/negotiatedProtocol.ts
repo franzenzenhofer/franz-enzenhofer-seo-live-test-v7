@@ -5,6 +5,7 @@ import type { Rule } from '@/core/types'
 const isHttp3 = (proto: string) => /^h3\b|^hq\b|quic/i.test(proto)
 const isHttp2 = (proto: string) => /^h2\b/i.test(proto)
 const isLegacy = (proto: string) => /^http\/1/i.test(proto)
+const schemeOf = (url: string): string => { try { return new URL(url).protocol } catch { return 'Invalid URL' } }
 
 export const negotiatedProtocolRule: Rule = {
   id: 'http:negotiated-protocol', name: 'Negotiated Network Protocol', presentation: 1, enabled: true, what: 'http',
@@ -33,7 +34,7 @@ export const negotiatedProtocolRule: Rule = {
     return presentResult(negotiatedProtocolRule, page, {
       input: 'Navigation events + Page URL', type, priority,
       values: [textField('Negotiated protocol', proto)],
-      detailValues: [textField('HTTPS page', isHttps ? 'Yes' : 'No')],
+      detailValues: [textField('Scheme', schemeOf(page.url))],
       checked, evidence, noMarkup,
     })
   },

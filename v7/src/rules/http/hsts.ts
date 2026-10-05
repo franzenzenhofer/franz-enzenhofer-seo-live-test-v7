@@ -1,3 +1,5 @@
+import { headersNotCapturedResult } from '@/rules/http/headersNotCaptured'
+import { HEADER_NO_MARKUP, headerEvidence, headerRow } from '@/rules/http/observedHeader'
 import { headerValue } from '@/shared/headerValue'
 import { hasHeaders } from '@/shared/http-utils'
 import { textField } from '@/shared/presentation/create'
@@ -7,7 +9,6 @@ import type { Rule } from '@/core/types'
 const NAME = 'Strict-Transport-Security (HSTS)'
 const RULE_ID = 'http:hsts'
 const PRELOAD_MIN_MAX_AGE = 31536000
-const NO_MARKUP = 'None - this rule checks the HTTP response, not document markup'
 
 const parseMaxAge = (header: string): number | null => {
   const declarations = header.split(';').map(part => part.trim()).filter(part => /^max-age(?:\s|=|$)/i.test(part))
@@ -47,25 +48,20 @@ export const hstsRule: Rule = {
       'Checks the Strict-Transport-Security response header: warns when absent, reports max-age / includeSubDomains / preload when present.',
   },
   async run(page) {
-    if (!hasHeaders(page.headers)) {
-      return presentResult(hstsRule, page, {
-        input: 'Not captured', type: 'runtime_error', priority: 50,
-        values: [textField('Header capture', 'Not captured')],
-        checked: [textField('Header name', 'Strict-Transport-Security'), textField('Capture requirement', 'Response headers must be captured')],
-        noMarkup: NO_MARKUP,
-      })
-    }
+    if (!hasHeaders(page.headers)) return headersNotCapturedResult(hstsRule, page, 'Strict-Transport-Security')
     const hstsHeader = headerValue(page.headers, 'strict-transport-security')
     const hasHsts = Boolean(hstsHeader)
     const protocol = isHttpsUrl(page.url) ? 'HTTPS' : 'HTTP'
-    const evidence = [{ name: 'Retrieved response header', fields: [textField('Header value', hasHsts ? hstsHeader : 'Not present'), textField('Header lookup', 'Case-insensitive')] }]
+    const input = 'HTTP response headers + Page URL'
+    const evidence = headerEvidence('Strict-Transport-Security', hstsHeader)
+    const checked = [textField('Header name', 'Strict-Transport-Security'), textField('Header lookup', 'Case-insensitive'),
+      textField('Page protocol check', 'HTTPS or HTTP from the tested page URL'), textField('Header applicability', 'HTTPS response')]
     if (!hasHsts) {
       const https = protocol === 'HTTPS'
       return presentResult(hstsRule, page, {
-        input: 'HTTP response headers', type: https ? 'warn' : 'info', priority: https ? 300 : 900,
-        values: [textField('Strict-Transport-Security', 'Not present'), textField('Page protocol', protocol)],
-        checked: [textField('Header name', 'Strict-Transport-Security'), textField('Page protocol check', 'HTTPS or HTTP from the tested page URL'), textField('Header applicability', 'HTTPS response')],
-        evidence, noMarkup: NO_MARKUP,
+        input, type: https ? 'warn' : 'info', priority: https ? 300 : 900,
+        values: [headerRow('HSTS', hstsHeader), textField('Page protocol', protocol)],
+        checked, evidence, noMarkup: HEADER_NO_MARKUP,
       })
     }
     const maxAge = parseMaxAge(hstsHeader)
@@ -82,22 +78,21 @@ export const hstsRule: Rule = {
       type = 'warn'
       priority = 300
     }
-    const eligibility = preload ? (preloadEligible ? 'Eligible by checked thresholds' : 'Not eligible by checked thresholds') : 'Not evaluated'
+    const eligibility = preload ? (preloadEligible ? 'Eligible' : 'Ineligible') : 'Not checked'
     return presentResult(hstsRule, page, {
-      input: 'HTTP response headers', type, priority,
-      values: [
-        textField('Strict-Transport-Security', hstsHeader), textField('Page protocol', protocol),
-        textField('max-age seconds', maxAge === null ? 'Invalid or not parsed' : maxAge),
-        textField('includeSubDomains', includeSubDomains ? 'Present' : 'Not present'),
-        textField('preload', preload ? 'Present' : 'Not present'),
+      input, type, priority,
+      values: [headerRow('HSTS', hstsHeader), textField('Page protocol', protocol), textField('max-age seconds', maxAge === null ? 'Invalid' : maxAge)],
+      detailValues: [
+        textField('includeSubDomains', includeSubDomains ? 'Declared' : 'Not declared'),
+        textField('preload', preload ? 'Declared' : 'Not declared'),
+        textField('Preload eligibility', eligibility),
       ],
-      detailValues: [textField('Preload eligibility', eligibility)],
       checked: [
-        textField('Header name', 'Strict-Transport-Security'), textField('Page protocol check', 'HTTPS or HTTP from the tested page URL'),
-        textField('max-age parsing', 'One whole-second numeric declaration'), textField('includeSubDomains detection', 'Directive token, case-insensitive'),
-        textField('preload detection', 'Directive token, case-insensitive'), textField('Preload threshold', `max-age at least ${PRELOAD_MIN_MAX_AGE} seconds and includeSubDomains present`),
+        ...checked, textField('max-age parsing', 'One whole-second numeric declaration'),
+        textField('Directive detection', 'includeSubDomains and preload tokens, case-insensitive'),
+        textField('Preload threshold', `max-age at least ${PRELOAD_MIN_MAX_AGE} seconds and includeSubDomains declared`),
       ],
-      evidence, noMarkup: NO_MARKUP,
+      evidence, noMarkup: HEADER_NO_MARKUP,
     })
   },
 }

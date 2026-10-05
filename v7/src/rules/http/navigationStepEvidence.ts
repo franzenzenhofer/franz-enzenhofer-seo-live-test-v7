@@ -19,18 +19,19 @@ export const httpUrlField = (key: string, value: string): DisplayField => /^http
 export const combineInputs = (...parts: Array<string | false | undefined>): string => parts.filter((part): part is string => !!part).join(' + ') || 'Not captured'
 
 type HeaderHop = NonNullable<Page['headerChain']>[number]
-// A history update makes no request; a request without a matching header-chain hop has no captured cache flag.
-const fromCacheFact = (step: NavigationStep, hop: HeaderHop | undefined): string => {
-  if (step.type === 'history_api') return 'Not applicable'
-  if (!hop || hop.fromCache === undefined) return 'Not captured'
-  return hop.fromCache ? 'Yes' : 'No'
+// A history update makes no request, so it has no cache row; a request without a matching
+// header-chain hop has no captured cache flag.
+const fromCacheRow = (step: NavigationStep, hop: HeaderHop | undefined): DisplayField[] => {
+  if (step.type === 'history_api') return []
+  if (!hop || hop.fromCache === undefined) return [textField('From cache', 'Not captured')]
+  return [textField('From cache', hop.fromCache ? 'Yes' : 'No')]
 }
 
 /**
  * One named evidence record per observed navigation step ("Hop 1", "Hop 2", ...), bounded to
- * EVIDENCE_LIMIT records plus a retained/omitted record, shared by every rule that follows the
- * recorded navigation/redirect journey. Cross-references `page.headerChain` (main-document
- * webRequest hops) only to report `fromCache`, which the merged navigation step never carries.
+ * EVIDENCE_LIMIT records plus one record stating how many hops are shown, shared by every rule
+ * that follows the recorded navigation/redirect journey. Cross-references `page.headerChain`
+ * (main-document webRequest hops) only to report `fromCache`, which the merged step never carries.
  */
 export const navigationStepEvidence = (steps: NavigationStep[], headerChain: Page['headerChain']): EvidenceRecord[] => {
   const records = steps.slice(0, EVIDENCE_LIMIT).map((step, index): EvidenceRecord => ({
@@ -40,9 +41,9 @@ export const navigationStepEvidence = (steps: NavigationStep[], headerChain: Pag
       textField('Event type', TYPE_LABEL[step.type]),
       ...(step.statusCode !== undefined ? [textField('Status', httpStatusLabel(step.statusCode))] : []),
       ...(step.target ? [httpUrlField('Location', step.target)] : []),
-      textField('From cache', fromCacheFact(step, headerChain?.find((candidate) => candidate.url === step.url))),
+      ...fromCacheRow(step, headerChain?.find((candidate) => candidate.url === step.url)),
     ],
   }))
   const omitted = steps.length - records.length
-  return omitted ? [...records, { name: 'Navigation steps', fields: [textField('Retained', records.length), textField('Omitted', omitted)] }] : records
+  return omitted ? [...records, { name: 'Navigation steps', fields: [textField('Hops shown', `${records.length} of ${steps.length}`)] }] : records
 }

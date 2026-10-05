@@ -19,20 +19,19 @@ describe('rule: x-cache', () => {
     const r = await xCacheRule.run(P({ 'content-type': 'text/html' }), { globals: {} })
     expect(r.type).toBe('info')
     expect(r.priority).toBe(900)
-    expect(r.presentation?.values).toContainEqual({ key: 'X-Cache', value: 'Not present', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'X-Cache', value: 'Absent', kind: 'text' })
   })
 
   it('reports hit/miss', async () => {
     const r = await xCacheRule.run(P({ 'x-cache': 'HIT' }), { globals: {} })
     expect(r.priority).toBe(800)
-    expect(r.presentation?.values).toContainEqual({ key: 'X-Cache', value: 'HIT', kind: 'text' })
-    expect(r.presentation?.values).toContainEqual({ key: 'Cache status', value: 'HIT', kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'X-Cache', value: 'HIT', kind: 'text' }])
   })
 
   it('preserves an unclassified header value', async () => {
     const r = await xCacheRule.run(P({ 'x-cache': 'STALE' }), { globals: {} })
     expect(r.presentation?.values).toContainEqual({ key: 'X-Cache', value: 'STALE', kind: 'text' })
-    expect(r.presentation?.values).toContainEqual({ key: 'Cache status', value: 'STALE', kind: 'text' })
+    expect(r.presentation?.values.some((f) => f.key === 'Cache status')).toBe(false)
   })
 
   it('preserves a mixed result from multiple cache layers', async () => {

@@ -1,26 +1,23 @@
-import { mixedContentElementIssues, mixedContentResources, resourceSummary } from './mixedContentResources'
-import { issueRecord } from './mixedContent.evidence'
+import { offenderEvidence } from './mixedContent.evidence'
+import { kindSummary, mixedContentOffenders } from './mixedContentResources'
 
-import { EVIDENCE_LIMIT, sampleElements } from '@/shared/domEvidence'
+import { EVIDENCE_LIMIT } from '@/shared/domEvidence'
+import { recordCounts } from '@/shared/presentation/counts'
 import { textField } from '@/shared/presentation/create'
-import { markupEvidence } from '@/shared/presentation/originalMarkup'
 import { presentResult } from '@/shared/presentation/result'
-import type { ResourceIssue } from '@/shared/resourceIssues'
 import type { Rule } from '@/core/types'
+import { listRow } from '@/shared/presentation/listRow'
 
 const NAME = 'Mixed content'
 const CHECKED_ELEMENTS = 'script, link, img, iframe, video, audio, source, embed, object, form'
 const CHECKED_ATTRIBUTES = 'src, href, data, action'
 const DOM_INPUT = 'Static DOM + Page URL + Navigation events'
+const OVERVIEW_MARKUP_LIMIT = 3
+const CHECKED = [textField('Inspected elements', CHECKED_ELEMENTS), textField('Inspected attributes', CHECKED_ATTRIBUTES),
+  textField('Criterion', 'No explicit http:// URL in a fetching attribute or captured network resource (error) and no http:// form action (warning) on an HTTPS page')]
+const FORM_CHECKED = [textField('Inspected elements', 'form'), textField('Inspected attribute', 'action'), textField('Criterion', 'No explicit http:// form action on an HTTPS page')]
 
-const countFields = (label: string, total: number, shown: number) =>
-  total > shown ? [textField(`${label} retained`, shown), textField(`${label} omitted`, total - shown)] : []
-
-const offenderMarkup = (elementIssues: Array<{ element: Element; issue: ResourceIssue }>, kind: (k: string) => boolean) => {
-  const { sample, total } = sampleElements(elementIssues.filter((entry) => kind(entry.issue.kind)).map((entry) => entry.element))
-  const captured = markupEvidence(sample, 'Mixed-content element')
-  return { captured, total }
-}
+const hostOf = (url: string): string => { try { return new URL(url).host } catch { return url } }
 
 export const mixedContentRule: Rule = {
   id: 'http:mixed-content',
@@ -41,49 +38,35 @@ export const mixedContentRule: Rule = {
     if (!/^https:\/\//i.test(page.url)) {
       return presentResult(mixedContentRule, page, {
         input: 'Page URL', type: 'info', priority: 900,
-        values: [textField('Page protocol', (/^([a-z][a-z\d+.-]*):/i.exec(page.url)?.[1] || 'Unknown').toUpperCase())],
+        values: [textField('Page protocol', (/^([a-z][a-z\d+.-]*):/i.exec(page.url)?.[1] || 'Not found').toUpperCase())],
         checked: [textField('Required protocol', 'HTTPS'), textField('Applicability', 'Mixed content only applies to HTTPS pages')],
         noMarkup: 'Not applicable - page is not HTTPS',
       })
     }
-    const { resources, forms } = mixedContentResources(page)
-    const elementIssues = mixedContentElementIssues(page)
-    const checked = [textField('Inspected elements', CHECKED_ELEMENTS), textField('Inspected attributes', CHECKED_ATTRIBUTES),
-      textField('Criterion', 'No explicit http:// URL in a fetching attribute or captured network resource (error) and no http:// form action (warning) on an HTTPS page')]
-
-    if (resources.length) {
-      const shown = resources.slice(0, EVIDENCE_LIMIT)
-      const shownForms = forms.slice(0, EVIDENCE_LIMIT)
-      const { captured, total } = offenderMarkup(elementIssues, (k) => k !== 'Form')
+    const { resources, forms } = mixedContentOffenders(page)
+    const offenders = [...resources, ...forms]
+    if (!offenders.length) {
       return presentResult(mixedContentRule, page, {
-        input: DOM_INPUT, type: 'error', priority: 80,
-        values: [textField('Mixed-content resources', resources.length), textField('Insecure form actions', forms.length)],
-        detailValues: [textField('Resource kinds', resourceSummary(resources)), ...countFields('Evidence records', resources.length, shown.length), ...countFields('Form evidence records', forms.length, shownForms.length)],
-        checked,
-        evidence: [...shown.map((issue, index) => issueRecord(issue, index, 'Mixed-content resource')),
-          ...shownForms.map((issue, index) => issueRecord(issue, index, 'Insecure form action'))],
-        markup: captured.markup,
-        noMarkup: total ? 'Complete original mixed-content markup not retained' : 'No matching mixed-content element found; offenders are network-only',
+        input: DOM_INPUT, type: 'ok', priority: 850,
+        values: [textField('HTTP references', 'None')],
+        checked: CHECKED,
+        noMarkup: 'No matching mixed-content element found',
       })
     }
-    if (forms.length) {
-      const shown = forms.slice(0, EVIDENCE_LIMIT)
-      const { captured, total } = offenderMarkup(elementIssues, (k) => k === 'Form')
-      return presentResult(mixedContentRule, page, {
-        input: DOM_INPUT, type: 'warn', priority: 200,
-        values: [textField('Insecure form actions', forms.length)],
-        detailValues: [textField('Resource kinds', resourceSummary(forms)), ...countFields('Evidence records', forms.length, shown.length)],
-        checked: [textField('Inspected elements', 'form'), textField('Inspected attribute', 'action'), textField('Criterion', 'No explicit http:// form action on an HTTPS page')],
-        evidence: shown.map((issue, index) => issueRecord(issue, index, 'Insecure form action')),
-        markup: captured.markup,
-        noMarkup: total ? 'Complete original form markup not retained' : 'No matching form element found',
-      })
-    }
+    const shown = offenders.slice(0, EVIDENCE_LIMIT)
+    const { evidence, markup } = offenderEvidence(shown)
+    // The overview carries the offending markup itself when it fits; otherwise the hosts it points at (F4, F12).
+    const overviewMarkup = markup.length <= OVERVIEW_MARKUP_LIMIT ? markup : []
+    const hosts = overviewMarkup.length ? [] : [textField('HTTP hosts', listRow([...new Set(offenders.map(({ issue }) => hostOf(issue.url)))]))]
+    const networkOnly = shown.every((offender) => !offender.element)
     return presentResult(mixedContentRule, page, {
-      input: DOM_INPUT, type: 'ok', priority: 850,
-      values: [textField('Mixed-content resources', 0), textField('Insecure form actions', 0)],
-      checked,
-      noMarkup: 'No matching mixed-content element found',
+      input: DOM_INPUT, type: resources.length ? 'error' : 'warn', priority: resources.length ? 80 : 200,
+      values: [textField('HTTP references', listRow(kindSummary(offenders))), ...hosts, ...overviewMarkup],
+      detailValues: recordCounts({ found: offenders.length, markup: markup.length, evidence: evidence.length }),
+      checked: resources.length ? CHECKED : FORM_CHECKED,
+      evidence,
+      markup,
+      noMarkup: networkOnly ? 'Not retained: offenders are network-only requests without a matching HTML element' : 'Not retained: complete original markup not captured',
     })
   },
 }

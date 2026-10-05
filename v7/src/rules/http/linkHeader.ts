@@ -1,12 +1,17 @@
+import { headersNotCapturedResult } from './headersNotCaptured'
+import { entryRecords, entryRows, parseLinkEntry, relOf } from './linkHeader.entries'
+import { HEADER_NO_MARKUP, headerRow } from './observedHeader'
+
 import { hasHeaders } from '@/shared/http-utils'
+import { responseSourceFact } from '@/shared/httpResponseInput'
 import { textField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
+import { listRow } from '@/shared/presentation/listRow'
 
 const NAME = 'Link Header'
 const RULE_ID = 'http:link-header'
-const NO_MARKUP = 'None - this rule checks the HTTP response, not document markup'
-const ENTRY_LIMIT = 10
+const OVERVIEW_ENTRY_LIMIT = 3
 
 const splitLinkValues = (value: string): string[] => {
   const parts: string[] = []
@@ -53,28 +58,26 @@ export const linkHeaderRule: Rule = {
       'Reports presence of the Link response header and counts its entries by splitting the value on commas (always type info).',
   },
   async run(page) {
-    if (!hasHeaders(page.headers)) {
-      return presentResult(linkHeaderRule, page, {
-        input: 'Not captured', type: 'runtime_error', priority: 50,
-        values: [textField('Header capture', 'Not captured')],
-        checked: [textField('Header name', 'Link'), textField('Capture requirement', 'Response headers must be captured')],
-        noMarkup: NO_MARKUP,
-      })
-    }
+    if (!hasHeaders(page.headers)) return headersNotCapturedResult(linkHeaderRule, page, 'Link')
     const linkHeader = page.headers?.['link'] || ''
     const hasLink = linkHeader.length > 0
     const links = hasLink ? splitLinkValues(linkHeader) : []
     const count = links.length
-    const shown = links.slice(0, ENTRY_LIMIT)
-    const headerRecord = { name: 'Captured response headers', fields: Object.entries(page.headers || {}).map(([key, value]) => textField(key, value)) }
-    const entryRecord = { name: 'Parsed Link entries', fields: shown.length ? shown.map((value, index) => textField(`Entry ${index + 1}`, value)) : [textField('Entries', 'None')] }
+    const entries = links.map(parseLinkEntry)
+    const relations = [...new Set(entries.map(relOf).filter(Boolean))]
+    // The raw header embeds URLs, so the overview carries the parsed entries: each target keyed by
+    // its rel for a short list, the count plus the relations for a long one (FORMATTING.md F9, F12).
+    const values = !hasLink ? [headerRow('Link', '')]
+      : count <= OVERVIEW_ENTRY_LIMIT ? entryRows(entries, page.url)
+        : [textField('Link entries', count), textField('Relations', listRow(relations))]
     return presentResult(linkHeaderRule, page, {
       input: 'HTTP response headers', type: 'info', priority: hasLink ? 750 : 900,
-      values: [textField('Link header', hasLink ? linkHeader : 'Not present'), textField('Link entries', count)],
-      detailValues: count > shown.length ? [textField('Entries retained', shown.length), textField('Entries omitted', count - shown.length)] : [],
-      checked: [textField('Header name', 'Link'), textField('Header source', 'Captured response headers'), textField('Entry splitting', 'Top-level commas outside quoted strings and angle-bracket URLs')],
-      evidence: [entryRecord, headerRecord],
-      noMarkup: NO_MARKUP,
+      values,
+      checked: [textField('Header name', 'Link'), textField('Response source', responseSourceFact(page)),
+        textField('Entry splitting', 'Top-level commas outside quoted strings and angle-bracket URLs'),
+        textField('Entry parsing', 'Target in angle brackets, then semicolon-separated parameters')],
+      evidence: entryRecords(entries, page.url),
+      noMarkup: HEADER_NO_MARKUP,
     })
   },
 }

@@ -1,11 +1,12 @@
+import { HEADER_NO_MARKUP } from '@/rules/http/observedHeader'
 import { hasHeaders } from '@/shared/http-utils'
 import { textField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
+import { listRow } from '@/shared/presentation/listRow'
 
 const NAME = 'HTTP Header Presence (Configurable)'
 const RULE_ID = 'http:has-header'
-const NO_MARKUP = 'None - this rule checks the HTTP response, not document markup'
 const CONFIG_VAR = 'http_has_header'
 
 export const hasHeaderRule: Rule = {
@@ -28,9 +29,9 @@ export const hasHeaderRule: Rule = {
     if (!hasHeaders(page.headers)) {
       return presentResult(hasHeaderRule, page, {
         input: 'Not captured', type: 'runtime_error', priority: 50,
-        values: [textField('Header capture', 'Not captured')],
-        checked: [textField('Configuration variable', CONFIG_VAR), textField('Capture requirement', 'Response headers must be captured')],
-        noMarkup: NO_MARKUP,
+        values: [textField('Response headers', 'Not captured')],
+        checked: [textField('Configuration variable', CONFIG_VAR), textField('Capture requirement', 'HTTP response headers')],
+        noMarkup: HEADER_NO_MARKUP,
       })
     }
     const vars = (ctx.globals as { variables?: Record<string, unknown> }).variables || {}
@@ -39,8 +40,8 @@ export const hasHeaderRule: Rule = {
       return presentResult(hasHeaderRule, page, {
         input: 'HTTP response headers', type: 'info', priority: 900,
         values: [textField('Configured headers', 'None')],
-        checked: [textField('Configuration variable', CONFIG_VAR), textField('Configured headers', 'None')],
-        noMarkup: NO_MARKUP,
+        checked: [textField('Configuration variable', CONFIG_VAR), textField('Criterion', 'Every configured header name is present with a non-empty value')],
+        noMarkup: HEADER_NO_MARKUP,
       })
     }
     const requestedHeaders = raw.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
@@ -65,15 +66,10 @@ export const hasHeaderRule: Rule = {
     }
     return presentResult(hasHeaderRule, page, {
       input: 'HTTP response headers', type, priority,
-      values: [
-        textField('Configured headers', requestedHeaders.join(', ')),
-        textField('All present', allPresent ? 'Yes' : 'No'),
-        textField('Present count', presentHeaders.length),
-        textField('Missing count', missingHeaders.length),
-      ],
+      values: [textField('Present headers', listRow(presentHeaders)), textField('Absent headers', listRow(missingHeaders))],
       checked: [textField('Configuration variable', CONFIG_VAR), textField('Configured headers', requestedHeaders.join(', ')), textField('Criterion', 'Every configured header name is present with a non-empty value')],
-      evidence: requestedHeaders.map((header) => ({ name: header, fields: [textField('Present', presentHeaders.includes(header) ? 'Yes' : 'No')] })),
-      noMarkup: NO_MARKUP,
+      evidence: requestedHeaders.map((header) => ({ name: header, fields: [textField('Header', presentHeaders.includes(header) ? 'Present' : 'Absent')] })),
+      noMarkup: HEADER_NO_MARKUP,
     })
   },
 }

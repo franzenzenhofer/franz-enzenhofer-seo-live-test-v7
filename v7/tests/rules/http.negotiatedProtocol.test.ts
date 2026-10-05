@@ -28,14 +28,14 @@ describe('rule: negotiated protocol', () => {
     expect(result.type).toBe('error')
     expect(result.priority).toBe(200)
     expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Negotiated protocol', value: 'http/1.1' }))
-    expect(result.presentation?.detailValues).toContainEqual(expect.objectContaining({ key: 'HTTPS page', value: 'Yes' }))
+    expect(result.presentation?.detailValues).toEqual([{ key: 'Scheme', value: 'https:', kind: 'text' }])
     expect(result.presentation?.checked).toContainEqual(expect.objectContaining({ key: 'Criterion', value: expect.stringContaining('HTTP/1.x') }))
   })
 
   it('does not error http/1.1 over plain HTTP', async () => {
     const result = await run('http/1.1', 'http://ex.com')
     expect(result.type).toBe('info')
-    expect(result.presentation?.detailValues).toContainEqual(expect.objectContaining({ key: 'HTTPS page', value: 'No' }))
+    expect(result.presentation?.detailValues).toEqual([{ key: 'Scheme', value: 'http:', kind: 'text' }])
   })
 
   it('treats h2 as a passing state', async () => {

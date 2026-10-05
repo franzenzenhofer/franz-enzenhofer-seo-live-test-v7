@@ -35,13 +35,12 @@ export const xCacheRule: Rule = {
     const xCacheHeader = headerValue(page.headers, 'x-cache')
     const xCacheLower = xCacheHeader.toLowerCase()
     const hasXCache = Boolean(xCacheHeader)
-    const checked = [textField('Header name', 'X-Cache'), textField('Classification', 'Case-insensitive value search for hit and miss'), textField('Header source', 'Captured response headers')]
+    const checked = [textField('Header name', 'X-Cache'), textField('Classification', 'Case-insensitive value search for hit and miss')]
     if (!hasXCache) {
       return presentResult(xCacheRule, page, {
         input: 'HTTP response headers', type: 'info', priority: 900,
-        values: [textField('X-Cache', 'Not present')],
+        values: [textField('X-Cache', 'Absent')],
         checked,
-        evidence: [{ name: 'Retrieved response header', fields: [textField('Header value', 'Not present')] }],
         noMarkup: NO_MARKUP,
       })
     }
@@ -50,9 +49,10 @@ export const xCacheRule: Rule = {
     const cacheStatus = isHit && isMiss ? 'Mixed HIT and MISS across reported cache layers' : isHit ? 'HIT' : isMiss ? 'MISS' : xCacheHeader
     return presentResult(xCacheRule, page, {
       input: 'HTTP response headers', type: 'info', priority: 800,
-      values: [textField('X-Cache', xCacheHeader), textField('Cache status', cacheStatus)],
+      // The classification row is shown only when it adds to the raw header value (F3).
+      values: [textField('X-Cache', xCacheHeader), ...(cacheStatus === xCacheHeader ? [] : [textField('Cache status', cacheStatus)])],
       checked,
-      evidence: [{ name: 'Retrieved response header', fields: [textField('Header value', xCacheHeader)] }],
+      evidence: [{ name: 'X-Cache', fields: [textField('Value', xCacheHeader)] }],
       noMarkup: NO_MARKUP,
     })
   },

@@ -1,18 +1,20 @@
 import {
-  encodingEvidence, fetchHeadHeaders, headerRecord, headerSourceLabel,
+  codingName, encodingEvidence, fetchHeadHeaders, headerSourceLabel,
   isHtmlLike, KNOWN_ENCODINGS, normalizeHeaders, parseEncodings,
 } from './gzip.evidence'
+import { headersNotCapturedResult } from './headersNotCaptured'
+import { HEADER_NO_MARKUP, headerEvidence, headerRow } from './observedHeader'
 
 import { hasHeaders } from '@/shared/http-utils'
 import { normalizeUrl } from '@/shared/url-utils'
 import { textField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
+import { listRow } from '@/shared/presentation/listRow'
 
 const NAME = 'Gzip/Brotli Compression'
 const RULE_ID = 'http:gzip'
 const ACCEPTED_CODINGS = 'br, gzip, zstd, deflate'
-const NO_MARKUP = 'None - this rule checks the HTTP response, not document markup'
 
 export const gzipRule: Rule = {
   id: RULE_ID,
@@ -53,14 +55,7 @@ export const gzipRule: Rule = {
         headerSource = 'probe'
       }
     }
-    if (!hasHeaders(headers)) {
-      return presentResult(gzipRule, page, {
-        input: 'Not captured', type: 'runtime_error', priority: 50,
-        values: [textField('Header capture', 'Not captured')],
-        checked: [textField('Header name', 'Content-Encoding'), textField('Capture requirement', 'Response headers must be captured or re-probed')],
-        noMarkup: NO_MARKUP,
-      })
-    }
+    if (!hasHeaders(headers)) return headersNotCapturedResult(gzipRule, page, 'Content-Encoding')
 
     const encodingHeader = headers['content-encoding'] || ''
     const encodings = parseEncodings(encodingHeader)
@@ -70,28 +65,12 @@ export const gzipRule: Rule = {
       textField('Header source', headerSourceLabel(headerSource)),
       textField('Accepted codings', ACCEPTED_CODINGS),
     ]
-    const evidence = [headerRecord(headers), ...(encodings.length ? encodingEvidence(encodings) : [])]
-
-    if (!encodings.length) {
-      return presentResult(gzipRule, page, {
-        input: 'HTTP response headers', type: 'warn', priority: 150,
-        values: [textField('Content-Encoding', 'Not present'), textField('Compression', 'Not detected'), textField('Header source', headerSource)],
-        checked, evidence, noMarkup: NO_MARKUP,
-      })
-    }
-    if (hasAccepted) {
-      return presentResult(gzipRule, page, {
-        input: 'HTTP response headers', type: 'ok', priority: 800,
-        values: [textField('Content-Encoding', encodingHeader), textField('Compression', 'Supported coding detected'), textField('Header source', headerSource)],
-        detailValues: [textField('Encoding tokens', encodings.length)],
-        checked, evidence, noMarkup: NO_MARKUP,
-      })
-    }
+    const values = [headerRow('Content-Encoding', encodingHeader), ...(encodings.length ? [textField('Codings', listRow(encodings.map(codingName)))] : [])]
+    const evidence = [...headerEvidence('Content-Encoding', encodingHeader), ...encodingEvidence(encodings)]
+    const passed = encodings.length > 0 && hasAccepted
     return presentResult(gzipRule, page, {
-      input: 'HTTP response headers', type: 'warn', priority: 150,
-      values: [textField('Content-Encoding', encodingHeader), textField('Compression', 'Unsupported coding only'), textField('Header source', headerSource)],
-      detailValues: [textField('Encoding tokens', encodings.length)],
-      checked, evidence, noMarkup: NO_MARKUP,
+      input: 'HTTP response headers', type: passed ? 'ok' : 'warn', priority: passed ? 800 : 150,
+      values, checked, evidence, noMarkup: HEADER_NO_MARKUP,
     })
   },
 }

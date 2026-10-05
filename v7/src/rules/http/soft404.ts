@@ -1,4 +1,4 @@
-import { chainDetailValues, chainEvidence, soft404Verdict } from './soft404.evidence'
+import { chainDetailValues, chainEvidence, failureReason, soft404Verdict } from './soft404.evidence'
 
 import { hasHeaders } from '@/shared/http-utils'
 import { followRedirectChain } from '@/shared/redirectChain'
@@ -11,6 +11,7 @@ import type { Rule } from '@/core/types'
 const NAME = 'Soft 404 Probe'
 const RULE_ID = 'http:soft-404'
 const NO_MARKUP = 'None - this rule checks the HTTP response, not document markup'
+const PROBE_INPUT = 'Page URL + Soft 404 probe HTTP response'
 
 const buildProbeUrl = (rawUrl: string): string => {
   const u = new URL(rawUrl)
@@ -72,14 +73,15 @@ export const soft404Rule: Rule = {
       const { chain } = await followRedirectChain(probeUrl, { signal: ctx.signal })
       const verdict = soft404Verdict(chain)
       return presentResult(soft404Rule, page, {
-        input: 'Page URL + Soft 404 probe HTTP response', type: verdict.type, priority: verdict.priority,
+        input: PROBE_INPUT, type: verdict.type, priority: verdict.priority,
         values: [
           urlField('Probed URL', probeUrl),
           textField('Final status', httpStatusLabel(chain.finalStatus > 0 ? chain.finalStatus : undefined)),
           textField('Classification', verdict.classification),
         ],
         detailValues: chainDetailValues(chain),
-        checked,
+        // A runtime limitation is an explanation of what was checked, not an observed value (F10).
+        checked: [...checked, ...(chain.note ? [textField('Runtime note', chain.note)] : [])],
         evidence: chainEvidence(chain.hops),
         noMarkup: NO_MARKUP,
       })
@@ -87,8 +89,8 @@ export const soft404Rule: Rule = {
       const message = error instanceof Error ? error.message : String(error)
       const hops = error instanceof RedirectChainError ? error.hops : []
       return presentResult(soft404Rule, page, {
-        input: hops.length ? 'Page URL + Soft 404 probe HTTP response' : 'Page URL', type: 'runtime_error', priority: 5,
-        values: [urlField('Probed URL', probeUrl), textField('Probe failure', message)],
+        input: hops.length ? PROBE_INPUT : 'Page URL', type: 'runtime_error', priority: 5,
+        values: [urlField('Probed URL', probeUrl), textField('Request', 'Failed'), textField('Error', failureReason(message))],
         checked,
         evidence: chainEvidence(hops),
         noMarkup: NO_MARKUP,

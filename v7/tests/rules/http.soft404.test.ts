@@ -122,7 +122,9 @@ describe('rule: soft 404 probe', () => {
     const r = await soft404Rule.run(page(), { globals: {} })
     expect(r.type).toBe('runtime_error')
     expect(r.priority).toBe(5)
-    expect(r.presentation?.values.find((f) => f.key === 'Probe failure')?.value).toContain('network down')
+    expect(r.presentation?.values.find((f) => f.key === 'Probed URL')?.kind).toBe('url')
+    expect(r.presentation?.values).toContainEqual({ key: 'Request', value: 'Failed', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Error', value: 'network down', kind: 'text' })
   })
 
   it('copies references and labelled facts without legacy details', async () => {

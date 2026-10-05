@@ -13,6 +13,7 @@ describe('rule: has header', () => {
     expect(r.type).toBe('runtime_error')
     expect(r.priority).toBe(50)
     expect(r.presentation?.input).toBe('Not captured')
+    expect(r.presentation?.values).toEqual([{ key: 'Response headers', value: 'Not captured', kind: 'text' }])
   })
 
   it('reports info when nothing is configured', async () => {
@@ -26,28 +27,28 @@ describe('rule: has header', () => {
     const r = await run({ x: '1' }, 'content-type, server')
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(200)
-    expect(r.presentation?.values).toContainEqual({ key: 'Missing count', value: 2, kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'Present headers', value: 'None', kind: 'text' }, { key: 'Absent headers', value: 'content-type, server', kind: 'text' }])
   })
 
   it('warns when some configured headers are missing', async () => {
     const r = await run({ 'content-type': 'text/html' }, 'content-type, server')
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(300)
-    expect(r.presentation?.values).toContainEqual({ key: 'Present count', value: 1, kind: 'text' })
-    expect(r.presentation?.values).toContainEqual({ key: 'Missing count', value: 1, kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'Present headers', value: 'content-type', kind: 'text' }, { key: 'Absent headers', value: 'server', kind: 'text' }])
   })
 
   it('ok when all configured headers are present', async () => {
     const r = await run({ 'content-type': 'text/html', server: 'x' }, 'content-type, server')
     expect(r.type).toBe('ok')
     expect(r.priority).toBe(750)
-    expect(r.presentation?.values).toContainEqual({ key: 'All present', value: 'Yes', kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'Present headers', value: 'content-type, server', kind: 'text' }, { key: 'Absent headers', value: 'None', kind: 'text' }])
   })
 
   it('names each configured header in checked', async () => {
     const r = await run({ 'content-type': 'text/html', server: 'x' }, 'content-type, server')
     expect(r.presentation?.checked).toContainEqual({ key: 'Configured headers', value: 'content-type, server', kind: 'text' })
     expect(r.presentation?.evidence.map((e) => e.name)).toEqual(['content-type', 'server'])
+    expect(r.presentation?.evidence[0]?.fields).toEqual([{ key: 'Header', value: 'Present', kind: 'text' }])
   })
 
   it('copies references (fallback) and labelled facts without legacy details', async () => {

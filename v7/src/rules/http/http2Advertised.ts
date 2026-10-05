@@ -1,4 +1,5 @@
 import { headersNotCapturedResult } from '@/rules/http/headersNotCaptured'
+import { HEADER_NO_MARKUP, headerEvidence, headerRow } from '@/rules/http/observedHeader'
 import { advertisedProtocol, headerValue } from '@/shared/headerValue'
 import { hasHeaders } from '@/shared/http-utils'
 import { textField } from '@/shared/presentation/create'
@@ -25,12 +26,12 @@ export const http2AdvertisedRule: Rule = {
     const advertisesHttp2 = advertisedProtocol(altSvcHeader, 'h2')
     return presentResult(http2AdvertisedRule, page, {
       input: 'HTTP response headers', type: 'info', priority: advertisesHttp2 ? 750 : 850,
-      values: [textField('Alt-Svc header', altSvcHeader || 'Not present'),
-        textField('HTTP/2 advertised', advertisesHttp2 ? 'Yes' : 'No')],
+      values: [headerRow('Alt-Svc', altSvcHeader),
+        ...(altSvcHeader ? [textField('HTTP/2 token', advertisesHttp2 ? 'Found' : 'Not found')] : [])],
       checked: [textField('Header', 'Alt-Svc'), textField('ALPN token', 'h2'),
         textField('Criterion', 'Informational only; does not prove the connection used HTTP/2')],
-      evidence: altSvcHeader ? [{ name: 'Alt-Svc header', fields: [textField('Alt-Svc', altSvcHeader)] }] : [],
-      noMarkup: 'None - this rule checks the HTTP response, not document markup',
+      evidence: headerEvidence('Alt-Svc', altSvcHeader),
+      noMarkup: HEADER_NO_MARKUP,
     })
   },
 }

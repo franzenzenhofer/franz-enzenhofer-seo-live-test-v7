@@ -1,11 +1,14 @@
+
 import { boundedEvidence } from '@/rules/http/resourceDelivery.evidence'
-import { textField } from '@/shared/presentation/create'
+import { textField, urlField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
 import type { ResourceFact } from '@/shared/resourceFacts'
+import { listRow } from '@/shared/presentation/listRow'
 
 const TEXTUAL = /^(text\/|application\/(javascript|x-javascript|json|ld\+json|xml|xhtml)|image\/svg)/i
 const COMPRESSED = /\b(br|gzip|deflate|zstd)\b/i
+const OVERVIEW_URL_LIMIT = 3
 
 const isFailed = (fact: ResourceFact) => !!fact.error || (typeof fact.status === 'number' && fact.status >= 400)
 const header = (fact: ResourceFact, name: string) => fact.headers?.[name] || ''
@@ -18,6 +21,12 @@ const checked = [
   textField('Criterion', 'error when any observed subresource failed (4xx/5xx or network error)'),
 ]
 const noMarkup = 'None - this rule checks observed resource responses, not document markup'
+
+// Up to three distinct failed URLs sit in the overview, so the finding is visible without opening details.
+const failedUrlRows = (failed: ResourceFact[]) => {
+  const urls = [...new Set(failed.map((fact) => fact.url))]
+  return urls.length <= OVERVIEW_URL_LIMIT ? urls.map((url, index) => urlField(`Failed URL ${index + 1}`, url)) : []
+}
 
 export const resourceDeliveryRule: Rule = {
   id: 'http:resource-delivery', name: 'Observed resource delivery', presentation: 1, enabled: true, what: 'http',
@@ -33,13 +42,16 @@ export const resourceDeliveryRule: Rule = {
   async run(page) {
     const facts = page.resourceFacts
     const coverage = page.resourceCoverage
-    if (!facts?.length) return presentResult(resourceDeliveryRule, page, {
-      input: coverage?.events ? 'Navigation events' : 'Not captured', type: 'info', priority: 900,
-      values: [textField('Observed subresources', 0),
-        textField('Resource evidence', coverage?.events ? 'Requests observed but no evidence retained' : 'No subresource requests captured')],
-      detailValues: [textField('Resource requests observed', coverage?.events ?? 0)],
-      checked, noMarkup,
-    })
+    if (!facts?.length) {
+      // Requests were observed but none retained, or the navigation events carried no resource ledger
+      // at all, so the subresources could not be checked.
+      const observed = coverage?.events ?? 0
+      return presentResult(resourceDeliveryRule, page, {
+        input: 'Navigation events', type: 'info', priority: 900,
+        values: observed ? [textField('Requests observed', observed), textField('Retained responses', 'None')] : [textField('Subresource requests', 'Not checked')],
+        checked, noMarkup,
+      })
+    }
     const failed = facts.filter(isFailed)
     const textual = facts.filter(isTextual)
     const uncompressed = textual.filter((fact) => !COMPRESSED.test(header(fact, 'content-encoding')))
@@ -47,15 +59,15 @@ export const resourceDeliveryRule: Rule = {
     const failedEvidence = boundedEvidence('Failed resource', failed)
     const uncompressedEvidence = boundedEvidence('Uncompressed resource', uncompressed)
     const uncacheableEvidence = boundedEvidence('Uncacheable resource', uncacheable)
+    const types = [...new Set(facts.map((fact) => fact.type).filter((type): type is string => !!type))]
     return presentResult(resourceDeliveryRule, page, {
       input: 'Navigation events', type: failed.length ? 'error' : 'info', priority: failed.length ? 200 : 820,
-      values: [textField('Observed subresources', facts.length), textField('Failed subresources', failed.length),
-        textField('Uncompressed textual resources', uncompressed.length), textField('Resources without cache validator', uncacheable.length)],
+      values: [textField('Types', listRow(types)), textField('Subresources', facts.length),
+        textField('Failed', failed.length), ...failedUrlRows(failed),
+        textField('Uncompressed textual', uncompressed.length), textField('No cache validator', uncacheable.length)],
       detailValues: [
         ...(coverage?.truncated ? [textField('Retained URLs', coverage.retained), textField('Dropped observations', coverage.dropped)] : []),
-        textField('Failed evidence retained', failedEvidence.retained), textField('Failed evidence omitted', failedEvidence.omitted),
-        textField('Uncompressed evidence retained', uncompressedEvidence.retained), textField('Uncompressed evidence omitted', uncompressedEvidence.omitted),
-        textField('Uncacheable evidence retained', uncacheableEvidence.retained), textField('Uncacheable evidence omitted', uncacheableEvidence.omitted),
+        ...failedEvidence.shown, ...uncompressedEvidence.shown, ...uncacheableEvidence.shown,
       ],
       checked,
       evidence: [...failedEvidence.records, ...uncompressedEvidence.records, ...uncacheableEvidence.records],

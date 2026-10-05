@@ -45,14 +45,14 @@ describe('http:navigation-path rule', () => {
   it('returns info when no ledger available', async () => {
     const r = await run(createMockPage(), null)
     expect(r.type).toBe('info'); expect(r.priority).toBe(900)
-    expect(value(r, 'Navigation data')).toBe('Unavailable')
+    expect(value(r, 'Navigation events')).toBe('Not checked')
   })
 
   it('returns info when trace is empty', async () => {
     const ledger: NavigationLedger = { tabId: 1, currentUrl: 'https://example.com', trace: [] }
     const r = await run(createMockPage(), ledger)
     expect(r.type).toBe('info'); expect(r.priority).toBe(900)
-    expect(value(r, 'Navigation events recorded')).toBe(0)
+    expect(value(r, 'Navigation events')).toBe('None')
   })
 
   it('returns ok for direct load (no redirects)', async () => {
@@ -62,7 +62,7 @@ describe('http:navigation-path rule', () => {
     const r = await run(createMockPage(), ledger)
     expect(r.type).toBe('ok'); expect(r.priority).toBe(800)
     expect(value(r, 'Redirect hops')).toBe(0)
-    expect(value(r, 'Final response status')).toBe('HTTP 200 OK')
+    expect(value(r, 'Final status')).toBe('HTTP 200 OK')
   })
 
   it('returns ok for a single permanent HTTP to HTTPS redirect', async () => {
@@ -73,6 +73,7 @@ describe('http:navigation-path rule', () => {
     const r = await run(createMockPage(), ledger)
     expect(r.type).toBe('ok'); expect(r.priority).toBe(750)
     expect(value(r, 'Redirect hops')).toBe(1)
+    expect(r.presentation?.values.slice(0, 2)).toEqual([{ key: 'First URL', value: 'http://example.com', kind: 'url' }, { key: 'Final URL', value: 'https://example.com', kind: 'url' }])
   })
 
   it('returns info for a generic single permanent redirect', async () => {
@@ -103,7 +104,7 @@ describe('http:navigation-path rule', () => {
     ] }
     const r = await run(createMockPage(), ledger)
     expect(r.type).toBe('error'); expect(r.priority).toBe(100)
-    expect(value(r, 'Client-side redirects')).toBe(1)
+    expect(value(r, 'Client redirects')).toBe(1)
   })
 
   it('returns warn for a redirect chain of multiple hops', async () => {
@@ -123,7 +124,7 @@ describe('http:navigation-path rule', () => {
     ] }
     const r = await run(createMockPage(), ledger)
     expect(r.type).toBe('error'); expect(r.priority).toBe(100)
-    expect(value(r, 'Final response status')).toBe('HTTP 404 Not Found')
+    expect(value(r, 'Final status')).toBe('HTTP 404 Not Found')
   })
 
   it('preserves all references and emits no legacy details', async () => {

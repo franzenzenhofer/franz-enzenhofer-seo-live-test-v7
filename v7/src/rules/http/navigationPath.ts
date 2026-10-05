@@ -1,15 +1,18 @@
+import { journeyRows, ledgerTrace, NAVIGATION_NONE, NAVIGATION_NOT_CHECKED } from './navigationJourneyRows'
 import { navigationPathSteps } from './navigationPathSteps'
 import { combineInputs, navigationStepEvidence } from './navigationStepEvidence'
 
-import { NavigationLedgerSchema } from '@/background/history/types'
 import type { Rule, Result } from '@/core/types'
 import { hasHeaders } from '@/shared/http-utils'
 import { httpStatusLabel } from '@/shared/httpStatusLabel'
 import { textField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
+import type { DisplayField } from '@/shared/presentation/schema'
 
 const NAME = 'Navigation Path Analysis'
 const NOT_MARKUP = 'None - this rule checks recorded navigation events, not document markup'
+const TEMPORARY = [302, 303, 307]
+const PERMANENT = [301, 308]
 const CHECKED = [
   textField('Navigation source', 'Recorded navigation ledger and main-document response events'),
   textField('Client-side redirect criterion', 'A client-side (JavaScript or meta refresh) redirect fails this check'),
@@ -37,17 +40,14 @@ export const navigationPathRule: Rule = {
   },
 
   async run(page, ctx): Promise<Result> {
-    const build = (type: Result['type'], priority: number, input: string, values: ReturnType<typeof textField>[], detailValues: ReturnType<typeof textField>[] = [], evidence: ReturnType<typeof navigationStepEvidence> = []) =>
+    const build = (type: Result['type'], priority: number, input: string, values: DisplayField[], detailValues: DisplayField[] = [], evidence: ReturnType<typeof navigationStepEvidence> = []) =>
       presentResult(navigationPathRule, page, { input, type, priority, values, detailValues, checked: CHECKED, evidence, noMarkup: NOT_MARKUP })
 
     if (!hasHeaders(page.headers)) return build('runtime_error', 50, 'Not captured', [textField('HTTP response headers', 'Not captured')])
 
-    const raw = (ctx.globals as { navigationLedger?: unknown }).navigationLedger
-    const ledgerResult = NavigationLedgerSchema.safeParse(raw)
-    if (!ledgerResult.success) return build('info', 900, 'HTTP response headers', [textField('Navigation data', 'Unavailable')])
-
-    const { trace } = ledgerResult.data
-    if (trace.length === 0) return build('info', 900, 'HTTP response headers', [textField('Navigation events recorded', 0)])
+    const trace = ledgerTrace(ctx.globals)
+    if (!trace) return build('info', 900, 'HTTP response headers', [NAVIGATION_NOT_CHECKED])
+    if (trace.length === 0) return build('info', 900, 'HTTP response headers', [NAVIGATION_NONE])
 
     const steps = navigationPathSteps(page, trace)
     const evidence = navigationStepEvidence(steps, page.headerChain)
@@ -55,16 +55,19 @@ export const navigationPathRule: Rule = {
     const redirects = steps.filter((hop) => hop.type === 'http_redirect' || hop.type === 'client_redirect')
     const redirectCount = redirects.length
     const clientRedirectCount = redirects.filter((t) => t.type === 'client_redirect').length
-    const hasTemporaryRedirect = redirects.some((t) => t.statusCode === 302 || t.statusCode === 303 || t.statusCode === 307)
+    const hasTemporaryRedirect = redirects.some((t) => TEMPORARY.includes(t.statusCode ?? 0))
     const hasClientRedirect = clientRedirectCount > 0
     const lastHop = steps[steps.length - 1]
     const hasMixedHttp = steps.some((t) => t.url.startsWith('http:')) && lastHop?.url.startsWith('https:') === true
-    const tempCodes = [...new Set(redirects.filter((t) => t.statusCode === 302 || t.statusCode === 303 || t.statusCode === 307).map((t) => t.statusCode))]
+    const tempCodes = [...new Set(redirects.filter((t) => TEMPORARY.includes(t.statusCode ?? 0)).map((t) => t.statusCode))]
     const lastResponse = steps.filter((hop) => hop.type !== 'history_api').at(-1)
+    const allPermanent = redirects.every((hop) => PERMANENT.includes(hop.statusCode ?? 0))
 
-    const facts = [textField('Redirect hops', redirectCount), textField('Client-side redirects', clientRedirectCount),
-      textField('Final response status', lastResponse?.statusCode !== undefined ? httpStatusLabel(lastResponse.statusCode) : 'Not captured')]
-    const details = [textField('Scheme change to HTTPS', hasMixedHttp ? 'Yes' : 'No'),
+    // The final status row exists only when a response was captured; a missing status is never invented (F13).
+    const facts = [...journeyRows(steps), textField('Redirect hops', redirectCount),
+      ...(clientRedirectCount ? [textField('Client redirects', clientRedirectCount)] : []),
+      ...(lastResponse?.statusCode !== undefined ? [textField('Final status', httpStatusLabel(lastResponse.statusCode))] : [])]
+    const details = [...(hasMixedHttp ? [textField('Scheme change', 'HTTP to HTTPS')] : []),
       ...(tempCodes.length ? [textField('Temporary status codes', tempCodes.map(httpStatusLabel).join(', '))] : [])]
 
     if ((lastResponse?.statusCode ?? 0) >= 400) return build('error', 100, input, facts, details, evidence)
@@ -72,8 +75,7 @@ export const navigationPathRule: Rule = {
     if (hasClientRedirect) return build('error', 100, input, facts, details, evidence)
     if (redirectCount > 1) return build('warn', 200, input, facts, details, evidence)
     if (hasTemporaryRedirect) return build('warn', 200, input, facts, details, evidence)
-    if (hasMixedHttp && redirects.every((hop) => hop.statusCode === 301 || hop.statusCode === 308)) return build('ok', 750, input, facts, details, evidence)
-    if (!redirects.every((hop) => hop.statusCode === 301 || hop.statusCode === 308)) return build('info', 700, input, facts, details, evidence)
+    if (hasMixedHttp && allPermanent) return build('ok', 750, input, facts, details, evidence)
     return build('info', 700, input, facts, details, evidence)
   },
 }

@@ -1,8 +1,10 @@
+
 import { headersNotCapturedResult } from '@/rules/http/headersNotCaptured'
 import { hasHeaders } from '@/shared/http-utils'
 import { textField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
 import type { Rule } from '@/core/types'
+import { listRow } from '@/shared/presentation/listRow'
 
 const RECOMMENDED_HEADERS = [
   'content-security-policy',
@@ -30,12 +32,12 @@ export const securityHeadersRule: Rule = {
     const allPresent = missingHeaders.length === 0
     return presentResult(securityHeadersRule, page, {
       input: 'HTTP response headers', type: allPresent ? 'ok' : 'info', priority: allPresent ? 750 : 800,
-      values: [textField('Security headers present', `${presentHeaders.length} of ${RECOMMENDED_HEADERS.length}`),
-        textField('Missing headers', missingHeaders.length ? missingHeaders.join(', ') : 'None')],
-      detailValues: [textField('Present headers', presentHeaders.join(', ') || 'None')],
+      values: [textField('Headers present', `${presentHeaders.length} of ${RECOMMENDED_HEADERS.length}`),
+        textField('Absent headers', listRow(missingHeaders))],
       checked: [textField('Headers checked', RECOMMENDED_HEADERS.join(', ')),
         textField('Criterion', 'ok requires all listed headers present')],
-      evidence: [{ name: 'Checked headers', fields: RECOMMENDED_HEADERS.map((name) => textField(name, headers[name] || 'Not present')) }],
+      // One record per present header, named by the header, with its complete captured value.
+      evidence: presentHeaders.map((name) => ({ name, fields: [textField('Value', headers[name]!)] })),
       noMarkup: 'None - this rule checks the HTTP response, not document markup',
     })
   },

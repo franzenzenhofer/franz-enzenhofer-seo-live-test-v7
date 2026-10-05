@@ -26,7 +26,7 @@ describe('navigation journey', () => {
   it('explains the reported 308, 200 and unchanged history update without duplicating the trace', async () => {
     const result = await run()
     expect(result.type).toBe('info'); expect(result.priority).toBe(700)
-    expect(result.message).not.toContain(start)
+    expect(result.presentation?.values.map((field) => field.key)).toEqual(['First URL', 'Final URL', 'Redirect hops', 'Final status'])
     const hops = result.presentation?.evidence ?? []
     expect(hops.map((hop) => hop.fields.find((field) => field.key === 'Status')?.value)).toEqual(['HTTP 308 Permanent Redirect', 'HTTP 200 OK', undefined])
     expect(hops[0]?.fields).toContainEqual({ key: 'Location', value: destination, kind: 'url' })
@@ -48,7 +48,7 @@ describe('navigation journey', () => {
     const hops: NavigationHop[] = [{ url: start, type: 'http_redirect', timestamp: 1 }, { url: destination, type: 'load', timestamp: 2 }]
     const result = await run({ ...page, headerChain: undefined }, hops)
     expect(result.type).toBe('info'); expect(result.priority).toBe(700)
-    expect(result.presentation?.values).toContainEqual({ key: 'Final response status', value: 'Not captured', kind: 'text' })
+    expect(result.presentation?.values.some((field) => field.key === 'Final status')).toBe(false)
     expect(toResultCopyPayload(result)).not.toContain('HTTP 200')
   })
 

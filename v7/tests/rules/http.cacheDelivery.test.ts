@@ -18,33 +18,33 @@ describe('rule: cache delivery (Age header)', () => {
     const result = await run({ 'content-type': 'text/html' })
     expect(result.type).toBe('info')
     expect(result.priority).toBe(900)
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Cache indication', value: 'No evidence of shared-cache delivery' }))
+    expect(result.presentation?.values).toEqual([{ key: 'Age', value: 'Absent', kind: 'text' }])
   })
 
   it('treats Age: 0 as cache-mediated, not fresh from origin (RFC 9111 5.1)', async () => {
     const result = await run({ 'content-type': 'text/html', age: '0' })
     expect(result.type).toBe('info')
     expect(result.priority).toBe(750)
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Cache indication', value: 'Delivered via a shared/proxy cache' }))
+    expect(result.presentation?.values).toEqual([{ key: 'Age', value: '0', kind: 'text' }, { key: 'Cache age', value: '0 seconds', kind: 'text' }])
   })
 
   it('reports seconds for small ages', async () => {
     const result = await run({ age: '42' })
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Age', value: '42 seconds' }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Cache age', value: '42 seconds' }))
   })
 
   it('reports minutes and hours for larger ages', async () => {
     const minutes = await run({ age: '600' })
-    expect(minutes.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Age', value: '10 minutes' }))
+    expect(minutes.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Cache age', value: '10 minutes' }))
     const hours = await run({ age: '7200' })
-    expect(hours.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Age', value: '2 hours' }))
+    expect(hours.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Cache age', value: '2 hours' }))
   })
 
   it.each(['NaN', '-1', '1.5'])('identifies malformed Age %s instead of displaying a made-up duration', async (age) => {
     const result = await run({ Age: age })
     expect(result.type).toBe('warn')
     expect(result.priority).toBe(900)
-    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Age', value: 'Invalid value' }))
+    expect(result.presentation?.values).toContainEqual(expect.objectContaining({ key: 'Cache age', value: 'Invalid value' }))
   })
 
   it('preserves the original Age header value verbatim and references without advice', async () => {

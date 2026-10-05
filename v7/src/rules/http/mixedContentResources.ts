@@ -1,6 +1,9 @@
 import type { Page } from '@/core/types'
 import type { ResourceIssue } from '@/shared/resourceIssues'
 
+/** An offender: its issue facts plus the source element when it came from the DOM (network-only offenders have none). */
+export type Offender = { issue: ResourceIssue; element?: Element }
+
 // Only fetching link relations: https://www.w3.org/TR/mixed-content/
 const FETCHING_RELATIONS = new Set(['stylesheet', 'icon', 'preload', 'prefetch', 'modulepreload', 'manifest'])
 const ATTRIBUTES: Record<string, string> = {
@@ -40,25 +43,25 @@ const elementIssue = (element: Element): ResourceIssue[] => {
   }]
 }
 
-// Same detection as mixedContentResources, but paired with the source Element so
-// callers can retrieve original markup for offenders that came from the DOM
-// (network-only offenders in `page.resources` have no matching element).
-export const mixedContentElementIssues = (page: Page): Array<{ element: Element; issue: ResourceIssue }> =>
+// Every DOM offender paired with its source element, so the card can retrieve original markup.
+const elementOffenders = (page: Page): Offender[] =>
   Array.from(page.doc.querySelectorAll(Object.keys(ATTRIBUTES).join(',')))
     .flatMap((element) => elementIssue(element).map((issue) => ({ element, issue })))
 
-export const mixedContentResources = (page: Page) => {
-  const issues = mixedContentElementIssues(page).map((entry) => entry.issue)
-  const forms = issues.filter((issue) => issue.kind === 'Form')
-  const elements = issues.filter((issue) => issue.kind !== 'Form')
-  const elementUrls = new Set(elements.map((issue) => issue.url))
+/** DOM and network-only HTTP resource offenders, and HTTP form actions, in page order. */
+export const mixedContentOffenders = (page: Page): { resources: Offender[]; forms: Offender[] } => {
+  const offenders = elementOffenders(page)
+  const forms = offenders.filter((offender) => offender.issue.kind === 'Form')
+  const elements = offenders.filter((offender) => offender.issue.kind !== 'Form')
+  const elementUrls = new Set(elements.map((offender) => offender.issue.url))
   const network = [...new Set((page.resources || []).filter(isHttp).map((url) => url.trim()))]
     .filter((url) => !elementUrls.has(url))
-    .map((url): ResourceIssue => ({ name: fileName(url), kind: 'Network resource', url, location: 'Network capture; no matching HTML element found' }))
+    .map((url): Offender => ({ issue: { name: fileName(url), kind: 'Network resource', url, location: 'Network capture; no matching HTML element found' } }))
   return { resources: [...elements, ...network], forms }
 }
 
-export const resourceSummary = (issues: ResourceIssue[]): string => {
-  const counts = issues.reduce<Record<string, number>>((all, issue) => ({ ...all, [issue.kind]: (all[issue.kind] || 0) + 1 }), {})
-  return Object.entries(counts).map(([kind, count]) => `${count} ${kind.toLowerCase()}${count === 1 ? '' : 's'}`).join(', ')
+/** "2 images, 1 script": one derived observed value for the overview (F12). */
+export const kindSummary = (offenders: Offender[]): string[] => {
+  const counts = offenders.reduce<Record<string, number>>((all, { issue }) => ({ ...all, [issue.kind]: (all[issue.kind] || 0) + 1 }), {})
+  return Object.entries(counts).map(([kind, count]) => `${count} ${kind.toLowerCase()}${count === 1 ? '' : 's'}`)
 }

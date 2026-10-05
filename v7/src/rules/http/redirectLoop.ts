@@ -1,11 +1,12 @@
+import { journeyRows, ledgerTrace, NAVIGATION_NONE, NAVIGATION_NOT_CHECKED } from './navigationJourneyRows'
 import { navigationPathSteps } from './navigationPathSteps'
 import { combineInputs, httpUrlField, navigationStepEvidence } from './navigationStepEvidence'
 
-import { NavigationLedgerSchema } from '@/background/history/types'
 import type { Rule, Result } from '@/core/types'
 import { hasHeaders } from '@/shared/http-utils'
 import { textField } from '@/shared/presentation/create'
 import { presentResult } from '@/shared/presentation/result'
+import type { DisplayField } from '@/shared/presentation/schema'
 
 const NAME = 'Redirect Loop Detection'
 const NOT_MARKUP = 'None - this rule checks recorded navigation events, not document markup'
@@ -28,38 +29,34 @@ export const redirectLoopRule: Rule = {
   },
 
   async run(page, ctx): Promise<Result> {
-    const build = (type: Result['type'], priority: number, input: string, values: ReturnType<typeof textField>[], detailValues: ReturnType<typeof textField>[] = [], evidence: ReturnType<typeof navigationStepEvidence> = []) =>
+    const build = (type: Result['type'], priority: number, input: string, values: DisplayField[], detailValues: DisplayField[] = [], evidence: ReturnType<typeof navigationStepEvidence> = []) =>
       presentResult(redirectLoopRule, page, { input, type, priority, values, detailValues, checked: CHECKED, evidence, noMarkup: NOT_MARKUP })
 
     if (!hasHeaders(page.headers)) return build('runtime_error', 50, 'Not captured', [textField('HTTP response headers', 'Not captured')])
 
-    const raw = (ctx.globals as { navigationLedger?: unknown }).navigationLedger
-    const ledgerResult = NavigationLedgerSchema.safeParse(raw)
-    if (!ledgerResult.success || ledgerResult.data.trace.length === 0) {
-      return build('info', 900, 'HTTP response headers', [textField('Navigation data', 'Not captured')])
-    }
+    const trace = ledgerTrace(ctx.globals)
+    if (!trace) return build('info', 900, 'HTTP response headers', [NAVIGATION_NOT_CHECKED])
+    if (trace.length === 0) return build('info', 900, 'HTTP response headers', [NAVIGATION_NONE])
 
-    const { trace } = ledgerResult.data
     const steps = navigationPathSteps(page, trace)
     const evidence = navigationStepEvidence(steps, page.headerChain)
     const input = combineInputs('Navigation events', (page.headerChain?.length ?? 0) > 0 && 'Main-document HTTP response')
     const redirectTrace = trace.filter((hop) => hop.type === 'http_redirect' || hop.type === 'client_redirect')
+    const journey = journeyRows(steps)
 
     if (redirectTrace.length === 0) {
-      return build('ok', 800, input, [textField('Redirects observed', 0), textField('Loop detected', 'No')], [], evidence)
+      return build('ok', 800, input, [...journey, textField('Redirect hops', 0), textField('Repeated URLs', 'None')], [], evidence)
     }
 
     const urlCounts = new Map<string, number>()
     for (const hop of redirectTrace) urlCounts.set(hop.url, (urlCounts.get(hop.url) || 0) + 1)
     const loopUrls = Array.from(urlCounts.entries()).filter(([, count]) => count > 1).map(([url, count]) => ({ url, count }))
+    const facts = [...journey, textField('Redirect hops', redirectTrace.length), textField('Repeated URLs', loopUrls.length || 'None')]
+    const details = [textField('Unique URLs visited', urlCounts.size)]
 
-    if (loopUrls.length === 0) {
-      return build('ok', 800, input, [textField('Redirect hops checked', redirectTrace.length), textField('Loop detected', 'No')],
-        [textField('Unique URLs visited', urlCounts.size)], evidence)
-    }
+    if (loopUrls.length === 0) return build('ok', 800, input, facts, details, evidence)
 
-    return build('error', 50, input, [textField('Loop detected', 'Yes'), textField('Looping URLs', loopUrls.length)],
-      [textField('Redirect hops checked', redirectTrace.length)],
+    return build('error', 50, input, facts, details,
       [...evidence, ...loopUrls.map((loop, index) => ({
         name: `Loop ${index + 1}`,
         fields: [httpUrlField('URL', loop.url), textField('Occurrences', loop.count)],

@@ -23,7 +23,7 @@ describe('http:redirect-loop rule', () => {
   it('returns info when no ledger available', async () => {
     const r = await run(createMockPage(), null)
     expect(r.type).toBe('info'); expect(r.priority).toBe(900)
-    expect(value(r, 'Navigation data')).toBe('Not captured')
+    expect(value(r, 'Navigation events')).toBe('Not checked'); expect(r.presentation?.input).toBe('HTTP response headers')
   })
 
   it('returns ok for a direct load with no redirects', async () => {
@@ -32,7 +32,8 @@ describe('http:redirect-loop rule', () => {
     ] }
     const r = await run(createMockPage(), ledger)
     expect(r.type).toBe('ok'); expect(r.priority).toBe(800)
-    expect(value(r, 'Redirects observed')).toBe(0); expect(value(r, 'Loop detected')).toBe('No')
+    expect(value(r, 'Redirect hops')).toBe(0); expect(value(r, 'Repeated URLs')).toBe('None')
+    expect(value(r, 'Final URL')).toBe('https://example.com')
   })
 
   it('returns ok when no loops detected', async () => {
@@ -42,8 +43,8 @@ describe('http:redirect-loop rule', () => {
     ] }
     const r = await run(createMockPage(), ledger)
     expect(r.type).toBe('ok')
-    expect(value(r, 'Redirect hops checked')).toBe(1)
-    expect(value(r, 'Loop detected')).toBe('No')
+    expect(value(r, 'Redirect hops')).toBe(1)
+    expect(value(r, 'Repeated URLs')).toBe('None')
     expect(r.presentation?.detailValues.find((f) => f.key === 'Unique URLs visited')?.value).toBe(1)
     expect(r.presentation?.input).toBe('Navigation events')
   })
@@ -69,7 +70,7 @@ describe('http:redirect-loop rule', () => {
     ] }
     const r = await run(createMockPage(), ledger)
     expect(r.type).toBe('error'); expect(r.priority).toBe(50)
-    expect(value(r, 'Loop detected')).toBe('Yes'); expect(value(r, 'Looping URLs')).toBe(2)
+    expect(value(r, 'Repeated URLs')).toBe(2)
     const loop1 = r.presentation?.evidence.find((e) => e.name === 'Loop 1')
     expect(loop1?.fields.some((f) => f.key === 'Occurrences' && f.value === 2)).toBe(true)
     expect(r.details).toBeUndefined()
@@ -82,7 +83,7 @@ describe('http:redirect-loop rule', () => {
       { url: 'https://example.com', timestamp: Date.now(), type: 'load', statusCode: 200 },
     ] }
     const r = await run(createMockPage(), ledger)
-    expect(r.type).toBe('error'); expect(value(r, 'Looping URLs')).toBe(1)
+    expect(r.type).toBe('error'); expect(value(r, 'Repeated URLs')).toBe(1)
   })
 
   it('preserves all references and emits no legacy details', async () => {

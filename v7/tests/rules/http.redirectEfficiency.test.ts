@@ -25,14 +25,15 @@ describe('http:redirect-efficiency rule', () => {
   it('returns info when no ledger available', async () => {
     const r = await run(createMockPage(), null)
     expect(r.type).toBe('info'); expect(r.priority).toBe(900)
-    expect(value(r, 'Navigation data')).toBe('Not captured')
+    expect(value(r, 'Navigation events')).toBe('Not checked')
   })
 
   it('returns ok for direct load with zero hops', async () => {
     const ledger: NavigationLedger = { tabId: 1, currentUrl: 'https://example.com', trace: [hop('https://example.com', 'load', 200)] }
     const r = await run(createMockPage(), ledger)
     expect(r.type).toBe('ok'); expect(r.priority).toBe(900)
-    expect(value(r, 'Redirect hops')).toBe(0); expect(value(r, 'Total hops')).toBe(1)
+    expect(value(r, 'Redirect hops')).toBe(0); expect(detail(r, 'Total hops')).toBe(1)
+    expect(value(r, 'Final URL')).toBe('https://example.com')
   })
 
   it('returns ok for a single redirect hop and reports the permanent/temporary breakdown', async () => {
@@ -65,14 +66,14 @@ describe('http:redirect-efficiency rule', () => {
     ] }
     const r = await run(createMockPage(), ledger)
     expect(r.type).toBe('warn')
-    expect(value(r, 'Redirect hops')).toBe(3); expect(value(r, 'Client-side redirects')).toBe(1); expect(detail(r, 'Temporary redirects')).toBe(2)
+    expect(value(r, 'Redirect hops')).toBe(3); expect(value(r, 'HTTP redirects')).toBe(2); expect(value(r, 'Client redirects')).toBe(1); expect(detail(r, 'Temporary redirects')).toBe(2)
   })
 
   it('includes the full chain-fact breakdown and evidence hops', async () => {
     const ledger: NavigationLedger = { tabId: 1, currentUrl: 'https://example.com', trace: [hop('http://example.com', 'http_redirect', 301), hop('https://example.com', 'load', 200)] }
     const page = { ...createMockPage(), headerChain: [{ url: 'http://example.com', status: 301, location: 'https://example.com' }, { url: 'https://example.com', status: 200 }] }
     const r = await run(page, ledger)
-    expect(value(r, 'HTTP redirects')).toBe(1); expect(detail(r, 'Total hops')).toBe(2)
+    expect(value(r, 'HTTP redirects')).toBeUndefined(); expect(detail(r, 'Total hops')).toBe(2)
     expect(r.presentation?.input).toBe('Navigation events + Main-document HTTP response')
     expect(r.presentation?.evidence).toHaveLength(2)
     expect(r.details).toBeUndefined()

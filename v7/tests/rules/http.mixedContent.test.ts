@@ -21,20 +21,20 @@ describe('rule: http mixed content', () => {
     const res = await mixedContentRule.run({ ...base, url: 'https://ex.com', doc: htmlDoc('<img src="https://ex.com/a.png">') }, ctx)
     expect(res.type).toBe('ok')
     expect(res.priority).toBe(850)
-    expect(res.presentation?.values).toContainEqual({ key: 'Mixed-content resources', value: 0, kind: 'text' })
+    expect(res.presentation?.values).toContainEqual({ key: 'HTTP references', value: 'None', kind: 'text' })
   })
 
   it('errors on mixed content resources', async () => {
     const res = await mixedContentRule.run({ ...base, url: 'https://ex.com', doc: htmlDoc('<img src="http://cdn.ex/a.png"><script src="http://cdn.ex/app.js"></script>') }, ctx)
     expect(res.type).toBe('error')
     expect(res.priority).toBe(80)
-    expect(res.presentation?.values).toContainEqual({ key: 'Mixed-content resources', value: 2, kind: 'text' })
+    expect(res.presentation?.values).toContainEqual({ key: 'HTTP references', value: '1 image, 1 script', kind: 'text' })
   })
 
   it('errors on http:// stylesheet links (fetching link relation)', async () => {
     const res = await mixedContentRule.run({ ...base, url: 'https://ex.com', doc: htmlDoc('<link rel="stylesheet" href="http://cdn.ex/a.css">') }, ctx)
     expect(res.type).toBe('error')
-    expect(res.presentation?.values).toContainEqual({ key: 'Mixed-content resources', value: 1, kind: 'text' })
+    expect(res.presentation?.values).toContainEqual({ key: 'HTTP references', value: '1 stylesheet', kind: 'text' })
   })
 
   it('ignores non-fetching link relations like rel=canonical', async () => {
@@ -46,13 +46,13 @@ describe('rule: http mixed content', () => {
     const res = await mixedContentRule.run({ ...base, url: 'https://ex.com', doc: htmlDoc('<form action="http://ex.com/submit"><input name="q"></form>') }, ctx)
     expect(res.type).toBe('warn')
     expect(res.priority).toBe(200)
-    expect(res.presentation?.values).toContainEqual({ key: 'Insecure form actions', value: 1, kind: 'text' })
+    expect(res.presentation?.values).toContainEqual({ key: 'HTTP references', value: '1 form', kind: 'text' })
   })
 
   it('errors when network-captured resources are mixed content', async () => {
     const res = await mixedContentRule.run({ ...base, url: 'https://ex.com', resources: ['http://cdn.ex/a.js', 'https://ex.com/b.js'] }, ctx)
     expect(res.type).toBe('error')
-    expect(res.presentation?.values).toContainEqual({ key: 'Mixed-content resources', value: 1, kind: 'text' })
+    expect(res.presentation?.values).toContainEqual({ key: 'HTTP references', value: '1 network resource', kind: 'text' })
     expect(res.presentation?.noMarkup).toContain('network-only')
   })
 

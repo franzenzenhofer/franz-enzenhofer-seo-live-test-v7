@@ -14,10 +14,13 @@ describe('actionable mixed-content evidence', () => {
   it('names the image and attribute, keeping HTTP markup an error even with an HTTPS network URL', async () => {
     const result = await run('<img src="http://cdn.test/trip.jpg?v=1" alt="Alpe-Adria 8 Tage">', ['https://cdn.test/trip.jpg?v=1'])
     expect(result.type).toBe('error')
-    expect(result.presentation?.values).toContainEqual({ key: 'Mixed-content resources', value: 1, kind: 'text' })
+    expect(result.presentation?.values).toContainEqual({ key: 'HTTP references', value: '1 image', kind: 'text' })
+    // The offending element itself is the overview's observed value, keyed by its tag.
+    expect(result.presentation?.values.at(-1)).toMatchObject({ key: '<img>', kind: 'original', value: '<img src="http://cdn.test/trip.jpg?v=1" alt="Alpe-Adria 8 Tage">' })
     const record = result.presentation?.evidence[0]
+    expect(record?.name).toBe('<img>')
     expect(record?.fields).toContainEqual({ key: 'Kind', value: 'Image', kind: 'text' })
-    expect(record?.fields).toContainEqual({ key: 'Element label (excerpt)', value: 'Alpe-Adria 8 Tage', kind: 'text' })
+    expect(record?.fields).toContainEqual({ key: 'Label', value: 'Alpe-Adria 8 Tage', kind: 'text' })
     expect(record?.fields).toContainEqual({ key: 'HTTP URL', value: 'http://cdn.test/trip.jpg?v=1', kind: 'url' })
     expect(record?.fields).toContainEqual({ key: 'Location', value: '<img> src', kind: 'text' })
     expect(record?.fields).toContainEqual({ key: 'DOM path', value: 'img[src="http://cdn.test/trip.jpg?v=1"]', kind: 'path' })
@@ -29,19 +32,24 @@ describe('actionable mixed-content evidence', () => {
     const result = await run('<img src="http://cdn.test/a.jpg"><form action="http://example.test/send" aria-label="Contact"></form>', [
       'http://cdn.test/a.jpg', 'http://cdn.test/app.js', 'http://cdn.test/app.js',
     ])
-    expect(result.presentation?.values).toContainEqual({ key: 'Mixed-content resources', value: 2, kind: 'text' })
-    expect(result.presentation?.values).toContainEqual({ key: 'Insecure form actions', value: 1, kind: 'text' })
-    const names = result.presentation?.evidence.map((e) => e.fields.find((f) => f.key === 'Element label (excerpt)')?.value)
+    expect(result.presentation?.values).toContainEqual({ key: 'HTTP references', value: '1 image, 1 network resource, 1 form', kind: 'text' })
+    const names = result.presentation?.evidence.map((e) => e.fields.find((f) => f.key === 'Label')?.value)
     expect(names).toEqual(['a.jpg', 'app.js', 'Contact'])
+    expect(result.presentation?.evidence.map((e) => e.name)).toEqual(['<img>', 'Network resource', '<form>'])
+    // Three offenders found, two with markup: the four count rows say so.
+    expect(result.presentation?.detailValues).toContainEqual({ key: 'Markup retained', value: 2, kind: 'text' })
+    expect(result.presentation?.detailValues).toContainEqual({ key: 'Markup omitted', value: 1, kind: 'text' })
+    expect(result.presentation?.detailValues).toContainEqual({ key: 'Evidence retained', value: 3, kind: 'text' })
     // The network-only offender (app.js) has no source element, so no DOM path.
     expect(result.presentation?.evidence[1]?.fields.some((f) => f.key === 'DOM path')).toBe(false)
   })
 
   it('preserves repeated element occurrences in page order and handles uppercase link relations', async () => {
     const result = await run('<img src="http://cdn.test/a.jpg" alt="First"><link rel="STYLESHEET" href="http://cdn.test/main.css"><img src="http://cdn.test/a.jpg" alt="Second">')
-    const names = result.presentation?.evidence.map((e) => e.fields.find((f) => f.key === 'Element label (excerpt)')?.value)
+    const names = result.presentation?.evidence.map((e) => e.fields.find((f) => f.key === 'Label')?.value)
     expect(names).toEqual(['First', 'main.css', 'Second'])
-    expect(result.presentation?.values).toContainEqual({ key: 'Mixed-content resources', value: 3, kind: 'text' })
+    expect(result.presentation?.evidence.map((e) => e.name)).toEqual(['<img> 1', '<link rel="stylesheet">', '<img> 2'])
+    expect(result.presentation?.values).toContainEqual({ key: 'HTTP references', value: '2 images, 1 stylesheet', kind: 'text' })
   })
 
   it('produces a DOM path that matches the original page after compact DOM reconstruction', async () => {

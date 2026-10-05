@@ -13,7 +13,7 @@ describe('rule: headers present', () => {
     expect(r.type).toBe('warn')
     expect(r.priority).toBe(350)
     expect(r.presentation?.input).toBe('Not captured')
-    expect(r.presentation?.values).toContainEqual({ key: 'Headers captured', value: 0, kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'Response headers', value: 'Not captured', kind: 'text' }])
   })
 
   it('reports info when headers exist', async () => {
@@ -26,12 +26,14 @@ describe('rule: headers present', () => {
   it('reports the observed status and cache state', async () => {
     const r = await headersPresentRule.run(P({ 'content-type': 'text/html' }, { status: 200, fromCache: true }), { globals: {} })
     expect(r.presentation?.values).toContainEqual({ key: 'Main-document status', value: 'HTTP 200 OK', kind: 'text' })
-    expect(r.presentation?.values).toContainEqual({ key: 'Served from cache', value: 'Yes', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'Served from', value: 'Browser cache', kind: 'text' })
   })
 
-  it('reports not-reported cache state when unknown', async () => {
-    const r = await headersPresentRule.run(P({}), { globals: {} })
-    expect(r.presentation?.values).toContainEqual({ key: 'Served from cache', value: 'Not reported', kind: 'text' })
+  it('shows no cache row when the capture carries no cache flag', async () => {
+    const r = await headersPresentRule.run(P({ 'content-type': 'text/html' }, { status: 200, fromCache: false }), { globals: {} })
+    expect(r.presentation?.values).toContainEqual({ key: 'Served from', value: 'Network', kind: 'text' })
+    const unknown = await headersPresentRule.run(P({ 'content-type': 'text/html' }), { globals: {} })
+    expect(unknown.presentation?.values.map((field) => field.key)).toEqual(['Headers captured'])
   })
 
   it('copies references (fallback) and labelled facts without legacy details', async () => {

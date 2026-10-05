@@ -18,21 +18,20 @@ describe('rule: vary user-agent', () => {
     const r = await varyUserAgentRule.run(P({ 'content-type': 'text/html' }), { globals: {} })
     expect(r.type).toBe('info')
     expect(r.priority).toBe(850)
-    expect(r.presentation?.values).toContainEqual({ key: 'Vary', value: 'Not present', kind: 'text' })
-    expect(r.presentation?.values).toContainEqual({ key: 'Includes User-Agent', value: 'No', kind: 'text' })
+    expect(r.presentation?.values).toEqual([{ key: 'Vary', value: 'Absent', kind: 'text' }])
   })
 
   it('reports vary present without User-Agent', async () => {
     const r = await varyUserAgentRule.run(P({ vary: 'Accept-Encoding' }), { globals: {} })
     expect(r.priority).toBe(850)
     expect(r.presentation?.values).toContainEqual({ key: 'Vary', value: 'Accept-Encoding', kind: 'text' })
-    expect(r.presentation?.values).toContainEqual({ key: 'Includes User-Agent', value: 'No', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'User-Agent', value: 'Not found', kind: 'text' })
   })
 
   it('reports vary UA', async () => {
     const r = await varyUserAgentRule.run(P({ vary: 'Accept-Encoding, User-Agent' }), { globals: {} })
     expect(r.priority).toBe(750)
-    expect(r.presentation?.values).toContainEqual({ key: 'Includes User-Agent', value: 'Yes', kind: 'text' })
+    expect(r.presentation?.values).toContainEqual({ key: 'User-Agent', value: 'Found', kind: 'text' })
   })
 
   it('copies references and labelled facts without legacy details', async () => {
